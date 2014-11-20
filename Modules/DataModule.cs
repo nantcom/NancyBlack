@@ -10,6 +10,10 @@ using System.Linq;
 using System.Web;
 using SisoDb.SqlCe4;
 using SisoDb;
+using System.Collections.Specialized;
+using Linq2Rest.Parser;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -25,26 +29,47 @@ namespace NantCom.NancyBlack.Modules
                                 .CreateSqlCe4Db()
                                 .CreateIfNotExists();
 
-            Post["/data/{entityName}"] = this.SaveData;
+            // the interface of data mobile is compatible with Azure Mobile Service
+            // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
+
+            Get["/tables/{table_name}"] = this.QueryRecords;
+
+            Post["/tables/{table_name}"] = this.HandleInsertUpdateRequest;
+
+            Patch["/tables/{table_name}/{item_id}"] = this.HandleInsertUpdateRequest;
+
+            Delete["/tables/{table_name}/{item_id}"] = this.DeleteRecord;
         }
-        
-        private dynamic SaveData(dynamic arg)
+
+        /// <summary>
+        /// Create a function which will Handles the request.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <returns></returns>
+        private dynamic HandleInsertUpdateRequest( dynamic arg )
         {
-            // get entity name from path, note the {entityName} in Path registration on line 28
-            var entityName = (string)arg.entityName;
+            var entityName = (string)arg.table_name;
+            var id = arg.item_id == null ? 0 : (int?)arg.item_id;
 
             // get the json from request body
             var streamReader = new StreamReader(this.Request.Body);
             var json = streamReader.ReadToEnd();
 
+            // get the compiled type by extracting interface from json
             var dataType = DataType.FromJson(entityName, json);
             var actualType = dataType.GetCompiledType();
 
             var inputObject = JsonConvert.DeserializeObject(json, actualType);
-            dynamic dynamicInputObject = inputObject; // so we can easily check Id
 
-            if (dynamicInputObject.Id == 0)
+            if (id == null || id == 0)
             {
+                if (this.Request.Method == "PATCH")
+                {
+                    return this.Negotiate
+                        .WithStatusCode(400)
+                        .WithReasonPhrase("Cannot update, Id was not specified.");
+                }
+
                 _SisoDatabase.UseOnceTo().Insert(actualType, inputObject);
             }
             else
@@ -52,9 +77,115 @@ namespace NantCom.NancyBlack.Modules
                 _SisoDatabase.UseOnceTo().Update(actualType, inputObject);
             }
 
+
             return this.Negotiate
                 .WithContentType("application/json")
-                .WithModel( inputObject );
+                .WithModel(inputObject);
+        }
+
+        /// <summary>
+        /// Queries the specified database.
+        /// </summary>
+        /// <param name="db">The database.</param>
+        /// <param name="odataFilter">The odata filter.</param>
+        /// <returns></returns>
+        private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
+        {
+            var parser = new ParameterParser<T>();
+            var modelFilter = parser.Parse(odataFilter);
+
+            var queryable = _SisoDatabase.UseOnceTo().Query<T>();
+
+            if (odataFilter["$filter"] != null)
+            {
+                queryable = queryable.Where(modelFilter.FilterExpression);
+
+            }
+
+            var sortExpressions = (from sort in modelFilter.SortDescriptions
+                                  where sort != null
+                                  select sort.KeySelector as Expression<Func<T, object>>).ToArray();
+
+            if (sortExpressions.Length > 0)
+            {
+                queryable = queryable.OrderBy(sortExpressions);
+            }
+
+            if (modelFilter.SkipCount > 0)
+            {
+                queryable = queryable.Skip(modelFilter.SkipCount);
+            }
+
+            if (modelFilter.TakeCount > 0)
+            {
+                queryable = queryable.Take(modelFilter.SkipCount);
+            }
+
+            return queryable.ToListOfJson();
+        }
+        
+        private dynamic QueryRecords( dynamic arg )
+        {
+            var entityName = (string)arg.table_name;
+            var type = DataType.FromName(entityName);
+
+            if (type == null)
+            {
+                // type is null, we have to create empty one to allow query to be run
+                // there is no information in SiSoDB about existing Structure?
+                type = DataType.FromJson(entityName, "{ Id: 0 }");
+            }
+
+            NameValueCollection nv = new NameValueCollection();
+
+            var queries = this.Request.Query as IDictionary<string, dynamic>;
+            foreach (var item in queries)
+            {
+                nv.Add(item.Key, item.Value.ToString());
+            }
+
+            var method = typeof(DataModule)
+                            .GetMethod("PerformQuery", BindingFlags.NonPublic | BindingFlags.Instance )
+                            .MakeGenericMethod( type.GetCompiledType() );
+
+            var rowsAsJson = (IList<string>)method.Invoke(this, new object[] { nv });
+
+            // Write output row as RAW json
+            var output = new Response();
+            output.ContentType = "application/json";
+            output.Contents = (s) =>
+            {
+                var sw = new StreamWriter(s);
+                sw.Write("[");
+                foreach (var row in rowsAsJson)
+                {
+                    sw.WriteLine(row + ",");
+                }
+                sw.Write("]");
+                sw.Close();
+                sw.Dispose();
+            };
+
+            return output;
+        }
+
+        private dynamic DeleteRecord(dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+            var id = arg.item_id == null ? 0 : (int?)arg.item_id;
+            
+            var type = DataType.FromName(entityName);
+            if (type == null)
+            {
+                // type is null, we have to create empty one to allow query to be run
+                // there is no information in SiSoDB about existing Structure?
+                type = DataType.FromJson(entityName, "{ Id: 0 }");
+            }
+
+            _SisoDatabase.UseOnceTo().DeleteById(type.GetCompiledType(), id);
+
+            return this.Negotiate
+                .WithStatusCode(204);
         }
 
     }

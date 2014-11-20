@@ -9,6 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
+using SisoDb;
+using System.Collections.Specialized;
+using Linq2Rest.Parser;
+using System.Linq.Expressions;
 
 namespace NantCom.NancyBlack.Types
 {
@@ -32,7 +36,28 @@ namespace NantCom.NancyBlack.Types
         /// <value>
         /// The properties.
         /// </value>
-        public List<DataProperty> Properties { get; set; }
+        public IEnumerable<DataProperty> Properties { get; private set; }
+
+        private int _PropertiesHashCode;
+
+        /// <summary>
+        /// Gets the hash code which can be used to detect whether the properties of this DataType is similar.
+        /// </summary>
+        /// <value>
+        /// The hash code.
+        /// </value>
+        public int PropertiesHashCode
+        {
+            get
+            {
+                if (_PropertiesHashCode == 0)
+                {
+                    _PropertiesHashCode = JsonConvert.SerializeObject(this.Properties).GetHashCode();
+                }
+
+                return _PropertiesHashCode;
+            }
+        }
 
         private static string _GeneratorTemplate = @"
 
@@ -44,7 +69,6 @@ public class @Model.Name
     {
         <text>public</text> @property.Type <text> </text> @property.Name <text>{ get; set; }</text>
     }
-    
 }
 ";
 
@@ -101,7 +125,44 @@ public class @Model.Name
             return this.GetAssembly().GetType(this.Name);
         }
 
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            DataType other = obj as DataType;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return other.Name.Equals(this.Name, StringComparison.InvariantCultureIgnoreCase) &&
+                other.PropertiesHashCode == this.PropertiesHashCode;
+        }
+
+        #region Static Factories
+
         private static Dictionary<string, DataType> _CachedDataType = new Dictionary<string, DataType>();
+
+        /// <summary>
+        /// Froms the name.
+        /// </summary>
+        /// <param name="typeName">Name of the type.</param>
+        /// <returns></returns>
+        public static DataType FromName( string typeName )
+        {
+            DataType dt;
+            if (_CachedDataType.TryGetValue( typeName.Trim().ToLowerInvariant(), out dt ))
+            {
+                return dt;
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Generate DataType from json.
@@ -112,36 +173,46 @@ public class @Model.Name
         {
             var sourceObject = JsonConvert.DeserializeObject(inputJson) as JObject;
 
-            var newType = new DataType();
-            newType.Name = typeName;
-            newType.Properties = (from KeyValuePair<string, JToken> property in sourceObject
+            var clientDataType = new DataType();
+            clientDataType.Name = typeName.Trim().ToLowerInvariant();
+            
+            var properties = (from KeyValuePair<string, JToken> property in sourceObject
                                  select new DataProperty(property.Key, property.Value.Type) ).ToList();
 
-            var idProperty = ( from p in newType.Properties
+            var idProperty = (from p in properties
                                where p.Name.Equals( "id", StringComparison.InvariantCultureIgnoreCase )
                                select p ).FirstOrDefault();
 
             if ( idProperty == null)
             {
                 // no Id, create one
-                newType.Properties.Add( new DataProperty() { Name = "Id", Type = "int" });
+                properties.Add(new DataProperty() { Name = "Id", Type = "int" });
             }
             else
             {
+                // has Id but may not be named "Id", set it
                 idProperty.Name = "Id"; // The field Id is required
             }
 
-            // lookup from cache
-            var cacheKey = JsonConvert.SerializeObject(newType);
-            DataType cachedType;
-            if (_CachedDataType.TryGetValue( cacheKey, out cachedType))
+            clientDataType.Properties = properties;
+
+            // type with same name must exists only once
+            var existingDataType = DataType.FromName(clientDataType.Name);
+            if (existingDataType != null)
             {
-                return cachedType;
+                // if structure does not change, use it
+
+                if (existingDataType.Equals( clientDataType ))
+                {
+                    return existingDataType;
+                }
             }
 
-            _CachedDataType.Add(cacheKey, newType);
+            // if changed - set to new client's data type
+            // we will always update our type to match client's
 
-            return newType;
+            _CachedDataType[clientDataType.Name] = clientDataType;
+            return clientDataType;
         }
 
         /// <summary>
@@ -163,6 +234,8 @@ public class @Model.Name
             return DataType.FromJson(typeName, json);
 
         }
+
+        #endregion
     }
 
 }

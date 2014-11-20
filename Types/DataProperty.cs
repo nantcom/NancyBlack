@@ -62,6 +62,8 @@ namespace NantCom.NancyBlack.Types
                     return "double";
                 case JTokenType.Integer:
                     return "int";
+                case JTokenType.Null:
+                    return "string";
                 default:
                     throw new NotImplementedException("support for " + jt + " is not implemented.");
             }
