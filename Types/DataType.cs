@@ -14,6 +14,9 @@ using System.Collections.Specialized;
 using Linq2Rest.Parser;
 using System.Linq.Expressions;
 
+using System.Collections.ObjectModel;
+using NantCom.NancyBlack.Modules;
+
 namespace NantCom.NancyBlack.Types
 {
 
@@ -23,11 +26,20 @@ namespace NantCom.NancyBlack.Types
     public class DataType
     {
         /// <summary>
+        /// Gets or sets the identifier.
+        /// </summary>
+        /// <value>
+        /// The identifier.
+        /// </value>
+        public int Id { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the type.
         /// </summary>
         /// <value>
         /// The name.
         /// </value>
+        [JsonIgnore]
         public string Name
         {
             get
@@ -50,7 +62,7 @@ namespace NantCom.NancyBlack.Types
         /// <value>
         /// The properties.
         /// </value>
-        public IEnumerable<DataProperty> Properties { get; private set; }
+        public ReadOnlyCollection<DataProperty> Properties { get; set; }
 
         private int _PropertiesHashCode;
 
@@ -60,6 +72,7 @@ namespace NantCom.NancyBlack.Types
         /// <value>
         /// The hash code.
         /// </value>
+        [JsonIgnore]
         public int PropertiesHashCode
         {
             get
@@ -85,7 +98,7 @@ public class @Model.Name
     }
 }
 ";
-
+        
         private Assembly _Compiled;
 
         /// <summary>
@@ -154,13 +167,44 @@ public class @Model.Name
                 return false;
             }
 
-            return other.Name.Equals(this.Name, StringComparison.InvariantCultureIgnoreCase) &&
+            return other.Name.Equals(this.Name, StringComparison.InvariantCulture) &&
                 other.PropertiesHashCode == this.PropertiesHashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
+        {
+            return (this.Name + this.PropertiesHashCode.ToString()).GetHashCode();
         }
 
         #region Static Factories
 
-        private static Dictionary<string, DataType> _CachedDataType = new Dictionary<string, DataType>();
+        private static Dictionary<string, DataType> _CachedDataType;
+
+        /// <summary>
+        /// Gets the data types, as recorded in database
+        /// </summary>
+        /// <value>
+        /// The data types.
+        /// </value>
+        private static Dictionary<string, DataType> RegisteredTypes
+        {
+            get
+            {
+                if (_CachedDataType == null)
+                {
+                    var types = DataModule.Current.Database.UseOnceTo().Query<DataType>().ToList();
+                    _CachedDataType = types.ToDictionary(t => t.Name);
+                }
+
+                return _CachedDataType;
+            }
+        }
 
         /// <summary>
         /// Froms the name.
@@ -170,7 +214,7 @@ public class @Model.Name
         public static DataType FromName( string typeName, bool generateEmpty = false)
         {
             DataType dt;
-            if (_CachedDataType.TryGetValue( typeName.Trim().ToLowerInvariant(), out dt ))
+            if (DataType.RegisteredTypes.TryGetValue(typeName.Trim().ToLowerInvariant(), out dt))
             {
                 return dt;
             }
@@ -213,7 +257,12 @@ public class @Model.Name
                 idProperty.Name = "Id"; // The field Id is required
             }
 
-            clientDataType.Properties = properties;
+            // find AttachmentBase64 field and remove it
+            // we will not keep this field in database, but will be kept in 
+            // attachment folder
+            properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
+
+            clientDataType.Properties = new ReadOnlyCollection<DataProperty>( properties );
 
             // type with same name must exists only once
             var existingDataType = DataType.FromName(clientDataType.Name);
@@ -225,12 +274,25 @@ public class @Model.Name
                 {
                     return existingDataType;
                 }
+                else
+                {
+                    clientDataType.Id = existingDataType.Id;
+                }
             }
 
             // if changed - set to new client's data type
             // we will always update our type to match client's
+            DataType.RegisteredTypes[clientDataType.Name] = clientDataType;
 
-            _CachedDataType[clientDataType.Name] = clientDataType;
+            if (clientDataType.Id != default(int))
+            {
+                DataModule.Current.Database.UseOnceTo().Update(clientDataType);
+            }
+            else
+            {
+                DataModule.Current.Database.UseOnceTo().Insert(clientDataType);
+            }
+            
             return clientDataType;
         }
 

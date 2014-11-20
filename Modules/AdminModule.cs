@@ -41,23 +41,10 @@ namespace NantCom.NancyBlack.Modules
 
             // we have to create empty one to allow query to be run
             // there is no information in SiSoDB about existing Structure?
-            var type = DataType.FromName(table_name, generateEmpty: true);
-
-            if (type.Properties.Count() == 1) // Only ID Property
+            var type = DataType.FromName(table_name);
+            if (type == null)
             {
-                var sisoOp = DataModule.Current.Database.UseOnceTo();
-
-                // dynamically call the generic method of sisoOp using reflection
-                var queryMethod = sisoOp.GetType()
-                                    .GetMethod("Query")
-                                    .MakeGenericMethod(type.GetCompiledType());
-
-                dynamic queryable = queryMethod.Invoke(sisoOp, new object[0]);
-                IList<string> samples = queryable.ToListOfJson();
-
-                // use the last record as sample data to generate structure
-                var jsonSample = samples.Last();
-                type = DataType.FromJson(table_name, jsonSample);
+                throw new InvalidOperationException("Entity:" + table_name + " does not exists, Insert some sample data before running this page." );
             }
 
             var template = File.ReadAllText(Path.Combine(_RootPath, "Content", "Views", "Admin", "basebackend.cshtml"));

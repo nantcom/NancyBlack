@@ -94,6 +94,36 @@ namespace NantCom.NancyBlack.Modules
                 _SisoDatabase.UseOnceTo().Update(actualType, inputObject);
             }
 
+            if (json.IndexOf( "AttachmentBase64" ) > 0)
+            {
+                dynamic inputJsonObject = JsonConvert.DeserializeObject(json);
+                dynamic dynamicInputObject = inputObject;
+
+                // this request has file attachment
+                var attachmentFolder = Path.Combine( _RootPath, "Content", "Site", "Attachments", entityName);
+                Directory.CreateDirectory( attachmentFolder );
+
+                if (inputJsonObject.AttachmentUrl == null)
+                {
+                    throw new InvalidOperationException("AttachmentUrl property must exists in input object to use Attachment Feature");
+                }
+
+                if (string.IsNullOrEmpty((string)inputJsonObject.AttachmentExtension))
+                {
+                    throw new InvalidOperationException("AttachmentExtension is required to use Attachment Feature. (data will not be saved to database)");
+                }
+
+
+                File.WriteAllBytes(
+                    Path.Combine(attachmentFolder, dynamicInputObject.Id.ToString() + "." + (string)inputJsonObject.AttachmentExtension ),
+                    Convert.FromBase64String((string)inputJsonObject.AttachmentBase64));
+
+                dynamicInputObject.AttachmentUrl = 
+                    "/Content/Site/Attachments/" + entityName + "/" +
+                    dynamicInputObject.Id + "." + (string)inputJsonObject.AttachmentExtension;
+
+                _SisoDatabase.UseOnceTo().Update(actualType, inputObject);
+            }
 
             return this.Negotiate
                 .WithContentType("application/json")
@@ -174,7 +204,11 @@ namespace NantCom.NancyBlack.Modules
                 {
                     sw.WriteLine(row + ",");
                 }
-                sw.WriteLine(rowsAsJson.Last());
+
+                if (rowsAsJson.Count > 0)
+                {
+                    sw.WriteLine(rowsAsJson.Last());
+                }
                 sw.Write("]");
                 sw.Close();
                 sw.Dispose();
