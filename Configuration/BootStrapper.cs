@@ -1,4 +1,6 @@
 ﻿using Nancy;
+using Nancy.Bootstrapper;
+using Nancy.TinyIoc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ namespace NantCom.NancyBlack.Configuration
 {
     public class BootStrapper : DefaultNancyBootstrapper
     {
-        protected override void ConfigureApplicationContainer(Nancy.TinyIoc.TinyIoCContainer container)
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
 
@@ -19,6 +21,19 @@ namespace NantCom.NancyBlack.Configuration
 
             
             container.Register<JsonSerializer, CustomJsonSerializer>();
+        }
+
+        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        {
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                return "Content/Views/" + viewName;
+            });
+
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                return "Content/Site/Admin/" + viewName;
+            });
         }
     }
 }

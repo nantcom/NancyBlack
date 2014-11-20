@@ -28,7 +28,21 @@ namespace NantCom.NancyBlack.Types
         /// <value>
         /// The name.
         /// </value>
-        public string Name { get; set; }
+        public string Name
+        {
+            get
+            {
+                return this.OriginalName.Trim().ToLowerInvariant();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the original name.
+        /// </summary>
+        /// <value>
+        /// The name of the original.
+        /// </value>
+        public string OriginalName { get; set; }
 
         /// <summary>
         /// Gets or sets the properties.
@@ -153,12 +167,17 @@ public class @Model.Name
         /// </summary>
         /// <param name="typeName">Name of the type.</param>
         /// <returns></returns>
-        public static DataType FromName( string typeName )
+        public static DataType FromName( string typeName, bool generateEmpty = false)
         {
             DataType dt;
             if (_CachedDataType.TryGetValue( typeName.Trim().ToLowerInvariant(), out dt ))
             {
                 return dt;
+            }
+
+            if (generateEmpty)
+            {
+                return DataType.FromJson(typeName, "{ Id: 0 }");
             }
 
             return null;
@@ -174,7 +193,7 @@ public class @Model.Name
             var sourceObject = JsonConvert.DeserializeObject(inputJson) as JObject;
 
             var clientDataType = new DataType();
-            clientDataType.Name = typeName.Trim().ToLowerInvariant();
+            clientDataType.OriginalName = typeName.Trim().ToLowerInvariant();
             
             var properties = (from KeyValuePair<string, JToken> property in sourceObject
                                  select new DataProperty(property.Key, property.Value.Type) ).ToList();

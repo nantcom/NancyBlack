@@ -21,13 +21,30 @@ namespace NantCom.NancyBlack.Modules
     {
         private string _RootPath;
         private ISisoDatabase _SisoDatabase;
+
+        /// <summary>
+        /// Gets the database.
+        /// </summary>
+        /// <value>
+        /// The database.
+        /// </value>
+        public ISisoDatabase Database
+        {
+            get
+            {
+                return _SisoDatabase;
+            }
+        }
         
         public DataModule( IRootPathProvider rootProvider )
         {
+            DataModule.Current = this;
+
             _RootPath = rootProvider.GetRootPath();
             _SisoDatabase = ("Data Source=" + Path.Combine(_RootPath, "Data.sdf") + ";Persist Security Info=False")
                                 .CreateSqlCe4Db()
                                 .CreateIfNotExists();
+
 
             // the interface of data mobile is compatible with Azure Mobile Service
             // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
@@ -127,14 +144,10 @@ namespace NantCom.NancyBlack.Modules
         private dynamic QueryRecords( dynamic arg )
         {
             var entityName = (string)arg.table_name;
-            var type = DataType.FromName(entityName);
 
-            if (type == null)
-            {
-                // type is null, we have to create empty one to allow query to be run
-                // there is no information in SiSoDB about existing Structure?
-                type = DataType.FromJson(entityName, "{ Id: 0 }");
-            }
+            // we have to create empty one to allow query to be run
+            // there is no information in SiSoDB about existing Structure?
+            var type = DataType.FromName(entityName, generateEmpty: true);
 
             NameValueCollection nv = new NameValueCollection();
 
@@ -157,10 +170,11 @@ namespace NantCom.NancyBlack.Modules
             {
                 var sw = new StreamWriter(s);
                 sw.Write("[");
-                foreach (var row in rowsAsJson)
+                foreach (var row in rowsAsJson.Take( rowsAsJson.Count - 1) )
                 {
                     sw.WriteLine(row + ",");
                 }
+                sw.WriteLine(rowsAsJson.Last());
                 sw.Write("]");
                 sw.Close();
                 sw.Dispose();
@@ -173,14 +187,10 @@ namespace NantCom.NancyBlack.Modules
         {
             var entityName = (string)arg.table_name;
             var id = arg.item_id == null ? 0 : (int?)arg.item_id;
-            
-            var type = DataType.FromName(entityName);
-            if (type == null)
-            {
-                // type is null, we have to create empty one to allow query to be run
-                // there is no information in SiSoDB about existing Structure?
-                type = DataType.FromJson(entityName, "{ Id: 0 }");
-            }
+
+            // we have to create empty one to allow query to be run
+            // there is no information in SiSoDB about existing Structure?
+            var type = DataType.FromName(entityName, generateEmpty: true);
 
             _SisoDatabase.UseOnceTo().DeleteById(type.GetCompiledType(), id);
 
@@ -188,5 +198,16 @@ namespace NantCom.NancyBlack.Modules
                 .WithStatusCode(204);
         }
 
+        /// <summary>
+        /// Gets the current instance of DataModule.
+        /// </summary>
+        /// <value>
+        /// The current.
+        /// </value>
+        public static DataModule Current
+        {
+            get;
+            private set;
+        }
     }
 }
