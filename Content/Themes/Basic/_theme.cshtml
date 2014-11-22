@@ -31,6 +31,14 @@
     <hr>
 
     <footer>
-        @RenderSection( "Footer", false)
+        @section Footer
+        {
+            <p>
+                &copy; @DateTime.Now.Year
+                <span @this.EditAttributes("CompanyName", false, true)>
+
+                </span>
+            </p>
+        }
     </footer>
 </div> <!-- /container -->

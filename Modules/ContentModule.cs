@@ -38,7 +38,11 @@ namespace NantCom.NancyBlack.Modules
                 return;
             }
 
-            var sourceFile = Path.Combine(_RootPath, "Content", "Views", "_basehomelayout.cshtml");
+            var sourceFile = Path.Combine(_RootPath, "Content", "Views", "_base" + layout + "layout.cshtml");
+            if (File.Exists(sourceFile) == false)
+            {
+                sourceFile = Path.Combine(_RootPath, "Content", "Views", "_basecontentlayout.cshtml");
+            }
             File.Copy(sourceFile, layoutFilename);
         }
 
@@ -62,6 +66,11 @@ namespace NantCom.NancyBlack.Modules
 
             if (requestedContent == null)
             {
+                if (this.IsInEditMode == false)
+                {
+                    return 404;
+                }
+
                 requestedContent = this.SiteDatabase.UpsertRecord("Content", new
                                     {
                                         Id = 0,

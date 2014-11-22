@@ -7,7 +7,7 @@
     Administration - Tables
 }
 
-<div ng-app="TablesModule"
+<div ng-module="TablesModule"
      ng-controller="TablesController as ctrl">
 
     <h1 class="page-header">
@@ -153,98 +153,103 @@
         </button>
     </div>
 
-    <script>
+</div>
+@section Scripts
+{
 
-        (function () {
+<script>
 
-            var module = angular.module('TablesModule', ['ui.bootstrap', 'ncb']);
+    (function () {
 
-            module.factory("TablesDialog", ['ncbDialog', function (ncbDialog) {
+        var module = angular.module('TablesModule', ['ui.bootstrap', 'ncb']);
 
-                return function () {
-                    return new ncbDialog('#TablesForm');
-                };
+        module.factory("TablesDialog", ['ncbDialog', function (ncbDialog) {
 
-            }]);
+            return function () {
+                return new ncbDialog('#TablesForm');
+            };
 
-            module.controller("TablesController", function ($scope, $rootScope, $http, zumo, ncbOps, TablesDialog) {
+        }]);
 
-                var table = zumo.getTable("DataType");
-                var editor = new JSONEditor(document.getElementById('jsonstructure'));
-                var editorSample = new JSONEditor(document.getElementById('sampledata'));
-                var $me = this;
+        module.controller("TablesController", function ($scope, $rootScope, $http, zumo, ncbOps, TablesDialog) {
 
-                var standardOperations = new ncbOps($scope, table, '#TablesForm');
-                standardOperations.startScope();
+            var table = zumo.getTable("DataType");
+            var editor = new JSONEditor(document.getElementById('jsonstructure'));
+            var editorSample = new JSONEditor(document.getElementById('sampledata'));
+            var $me = this;
 
-                this.delete = standardOperations.del;
-                this.save = standardOperations.save;
-                this.refresh = standardOperations.list;
+            var standardOperations = new ncbOps($scope, table, '#TablesForm');
+            standardOperations.startScope();
 
-                this.refresh();
+            this.delete = standardOperations.del;
+            this.save = standardOperations.save;
+            this.refresh = standardOperations.list;
 
-                $scope.$watch('object.OriginalName',
-                    function () {
+            this.refresh();
 
-                        editorSample.setName($scope.object.OriginalName);
-                    }
-                );
+            $scope.$watch('object.OriginalName',
+                function () {
+
+                    editorSample.setName($scope.object.OriginalName);
+                }
+            );
 
 
-                this.view = function (object) {
-                    $scope.object = object;
+            this.view = function (object) {
+                $scope.object = object;
 
-                    var dialog = new TablesDialog();
-                    dialog.show(object);
+                var dialog = new TablesDialog();
+                dialog.show(object);
 
-                    $scope.object.Properties.forEach(function (e) {
+                $scope.object.Properties.forEach(function (e) {
 
-                        delete e.$$hashKey;
-                    });
+                    delete e.$$hashKey;
+                });
+
+                editor.set($scope.object.Properties);
+                editor.expandAll();
+                editor.setName("Properties");
+
+                $scope.sampleData = {};
+                editorSample.set($scope.sampleData);
+                editorSample.setName($scope.object.OriginalName);
+            }
+
+            this.scaffold = function () {
+
+                $scope.isBusy = true;
+                $scope.sampleData = editorSample.get();
+                $http.post('/tables/DataType/Scaffold', $scope.sampleData).success(function (value) {
+
+                    $scope.object.Properties = value.Properties;
+                    $scope.isBusy = false;
 
                     editor.set($scope.object.Properties);
                     editor.expandAll();
-                    editor.setName("Properties");
 
-                    $scope.sampleData = {};
-                    editorSample.set($scope.sampleData);
-                    editorSample.setName($scope.object.OriginalName);
-                }
+                    $('#TablesFormTabs a:first').tab('show');
+                });
+            }
 
-                this.scaffold = function () {
+            this.create = function () {
+                $me.view({
 
-                    $scope.isBusy = true;
-                    $scope.sampleData = editorSample.get();
-                    $http.post('/tables/DataType/Scaffold', $scope.sampleData).success(function (value) {
+                    OriginalName: "NewEntity",
+                    Properties: [
+                        {
+                            Name: "Property1",
+                            Type: "string"
+                        }
+                    ],
 
-                        $scope.object.Properties = value.Properties;
-                        $scope.isBusy = false;
-
-                        editor.set($scope.object.Properties);
-                        editor.expandAll();
-
-                        $('#TablesFormTabs a:first').tab('show');
-                    });
-                }
-
-                this.create = function () {
-                    $me.view({
-
-                        OriginalName: "NewEntity",
-                        Properties: [
-                            {
-                                Name: "Property1",
-                                Type: "string"
-                            }
-                        ],
-
-                    });
-                }
+                });
+            }
 
 
-            });
+        });
 
-        })();
+    })();
 
-    </script>
-</div>
+</script>
+
+}

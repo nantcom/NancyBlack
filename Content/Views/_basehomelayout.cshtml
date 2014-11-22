@@ -6,7 +6,7 @@
 @section Jumbotron
 {
     <div class="jumbotron">
-        <div class="container" @this.EditableAttributes("jumbotron")>
+        <div class="container" @this.EditAttributes("jumbotron")>
             <h1>Hello, world!</h1>
             <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
         </div>
@@ -30,13 +30,3 @@
         <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
     </div>
 </div>
-
-@section Footer
-{
-    <p>
-        &copy; @DateTime.Now.Year
-        <span @this.EditableAttributes("CompanyName", false, true)>
-            
-        </span>
-    </p>
-}

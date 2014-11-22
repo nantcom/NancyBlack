@@ -51,6 +51,20 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance is in edit mode.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is in edit mode; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsInEditMode
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Gets the database access for this request.
         /// </summary>
         /// <value>
@@ -72,7 +86,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         /// <param name="tagClass">The tag class.</param>
         /// <param name="tagId">The tag identifier.</param>
         /// <returns></returns>
-        public EncodedHtmlString EditableAttributes(string propertyName, bool html = true, bool global = false)
+        public EncodedHtmlString EditAttributes(string propertyName, bool html = true, bool global = false)
         {
             var htmlString = string.Format("data-propertyName=\"{0}\" data-html=\"{1}\" data-global=\"{2}\"",
                     propertyName,

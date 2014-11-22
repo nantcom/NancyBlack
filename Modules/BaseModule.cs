@@ -111,6 +111,20 @@ namespace NantCom.NancyBlack.Modules
         }
 
         /// <summary>
+        /// Gets a value indicating whether this user is in edit mode.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is in edit mode; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsInEditMode
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BaseModule"/> class.
         /// </summary>
         /// <param name="rootPath">The root path.</param>

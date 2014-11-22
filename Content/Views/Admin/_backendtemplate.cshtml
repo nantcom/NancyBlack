@@ -12,7 +12,7 @@
 {
     Administration - @entityName
 }
-<div ng-app="@(entityName)Module"
+<div ng-module="@(entityName)Module"
      ng-controller="@(entityName)Controller as ctrl">
 
     <h1 class="page-header">
@@ -255,8 +255,12 @@
          ng-show="error">
         {{error.message}}
     </div>
+</div>
 
-    <script>
+@@section Scripts
+{
+
+<script>
 
     (function () {
 
@@ -283,16 +287,14 @@
 
             this.refresh();
 
-            this.view = function( object )
-            {
+            this.view = function (object) {
                 $scope.object = object;
 
                 var dialog = new @(entityName)Dialog();
                 dialog.show(object);
             }
 
-            this.create = function( )
-            {
+            this.create = function () {
                 $scope.object = {};
 
                 var dialog = new @(entityName)Dialog();
@@ -303,5 +305,6 @@
 
     })();
 
-    </script>
-</div>
+</script>
+
+}
