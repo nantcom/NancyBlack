@@ -14,7 +14,7 @@ namespace NantCom.NancyBlack.Modules
     {
         private string _RootPath;
 
-        public AdminModule(IRootPathProvider rootPath)
+        public AdminModule(IRootPathProvider rootPath) : base(rootPath)
         {
             _RootPath = rootPath.GetRootPath();
 
@@ -36,14 +36,14 @@ namespace NantCom.NancyBlack.Modules
                 var streamReader = new StreamReader(this.Request.Body);
                 var json = streamReader.ReadToEnd();
 
-                return DataType.Scaffold(json);
+                return this.SiteDatabase.DataType.Scaffold(json);
 
             });
 
             Post["/tables/DataType"] = this.HandleRequest((arg) =>
             {
                 var dataType = this.Bind<DataType>();
-                return DataType.Register(dataType);
+                return this.SiteDatabase.DataType.Register(dataType);
 
             });
 
@@ -56,12 +56,12 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 var dataType = this.Bind<DataType>();
-                return DataType.Register(dataType);
+                return this.SiteDatabase.DataType.Register(dataType);
             });
             
             Get["/tables/DataType"] = this.HandleRequest( (arg) =>
             {
-                return DataType.RegisteredTypes;
+                return this.SiteDatabase.DataType.RegisteredTypes;
             });
 
             Delete["/tables/DataType/{item_id}"] = this.HandleRequest( (arg)=>{
@@ -72,7 +72,7 @@ namespace NantCom.NancyBlack.Modules
                     throw new InvalidOperationException("Id supplied is not valid");
                 }
 
-                DataType.RemoveType(id.Value);
+                this.SiteDatabase.DataType.RemoveType(id.Value);
 
                 return 204;
 
@@ -86,7 +86,7 @@ namespace NantCom.NancyBlack.Modules
             var table_name = (string)arg.table_name;
             var replace = this.Context.Request.Query.regenerate == "true";
 
-            var type = DataType.FromName(table_name);
+            var type = this.SiteDatabase.DataType.FromName(table_name);
             if (type == null)
             {
                 return 404;
@@ -94,21 +94,33 @@ namespace NantCom.NancyBlack.Modules
 
             this.GenerateAdminView(type.OriginalName, replace);
 
-            return View[(string)arg.table_name];
+            return View["Admin/" + arg.table_name, this.GetModel( type )];
         }
 
+        /// <summary>
+        /// Generates the admin view for current site
+        /// </summary>
+        /// <param name="table_name">The table_name.</param>
+        /// <param name="replace">if set to <c>true</c> [replace].</param>
+        /// <exception cref="System.InvalidOperationException">Entity: + table_name +  does not exists, Insert some sample data before running this page.</exception>
         private void GenerateAdminView( string table_name, bool replace = false )
         {
-            var templateFile = Path.Combine(_RootPath, "CustomContent", "Admin", table_name + ".cshtml");
+            var templatePath = Path.Combine(
+                                    _RootPath,
+                                    "Sites",
+                                    (string)this.CurrentSite.HostName,
+                                    "Admin");
+
+            var templateFile = Path.Combine(
+                                    templatePath,
+                                    table_name + ".cshtml");
 
             if (File.Exists( templateFile ) && replace == false)
             {
                 return;
             }
 
-            // we have to create empty one to allow query to be run
-            // there is no information in SiSoDB about existing Structure?
-            var type = DataType.FromName(table_name);
+            var type = this.SiteDatabase.DataType.FromName(table_name);
             if (type == null)
             {
                 throw new InvalidOperationException("Entity:" + table_name + " does not exists, Insert some sample data before running this page." );
@@ -117,6 +129,7 @@ namespace NantCom.NancyBlack.Modules
             var template = File.ReadAllText(Path.Combine(_RootPath, "Content", "Views", "Admin", "_backendtemplate.cshtml"));
             var code = Razor.Parse(template, type, null);
 
+            Directory.CreateDirectory(templatePath);
             File.WriteAllText(templateFile, code);
 
         }

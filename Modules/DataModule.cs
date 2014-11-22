@@ -17,44 +17,25 @@ using System.Reflection;
 
 namespace NantCom.NancyBlack.Modules
 {
+
     public class DataModule : BaseModule
     {
         private string _RootPath;
-        private ISisoDatabase _SisoDatabase;
 
-        /// <summary>
-        /// Gets the database.
-        /// </summary>
-        /// <value>
-        /// The database.
-        /// </value>
-        public ISisoDatabase Database
+        public DataModule( IRootPathProvider rootProvider ) : base( rootProvider )
         {
-            get
-            {
-                return _SisoDatabase;
-            }
-        }
-        
-        public DataModule( IRootPathProvider rootProvider )
-        {
-            DataModule.Current = this;
-
             _RootPath = rootProvider.GetRootPath();
-            _SisoDatabase = ("Data Source=" + Path.Combine(_RootPath, "Data.sdf") + ";Persist Security Info=False")
-                                .CreateSqlCe4Db()
-                                .CreateIfNotExists();
 
             // the interface of data mobile is compatible with Azure Mobile Service
             // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
 
-            Get["/tables/{table_name}"] = this.HandleRequest( this.QueryRecords );
+            Get["/tables/{table_name}"] = this.HandleRequest( this.HandleQueryRequest );
 
             Post["/tables/{table_name}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
 
-            Patch["/tables/{table_name}/{item_id}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
+            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
 
-            Delete["/tables/{table_name}/{item_id}"] = this.HandleRequest( this.DeleteRecord );
+            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequest( this.HandleDeleteRecordRequest );
         }
 
         private void PreChecks( dynamic arg )
@@ -73,134 +54,55 @@ namespace NantCom.NancyBlack.Modules
         private dynamic HandleInsertUpdateRequest( dynamic arg )
         {
             var entityName = (string)arg.table_name;
-            var id = arg.item_id == null ? 0 : (int?)arg.item_id;
+            int id = arg.item_id == null ? 0 : (int)arg.item_id;
 
             // get the json from request body
             var streamReader = new StreamReader(this.Request.Body);
             var json = streamReader.ReadToEnd();
+            
+            var record = this.SiteDatabase.UpsertRecord(entityName, id, json);
 
-            // get the compiled type by extracting interface from json
-            var dataType = DataType.FromJson(entityName, json);
-            var actualType = dataType.GetCompiledType();
-
-            var inputObject = JsonConvert.DeserializeObject(json, actualType);
-
-            if (id == null || id == 0)
-            {
-                if (this.Request.Method == "PATCH")
-                {
-                    throw new InvalidOperationException("PATCH required Id in URL");
-                }
-
-                _SisoDatabase.UseOnceTo().Insert(actualType, inputObject);
-            }
-            else
-            {
-                _SisoDatabase.UseOnceTo().Update(actualType, inputObject);
-            }
-
+            // TODO: Move Attachment to other place
             if (json.IndexOf( "AttachmentBase64" ) > 0)
             {
                 dynamic inputJsonObject = JsonConvert.DeserializeObject(json);
-                dynamic dynamicInputObject = inputObject;
-
-                // this request has file attachment
-                var attachmentFolder = Path.Combine( _RootPath, "CustomContent", "Attachments", entityName);
-                Directory.CreateDirectory( attachmentFolder );
-
-                if (inputJsonObject.AttachmentUrl == null)
-                {
-                    throw new InvalidOperationException("AttachmentUrl property must exists in input object to use Attachment Feature");
-                }
-
                 if (string.IsNullOrEmpty((string)inputJsonObject.AttachmentExtension))
                 {
                     throw new InvalidOperationException("AttachmentExtension is required to use Attachment Feature. (data will not be saved to database)");
                 }
 
+                // this request has file attachment
+                var attachmentFolder = Path.Combine( _RootPath, 
+                                                "Site", 
+                                                (string)this.CurrentSite.HostName,
+                                                "Attachments",
+                                                entityName);
+
+                Directory.CreateDirectory( attachmentFolder );
+
 
                 File.WriteAllBytes(
-                    Path.Combine(attachmentFolder, dynamicInputObject.Id.ToString() + "." + (string)inputJsonObject.AttachmentExtension ),
+                    Path.Combine(attachmentFolder, record.Id.ToString() + "." + (string)inputJsonObject.AttachmentExtension),
                     Convert.FromBase64String((string)inputJsonObject.AttachmentBase64));
 
-                dynamicInputObject.AttachmentUrl =
+                record.AttachmentUrl =
                     "/CustomContent/Attachments/" + entityName + "/" +
-                    dynamicInputObject.Id + "." + (string)inputJsonObject.AttachmentExtension;
+                    record.Id + "." + (string)inputJsonObject.AttachmentExtension;
 
-                _SisoDatabase.UseOnceTo().Update(actualType, inputObject);
+                this.SiteDatabase.UpsertRecord(entityName, record);
             }
 
             return this.Negotiate
                 .WithContentType("application/json")
-                .WithModel(inputObject);
+                .WithModel((object)record);
         }
 
-        /// <summary>
-        /// Queries the specified database.
-        /// </summary>
-        /// <param name="db">The database.</param>
-        /// <param name="odataFilter">The odata filter.</param>
-        /// <returns></returns>
-        private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
-        {
-            var parser = new ParameterParser<T>();
-            var modelFilter = parser.Parse(odataFilter);
-
-            var queryable = _SisoDatabase.UseOnceTo().Query<T>();
-
-            if (odataFilter["$filter"] != null)
-            {
-                queryable = queryable.Where(modelFilter.FilterExpression);
-
-            }
-
-            var sortExpressions = (from sort in modelFilter.SortDescriptions
-                                  where sort != null
-                                  select sort.KeySelector as Expression<Func<T, object>>).ToArray();
-
-            if (sortExpressions.Length > 0)
-            {
-                queryable = queryable.OrderBy(sortExpressions);
-            }
-
-            if (modelFilter.SkipCount > 0)
-            {
-                queryable = queryable.Skip(modelFilter.SkipCount);
-            }
-
-            if (modelFilter.TakeCount > 0)
-            {
-                queryable = queryable.Take(modelFilter.SkipCount);
-            }
-
-            return queryable.ToListOfJson();
-        }
-        
-        private dynamic QueryRecords( dynamic arg )
+        private dynamic HandleQueryRequest( dynamic arg )
         {
             var entityName = (string)arg.table_name;
-
-            // we have to create empty one to allow query to be run
-            // there is no information in SiSoDB about existing Structure?
-            var type = DataType.FromName(entityName);
-            if (type == null)
-            {
-                throw new InvalidOperationException("Entity: " + entityName + " does not exists");
-            }
-
-            NameValueCollection nv = new NameValueCollection();
-
-            var queries = this.Request.Query as IDictionary<string, dynamic>;
-            foreach (var item in queries)
-            {
-                nv.Add(item.Key, item.Value.ToString());
-            }
-
-            var method = typeof(DataModule)
-                            .GetMethod("PerformQuery", BindingFlags.NonPublic | BindingFlags.Instance )
-                            .MakeGenericMethod( type.GetCompiledType() );
-
-            var rowsAsJson = (IList<string>)method.Invoke(this, new object[] { nv });
+            IList<string> rowsAsJson = this.SiteDatabase.QueryAsJsonString(entityName, 
+                                this.Request.Query["$filter"], 
+                                this.Request.Query["$orderby"]);
 
             // Write output row as RAW json
             var output = new Response();
@@ -226,39 +128,15 @@ namespace NantCom.NancyBlack.Modules
             return output;
         }
 
-        private dynamic DeleteRecord(dynamic arg)
+        private dynamic HandleDeleteRecordRequest(dynamic arg)
         {
             var entityName = (string)arg.table_name;
             var id = arg.item_id == null ? 0 : (int?)arg.item_id;
 
-            if (id == 0)
-            {
-                throw new InvalidOperationException("Id supplied is not valid");
-            }
-
-            // we have to create empty one to allow query to be run
-            // there is no information in SiSoDB about existing Structure?
-            var type = DataType.FromName(entityName);
-            if (type == null)
-            {
-                return 404;
-            }
-
-            _SisoDatabase.UseOnceTo().DeleteById(type.GetCompiledType(), id);
+            this.SiteDatabase.DeleteRecord(entityName, new { Id = id });
 
             return 204;
         }
 
-        /// <summary>
-        /// Gets the current instance of DataModule.
-        /// </summary>
-        /// <value>
-        /// The current.
-        /// </value>
-        public static DataModule Current
-        {
-            get;
-            private set;
-        }
     }
 }

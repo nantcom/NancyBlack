@@ -4,7 +4,7 @@
     
 }
 
-@@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase
+@@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
 @@{
     Layout = "Content/Views/Admin/_backend.cshtml";
 }
@@ -71,7 +71,7 @@
 
                                 @foreach (var property in entity.Properties)
                                 {
-                                    if (property.Name == "Id")
+                                    if (property.Name == "Id" || property.Name.StartsWith( "__" ))
                                     {
                                         continue;
                                     }
@@ -190,6 +190,10 @@
             <tr>
                 @foreach (var property in entity.Properties)
                 {
+                    if (property.Name == "Id" || property.Name == "__version")
+                    {
+                        continue;
+                    }
                     <th>@property.Name</th>
                 }
                 <th class="commandColumn"></th>
@@ -198,7 +202,7 @@
         <tr ng-repeat="item in list">
             @foreach (var property in entity.Properties)
             {
-                if (property.Name == "Id")
+                if (property.Name == "Id" || property.Name == "__version")
                 {
                     continue;
                 }

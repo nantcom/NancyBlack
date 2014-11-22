@@ -1,4 +1,4 @@
-﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase
+﻿@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
 
 @{
     Layout = "_theme.cshtml";
@@ -14,17 +14,17 @@
     {
         var ex = this.RenderContext.Context.Items["Exception"] as Exception;
         <p>
-            <b>@ex.GetType().Name :</b> <br />
+            <b>@(ex.GetType().Name) :</b> <br />
 
-            @ex.Message
-
+            @(ex.Message)
+        </p>
         <p>
             <b>Stack Trace:</b>
             <pre style="overflow-y:scroll; max-height: 300px">
-                @ex.StackTrace
+                @(ex.StackTrace)
             </pre>
-
         </p>
     }
+    
 
 </div>

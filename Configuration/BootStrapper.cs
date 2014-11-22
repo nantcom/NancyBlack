@@ -27,14 +27,11 @@ namespace NantCom.NancyBlack.Configuration
         {
             this.Conventions.ViewLocationConventions.Insert(0, (viewName, model, context) =>
             {
-                return "CustomContent/" + viewName;
+                return "Sites/" +
+                        context.Context.Request.Url.HostName + "/" +
+                        viewName;
             });
-
-            this.Conventions.ViewLocationConventions.Insert(1, (viewName, model, context) =>
-            {
-                return "CustomContent/Admin/" + viewName;
-            });
-
+            
             this.Conventions.ViewLocationConventions.Insert(2, (viewName, model, context) =>
             {
                 return "Content/Views/" + viewName;

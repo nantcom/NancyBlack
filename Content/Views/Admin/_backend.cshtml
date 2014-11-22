@@ -1,5 +1,4 @@
-﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase
-@using NantCom.NancyBlack.Types
+﻿@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
 @{
     Layout = "_base.cshtml";
 }
@@ -49,7 +48,7 @@
 
             <ul class="nav nav-sidebar sidebar">
                 <li><span>Tables</span></li>
-                @foreach (var item in DataType.RegisteredTypes)
+                @foreach (var item in this.Database.DataType.RegisteredTypes)
                 {
                     <li><a href="/Admin/Tables/@item.Name">@item.OriginalName</a></li>
                 }
