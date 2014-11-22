@@ -1,5 +1,6 @@
 ﻿using Nancy.ViewEngines.Razor;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,9 +87,9 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         /// <param name="tagClass">The tag class.</param>
         /// <param name="tagId">The tag identifier.</param>
         /// <returns></returns>
-        public EncodedHtmlString EditAttributes(string propertyName, bool html = true, bool global = false)
+        public NonEncodedHtmlString EditAttributes(string propertyName, bool html = true, bool global = false)
         {
-            var htmlString = string.Format("data-propertyName=\"{0}\" data-html=\"{1}\" data-global=\"{2}\"",
+            var htmlString = string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"{1}\" data-global=\"{2}\"",
                     propertyName,
                     html,
                     global);
@@ -96,5 +97,31 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             return htmlString;
         }
 
+        /// <summary>
+        /// Get Contents of the specified property name.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetContent(string propertyName)
+        {
+            var value = (string)this.Content[propertyName];
+
+            return value;
+        }
+
+        /// <summary>
+        /// Determines whether the specified property name has content.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public bool HasContent( string propertyName )
+        {
+            if (this.Content is JObject)
+            {
+                return this.Content[propertyName] != null;
+            }
+
+            return false;
+        }
     }
 }

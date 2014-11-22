@@ -35,4 +35,11 @@
   transition: all ease-out 1s;
   color: black;
 }
+.editarea {
+  box-shadow: #ff6a00 0 0 40px;
+  transition: all ease-out 0.2s;
+}
+.editarea:hover {
+  box-shadow: #ff6a00 0 0 5px;
+}
 /*# sourceMappingURL=editor.css.map */

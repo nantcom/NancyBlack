@@ -179,6 +179,12 @@
 
                 delete $scope.object.$$hashKey;
 
+                // fix the 'id' casing
+                if ($scope.object.Id != null && $scope.id == null) {
+                    $scope.object.id = $scope.object.Id;
+                    delete $scope.object.Id;
+                }
+
                 if ($scope.files !== null && $scope.files.length === 1) {
 
                     $scope.object.AttachmentBase64 = $scope.files[0].dataRaw;

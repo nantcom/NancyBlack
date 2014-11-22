@@ -58,7 +58,7 @@
     <script src="/Content/Views/Admin/admin-sharedmodules.js"></script>
     @RenderSection( "Scripts", false)
 
-    @if (this.IsInEditMode)
+    @if (this.IsInEditMode && !this.Request.Url.Path.StartsWith("/Admin"))
     {
         <script src="/Content/Views/Editor/editor.js"></script>
         @(this.Html.Partial("Editor/editorui.cshtml", this.Model))
