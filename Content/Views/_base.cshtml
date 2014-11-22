@@ -25,16 +25,17 @@
         <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
     }
 
+    @if (this.IsInEditMode)
+    {
+        <link href="/Content/Views/Editor/editor.css" rel="stylesheet" />
+    }
+
     @RenderSection( "Head", false )
 </head>
 <body>
+
     @RenderBody()
 
-    @if (this.IsInEditMode)
-    {
-        @(this.Html.Partial("Editor/editorui.cshtml"))
-    }
-    
     @if (this.RenderContext.Context.Request.Url.HostName == "localhost") // dev machine
     {
         <script src="/Content/Scripts/jquery-2.1.1.js"></script>
@@ -43,11 +44,6 @@
         <script src="/Content/Scripts/angular-ui/ui-bootstrap-tpls.js"></script>
 
         <script src="/Content/Scripts/MobileServices.Web-1.1.5.min.js"></script>
-
-        if (this.IsInEditMode)
-        {
-            <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
-        }
     }
     else
     {
@@ -57,15 +53,34 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.2/ui-bootstrap-tpls.min.js"></script>
 
         <script src="//ajax.aspnetcdn.com/ajax/mobileservices/MobileServices.Web-1.1.5.min.js"></script>
-
-        if (this.IsInEditMode)
-        {
-            <script src="//cdn.ckeditor.com/4.4.5.1/full/ckeditor.js"></script>
-        }
     }
 
+    <script src="/Content/Views/Admin/admin-sharedmodules.js"></script>
+    @RenderSection( "Scripts", false)
+
+    @if (this.IsInEditMode)
+    {
+        <script src="/Content/Views/Editor/editor.js"></script>
+        @(this.Html.Partial("Editor/editorui.cshtml", this.Model))
+    }
+
+    <script>
+        // combine all ng-module into one attribute on top of the page
+        // too allow all modules to function
+        var modules = [];
+        $("*[ng-module]").each( function()
+        {
+            var me = $(this);
+            modules.push(me.attr("ng-module"));
+            me.removeAttr("ng-module");
+        });
+
+        if (modules.length > 0) {
+
+            $("body").attr("ng-modules", modules.join(","));
+        }
+    </script>
     <script src="/Content/Scripts/angular.ngmodule.js"></script>
 
-    @RenderSection( "Scripts", false)
 </body>
 </html>

@@ -1,1 +1,88 @@
-﻿
+﻿@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
+
+@if (this.RenderContext.Context.Request.Url.HostName == "localhost") // dev machine
+{
+    <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
+}
+else
+{
+    <script src="//cdn.ckeditor.com/4.4.5.1/full/ckeditor.js"></script>
+}
+
+<script>
+    var GLOBAL_CONTENT = @this.Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(this.Content));
+</script>
+
+<div id="editorPanel"
+     ng-module="ncbEditor"
+     ng-class="{ in : show % 2 != 0 }"
+     ng-controller="PanelController as ctrl">
+    <div>
+        <a class="toggle"
+           ng-click="show = show + 1"
+           ng-init="show = 0"
+           href="#">
+            <i class="fa fa-arrow-circle-o-left"
+               ng-class="{ 'fa-rotate-180' : show % 2 == 0}"></i>
+        </a>
+
+        <div class="text-right">
+            <button class="btn btn-success">
+                <i class="fa fa-save"></i>
+                <span> Save</span>
+            </button>
+
+            <button class="btn btn-warning">
+                <i class="fa fa-edit"></i>
+                <span> Edit Areas</span>
+            </button>
+        </div>
+
+
+
+        <div class="form-group"
+             style="margin-top: 10px">
+            <input type="text"
+                   class="form-control input-lg"
+                   ng-model="object.Title"
+                   placeholder="Page Title"/>
+        </div>
+
+        <div class="form-group">
+            <label>SEO</label>
+            <input type="text"
+                   class="form-control"
+                   ng-model="object.SEOKeywords"
+                   placeholder="SEO Keywords" />
+        </div>
+
+        <div class="form-group">
+            <textarea type="text"
+                   class="form-control"
+                   ng-model="object.SEODescription"
+                   rows="5"
+                   placeholder="SEO Description">
+            </textarea>
+        </div>
+
+        <hr/>
+
+        <div class="form-group">
+            <label>Publishing</label>
+            <input type="text"
+                   class="form-control"
+                   ng-model="object.PublishFrom"
+                   placeholder="From Date" />
+        </div>
+        <div class="form-group">
+            <input type="text"
+                   class="form-control"
+                   ng-model="object.PublishTo"
+                   placeholder="To Date" />
+        </div>
+    </div>
+</div>
+
+
+
+<script src="/Content/Views/Editor/editor.js"></script>

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace NantCom.NancyBlack.Modules.ContentSystem
 {
-    public abstract class NancyBlackRazorViewBase : NancyRazorViewBase
+    public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<dynamic>
     {   
         /// <summary>
         /// Gets the information about current request.
@@ -63,7 +63,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 return true;
             }
         }
-
+        
         /// <summary>
         /// Gets the database access for this request.
         /// </summary>

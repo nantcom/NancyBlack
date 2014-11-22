@@ -81,12 +81,7 @@ namespace NantCom.NancyBlack.Modules
 
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
 
-            return View[(string)requestedContent.Layout, new
-            {
-                Site = this.CurrentSite,
-                Database = this.SiteDatabase,
-                Content = requestedContent
-            }];
+            return View[(string)requestedContent.Layout, this.GetModel( requestedContent )];
         }
 
         
