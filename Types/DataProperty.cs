@@ -53,7 +53,7 @@ namespace NantCom.NancyBlack.Types
                 case JTokenType.Boolean:
                 case JTokenType.Guid:
                 case JTokenType.String:
-                    return "System." + jt.ToString();
+                    return jt.ToString();
                 case JTokenType.Bytes:
                     return "byte[]";
                 case JTokenType.Date:
@@ -64,6 +64,10 @@ namespace NantCom.NancyBlack.Types
                     return "int";
                 case JTokenType.Null:
                     return "string";
+                case JTokenType.Object:
+                    return "object";
+                case JTokenType.Array:
+                    return "object[]";
                 default:
                     throw new NotImplementedException("support for " + jt + " is not implemented.");
             }

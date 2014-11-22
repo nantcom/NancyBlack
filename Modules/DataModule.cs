@@ -17,7 +17,7 @@ using System.Reflection;
 
 namespace NantCom.NancyBlack.Modules
 {
-    public class DataModule : NancyModule
+    public class DataModule : BaseModule
     {
         private string _RootPath;
         private ISisoDatabase _SisoDatabase;
@@ -45,17 +45,24 @@ namespace NantCom.NancyBlack.Modules
                                 .CreateSqlCe4Db()
                                 .CreateIfNotExists();
 
-
             // the interface of data mobile is compatible with Azure Mobile Service
             // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
 
-            Get["/tables/{table_name}"] = this.QueryRecords;
+            Get["/tables/{table_name}"] = this.HandleRequest( this.QueryRecords );
 
-            Post["/tables/{table_name}"] = this.HandleInsertUpdateRequest;
+            Post["/tables/{table_name}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
 
-            Patch["/tables/{table_name}/{item_id}"] = this.HandleInsertUpdateRequest;
+            Patch["/tables/{table_name}/{item_id}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
 
-            Delete["/tables/{table_name}/{item_id}"] = this.DeleteRecord;
+            Delete["/tables/{table_name}/{item_id}"] = this.HandleRequest( this.DeleteRecord );
+        }
+
+        private void PreChecks( dynamic arg )
+        {
+            if (((string)arg.table_name).Equals( "datatype", StringComparison.InvariantCultureIgnoreCase ))
+            {
+                throw new InvalidOperationException("Cannot use 'datatype' as entity name, this name is reserved.");
+            }
         }
 
         /// <summary>
@@ -82,9 +89,7 @@ namespace NantCom.NancyBlack.Modules
             {
                 if (this.Request.Method == "PATCH")
                 {
-                    return this.Negotiate
-                        .WithStatusCode(400)
-                        .WithReasonPhrase("Cannot update, Id was not specified.");
+                    throw new InvalidOperationException("PATCH required Id in URL");
                 }
 
                 _SisoDatabase.UseOnceTo().Insert(actualType, inputObject);
@@ -100,7 +105,7 @@ namespace NantCom.NancyBlack.Modules
                 dynamic dynamicInputObject = inputObject;
 
                 // this request has file attachment
-                var attachmentFolder = Path.Combine( _RootPath, "Content", "Site", "Attachments", entityName);
+                var attachmentFolder = Path.Combine( _RootPath, "CustomContent", "Attachments", entityName);
                 Directory.CreateDirectory( attachmentFolder );
 
                 if (inputJsonObject.AttachmentUrl == null)
@@ -118,8 +123,8 @@ namespace NantCom.NancyBlack.Modules
                     Path.Combine(attachmentFolder, dynamicInputObject.Id.ToString() + "." + (string)inputJsonObject.AttachmentExtension ),
                     Convert.FromBase64String((string)inputJsonObject.AttachmentBase64));
 
-                dynamicInputObject.AttachmentUrl = 
-                    "/Content/Site/Attachments/" + entityName + "/" +
+                dynamicInputObject.AttachmentUrl =
+                    "/CustomContent/Attachments/" + entityName + "/" +
                     dynamicInputObject.Id + "." + (string)inputJsonObject.AttachmentExtension;
 
                 _SisoDatabase.UseOnceTo().Update(actualType, inputObject);
@@ -177,7 +182,11 @@ namespace NantCom.NancyBlack.Modules
 
             // we have to create empty one to allow query to be run
             // there is no information in SiSoDB about existing Structure?
-            var type = DataType.FromName(entityName, generateEmpty: true);
+            var type = DataType.FromName(entityName);
+            if (type == null)
+            {
+                throw new InvalidOperationException("Entity: " + entityName + " does not exists");
+            }
 
             NameValueCollection nv = new NameValueCollection();
 
@@ -222,14 +231,22 @@ namespace NantCom.NancyBlack.Modules
             var entityName = (string)arg.table_name;
             var id = arg.item_id == null ? 0 : (int?)arg.item_id;
 
+            if (id == 0)
+            {
+                throw new InvalidOperationException("Id supplied is not valid");
+            }
+
             // we have to create empty one to allow query to be run
             // there is no information in SiSoDB about existing Structure?
-            var type = DataType.FromName(entityName, generateEmpty: true);
+            var type = DataType.FromName(entityName);
+            if (type == null)
+            {
+                return 404;
+            }
 
             _SisoDatabase.UseOnceTo().DeleteById(type.GetCompiledType(), id);
 
-            return this.Negotiate
-                .WithStatusCode(204);
+            return 204;
         }
 
         /// <summary>

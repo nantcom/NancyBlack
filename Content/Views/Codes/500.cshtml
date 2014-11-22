@@ -1,0 +1,30 @@
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase
+
+@{
+    Layout = "_theme.cshtml";
+}
+
+<div class="alert alert-danger text-center" style="font-size: 200%">
+    <h1 style="font-size: 200%">That's Unfortunate!</h1>
+    <p>
+        We have got error while processing your request.<br/>
+    </p>
+
+    @if (this.RenderContext.Context.Items.ContainsKey("Exception"))
+    {
+        var ex = this.RenderContext.Context.Items["Exception"] as Exception;
+        <p>
+            <b>@ex.GetType().Name :</b> <br />
+
+            @ex.Message
+
+        <p>
+            <b>Stack Trace:</b>
+            <pre style="overflow-y:scroll; max-height: 300px">
+                @ex.StackTrace
+            </pre>
+
+        </p>
+    }
+
+</div>

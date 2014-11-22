@@ -182,7 +182,7 @@ public class @Model.Name
             return (this.Name + this.PropertiesHashCode.ToString()).GetHashCode();
         }
 
-        #region Static Factories
+        #region Static Factories & Services
 
         private static Dictionary<string, DataType> _CachedDataType;
 
@@ -192,7 +192,7 @@ public class @Model.Name
         /// <value>
         /// The data types.
         /// </value>
-        private static Dictionary<string, DataType> RegisteredTypes
+        private static Dictionary<string, DataType> Types
         {
             get
             {
@@ -207,6 +207,64 @@ public class @Model.Name
         }
 
         /// <summary>
+        /// Gets all types.
+        /// </summary>
+        /// <value>
+        /// All types.
+        /// </value>
+        public static IEnumerable<DataType> RegisteredTypes
+        {
+            get
+            {
+                return DataType.Types.Values;
+            }
+        }
+
+        /// <summary>
+        /// Removes the type from database
+        /// </summary>
+        /// <param name="type">The type.</param>
+        public static void RemoveType( int id )
+        {
+            var type = (from t in DataType.RegisteredTypes
+                        where t.Id == id
+                        select t).FirstOrDefault();
+
+            if (type == null)
+            {
+                throw new InvalidOperationException("Specified Id does not represents a valid type");
+            }
+
+            DataModule.Current.Database.DropStructureSet(type.GetCompiledType());
+            DataModule.Current.Database.UseOnceTo().DeleteById<DataType>( type.Id );
+
+            type.Id = 0;
+
+            _CachedDataType = null;
+        }
+
+        /// <summary>
+        /// Registers the specified type.
+        /// </summary>
+        /// <param name="toRegister">To register.</param>
+        /// <returns></returns>
+        public static DataType Register(DataType toRegister)
+        {
+            if (toRegister.Id != default(int))
+            {
+                DataModule.Current.Database.UseOnceTo().Update(toRegister);
+            }
+            else
+            {
+                DataModule.Current.Database.UseOnceTo().Insert(toRegister);
+            }
+
+            _CachedDataType = null;
+
+            return toRegister;
+        }
+
+        /// <summary>
         /// Froms the name.
         /// </summary>
         /// <param name="typeName">Name of the type.</param>
@@ -214,7 +272,7 @@ public class @Model.Name
         public static DataType FromName( string typeName, bool generateEmpty = false)
         {
             DataType dt;
-            if (DataType.RegisteredTypes.TryGetValue(typeName.Trim().ToLowerInvariant(), out dt))
+            if (DataType.Types.TryGetValue(typeName.Trim().ToLowerInvariant(), out dt))
             {
                 return dt;
             }
@@ -228,25 +286,25 @@ public class @Model.Name
         }
 
         /// <summary>
-        /// Generate DataType from json.
+        /// Scaffolds the specified input json into DataType
         /// </summary>
         /// <param name="inputJson">The input json.</param>
         /// <returns></returns>
-        public static DataType FromJson(string typeName, string inputJson)
+        public static DataType Scaffold( string inputJson )
         {
             var sourceObject = JsonConvert.DeserializeObject(inputJson) as JObject;
 
             var clientDataType = new DataType();
-            clientDataType.OriginalName = typeName.Trim().ToLowerInvariant();
-            
+            clientDataType.OriginalName = "Scaffoled";
+
             var properties = (from KeyValuePair<string, JToken> property in sourceObject
-                                 select new DataProperty(property.Key, property.Value.Type) ).ToList();
+                              select new DataProperty(property.Key, property.Value.Type)).ToList();
 
             var idProperty = (from p in properties
-                               where p.Name.Equals( "id", StringComparison.InvariantCultureIgnoreCase )
-                               select p ).FirstOrDefault();
+                              where p.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase)
+                              select p).FirstOrDefault();
 
-            if ( idProperty == null)
+            if (idProperty == null)
             {
                 // no Id, create one
                 properties.Add(new DataProperty() { Name = "Id", Type = "int" });
@@ -262,7 +320,21 @@ public class @Model.Name
             // attachment folder
             properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
 
-            clientDataType.Properties = new ReadOnlyCollection<DataProperty>( properties );
+            clientDataType.Properties = new ReadOnlyCollection<DataProperty>(properties);
+
+            return clientDataType;
+        }
+
+
+        /// <summary>
+        /// Generate DataType from json.
+        /// </summary>
+        /// <param name="inputJson">The input json.</param>
+        /// <returns></returns>
+        public static DataType FromJson(string typeName, string inputJson)
+        {
+            var clientDataType = DataType.Scaffold(inputJson);
+            clientDataType.OriginalName = typeName.Trim().ToLowerInvariant();
 
             // type with same name must exists only once
             var existingDataType = DataType.FromName(clientDataType.Name);
@@ -282,7 +354,7 @@ public class @Model.Name
 
             // if changed - set to new client's data type
             // we will always update our type to match client's
-            DataType.RegisteredTypes[clientDataType.Name] = clientDataType;
+            DataType.Types[clientDataType.Name] = clientDataType;
 
             if (clientDataType.Id != default(int))
             {

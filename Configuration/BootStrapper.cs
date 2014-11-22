@@ -25,15 +25,21 @@ namespace NantCom.NancyBlack.Configuration
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Insert(0, (viewName, model, context) =>
+            {
+                return "CustomContent/" + viewName;
+            });
+
+            this.Conventions.ViewLocationConventions.Insert(1, (viewName, model, context) =>
+            {
+                return "CustomContent/Admin/" + viewName;
+            });
+
+            this.Conventions.ViewLocationConventions.Insert(2, (viewName, model, context) =>
             {
                 return "Content/Views/" + viewName;
             });
 
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                return "Content/Site/Admin/" + viewName;
-            });
         }
     }
 }

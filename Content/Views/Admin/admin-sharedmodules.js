@@ -41,6 +41,13 @@
 
                 form.on('hidden.bs.modal', hiddenHandler);
 
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    
+                    scope.$apply(function () {
+                        scope.currentTab = e.target.hash;
+                    });
+                })
+
                 $(formId + ' a:first').tab('show');
                 form.modal('show');
             };

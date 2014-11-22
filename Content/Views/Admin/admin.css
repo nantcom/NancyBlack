@@ -116,6 +116,10 @@ h1.page-header > span {
     margin-top: 10px;
 }
 
+.tab-content{
+    margin-top: 15px;
+}
+
 .metric > div {
     border-radius: 1000px;
     margin: 5px;

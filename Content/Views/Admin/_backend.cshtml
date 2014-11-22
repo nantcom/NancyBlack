@@ -1,15 +1,18 @@
 ﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase
-
+@using NantCom.NancyBlack.Types
 @{
-    Layout = "Content/Views/_base.cshtml";
+    Layout = "_base.cshtml";
 }
 
 @section Head
 {
-
+    <script src="/Content/Scripts/jsoneditor/jsoneditor.min.js"></script>
+    
     <script src="/Content/scripts/jQuery.FileDrop.js"></script>
     <script src="/Content/Views/Admin/admin-sharedmodules.js"></script>
+    
     <link href="/Content/Views/Admin/admin.css" rel="stylesheet" />
+    <link href="~/Content/Scripts/jsoneditor/jsoneditor.min.css" rel="stylesheet" />
 
     @RenderSection("Head", false)
 }
@@ -36,7 +39,6 @@
             <ul class="nav navbar-nav navbar-right" style="margin-right: 10px">
                 <li class="mobonly"><a href="/modules/calendar.cshtml?standalone=1">Home</a></li>
             </ul>
-            <script src="/modules/login.js"></script>
         </div>
     </div>
 </div>
@@ -46,8 +48,14 @@
         <div class="col-md-2">
 
             <ul class="nav nav-sidebar sidebar">
+                <li><span>Tables</span></li>
+                @foreach (var item in DataType.RegisteredTypes)
+                {
+                    <li><a href="/Admin/Tables/@item.Name">@item.OriginalName</a></li>
+                }
                 <li><span>Administration</span></li>
-                <li><a href="/">Home</a></li>
+                <li><a href="/Admin/Core/Tables">Manage Tables</a></li>
+                <li><a href="/Admin/Core/Users">Administrators</a></li>
             </ul>
         </div>
         <div class="col-md-9">

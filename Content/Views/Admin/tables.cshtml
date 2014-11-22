@@ -1,0 +1,250 @@
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase
+@{
+    Layout = "Content/Views/Admin/_backend.cshtml";
+}
+@section Title
+{
+    Administration - Tables
+}
+
+<div ng-app="TablesModule"
+     ng-controller="TablesController as ctrl">
+
+    <h1 class="page-header">
+        Manage Entities
+    </h1>
+    <p>
+        This page allows you to manage structure of all tables in the system.
+    </p>
+
+
+    <div id="TablesForm"
+         class="modal fade" data-keyboard="false" data-backdrop="static">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button"
+                            class="close"
+                            data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <button type="button"
+                            ng-hide="object.id == null"
+                            ng-click="ctrl.delete(object)"
+                            class="close text-warning"
+                            style="margin-right: 10px">
+                        <span class="glyphicon glyphicon-trash"></span>
+                    </button>
+                    <h2 class="modal-title">
+                        <span ng-show="object.id == null">Create Entity</span>
+                        <span ng-show="object.id != null">Edit {{object.OriginalName}}</span>
+                    </h2>
+                </div>
+                <div class="modal-body">
+
+
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist" id="TablesFormTabs">
+                        <li class="active"><a href="#general" role="tab" data-toggle="tab">General</a></li>
+                        <li><a href="#scaffold" role="tab" data-toggle="tab">Scaffold</a></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade in active" id="general">
+
+                            <div class="form-group"
+                                 ng-show="object.id == null">
+                                <label class="control-label">Name</label>
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="object.OriginalName"
+                                       placeholder="Name of this Entity" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Structure</label>
+                                <div id="jsonstructure" style="height: 300px"></div>
+                            </div>
+
+                            <div class="alert alert-danger alert-dismissible" ng-show="error != null">
+                                {{error.message}}
+                            </div>
+
+                        </div>
+                        <div class="tab-pane fade" id="scaffold">
+                            <div class="form-group">
+                                <label>Scaffold from Sample Data</label>
+                                <p class="form-control-static">
+                                    Provide sample data below to generate data type based on this sample data.
+                                </p>
+                                <div id="sampledata" style="height: 300px"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-primary btn-lg fade"
+                            ng-disabled="isBusy"
+                            ng-class="{ in : currentTab == '#scaffold'}"
+                            ng-click="ctrl.scaffold()">
+                        <span>
+                            <span class="busycenter" ng-show="isBusy">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span>Scaffold</span>
+                        </span>
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-success btn-lg"
+                            data-target="#TablesForm"
+                            ng-disabled="isBusy || currentTab == '#scaffold'"
+                            ng-click="ctrl.save(object)">
+
+                        <span>
+                            <span class="busycenter" ng-show="isBusy">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span ng-show="object.id == null">Create</span>
+                            <span ng-show="object.id != null">Save</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th width="20%">Entity Name</th>
+                <th>Structure</th>
+                <th width="10%"></th>
+            </tr>
+        </thead>
+        <tr ng-repeat="item in list">
+            <td>
+                {{item.OriginalName}}
+            </td>
+            <td>
+                <ul>
+                    <li ng-repeat="property in item.Properties">
+                        <b>{{ property.Name }} :</b> {{ property.Type }}
+                    </li>
+                </ul>
+            </td>
+            <td style="white-space: nowrap">
+
+                <button class="btn btn-primary"
+                        ng-click="ctrl.view(item)">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </button>
+            </td>
+        </tr>
+    </table>
+
+    <div>
+        <button class="btn btn-success"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>Create Entity</span>
+        </button>
+    </div>
+
+    <script>
+
+        (function () {
+
+            var module = angular.module('TablesModule', ['ui.bootstrap', 'ncb']);
+
+            module.factory("TablesDialog", ['ncbDialog', function (ncbDialog) {
+
+                return function () {
+                    return new ncbDialog('#TablesForm');
+                };
+
+            }]);
+
+            module.controller("TablesController", function ($scope, $rootScope, $http, zumo, ncbOps, TablesDialog) {
+
+                var table = zumo.getTable("DataType");
+                var editor = new JSONEditor(document.getElementById('jsonstructure'));
+                var editorSample = new JSONEditor(document.getElementById('sampledata'));
+                var $me = this;
+
+                var standardOperations = new ncbOps($scope, table, '#TablesForm');
+                standardOperations.startScope();
+
+                this.delete = standardOperations.del;
+                this.save = standardOperations.save;
+                this.refresh = standardOperations.list;
+
+                this.refresh();
+
+                $scope.$watch('object.OriginalName',
+                    function () {
+
+                        editorSample.setName($scope.object.OriginalName);
+                    }
+                );
+
+
+                this.view = function (object) {
+                    $scope.object = object;
+
+                    var dialog = new TablesDialog();
+                    dialog.show(object);
+
+                    $scope.object.Properties.forEach(function (e) {
+
+                        delete e.$$hashKey;
+                    });
+
+                    editor.set($scope.object.Properties);
+                    editor.expandAll();
+                    editor.setName("Properties");
+
+                    $scope.sampleData = {};
+                    editorSample.set($scope.sampleData);
+                    editorSample.setName($scope.object.OriginalName);
+                }
+
+                this.scaffold = function () {
+
+                    $scope.isBusy = true;
+                    $scope.sampleData = editorSample.get();
+                    $http.post('/tables/DataType/Scaffold', $scope.sampleData).success(function (value) {
+
+                        $scope.object.Properties = value.Properties;
+                        $scope.isBusy = false;
+
+                        editor.set($scope.object.Properties);
+                        editor.expandAll();
+
+                        $('#TablesFormTabs a:first').tab('show');
+                    });
+                }
+
+                this.create = function () {
+                    $me.view({
+
+                        OriginalName: "NewEntity",
+                        Properties: [
+                            {
+                                Name: "Property1",
+                                Type: "string"
+                            }
+                        ],
+
+                    });
+                }
+
+
+            });
+
+        })();
+
+    </script>
+</div>
