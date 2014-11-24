@@ -56,9 +56,11 @@
     }
 
     <script src="/Content/Views/Admin/admin-sharedmodules.js"></script>
-    @RenderSection( "Scripts", false)
+    @RenderSection("Scripts", false)
 
-    @if (this.IsInEditMode && !this.Request.Url.Path.StartsWith("/Admin"))
+    @if (this.IsInEditMode &&
+        !this.Request.Url.Path.StartsWith("/Admin") &&
+        !this.Request.Url.Path.StartsWith("/SuperAdmin"))
     {
         <script src="/Content/Views/Editor/editor.js"></script>
         @(this.Html.Partial("Editor/editorui.cshtml", this.Model))
@@ -68,8 +70,7 @@
         // combine all ng-module into one attribute on top of the page
         // too allow all modules to function
         var modules = [];
-        $("*[ng-module]").each( function()
-        {
+        $("*[ng-module]").each(function () {
             var me = $(this);
             modules.push(me.attr("ng-module"));
             me.removeAttr("ng-module");
@@ -83,4 +84,5 @@
     <script src="/Content/Scripts/angular.ngmodule.js"></script>
 
 </body>
+
 </html>

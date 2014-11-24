@@ -70,6 +70,14 @@ else
         </div>
 
         <div class="form-group">
+            <label>Layout</label>
+            <select class="form-control"
+                    ng-model="object.Layout">
+                <option ng-repeat="layout in AvailableLayouts">{{layout}}</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label>SEO</label>
             <input type="text"
                    class="form-control"

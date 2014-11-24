@@ -1,8 +1,14 @@
 ﻿(function () {
 
     var mobileService = WindowsAzure.MobileServiceClient;
+    var path = window.location.origin;
+
+    if (window.location.pathname.indexOf( "/SuperAdmin" ) == 0) {
+        path = path + "/system";
+    }
+
     var client = new mobileService(
-                    window.location.origin,
+                    path,
                     '-');
 
     var ncb = angular.module("ncb", []);

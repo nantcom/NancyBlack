@@ -14,6 +14,7 @@ using System.Collections.Specialized;
 using Linq2Rest.Parser;
 using System.Linq.Expressions;
 using System.Reflection;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -29,13 +30,22 @@ namespace NantCom.NancyBlack.Modules
             // the interface of data mobile is compatible with Azure Mobile Service
             // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
 
-            Get["/tables/{table_name}"] = this.HandleRequest( this.HandleQueryRequest );
+            Get["/tables/{table_name}"] = this.HandleRequest( (arg)=> this.HandleQueryRequest( this.SiteDatabase, arg ) );
 
-            Post["/tables/{table_name}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
+            Post["/tables/{table_name}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SiteDatabase, arg));
 
-            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequest( this.HandleInsertUpdateRequest );
+            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SiteDatabase, arg));
 
-            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequest( this.HandleDeleteRecordRequest );
+            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleDeleteRecordRequest(this.SiteDatabase, arg));
+
+
+            Get["/system/tables/{table_name}"] = this.HandleRequest((arg) => this.HandleQueryRequest( this.SharedDatabase, arg ));
+
+            Post["/system/tables/{table_name}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SharedDatabase, arg));
+
+            Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SharedDatabase, arg));
+
+            Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleDeleteRecordRequest(this.SharedDatabase, arg));
         }
 
         private void PreChecks( dynamic arg )
@@ -51,7 +61,7 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="action">The action.</param>
         /// <returns></returns>
-        private dynamic HandleInsertUpdateRequest( dynamic arg )
+        private dynamic HandleInsertUpdateRequest( NancyBlackDatabase db, dynamic arg )
         {
             var entityName = (string)arg.table_name;
             int id = arg.item_id == null ? 0 : (int)arg.item_id;
@@ -60,7 +70,7 @@ namespace NantCom.NancyBlack.Modules
             var streamReader = new StreamReader(this.Request.Body);
             var json = streamReader.ReadToEnd();
             
-            var record = this.SiteDatabase.UpsertRecord(entityName, id, json);
+            var record = db.UpsertRecord(entityName, id, json);
 
             // TODO: Move Attachment to other place
             if (json.IndexOf( "AttachmentBase64" ) > 0)
@@ -89,7 +99,7 @@ namespace NantCom.NancyBlack.Modules
                     "/CustomContent/Attachments/" + entityName + "/" +
                     record.Id + "." + (string)inputJsonObject.AttachmentExtension;
 
-                this.SiteDatabase.UpsertRecord(entityName, record);
+                db.UpsertRecord(entityName, record);
             }
 
             return this.Negotiate
@@ -97,10 +107,10 @@ namespace NantCom.NancyBlack.Modules
                 .WithModel((object)record);
         }
 
-        private dynamic HandleQueryRequest( dynamic arg )
+        private dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
-            IList<string> rowsAsJson = this.SiteDatabase.QueryAsJsonString(entityName, 
+            IList<string> rowsAsJson = db.QueryAsJsonString(entityName, 
                                 this.Request.Query["$filter"], 
                                 this.Request.Query["$orderby"]);
 
@@ -128,12 +138,12 @@ namespace NantCom.NancyBlack.Modules
             return output;
         }
 
-        private dynamic HandleDeleteRecordRequest(dynamic arg)
+        private dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
             var id = arg.item_id == null ? 0 : (int?)arg.item_id;
 
-            this.SiteDatabase.DeleteRecord(entityName, new { Id = id });
+            db.DeleteRecord(entityName, new { Id = id });
 
             return 204;
         }

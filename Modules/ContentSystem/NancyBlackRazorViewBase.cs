@@ -33,6 +33,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         {
             get
             {
+                if (this.Model == null)
+                {
+                    return null;
+                }
                 return this.Model.Content;
             }
         }
@@ -47,6 +51,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         {
             get
             {
+                if (this.Model == null)
+                {
+                    return null;
+                }
                 return this.Model.Site;
             }
         }
@@ -75,6 +83,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         {
             get
             {
+                if (this.Model == null)
+                {
+                    return null;
+                }
                 return this.Model.Database;
             }
         }

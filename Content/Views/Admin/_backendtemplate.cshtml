@@ -1,12 +1,12 @@
 ﻿@{
-    var entity = this.Model as NantCom.NancyBlack.Types.DataType;
+    var entity = this.Model.DataType as NantCom.NancyBlack.Types.DataType;
     var entityName = entity.OriginalName;
     
 }
 
 @@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
 @@{
-    Layout = "Content/Views/Admin/_backend.cshtml";
+    Layout = "@(this.Model.Layout)";
 }
 @@section Title
 {

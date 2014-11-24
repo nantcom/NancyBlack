@@ -1,7 +1,6 @@
 ﻿@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
 @{
-    this.NgModules.Add("TablesModule");
-    Layout = "Content/Views/Admin/_backend.cshtml";
+    Layout = (string)this.Model.Content.Layout;
 }
 @section Title
 {
@@ -174,7 +173,7 @@
 
         module.controller("TablesController", function ($scope, $rootScope, $http, zumo, ncbOps, TablesDialog) {
 
-            var table = zumo.getTable("DataType");
+            var table = zumo.getTable("@(this.Content.Table)");
             var editor = new JSONEditor(document.getElementById('jsonstructure'));
             var editorSample = new JSONEditor(document.getElementById('sampledata'));
             var $me = this;

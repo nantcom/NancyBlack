@@ -1,5 +1,6 @@
 ﻿using Nancy;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json;
 using SisoDb;
 using SisoDb.SqlCe4;
 using System;
@@ -164,7 +165,9 @@ namespace NantCom.NancyBlack.Modules
                             HostName = this.Request.Url.HostName,
                             Alias = this.Request.Url.HostName + ";",
                             Theme = "Basic",
-                            Title = "New NancyBlack Site"
+                            Title = "New NancyBlack Site",
+                            RegistrationDate = DateTime.Now,
+                            ExpiryDate = DateTime.Now.AddYears(1)
                         });
                     }
                 }
@@ -187,10 +190,19 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         protected dynamic GetModel(dynamic content = null)
         {
+            if (((object)content).GetType().Name.Contains("AnonymousType"))
+            {
+                // anonymous type will have problem in template
+                // convert it to JObject
+                var json = JsonConvert.SerializeObject(content);
+                content = JsonConvert.DeserializeObject(json);
+            }
+
             return new
             {
                 Site = this.CurrentSite,
                 Database = this.SiteDatabase,
+                SharedDatabase = this.SharedDatabase,
                 Content = content
             };
         }
@@ -201,10 +213,16 @@ namespace NantCom.NancyBlack.Modules
         /// <param name="view">The view.</param>
         /// <param name="model">The model.</param>
         /// <returns></returns>
-        protected Func<dynamic, dynamic> HandleStaticRequest(string view, dynamic model)
+        protected Func<dynamic, dynamic> HandleStaticRequest(string view, Func<dynamic> modelGetter)
         {
             return (arg) =>
             {
+                dynamic model = null;
+                if (modelGetter != null)
+                {
+                    model = modelGetter();
+                }
+
                 return View[view, this.GetModel( model )];
             };
         }

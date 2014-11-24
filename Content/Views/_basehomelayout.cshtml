@@ -6,11 +6,11 @@
 @section Jumbotron
 {
     <div class="jumbotron">
-        <div class="container" @this.EditAttributes("jumbotron")>
+        <div class="container" @this.EditAttributes("JumbotronText")>
 
-            @if (this.HasContent("jumbotron"))
+            @if (this.HasContent("JumbotronText"))
             {
-                @this.GetContent("jumbotron")
+                @this.GetContent("JumbotronText")
             }
             else
             {
