@@ -190,7 +190,8 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         protected dynamic GetModel(dynamic content = null)
         {
-            if (((object)content).GetType().Name.Contains("AnonymousType"))
+            if (content != null &&
+                ((object)content).GetType().Name.Contains("AnonymousType"))
             {
                 // anonymous type will have problem in template
                 // convert it to JObject
