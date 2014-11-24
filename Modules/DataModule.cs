@@ -30,30 +30,38 @@ namespace NantCom.NancyBlack.Modules
             // the interface of data mobile is compatible with Azure Mobile Service
             // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
 
-            Get["/tables/{table_name}"] = this.HandleRequest( (arg)=> this.HandleQueryRequest( this.SiteDatabase, arg ) );
+            Get["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
 
-            Post["/tables/{table_name}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SiteDatabase, arg));
+            Post["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
-            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SiteDatabase, arg));
+            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
-            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleDeleteRecordRequest(this.SiteDatabase, arg));
+            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
 
 
-            Get["/system/tables/{table_name}"] = this.HandleRequest((arg) => this.HandleQueryRequest( this.SharedDatabase, arg ));
+            Get["/system/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
 
-            Post["/system/tables/{table_name}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SharedDatabase, arg));
+            Post["/system/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
-            Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleInsertUpdateRequest(this.SharedDatabase, arg));
+            Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
-            Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequest((arg) => this.HandleDeleteRecordRequest(this.SharedDatabase, arg));
+            Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
         }
 
-        private void PreChecks( dynamic arg )
+        private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
         {
-            if (((string)arg.table_name).Equals( "datatype", StringComparison.InvariantCultureIgnoreCase ))
+            return this.HandleRequest((arg) =>
             {
-                throw new InvalidOperationException("Cannot use 'datatype' as entity name, this name is reserved.");
-            }
+                return action(this.SharedDatabase, arg);
+            });
+        }
+
+        private dynamic HandleRequestForSiteDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
+        {
+            return this.HandleRequest((arg) =>
+            {
+                return action(this.SiteDatabase, arg);
+            });
         }
 
         /// <summary>
