@@ -14,6 +14,54 @@
     var ncb = angular.module("ncb", []);
 
     ncb.value("zumo", client);
+    
+    ncb.factory('ncbLookup', function () {
+        return function ($scope, zumo) {
+
+            this.lookup = function ( tableName ) {
+
+                if ($scope.lookup == null) {
+                    $scope.lookup = [];
+                }
+
+                if ($scope.lookup[tableName] != null) {
+
+                    return $scope.lookup[tableName];
+                }
+
+                $scope.lookup[tableName] = [];
+
+                var table = zumo.getTable(tableName);
+                table.read().done(function (results) {
+
+                    $scope.$apply(function () {
+
+                        $scope.isBusy = false;
+
+                        var lookupTable = [];
+
+                        results.forEach(function (item) {
+
+                            lookupTable[item.Id] = item;
+
+                        });
+
+                        $scope.lookup[tableName] = lookupTable;
+                    });
+
+                }, function (err) {
+
+                    $scope.$apply(function () {
+
+                        $scope.error = err;
+                    });
+                });
+
+                return []; // return empty array first and update later
+            };
+
+        };
+    });
 
     // Common Dialog code
     ncb.factory('ncbDialog', function () {
@@ -26,11 +74,8 @@
 
             this.show = function (object, onDialogClosed) {
 
-                scope.$apply(function () {
-
-                    scope.files = [];
-                    scope.object = object;
-                });
+                scope.files = [];
+                scope.object = object;
 
                 form.modal('show');
 

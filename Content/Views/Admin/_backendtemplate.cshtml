@@ -75,15 +75,28 @@
                                     {
                                         continue;
                                     }
-
-                                    if (property.Type == "System.Boolean")
+                                    else if (property.Name.EndsWith("Id"))
+                                    {
+                                        // Lookup
+                                        var tableName = property.Name.Substring(0, property.Name.Length - 2);
+                                        <div class="form-group">
+                                            <label class="control-label" for="@(property.Name)">@(tableName)</label>
+                                            <select name="@(property.Name)"
+                                                    class="form-control"
+                                                    ng-init="ctrl.getLookup('@(tableName)')"
+                                                    ng-model="object.@(property.Name)">
+                                                <option ng-repeat="selection in lookup['@(tableName)']" value="{{selection.Id}}">{{selection.Name}}</option>
+                                            </select>
+                                        </div>
+                                    }
+                                    else if (property.Type == "System.Boolean")
                                     {
                                         <div class="checkbox">
                                             <label>
                                                 <input type="checkbox"
                                                        ng-model="object.@(property.Name)" /> @(property.Name)
                                                 </label>
-                                            </div>
+                                        </div>
                                     }
                                     else if (property.Type == "DateTime")
                                     {
@@ -194,10 +207,20 @@
                     {
                         continue;
                     }
-                    <th>@property.Name</th>
+                    else if (property.Name.EndsWith("Id"))
+                    {
+                        // Lookup
+                        var tableName = property.Name.Substring(0, property.Name.Length - 2);
+                        <th>@tableName</th>
+                    }
+                    else
+                    {
+                        <th>@property.Name</th>
+                    }
                 }
                 <th class="commandColumn"></th>
             </tr>
+
         </thead>
         <tr ng-repeat="item in list">
             @foreach (var property in entity.Properties)
@@ -205,6 +228,12 @@
                 if (property.Name == "Id" || property.Name == "__version")
                 {
                     continue;
+                }
+                else if (property.Name.EndsWith("Id"))
+                {
+                    // Lookup
+                    var tableName = property.Name.Substring(0, property.Name.Length - 2);
+                    <td>{{ lookup['@(tableName)'][item.@(property.Name)].Name }}</td>
                 }
                 else if (property.Type == "int")
                 {
@@ -276,9 +305,10 @@
 
         }]);
 
-        module.controller("@(entityName)Controller", function ($scope, $rootScope, zumo, ncbOps, @(entityName)Dialog) {
+        module.controller("@(entityName)Controller", function ($scope, $rootScope, zumo, ncbOps, ncbLookup, @(entityName)Dialog) {
 
             var table = zumo.getTable("@(entityName)");
+            var ncbLookup = new ncbLookup($scope, zumo);
 
             var standardOperations = new ncbOps($scope, table, '#@(entityName)Form');
             standardOperations.startScope();
@@ -286,6 +316,8 @@
             this.delete = standardOperations.del;
             this.save = standardOperations.save;
             this.refresh = standardOperations.list;
+
+            this.getLookup = ncbLookup.lookup;
 
             this.refresh();
 
