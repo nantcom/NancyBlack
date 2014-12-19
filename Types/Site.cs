@@ -11,9 +11,13 @@ namespace NantCom.NancyBlack.Types
     /// </summary>
     public class Site
     {
+        public int Id { get; set; }
+
         public string HostName { get; set; }
 
         public string Alias { get; set; }
+
+        public string Theme { get; set; }
 
         public DateTime RegisteredDate { get; set; }
 

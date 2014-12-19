@@ -161,7 +161,7 @@ namespace NantCom.NancyBlack.Modules
                 
                     if (site == null)
                     {
-                        if (this.Request.Path.StartsWith("/SuerAdmin") == false)
+                        if (this.Request.Path.StartsWith("/SuperAdmin") == false)
                         {
                             return 423;
                         }
