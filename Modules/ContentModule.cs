@@ -60,6 +60,12 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
+            if (this.CurrentSite.SiteType == "SuperAdmin")
+            {
+                // reached this page by error
+                return 404;
+            }
+
 
             dynamic requestedContent = this.SiteDatabase.Query("Content", 
                                     string.Format("Url eq '{0}'", url)).FirstOrDefault();

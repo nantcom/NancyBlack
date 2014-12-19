@@ -24,25 +24,47 @@ namespace NantCom.NancyBlack.Configuration
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            this.Conventions.ViewLocationConventions.Insert(0, (viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Clear();
+
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
+                if (context.Context.Items.ContainsKey("CurrentSite") == false )
+                {
+                    return string.Empty;
+                }
+
                 return string.Concat( "Sites/",
                                         ((dynamic)context.Context.Items["CurrentSite"]).HostName, "/",
                                         viewName );
             });
 
-            this.Conventions.ViewLocationConventions.Insert(1, (viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                return string.Concat( "Content/Views/",
+                if (context.Context.Items.ContainsKey("CurrentSite") == false)
+                {
+                    return string.Empty;
+                }
+
+                return string.Concat("Content/Themes/",
                                         ((dynamic)context.Context.Items["CurrentSite"]).Theme, "/",
-                                        viewName );
-            });
-            
-            this.Conventions.ViewLocationConventions.Insert(2, (viewName, model, context) =>
-            {
-                return string.Concat( "Content/Views/", viewName );
+                                        viewName);
             });
 
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                return string.Concat( "Content/Views/",
+                                        viewName ); // part of the name
+            });
+
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                return viewName; // fully qualify names
+            });
+
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                return viewName.Substring(1); // fully qualify names, remove forward slash at first
+            });
         }
     }
 }

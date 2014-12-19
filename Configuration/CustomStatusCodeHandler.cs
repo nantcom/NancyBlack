@@ -46,7 +46,9 @@ namespace NantCom.NancyBlack.Configuration
         {
             return
                 (statusCode == HttpStatusCode.Forbidden) ||
-                (statusCode == HttpStatusCode.NotFound);
+                (statusCode == HttpStatusCode.NotFound) ||
+                (statusCode == HttpStatusCode.InternalServerError) ||
+                (statusCode == HttpStatusCode.Locked);
         }
     }
 }

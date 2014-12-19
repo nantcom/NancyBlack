@@ -1,5 +1,7 @@
 ﻿using Nancy;
+using Nancy.ViewEngines;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Types;
 using Newtonsoft.Json;
 using SisoDb;
 using SisoDb.SqlCe4;
@@ -159,7 +161,25 @@ namespace NantCom.NancyBlack.Modules
                 
                     if (site == null)
                     {
-                        return 404; // should return view that the site was not configured
+                        if (this.Request.Path.StartsWith("/SuerAdmin") == false)
+                        {
+                            return 423;
+                        }
+                        else
+                        {
+                            // superadmin request, make it a site
+                            site = new Site
+                            {
+                                HostName = this.Request.Url.HostName,
+                                Alias = string.Empty,
+                                RegisteredDate = DateTime.Now,
+                                ExpireDate = DateTime.Now.AddMonths(1),
+                                RegisteredBy = "System",
+                                SiteType = "SuperAdmin"
+                            };
+                            this.SharedDatabase.UpsertRecord("Site", site);
+                        }
+
                     }
                 }
 
