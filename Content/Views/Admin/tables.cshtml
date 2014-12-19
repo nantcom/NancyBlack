@@ -182,7 +182,6 @@
             standardOperations.startScope();
 
             this.delete = standardOperations.del;
-            this.save = standardOperations.save;
             this.refresh = standardOperations.list;
 
             this.refresh();
@@ -194,6 +193,13 @@
                 }
             );
 
+
+            this.save = function () {
+
+                $scope.object.Properties = editor.get();
+
+                standardOperations.save();
+            };
 
             this.view = function (object) {
                 $scope.object = object;

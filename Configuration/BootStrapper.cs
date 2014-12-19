@@ -18,7 +18,6 @@ namespace NantCom.NancyBlack.Configuration
             StaticConfiguration.DisableErrorTraces = false;
             StaticConfiguration.Caching.EnableRuntimeViewDiscovery = true;
             StaticConfiguration.Caching.EnableRuntimeViewUpdates = true;
-
             
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
@@ -27,14 +26,21 @@ namespace NantCom.NancyBlack.Configuration
         {
             this.Conventions.ViewLocationConventions.Insert(0, (viewName, model, context) =>
             {
-                return "Sites/" +
-                        context.Context.Request.Url.HostName + "/" +
-                        viewName;
+                return string.Concat( "Sites/",
+                                        ((dynamic)context.Context.Items["CurrentSite"]).HostName, "/",
+                                        viewName );
+            });
+
+            this.Conventions.ViewLocationConventions.Insert(1, (viewName, model, context) =>
+            {
+                return string.Concat( "Content/Views/",
+                                        ((dynamic)context.Context.Items["CurrentSite"]).Theme, "/",
+                                        viewName );
             });
             
             this.Conventions.ViewLocationConventions.Insert(2, (viewName, model, context) =>
             {
-                return "Content/Views/" + viewName;
+                return string.Concat( "Content/Views/", viewName );
             });
 
         }

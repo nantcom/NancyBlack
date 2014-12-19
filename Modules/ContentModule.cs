@@ -66,6 +66,11 @@ namespace NantCom.NancyBlack.Modules
 
             if (requestedContent == null)
             {
+                if (string.IsNullOrEmpty( Path.GetExtension( url ) ) == false)
+                {
+                    return 404;
+                }
+
                 if (this.IsInEditMode == false)
                 {
                     return 404;

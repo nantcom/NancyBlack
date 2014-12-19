@@ -157,19 +157,15 @@ namespace NantCom.NancyBlack.Modules
                     site = this.SharedDatabase.Query("Site",
                                        string.Format("HostName eq '{0}'", this.Request.Url.HostName)).FirstOrDefault();
                 
-                    if (site == null) // insert the site if alias not found
+                    if (site == null)
                     {
-                        site = this.SharedDatabase.UpsertRecord("Site", new
-                        {
-                            Id = 0,
-                            HostName = this.Request.Url.HostName,
-                            Alias = this.Request.Url.HostName + ";",
-                            Theme = "Basic",
-                            Title = "New NancyBlack Site",
-                            RegistrationDate = DateTime.Now,
-                            ExpiryDate = DateTime.Now.AddYears(1)
-                        });
+                        return 404; // should return view that the site was not configured
                     }
+                }
+
+                if (site.Theme == null )
+                {
+                    site.Theme = "Basic";
                 }
 
                 MemoryCache.Default.Add(key, site, new CacheItemPolicy()
