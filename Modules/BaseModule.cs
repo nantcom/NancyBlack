@@ -147,16 +147,16 @@ namespace NantCom.NancyBlack.Modules
             dynamic site = MemoryCache.Default.Get(key);
             if (site == null)
             {
-                // check for existing site
+                // check for existing by alias first
                 site = this.SharedDatabase.Query("Site",
-                                    string.Format("HostName eq '{0}'", this.Request.Url.HostName)).FirstOrDefault();
+                                   string.Format("Alias eq '{0}'", this.Request.Url.HostName)).FirstOrDefault();
 
+                // then by hostname
                 if (site == null)
                 {
-                    // try to find by Alias
                     site = this.SharedDatabase.Query("Site",
-                                   string.Format("contains(Alias,'{0};')", this.Request.Url.HostName)).FirstOrDefault();
-
+                                       string.Format("HostName eq '{0}'", this.Request.Url.HostName)).FirstOrDefault();
+                
                     if (site == null) // insert the site if alias not found
                     {
                         site = this.SharedDatabase.UpsertRecord("Site", new

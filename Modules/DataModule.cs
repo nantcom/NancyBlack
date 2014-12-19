@@ -39,13 +39,13 @@ namespace NantCom.NancyBlack.Modules
             Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
 
 
-            Get["/system/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
+            Get["/system/tables/{table_name}"] = this.HandleRequestForSharedDatabase(this.HandleQueryRequest);
 
-            Post["/system/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
+            Post["/system/tables/{table_name}"] = this.HandleRequestForSharedDatabase(this.HandleInsertUpdateRequest);
 
-            Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
+            Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleInsertUpdateRequest);
 
-            Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
+            Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleDeleteRecordRequest);
         }
 
         private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
