@@ -60,16 +60,31 @@
                 </div>
                 <div class="modal-body">
 
+                    @{
+                        var groups = from p in entity.Properties
+                                     where p.Name != "Id" && p.Name.StartsWith("__") == false
+                                    let underscorePos = p.Name.IndexOf("_")                                    
+                                    let groupName = underscorePos > -1 ? p.Name.Substring(0, underscorePos) : "General"
+                                    group p by groupName into g
+                                    orderby g.Key
+                                    select g;
+                    }
+
                     <!-- Nav tabs -->
                     <ul class="nav nav-tabs" role="tablist">
-                        <li class="active"><a href="#general" role="tab" data-toggle="tab">General</a></li>
+                        @foreach (var g in groups)
+                        {
+                            <li class=""><a href="#@(g.Key)" role="tab" data-toggle="tab">@(g.Key)</a></li>
+                        }
                     </ul>
 
                     <div class="tab-content">
-                        <div class="tab-pane fade in active" id="general">
+                    @foreach (var g in groups)
+                    {
+                        <div class="tab-pane fade in active" id="@(g.Key)">
                             <form role="form">
 
-                                @foreach (var property in entity.Properties)
+                                @foreach (var property in g)
                                 {
                                     if (property.Name == "Id" || property.Name.StartsWith("__"))
                                     {
@@ -94,15 +109,22 @@
                                         <div class="checkbox">
                                             <label>
                                                 <input type="checkbox"
-                                                       ng-model="object.@(property.Name)" /> @(property.Name)
-                                                </label>
+                                                       ng-model="object.@(property.Name)" /> @(property.Name.Replace(g.Key + "_", ""))
+                                            </label>
+                                        </div>
+                                    }
+                                    else if (property.Name.Contains("Hours") || property.Name.Contains("Time"))
+                                    {
+                                        <div class="dropdown form-group">
+                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
+                                            <timepicker ng-model="object.@(property.Name)" show-meridian="false"></timepicker>
                                         </div>
                                     }
                                     else if (property.Type == "DateTime")
                                     {
                                         <div class="dropdown form-group">
 
-                                            <label class="control-label" for="start">@(property.Name)</label>
+                                            <label class="control-label" for="start">@(property.Name.Replace(g.Key + "_", ""))</label>
 
                                             <p class="input-group">
                                                 <input type="text"
@@ -125,18 +147,18 @@
                                     else if (property.Name.EndsWith("Text"))
                                     {
                                         <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name)</label>
+                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
                                             <textarea name="@(property.Name)"
                                                       class="form-control"
                                                       ng-model="object.@(property.Name)"
-                                                      placeholder="@(property.Name)" rows="10"></textarea>
+                                                      placeholder="@(property.Name.Replace(g.Key + "_", ""))" rows="10"></textarea>
                                         </div>
                                     }
 
                                     else if (property.Name == "AttachmentUrl")
                                     {
                                         <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name)</label>
+                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
 
                                             <img class="img-responsive"
                                                  ng-src="{{object.AttachmentUrl}}?t={{timestamp}}" />
@@ -164,17 +186,18 @@
                                     {
 
                                         <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name)</label>
+                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
                                             <input type="text"
                                                    class="form-control"
                                                    name="@(property.Name)"
                                                    ng-model="object.@(property.Name)"
-                                                   placeholder="@(property.Name)" />
+                                                   placeholder="@(property.Name.Replace(g.Key + "_", ""))" />
                                         </div>
                                     }
                                 }
                             </form>
-                        </div>
+                        </div>                            
+                    }
                     </div>
 
                     <div class="alert alert-danger alert-dismissible" ng-show="error != null">

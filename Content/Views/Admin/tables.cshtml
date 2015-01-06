@@ -72,17 +72,17 @@
                                             <td width="16px"></td>
                                         </tr>
                                     </thead>
-                                    <tr ng-repeat="property in object.Properties">
+                                    <tr ng-repeat="property in object.Properties"
+                                        ng-hide="property.Name == 'Id' || property.Name.indexOf('__') == 0">
                                         <td>
-                                            <input class="form-control" ng-model="property.Name" ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0" />
+                                            <input class="form-control"
+                                                   placeholder="Property Name"
+                                                   ng-model="property.Name"
+                                                   ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0" />
                                         </td>
                                         <td>
                                             <select class="form-control" ng-model="property.Type" ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0">
-                                                <option>String</option>
-                                                <option>DateTime</option>
-                                                <option>int</option>
-                                                <option>double</option>
-                                                <option>object</option>
+                                                <option ng-repeat="item in dataTypes">{{item}}</option>
                                             </select>
                                         </td>
                                         <td>
@@ -95,15 +95,13 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <input class="form-control" ng-model="newProperty.Name" />
+                                            <input class="form-control"
+                                                   placeholder="Property Name"
+                                                   ng-model="newProperty.Name" />
                                         </td>
                                         <td>
                                             <select class="form-control" ng-model="newProperty.Type" >
-                                                <option>String</option>
-                                                <option>DateTime</option>
-                                                <option>int</option>
-                                                <option>double</option>
-                                                <option>object</option>
+                                                <option ng-repeat="item in dataTypes">{{item}}</option>
                                             </select>
                                         </td>
                                         <td>
@@ -242,6 +240,7 @@
                 }
             );
 
+            $scope.dataTypes = [ "int", "double", "Boolean", "string", "String", "DateTime"];
 
 
             this.view = function (object) {
@@ -253,6 +252,10 @@
                 $scope.object.Properties.forEach(function (e) {
 
                     delete e.$$hashKey;
+                });
+
+                $scope.object.Properties.sort(function (p1, p2) {
+                    return p1.Name.charCodeAt(0) - p2.Name.charCodeAt(0)
                 });
                 
                 $scope.sampleData = {};
@@ -287,7 +290,7 @@
                 });
             }
 
-            $scope.newProperty = { Name: 'newproperty1', Type: 'string'};
+            $scope.newProperty = { Name: '', Type: 'string'};
             this.appendProperty = function ( newProperty ) {
 
                 $scope.object.Properties.push(newProperty);

@@ -169,6 +169,18 @@
                             item.id = item.Id;
                             delete item.Id;
 
+                            for (var key in item) {
+
+                                // fields that has word 'JSON' will be de-serialized
+                                // into 'ForBinding' fields
+                                if (key.indexOf("JSON") > 0) {
+
+                                    var value = JSON.parse(item[key]);
+                                    item[key.replace("JSON", "ForBinding")] = value;
+
+                                }
+                            }
+
                         });
 
                     });
@@ -224,26 +236,42 @@
                     return;
                 }
 
+                // create a copy of object to save
+                var toSave = JSON.parse(JSON.stringify($scope.object));
+
                 $scope.error = null;
                 $scope.isBusy = true;
                 $scope.timestamp = (new Date()).getTime();
 
-                delete $scope.object.$$hashKey;
+                delete toSave.$$hashKey;
 
                 // fix the 'id' casing
-                if ($scope.object.Id != null && $scope.id == null) {
-                    $scope.object.id = $scope.object.Id;
-                    delete $scope.object.Id;
+                if (toSave.Id != null && $scope.id == null) {
+                    toSave.id = toSave.Id;
+                    delete toSave.Id;
+                }
+
+                // find the 'ForBinding' properties and remove them
+                // but set the original value as JSON
+                for (var key in toSave)
+                {
+                    if (key.indexOf( "ForBinding" ) > 0) {
+
+                        var value = JSON.stringify(toSave[key]);
+                        toSave[key.replace("ForBinding", "JSON")] = value;
+                        
+                        delete toSave[key];
+                    }
                 }
 
                 if ($scope.files !== null && $scope.files.length === 1) {
 
-                    $scope.object.AttachmentBase64 = $scope.files[0].dataRaw;
+                    toSave.AttachmentBase64 = $scope.files[0].dataRaw;
                 }
 
-                if ($scope.object.id != null) {
+                if (toSave.id != null) {
 
-                    $table.update($scope.object).done(
+                    $table.update(toSave).done(
                         function (result) {
 
                             $scope.$apply(function () {
@@ -264,7 +292,7 @@
 
                 } else {
 
-                    $table.insert($scope.object).done(
+                    $table.insert(toSave).done(
                         function (result) {
 
                             $scope.$apply(function () {

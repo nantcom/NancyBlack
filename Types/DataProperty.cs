@@ -64,10 +64,6 @@ namespace NantCom.NancyBlack.Types
                     return "int";
                 case JTokenType.Null:
                     return "string";
-                case JTokenType.Object:
-                    return "object";
-                case JTokenType.Array:
-                    return "object[]";
                 default:
                     throw new NotImplementedException("support for " + jt + " is not implemented.");
             }

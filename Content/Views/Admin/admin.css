@@ -178,3 +178,15 @@ h1.page-header > span {
 .metric .orange {    
     background-color: #E56A29;
 }
+
+.addspace {
+    margin-left: 10px;
+}
+
+.addendum {
+    margin: 20px 0;
+}
+
+.addendum .row {
+    margin: 10px 0 10px 50px;
+}

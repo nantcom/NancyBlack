@@ -98,6 +98,40 @@ public class @Model.Name
     }
 }
 ";
+        /// <summary>
+        /// Combine new fields from other data type
+        /// </summary>
+        /// <param name="other"></param>
+        public void CombineProperties( DataType other )
+        {
+            var properties = this.Properties.ToList();
+
+            Action<string, string> addOrReplaceProperties = (name, type) =>
+            {
+                var prop = (from p in properties
+                            where p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                            select p).FirstOrDefault();
+
+                if (prop == null)
+                {
+                    properties.Add(new DataProperty() { Name = name, Type = type });
+                }
+                else
+                {
+                    prop.Name = name;
+                    prop.Type = type;
+                }
+            };
+
+            foreach (var item in other.Properties)
+            {
+                addOrReplaceProperties(item.Name, item.Type);
+            }
+
+            properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
+
+            this.Properties = new ReadOnlyCollection<DataProperty>(properties);
+        }
 
         /// <summary>
         /// Ensures that this data type contains all neccessary properties

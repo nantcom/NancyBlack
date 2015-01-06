@@ -174,6 +174,11 @@ namespace NantCom.NancyBlack.Types
                 else
                 {
                     clientDataType.Id = existingDataType.Id;
+
+                    // sometimes when client is sending data, some fields will be missing
+                    // only allow fields to be added automatically but not removed
+                    existingDataType.CombineProperties(clientDataType);
+
                 }
             }
 
