@@ -93,6 +93,8 @@ namespace NantCom.NancyBlack.Types
         /// <returns></returns>
         public DataType Register(DataType toRegister)
         {
+            toRegister.EnsureHasNeccessaryProperties();
+
             if (toRegister.Id != default(int))
             {
                 _db.UseOnceTo().Update(toRegister);
@@ -108,7 +110,7 @@ namespace NantCom.NancyBlack.Types
         }
 
         /// <summary>
-        /// Froms the name.
+        /// Get DataType from Name
         /// </summary>
         /// <param name="typeName">Name of the type.</param>
         /// <returns></returns>
@@ -140,38 +142,11 @@ namespace NantCom.NancyBlack.Types
             var clientDataType = new DataType();
             clientDataType.OriginalName = "Scaffoled";
 
-            var properties = (from KeyValuePair<string, JToken> property in sourceObject
-                              select new DataProperty(property.Key, property.Value.Type)).ToList();
+            clientDataType.Properties = new ReadOnlyCollection<DataProperty>(
+                                         (from KeyValuePair<string, JToken> property in sourceObject
+                                         select new DataProperty(property.Key, property.Value.Type)).ToList());
 
-            Action<string, string> addOrReplaceProperties = (name, type) =>
-            {
-                var prop = (from p in properties
-                            where p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
-                            select p).FirstOrDefault();
-
-                if (prop == null)
-                {
-                    properties.Add(new DataProperty() { Name = name, Type = type });
-                }
-                else
-                {
-                    prop.Name = name;
-                    prop.Type = type;
-                }
-            };
-
-            addOrReplaceProperties("Id", "int");
-            addOrReplaceProperties("AttachmentUrl", "string");
-            addOrReplaceProperties("__createdAt", "DateTime");
-            addOrReplaceProperties("__updatedAt", "DateTime");
-            addOrReplaceProperties("__version", "string");
-
-            // find AttachmentBase64 field and remove it
-            // we will not keep this field in database, but will be kept in 
-            // attachment folder
-            properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
-
-            clientDataType.Properties = new ReadOnlyCollection<DataProperty>(properties);
+            clientDataType.EnsureHasNeccessaryProperties();
 
             return clientDataType;
         }

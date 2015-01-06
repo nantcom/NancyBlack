@@ -64,7 +64,56 @@
 
                             <div class="form-group">
                                 <label>Structure</label>
-                                <div id="jsonstructure" style="height: 300px"></div>
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <td width="40%">Name</td>
+                                            <td>Type</td>
+                                            <td width="16px"></td>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="property in object.Properties">
+                                        <td>
+                                            <input class="form-control" ng-model="property.Name" ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0" />
+                                        </td>
+                                        <td>
+                                            <select class="form-control" ng-model="property.Type" ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0">
+                                                <option>String</option>
+                                                <option>DateTime</option>
+                                                <option>int</option>
+                                                <option>double</option>
+                                                <option>object</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger"
+                                                    ng-click="ctrl.removeProperty(property)"
+                                                    ng-hide="property.Name == 'Id' || property.Name.indexOf('__') == 0">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input class="form-control" ng-model="newProperty.Name" />
+                                        </td>
+                                        <td>
+                                            <select class="form-control" ng-model="newProperty.Type" >
+                                                <option>String</option>
+                                                <option>DateTime</option>
+                                                <option>int</option>
+                                                <option>double</option>
+                                                <option>object</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success" ng-click="ctrl.appendProperty(newProperty)">
+                                                <i class="glyphicon glyphicon-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
                             </div>
 
                             <div class="alert alert-danger alert-dismissible" ng-show="error != null">
@@ -174,7 +223,6 @@
         module.controller("TablesController", function ($scope, $rootScope, $http, zumo, ncbOps, TablesDialog) {
 
             var table = zumo.getTable("@(this.Content.Table)");
-            var editor = new JSONEditor(document.getElementById('jsonstructure'));
             var editorSample = new JSONEditor(document.getElementById('sampledata'));
             var $me = this;
 
@@ -183,6 +231,7 @@
 
             this.delete = standardOperations.del;
             this.refresh = standardOperations.list;
+            this.save = standardOperations.save;
 
             this.refresh();
 
@@ -194,12 +243,6 @@
             );
 
 
-            this.save = function () {
-
-                $scope.object.Properties = editor.get();
-
-                standardOperations.save();
-            };
 
             this.view = function (object) {
                 $scope.object = object;
@@ -211,11 +254,7 @@
 
                     delete e.$$hashKey;
                 });
-
-                editor.set($scope.object.Properties);
-                editor.expandAll();
-                editor.setName("Properties");
-
+                
                 $scope.sampleData = {};
                 editorSample.set($scope.sampleData);
                 editorSample.setName($scope.object.OriginalName);
@@ -229,10 +268,7 @@
 
                     $scope.object.Properties = value.Properties;
                     $scope.isBusy = false;
-
-                    editor.set($scope.object.Properties);
-                    editor.expandAll();
-
+                    
                     $('#TablesFormTabs a:first').tab('show');
                 });
             }
@@ -251,6 +287,13 @@
                 });
             }
 
+            $scope.newProperty = { Name: 'newproperty1', Type: 'string'};
+            this.appendProperty = function ( newProperty ) {
+
+                $scope.object.Properties.push(newProperty);
+                $scope.newProperty = {};
+
+            };
 
         });
 

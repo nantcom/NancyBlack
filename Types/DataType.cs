@@ -98,6 +98,44 @@ public class @Model.Name
     }
 }
 ";
+
+        /// <summary>
+        /// Ensures that this data type contains all neccessary properties
+        /// </summary>
+        public void EnsureHasNeccessaryProperties()
+        {
+            var properties = this.Properties.ToList();
+
+            Action<string, string> addOrReplaceProperties = (name, type) =>
+            {
+                var prop = (from p in properties
+                            where p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                            select p).FirstOrDefault();
+
+                if (prop == null)
+                {
+                    properties.Add(new DataProperty() { Name = name, Type = type });
+                }
+                else
+                {
+                    prop.Name = name;
+                    prop.Type = type;
+                }
+            };
+
+            addOrReplaceProperties("Id", "int");
+            addOrReplaceProperties("AttachmentUrl", "string");
+            addOrReplaceProperties("__createdAt", "DateTime");
+            addOrReplaceProperties("__updatedAt", "DateTime");
+            addOrReplaceProperties("__version", "string");
+
+            // find AttachmentBase64 field and remove it
+            // we will not keep this field in database, but will be kept in 
+            // attachment folder
+            properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
+
+            this.Properties = new ReadOnlyCollection<DataProperty>(properties);
+        }
         
         private Assembly _Compiled;
 
@@ -112,6 +150,8 @@ public class @Model.Name
             {
                 return _Compiled;
             }
+
+            this.EnsureHasNeccessaryProperties();
 
             var code = Razor.Parse(_GeneratorTemplate, this);
 
