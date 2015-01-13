@@ -131,7 +131,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Upserts the specified entity name.
         /// </summary>
         /// <param name="entityName">Name of the entity.</param>
-        /// <param name="input">Data to be saved, can be anything including anonymous type</param>
+        /// <param name="input">Data to be saved, can be anything including anonymous type. But Anonymous Type must include Id parameter</param>
         public dynamic UpsertRecord(string entityName, dynamic inputObject)
         {
             int? id = inputObject.Id == null ? null : new int?(0);

@@ -10,7 +10,7 @@
     <link rel="shortcut icon" href="/Content/favicon.ico" />
     <link rel="icon" type="image/png" href="/Content/favicon.png" />
 
-    <title>@RenderSection( "Title", false )</title>
+    <title>@RenderSection("Title", false)</title>
 
     @if (this.RenderContext.Context.Request.Url.HostName == "localhost") // dev machine
     {
@@ -30,10 +30,29 @@
         <link href="/Content/Views/Editor/editor.css" rel="stylesheet" />
     }
 
-    @RenderSection( "Head", false )
+    <!-- Bootstrap Style for AngularJS -->
+    <link href="/Content/Views/bootstrap-angular.min.css" rel="stylesheet" />
+
+    @RenderSection("Head", false)
 </head>
 <body>
-    <div id="fb-root"></div>
+    <script>
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '405546486277679',
+                xfbml: true,
+                version: 'v2.2'
+            });
+        };
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) { return; }
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
 
     @RenderBody()
 
@@ -83,15 +102,6 @@
         }
     </script>
     <script src="/Content/Scripts/angular.ngmodule.js"></script>
-
-    <script>
-        (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = "//connect.facebook.net/th_TH/sdk.js#xfbml=1&version=v2.0";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));</script>
 
 </body>
 

@@ -1,4 +1,6 @@
 ﻿using Nancy;
+using Nancy.Authentication.Forms;
+using Nancy.TinyIoc;
 using Nancy.ViewEngines;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Types;
@@ -42,8 +44,6 @@ namespace NantCom.NancyBlack.Modules
             }
         }
 
-        private NancyBlackDatabase _SharedDatabase;
-
         /// <summary>
         /// Gets the shared database.
         /// </summary>
@@ -54,16 +54,7 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                if (_SharedDatabase == null)
-                {
-                    var sisodb = ("Data Source=" + Path.Combine(this.RootPath, "Sites", "Shared.sdf") + ";Persist Security Info=False")
-                            .CreateSqlCe4Db()
-                            .CreateIfNotExists();
-
-                    _SharedDatabase = new NancyBlackDatabase(sisodb);
-                }
-
-                return _SharedDatabase;
+                return (NancyBlackDatabase)this.Context.Items["SharedDatabase"];
             }
         }
 
@@ -77,39 +68,7 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                if (this.Context.Items.ContainsKey( "SiteDatabase" ))
-                {
-                    return (NancyBlackDatabase)this.Context.Items["SiteDatabase"];
-                }
-
-                var key = "SiteDatabse-" + this.CurrentSite.HostName;
-                var cached = MemoryCache.Default.Get(key);
-                if (cached != null)
-                {
-                    this.Context.Items["SiteDatabase"] = cached;
-                    return cached;
-                }
-
-                lock (key)
-                {
-                    var path = Path.Combine(this.RootPath,
-                                "Sites",
-                                (string)this.CurrentSite.HostName);
-                    Directory.CreateDirectory(path);
-
-                    var fileName = Path.Combine(path, "Data.sdf");
-                    var sisodb = ("Data Source=" + fileName + ";Persist Security Info=False")
-                                    .CreateSqlCe4Db()
-                                    .CreateIfNotExists();
-
-                    cached = new NancyBlackDatabase(sisodb);
-
-                    // cache in memory and in current request
-                    MemoryCache.Default.Add(key, cached, DateTimeOffset.MaxValue);
-                    this.Context.Items["SiteDatabase"] = cached;
-                }
-
-                return cached;
+                return (NancyBlackDatabase)this.Context.Items["SiteDatabase"];
             }
         }
 
@@ -134,69 +93,6 @@ namespace NantCom.NancyBlack.Modules
         public BaseModule(IRootPathProvider rootPath)
         {
             this.RootPath = rootPath.GetRootPath();
-
-            this.Before.AddItemToStartOfPipeline( this.InitializeSiteForRequest );
-        }
-
-        /// <summary>
-        /// Initializes the site for request.
-        /// </summary>
-        /// <param name="ctx">The context.</param>
-        /// <returns>Always null</returns>
-        private Nancy.Response InitializeSiteForRequest( NancyContext ctx)
-        {
-            var key = "Site-" + this.Request.Url.HostName;
-            dynamic site = MemoryCache.Default.Get(key);
-            if (site == null)
-            {
-                // check for existing by alias first
-                site = this.SharedDatabase.Query("Site",
-                                   string.Format("Alias eq '{0}'", this.Request.Url.HostName)).FirstOrDefault();
-
-                // then by hostname
-                if (site == null)
-                {
-                    site = this.SharedDatabase.Query("Site",
-                                       string.Format("HostName eq '{0}'", this.Request.Url.HostName)).FirstOrDefault();
-                
-                    if (site == null)
-                    {
-                        if (this.Request.Path.StartsWith("/SuperAdmin") == false)
-                        {
-                            return 423;
-                        }
-                        else
-                        {
-                            // superadmin request, make it a site
-                            site = new Site
-                            {
-                                HostName = this.Request.Url.HostName,
-                                Alias = string.Empty,
-                                RegisteredDate = DateTime.Now,
-                                ExpireDate = DateTime.Now.AddMonths(1),
-                                RegisteredBy = "System",
-                                SiteType = "SuperAdmin"
-                            };
-                            this.SharedDatabase.UpsertRecord("Site", site);
-                        }
-
-                    }
-                }
-
-                if (site.Theme == null )
-                {
-                    site.Theme = "Basic";
-                }
-
-                MemoryCache.Default.Add(key, site, new CacheItemPolicy()
-                {
-                    SlidingExpiration = TimeSpan.FromMinutes(5)
-                });
-            }
-
-            this.Context.Items["CurrentSite"] = site;
-
-            return null;
         }
 
         /// <summary>

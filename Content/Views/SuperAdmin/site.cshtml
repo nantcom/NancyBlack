@@ -31,7 +31,7 @@
     </div>
 
     <div id="siteForm"
-         class="modal fade" data-keyboard="false" data-backdrop="static">
+         class="modal fade" data-keyboard="false" data-backdrop="static" role="dialog">
 
         <div class="modal-dialog">
             <div class="modal-content">
@@ -65,104 +65,104 @@
                         <div class="tab-pane fade in active" id="general">
                             <form role="form">
 
-                                        <div class="form-group">
-                                            <label class="control-label" for="HostName">HostName</label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   name="HostName"
-                                                   ng-model="object.HostName"
-                                                   placeholder="HostName" />
+                                <div class="form-group">
+                                    <label class="control-label" for="HostName">HostName</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="HostName"
+                                           ng-model="object.HostName"
+                                           placeholder="HostName" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label" for="Alias">Alias</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="Alias"
+                                           ng-model="object.Alias"
+                                           placeholder="Alias" />
+                                </div>
+                                <div class="dropdown form-group">
+
+                                    <label class="control-label" for="start">RegisteredDate</label>
+
+                                    <p class="input-group">
+                                        <input type="text"
+                                               class="form-control"
+                                               datepicker-popup="dd MMMM yyyy, HH:mm"
+                                               ng-model="object.RegisteredDate"
+                                               is-open="datepickeropen['RegisteredDate']"
+                                               close-text="Close" />
+                                        <span class="input-group-btn">
+                                            <button type="button"
+                                                    class="btn btn-default"
+                                                    ng-click="ctrl.opendatepicker($event, 'RegisteredDate')">
+                                                <i class="glyphicon glyphicon-calendar"></i>
+                                            </button>
+                                        </span>
+                                    </p>
+
+                                </div>
+                                <div class="dropdown form-group">
+
+                                    <label class="control-label" for="start">ExpireDate</label>
+
+                                    <p class="input-group">
+                                        <input type="text"
+                                               class="form-control"
+                                               datepicker-popup="dd MMMM yyyy, HH:mm"
+                                               ng-model="object.ExpireDate"
+                                               is-open="datepickeropen['ExpireDate']"
+                                               close-text="Close" />
+                                        <span class="input-group-btn">
+                                            <button type="button"
+                                                    class="btn btn-default"
+                                                    ng-click="ctrl.opendatepicker($event, 'ExpireDate')">
+                                                <i class="glyphicon glyphicon-calendar"></i>
+                                            </button>
+                                        </span>
+                                    </p>
+
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label" for="RegisteredBy">RegisteredBy</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="RegisteredBy"
+                                           ng-model="object.RegisteredBy"
+                                           placeholder="RegisteredBy" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label" for="SiteType">SiteType</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="SiteType"
+                                           ng-model="object.SiteType"
+                                           placeholder="SiteType" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label" for="AttachmentUrl">AttachmentUrl</label>
+
+                                    <img class="img-responsive"
+                                         ng-src="{{object.AttachmentUrl}}?t={{timestamp}}" />
+
+                                    <label class="control-label" style="margin-top: 10px">Replacement Image:</label>
+
+                                    <div class="filedrop" data-maxfile="1" data-imageonly="true">
+                                        <div ng-hide="files == null || files.length == 0 || files[0].type.indexOf( 'image' ) < 0" style="text-align:center">
+                                            <img ng-src="{{files[0].data}}" class="img-responsive" /><br />
+
+                                            {{files[0].size}} bytes
                                         </div>
-                                        <div class="form-group">
-                                            <label class="control-label" for="Alias">Alias</label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   name="Alias"
-                                                   ng-model="object.Alias"
-                                                   placeholder="Alias" />
-                                        </div>
-                                        <div class="dropdown form-group">
+                                        <p ng-show="files[0].type.indexOf( 'image' ) < 0">
+                                            You have dropped file of type: <b>{{files[0].type}}</b> <br />
+                                            Only images are supported.
+                                        </p>
+                                        <p ng-show="files == null || files.length == 0">
+                                            Drop image file here to replace the image.
+                                        </p>
+                                    </div>
 
-                                            <label class="control-label" for="start">RegisteredDate</label>
-
-                                            <p class="input-group">
-                                                <input type="text"
-                                                       class="form-control"
-                                                       datepicker-popup="dd MMMM yyyy, HH:mm"
-                                                       ng-model="object.RegisteredDate"
-                                                       is-open="datepickeropen['RegisteredDate']"
-                                                       close-text="Close" />
-                                                <span class="input-group-btn">
-                                                    <button type="button"
-                                                            class="btn btn-default"
-                                                            ng-click="ctrl.opendatepicker($event, 'RegisteredDate')">
-                                                        <i class="glyphicon glyphicon-calendar"></i>
-                                                    </button>
-                                                </span>
-                                            </p>
-
-                                        </div>
-                                        <div class="dropdown form-group">
-
-                                            <label class="control-label" for="start">ExpireDate</label>
-
-                                            <p class="input-group">
-                                                <input type="text"
-                                                       class="form-control"
-                                                       datepicker-popup="dd MMMM yyyy, HH:mm"
-                                                       ng-model="object.ExpireDate"
-                                                       is-open="datepickeropen['ExpireDate']"
-                                                       close-text="Close" />
-                                                <span class="input-group-btn">
-                                                    <button type="button"
-                                                            class="btn btn-default"
-                                                            ng-click="ctrl.opendatepicker($event, 'ExpireDate')">
-                                                        <i class="glyphicon glyphicon-calendar"></i>
-                                                    </button>
-                                                </span>
-                                            </p>
-
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="control-label" for="RegisteredBy">RegisteredBy</label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   name="RegisteredBy"
-                                                   ng-model="object.RegisteredBy"
-                                                   placeholder="RegisteredBy" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="control-label" for="SiteType">SiteType</label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   name="SiteType"
-                                                   ng-model="object.SiteType"
-                                                   placeholder="SiteType" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="control-label" for="AttachmentUrl">AttachmentUrl</label>
-
-                                            <img class="img-responsive"
-                                                 ng-src="{{object.AttachmentUrl}}?t={{timestamp}}" />
-
-                                            <label class="control-label" style="margin-top: 10px">Replacement Image:</label>
-
-                                            <div class="filedrop" data-maxfile="1" data-imageonly="true">
-                                                <div ng-hide="files == null || files.length == 0 || files[0].type.indexOf( 'image' ) < 0" style="text-align:center">
-                                                    <img ng-src="{{files[0].data}}" class="img-responsive" /><br />
-
-                                                    {{files[0].size}} bytes
-                                                </div>
-                                                <p ng-show="files[0].type.indexOf( 'image' ) < 0">
-                                                    You have dropped file of type: <b>{{files[0].type}}</b> <br />
-                                                    Only images are supported.
-                                                </p>
-                                                <p ng-show="files == null || files.length == 0">
-                                                    Drop image file here to replace the image.
-                                                </p>
-                                            </div>
-
-                                        </div>
+                                </div>
                             </form>
                         </div>
                     </div>
