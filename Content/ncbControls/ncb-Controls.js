@@ -174,4 +174,76 @@
         };
     }]);
 
+    // A Shorter, leaner Input boxes
+    module.directive('ncbTextbox', ['$document', '$timeout', function ($document, $timeout) {
+
+        function link(scope, element, attrs) {
+
+            // Bootstrap Setup
+            element.addClass("form-control");
+            element.wrap('<div class="form-group"></div>');
+
+            if (element.is("[ncb-lg]")) {
+                element.parent().addClass("form-group-lg");
+            }
+
+            if (element.is("[ncb-col]")) {
+                element.parent().addClass(element.attr("ncb-col"));
+            }
+            
+            // Label            
+            if (element.is("[title]")) {
+
+                var label = $('<label class="control-label"></label>');
+                label.attr("for", element.attr("name"));
+                label.text(element.attr("title"));
+                element.before(label);
+            }
+
+            // Final touch ups
+            if (element.is("[placeholder]") == false) {
+                element.attr("placeholder", element.attr("title"));
+            }
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    }]);
+
+    // A Shorter, leaner form-control-static
+    module.directive('ncbFormstatic', ['$document', '$timeout', function ($document, $timeout) {
+
+        function link(scope, element, attrs) {
+
+            // Bootstrap Setup
+            element.addClass("form-control-static");
+            element.wrap('<div class="form-group"></div>');
+
+            if (element.is("[ncb-lg]")) {
+                element.parent().addClass("form-group-lg");
+            }
+
+            if (element.is("[ncb-col]")) {
+                element.parent().addClass(element.attr("ncb-col"));
+            }
+
+            // Label            
+            if (element.is("[title]")) {
+
+                var label = $('<label class="control-label"></label>');
+                label.attr("for", element.attr("name"));
+                label.text(element.attr("title"));
+                element.before(label);
+            }
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    }]);
+
 })();

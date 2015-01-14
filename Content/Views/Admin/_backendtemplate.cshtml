@@ -153,46 +153,13 @@
                                                       ng-model="object.@(property.Name)"
                                                       placeholder="@(property.Name.Replace(g.Key + "_", ""))" rows="10"></textarea>
                                         </div>
-                                    }
-
-                                    else if (property.Name == "AttachmentUrl")
-                                    {
-                                        <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
-
-                                            <img class="img-responsive"
-                                                 ng-src="{{object.AttachmentUrl}}?t={{timestamp}}" />
-
-                                            <label class="control-label" style="margin-top: 10px">Replacement Image:</label>
-
-                                            <div class="filedrop" data-maxfile="1" data-imageonly="true">
-                                                <div ng-hide="files == null || files.length == 0 || files[0].type.indexOf( 'image' ) < 0" style="text-align:center">
-                                                    <img ng-src="{{files[0].data}}" class="img-responsive" /><br />
-
-                                                    {{files[0].size}} bytes
-                                                </div>
-                                                <p ng-show="files[0].type.indexOf( 'image' ) < 0">
-                                                    You have dropped file of type: <b>{{files[0].type}}</b> <br />
-                                                    Only images are supported.
-                                                </p>
-                                                <p ng-show="files == null || files.length == 0">
-                                                    Drop image file here to replace the image.
-                                                </p>
-                                            </div>
-
-                                        </div>
+                                    
                                     }
                                     else
                                     {
-
-                                        <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   name="@(property.Name)"
-                                                   ng-model="object.@(property.Name)"
-                                                   placeholder="@(property.Name.Replace(g.Key + "_", ""))" />
-                                        </div>
+                                        <input type="text" name="@(property.Name)" title="@(property.Name.Replace(g.Key + "_", ""))"
+                                               ncb-textbox
+                                               ng-model="object.@(property.Name)" />
                                     }
                                 }
                             </form>
@@ -324,7 +291,7 @@
 
     (function () {
 
-        var module = angular.module('@(entityName)Module', ['ui.bootstrap', 'ui.select', 'ncb']);
+        var module = angular.module('@(entityName)Module', ['ui.bootstrap', 'ui.select', 'ncb', 'ncb-controls']);
 
         module.factory("@(entityName)Dialog", ['ncbDialog', function (ncbDialog) {
 
