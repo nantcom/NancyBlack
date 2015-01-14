@@ -96,6 +96,15 @@ namespace NantCom.NancyBlack.Modules
         }
 
         /// <summary>
+        /// Gets the site's folder
+        /// </summary>
+        /// <returns></returns>
+        protected string GetSiteFolder()
+        {
+            return Path.Combine(this.RootPath, "Sites", (string)this.CurrentSite.HostName);
+        }
+
+        /// <summary>
         /// Gets the standard model which require for NancyBlackRazorViewBase
         /// </summary>
         /// <param name="content">The content.</param>

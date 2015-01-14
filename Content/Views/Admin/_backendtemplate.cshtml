@@ -336,6 +336,8 @@
 
         module.controller("@(entityName)Controller", function ($scope, $rootScope, zumo, ncbOps, ncbLookup, @(entityName)Dialog) {
 
+            $scope.tableName = "@(entityName)";
+
             var table = zumo.getTable("@(entityName)");
             var ncbLookup = new ncbLookup($scope, zumo);
 

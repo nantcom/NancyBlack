@@ -30,6 +30,7 @@
         <link href="/Content/Views/Editor/editor.css" rel="stylesheet" />
     }
 
+    <link href="/Content/Scripts/angular-ui-select/select.min.css" rel="stylesheet" />
     <!-- Bootstrap Style for AngularJS -->
     <link href="/Content/Views/bootstrap-angular.min.css" rel="stylesheet" />
 
@@ -74,8 +75,19 @@
 
         <script src="//ajax.aspnetcdn.com/ajax/mobileservices/MobileServices.Web-1.1.5.min.js"></script>
     }
+    <!-- Uploader -->
+    <script src="/Content/Views/Editor/Uploader/uploader.js"></script>
+
+    <!-- UI Select -->
+    <script src="/Content/Scripts/angular-ui-select/select.min.js"></script>
+
+    <!-- Sortable UI -->
+    <script src="/Content/Scripts/angular-ui-sortable/jquery-ui.min.js"></script>
+    <script src="/Content/Scripts/angular-ui-sortable/angular-ui-sortable.min.js"></script>
+    <!-- END -->
 
     <script src="/Content/Views/Admin/admin-sharedmodules.js"></script>
+
     @RenderSection("Scripts", false)
 
     @if (this.IsInEditMode &&

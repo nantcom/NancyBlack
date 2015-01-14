@@ -55,6 +55,47 @@ namespace NantCom.NancyBlack.Modules
             Patch["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
 
             Delete["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleDeleteRecordRequest);
+
+            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
+        }
+
+        private dynamic HandleFileUploadRequest(dynamic args)
+        {
+            var tableName = (string)args.table_name;
+            var id =  (string)args.item_id;
+            var path = Path.Combine(this.GetSiteFolder(), "Attachments", tableName, id);
+            Directory.CreateDirectory(path);
+
+            List<string> urls = new List<string>();
+
+            foreach (var item in this.Request.Files)
+            {
+                var fileName = Path.GetFileName(item.Name);
+                var filePath = Path.Combine(path, fileName);
+                if (File.Exists( filePath ))
+                {
+                    fileName = Path.GetFileNameWithoutExtension(item.Name) +
+                        Guid.NewGuid() +
+                        Path.GetExtension(item.Name);
+
+                    filePath = Path.Combine(path, fileName);
+                }
+
+                using (var fs = File.Create(filePath))
+                {
+                    item.Value.CopyTo(fs);
+                    urls.Add( 
+                        Path.Combine( 
+                            "/Sites",
+                            (string)this.CurrentSite.HostName,
+                            "Attachments",
+                            tableName,
+                            id,
+                            fileName).Replace( '\\', '/' ));
+                }
+            }
+
+            return urls;
         }
 
         private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
