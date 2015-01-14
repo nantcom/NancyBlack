@@ -1,0 +1,17 @@
+﻿<ul>
+    <li ng-repeat="item in object.Pictures">
+        <div>
+            <img ng-src="{{item.Url}}" />
+        </div>
+        <div>
+            <input type="text"
+                   class="form-control"
+                   placeholder="ลำดับ"
+                   ng-model="item.DisplayOrder" />
+            <button class="btn btn-danger"
+                    ng-click="remove(item)">
+                <i class="glyphicon glyphicon-trash"></i>
+            </button>
+        </div>
+    </li>
+</ul>

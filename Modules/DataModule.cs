@@ -54,6 +54,8 @@ namespace NantCom.NancyBlack.Modules
 
             Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
 
+            Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
+
             // Special Handling for Site, which must update cache
 
             Post["/system/tables/site"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
@@ -124,6 +126,31 @@ namespace NantCom.NancyBlack.Modules
 
             return urls;
         }
+
+        private dynamic HandleFileDeleteRequest(dynamic args)
+        {
+            var tableName = (string)args.table_name;
+            var id = (string)args.item_id;
+            var fileName = (string)args.file_name;
+
+            var directory = this.GetAttachmentFolder(tableName, id);
+            var path = Path.Combine(directory, fileName);
+
+            if (File.Exists( path ))
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception)
+                {
+                    return 500;
+                }
+            }
+
+            return 204;
+        }
+
 
         private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
         {

@@ -1,0 +1,48 @@
+﻿
+ncb-picturelist 
+{
+    > ul {
+        height: 300px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+
+        margin: 0;
+        padding: 0;
+
+        list-style: none;
+
+        > li {
+            margin: 0;
+            padding: 5px;
+            display: inline-block;
+            max-height: 100px;
+            overflow: hidden;
+
+            img {
+                height: 80px;
+            }
+
+            > div:first-child {
+                text-align: center;
+                width: 80px;
+                overflow: hidden;
+            }
+
+            > div {
+                display: inline-block;
+                vertical-align: top;
+                margin: 5px;
+
+                width: 100px;
+
+                button {
+                    margin-top: 5px;
+                }
+            }
+        }
+
+        > li:hover {
+            background-color: #c2e2ed;
+        }
+    }
+}
