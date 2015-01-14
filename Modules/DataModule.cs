@@ -15,6 +15,7 @@ using Linq2Rest.Parser;
 using System.Linq.Expressions;
 using System.Reflection;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using System.Runtime.Caching;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -46,6 +47,14 @@ namespace NantCom.NancyBlack.Modules
             Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleInsertUpdateRequest);
 
             Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleDeleteRecordRequest);
+                      
+            // Special Handling for Site, which must update cache
+
+            Post["/system/tables/site"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
+
+            Patch["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
+
+            Delete["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleDeleteRecordRequest);
         }
 
         private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
@@ -61,6 +70,25 @@ namespace NantCom.NancyBlack.Modules
             return this.HandleRequest((arg) =>
             {
                 return action(this.SiteDatabase, arg);
+            });
+        }
+
+        private dynamic HandleUpdateRequestForSiteTable(Func<NancyBlackDatabase, dynamic, dynamic> action)
+        {
+            return this.HandleRequest((arg) =>
+            {
+                dynamic modifiedSite =  this.SharedDatabase.Query("Site",
+                                        string.Format("Id eq {0}", (string)arg.item_id)).FirstOrDefault();
+
+                if (modifiedSite != null)
+                {
+                    MemoryCache.Default.Remove("Site-" + modifiedSite.HostName);
+                    MemoryCache.Default.Remove("Site-" + modifiedSite.Alias);
+                }
+
+                arg.table_name = "site";
+
+                return action(this.SharedDatabase, arg);
             });
         }
 

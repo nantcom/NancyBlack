@@ -156,7 +156,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 _db.UseOnceTo().Update(actualType, (object)coercedObject);
             }
 
-            return inputObject;
+            return coercedObject;
         }
 
         /// <summary>
