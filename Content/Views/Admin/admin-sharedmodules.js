@@ -171,12 +171,13 @@
 
                             for (var key in item) {
 
-                                // fields that has word 'JSON' will be de-serialized
-                                // into 'ForBinding' fields
-                                if (key.indexOf("JSON") > 0) {
+                                // fields that has word 'JSONText' will be de-serialized
+                                // into the field without 'JSONText' word
+                                // text is added to designate that SiSoDB should use ntext type
+                                if (key.indexOf("JSONText") > 0) {
 
                                     var value = JSON.parse(item[key]);
-                                    item[key.replace("JSON", "ForBinding")] = value;
+                                    item[key.replace("JSONText", "")] = value;
 
                                 }
                             }
@@ -251,22 +252,18 @@
                     delete toSave.Id;
                 }
 
-                // find the 'ForBinding' properties and remove them
-                // but set the original value as JSON
+                // find the properties where type is Object or Array
+                // and JSON stringify it
                 for (var key in toSave)
                 {
-                    if (key.indexOf( "ForBinding" ) > 0) {
+                    var type = ({}).toString.call(toSave[key]).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+
+                    if (type == "object" || type == "array") {
 
                         var value = JSON.stringify(toSave[key]);
-                        toSave[key.replace("ForBinding", "JSON")] = value;
-                        
+                        toSave[key + "JSONText"] = value;
                         delete toSave[key];
                     }
-                }
-
-                if ($scope.files !== null && $scope.files.length === 1) {
-
-                    toSave.AttachmentBase64 = $scope.files[0].dataRaw;
                 }
 
                 if (toSave.id != null) {
@@ -275,10 +272,6 @@
                         function (result) {
 
                             $scope.$apply(function () {
-
-                                if (result.AttachmentUrl) {
-                                    $scope.object.AttachmentUrl = result.AttachmentUrl;
-                                }
 
                                 $scope.isBusy = false;
                                 $scope.timestamp = (new Date()).getTime();

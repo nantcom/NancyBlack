@@ -47,7 +47,13 @@ namespace NantCom.NancyBlack.Modules
             Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleInsertUpdateRequest);
 
             Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleDeleteRecordRequest);
-                      
+
+            // Files
+
+            Get["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileListRequest;
+
+            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
+
             // Special Handling for Site, which must update cache
 
             Post["/system/tables/site"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
@@ -56,15 +62,36 @@ namespace NantCom.NancyBlack.Modules
 
             Delete["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleDeleteRecordRequest);
 
-            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
+            
+        }
+
+        private string GetAttachmentFolder( string tableName, string id )
+        {
+            var path = Path.Combine(this.GetSiteFolder(), "Attachments", tableName, id);
+            Directory.CreateDirectory(path);
+
+            return path;
+        }
+
+        /// <summary>
+        /// List files from attachments folder of the item
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private dynamic HandleFileListRequest(dynamic args)
+        {
+            var tableName = (string)args.table_name;
+            var id = (string)args.item_id;
+            var path = this.GetAttachmentFolder(tableName, id);
+
+            return Directory.GetFiles(path);
         }
 
         private dynamic HandleFileUploadRequest(dynamic args)
         {
             var tableName = (string)args.table_name;
             var id =  (string)args.item_id;
-            var path = Path.Combine(this.GetSiteFolder(), "Attachments", tableName, id);
-            Directory.CreateDirectory(path);
+            var path = this.GetAttachmentFolder(tableName, id);
 
             List<string> urls = new List<string>();
 
