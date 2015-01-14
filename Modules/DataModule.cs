@@ -84,6 +84,8 @@ namespace NantCom.NancyBlack.Modules
                 {
                     MemoryCache.Default.Remove("Site-" + modifiedSite.HostName);
                     MemoryCache.Default.Remove("Site-" + modifiedSite.Alias);
+                    MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.HostName);
+                    MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.Alias);
                 }
 
                 arg.table_name = "site";

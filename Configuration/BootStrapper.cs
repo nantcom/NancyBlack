@@ -129,9 +129,11 @@ namespace NantCom.NancyBlack.Configuration
 
             lock (key)
             {
+                dynamic site = ctx.Items["CurrentSite"];
+
                 var path = Path.Combine(this.RootPathProvider.GetRootPath(),
                             "Sites",
-                            ctx.Request.Url.HostName);
+                            (string)site.HostName);
 
                 Directory.CreateDirectory(path);
 
