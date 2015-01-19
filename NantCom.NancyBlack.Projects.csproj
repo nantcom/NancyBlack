@@ -642,6 +642,7 @@
     <Content Include="Content\Views\Admin\tables.cshtml" />
     <None Include="Content\Views\Admin\_backend.cshtml" />
     <Content Include="Content\Scripts\MobileServices.Web-1.1.5.min.js" />
+    <Content Include="Modules\MembershipSystem\Templates\ncb-membership-profiledialog.html" />
     <Content Include="Modules\MembershipSystem\Templates\ncb-membership-logindialog.html" />
     <Content Include="Modules\MembershipSystem\ncb-membership.js" />
     <Content Include="packages.config" />
@@ -1482,6 +1483,7 @@
     <Content Include="Sites\masterbody.co.th\style.css.map">
       <DependentUpon>style.css</DependentUpon>
     </Content>
+    <Content Include="Sites\masterbody.co.th\Views\ProfileDialog.cshtml" />
     <None Include="Sites\tripsbox.net\Admin\Location-ContactTab.cshtml" />
     <Content Include="Sites\tripsbox.net\Admin\Location.js" />
     <Content Include="Sites\tripsbox.net\Content.cshtml">

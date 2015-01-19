@@ -1,0 +1,17 @@
+﻿<ncb-modal id="profileDialog"
+           class="profile-dialog">
+    
+    <div ng-transclude
+         ng-controller="MemberShip-ProfileController as ctrl">
+
+    </div>
+
+    <div style="margin-top: 10px">
+        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
+    </div>
+
+    <ncb-footer>
+        <button class="btn btn-success btn-lg">Save</button>
+    </ncb-footer>
+
+</ncb-modal>

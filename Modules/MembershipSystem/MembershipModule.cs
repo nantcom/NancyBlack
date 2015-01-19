@@ -52,7 +52,7 @@ namespace NantCom.NancyBlack.Modules
         
         public MembershipModule( IRootPathProvider r) : base( r )
         {
-            Post["/membership/login"] = p =>
+            Post["/__membership/login"] = p =>
             {
                 var loginParams = this.Bind<LoginParams>();
                 dynamic user = this.SiteDatabase.Query("User",
@@ -67,7 +67,7 @@ namespace NantCom.NancyBlack.Modules
 
             };
 
-            Post["/membership/register"] = p =>
+            Post["/__membership/register"] = p =>
             {
                 var registerParams = this.Bind<LoginParams>();
 

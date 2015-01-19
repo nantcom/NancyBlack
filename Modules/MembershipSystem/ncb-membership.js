@@ -425,7 +425,7 @@
                 return;
             }
 
-            $http.post('/membership/login', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
+            $http.post('/__membership/login', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
             success(function (data, status, headers, config) {
 
                 $scope.login = {}
@@ -450,7 +450,7 @@
                 return;
             }
 
-            $http.post('/membership/register', { Email: $scope.newuser.email, Password: window.md5($scope.newuser.password) }).
+            $http.post('/__membership/register', { Email: $scope.newuser.email, Password: window.md5($scope.newuser.password) }).
             success(function (data, status, headers, config) {
 
                 $scope.newuser = {}
@@ -471,29 +471,26 @@
 
     }]);
         
-    membership.controller('MemberShip-ProfileController', ['$scope', '$http', 'CurrentUser', function ($scope, $http, CurrentUser) {
+    membership.controller('MemberShip-ProfileController', ['$scope', '$http', function ($scope, $http) {
 
         $scope.alerts = [];
-        $scope.user = CurrentUser;
+
+        if (currentUser == null || currentUser == "") {
+            return;
+        }
+
+        $scope.user = JSON.parse( JSON.stringify( currentUser ) ); // create a copy of profile
 
         this.saveProfile = function () {
 
-            $http.post('/membership/saveprofile', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
+            $http.post('/membership/saveprofile', $scope.user).
             success(function (data, status, headers, config) {
 
-                $("#loginDialog").modal('hide');
-                $("#profileDialog").modal('show');
-
-                var userInfo = JSON.parse($.cookie("UserInfo"));
-                membership.value("CurrentUser", userInfo);
-                CurrentUser = userInfo;
-
+                $scope.alerts.push({ type: 'success', msg: 'บันทึกข้อมูลแล้ว' });
             }).
             error(function (data, status, headers, config) {
 
-                $scope.user.password = null;
-                $scope.alerts.push({ type: 'danger', msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
-
+                $scope.alerts.push({ type: 'danger', msg: 'ไม่สามารถบันทึกข้อมูลได้' });
             });
 
         };
@@ -506,14 +503,24 @@
 
             var myScope = scope;
 
-            var dialog = $('<div class="container" ng-controller="MemberShip-LoginController as ctrl"><ncb-logindialog></ncb-logindialog></div>');
-            $("body").append(dialog);
-            $compile(dialog)(scope);
+            if ($("ncb-logindialog").length == 0) {
+
+                // Add login dialog if not already there
+                var loginDialog = $('<div class="container"><ncb-logindialog></ncb-logindialog></div>');
+                $("body").append(loginDialog);
+                $compile(loginDialog)(scope);
+            }
+
 
             element.on("click", function () {
 
                 if (currentUser != null) {
 
+                    if ($('#profileDialog').length == 0) {
+                        throw "Profile Dialog not found";
+                    }
+
+                    $('#profileDialog').modal('show');
                 } else {
 
                     $('#loginDialog').modal('show');
@@ -530,15 +537,18 @@
 
     membership.directive('ncbLogindialog', ['$http', '$compile', function ($http, $compile) {
 
-        function link(scope, element, attrs) {
-
-            var myScope = scope;
-        }
-
         return {
             restrict: 'E',
             templateUrl: '/Modules/MembershipSystem/Templates/ncb-membership-logindialog.html',
-            link: link
+        };
+    }]);
+
+    membership.directive('ncbProfiledialog', ['$http', '$compile', function ($http, $compile) {
+
+        return {
+            restrict: 'E',
+            transclude: true,
+            templateUrl: '/Modules/MembershipSystem/Templates/ncb-membership-profiledialog.html',
         };
     }]);
 

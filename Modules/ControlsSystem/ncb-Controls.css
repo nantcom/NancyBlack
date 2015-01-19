@@ -18,6 +18,11 @@ textarea.ng-untouched:focus {
   border-color: #66afe9;
   box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
 }
+ul.nav-tabs > li.active > a,
+ul.nav-tabs > li.active > a:focus,
+ul.nav-tabs > li.active > a:hover {
+  border-top: 3px solid #ff4e00;
+}
 ncb-picturelist > ul {
   height: 300px;
   overflow-x: hidden;
@@ -53,12 +58,6 @@ ncb-picturelist > ul > li > div button {
 }
 ncb-picturelist > ul > li:hover {
   background-color: #c2e2ed;
-}
-.login-dialog > .modal-dialog {
-  top: 200px;
-  width: 780px;
-  font-family: 'Leelawadee UI', Leelawadee;
-  font-size: 13px;
 }
 .login-dialog > .modal-dialog .modal-body {
   position: relative;
