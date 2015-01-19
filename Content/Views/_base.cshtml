@@ -1,4 +1,4 @@
-﻿@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,11 +29,11 @@
     {
         <link href="/Content/Views/Editor/editor.css" rel="stylesheet" />
     }
-    
-    <link href="/Content/ncbControls/ncb-Controls.css" rel="stylesheet" />
+
     <link href="/Content/Scripts/angular-ui-select/select.min.css" rel="stylesheet" />
-    <!-- Bootstrap Style for AngularJS -->
-    <link href="/Content/Views/bootstrap-angular.min.css" rel="stylesheet" />
+
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
+
 
     @RenderSection("Head", false)
 </head>
@@ -76,28 +76,26 @@
 
         <script src="//ajax.aspnetcdn.com/ajax/mobileservices/MobileServices.Web-1.1.5.min.js"></script>
     }
-    <!-- Uploader -->
-    <script src="/Content/ncbControls/ncb-Controls.js"></script>
 
-    <!-- UI Select -->
+    <!-- Angular UI Modules -->
     <script src="/Content/Scripts/angular-ui-select/select.min.js"></script>
+    <script src="/Content/Scripts/angular-ui/ui-validate.js"></script>
 
     <!-- Sortable UI -->
     <script src="/Content/Scripts/angular-ui-sortable/jquery-ui.min.js"></script>
     <script src="/Content/Scripts/angular-ui-sortable/angular-ui-sortable.min.js"></script>
-    <!-- END -->
 
-    <script src="/Content/Views/Admin/admin-sharedmodules.js"></script>
+    @this.Html.Raw( NantCom.NancyBlack.Configuration.ModuleResource.JS )
 
     @RenderSection("Scripts", false)
 
-    @if (this.IsInEditMode &&
+    @*@if (this.IsInEditMode &&
         !this.Request.Url.Path.StartsWith("/Admin") &&
         !this.Request.Url.Path.StartsWith("/SuperAdmin"))
     {
         <script src="/Content/Views/Editor/editor.js"></script>
         @(this.Html.Partial("Editor/editorui.cshtml", this.Model))
-    }
+    }*@
 
     <script>
         // combine all ng-module into one attribute on top of the page
@@ -109,10 +107,14 @@
             me.removeAttr("ng-module");
         });
 
-        if (modules.length > 0) {
+        modules.push("ui.bootstrap");
+        modules.push("ui.select");
+        modules.push("ui.validate");
+        
+        $("body").attr("ng-modules",
+            modules.join(",") +
+            ",@this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.AngularModules)");
 
-            $("body").attr("ng-modules", modules.join(","));
-        }
     </script>
     <script src="/Content/Scripts/angular.ngmodule.js"></script>
 

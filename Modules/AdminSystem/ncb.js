@@ -107,10 +107,11 @@
     });
 
     ncb.factory('ncbOps', function () {
-        return function ($scope, $table, formId) {
+        return function ($scope, $table, formId, disableJsonify) {
 
             this.$table = $table;
             this.$scope = $scope;
+            this.disableJsonify = disableJsonify;
 
             var $me = this;
             $me.handleError = function (err) {
@@ -254,16 +255,19 @@
 
                 // find the properties where type is Object or Array
                 // and JSON stringify it
-                for (var key in toSave)
-                {
-                    var type = ({}).toString.call(toSave[key]).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+                if (this.disableJsonify == false || this.disableJsonify == null) {
 
-                    if (type == "object" || type == "array") {
+                    for (var key in toSave) {
+                        var type = ({}).toString.call(toSave[key]).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
 
-                        var value = JSON.stringify(toSave[key]);
-                        toSave[key + "JSONText"] = value;
-                        delete toSave[key];
+                        if (type == "object" || type == "array") {
+
+                            var value = JSON.stringify(toSave[key]);
+                            toSave[key + "JSONText"] = value;
+                            delete toSave[key];
+                        }
                     }
+
                 }
 
                 if (toSave.id != null) {

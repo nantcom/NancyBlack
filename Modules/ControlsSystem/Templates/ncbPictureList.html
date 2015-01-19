@@ -8,10 +8,8 @@
                    class="form-control"
                    placeholder="ลำดับ"
                    ng-model="item.DisplayOrder" />
-            <button class="btn btn-danger"
-                    ng-click="remove(item)">
-                <i class="glyphicon glyphicon-trash"></i>
-            </button>
+            <button ncb-del
+                    ng-click="remove(item)"></button>
         </div>
     </li>
 </ul>

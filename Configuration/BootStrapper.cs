@@ -30,7 +30,25 @@ namespace NantCom.NancyBlack.Configuration
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
+            ModuleResource.ReadSystemsAndResources(this.RootPathProvider.GetRootPath());
+
+            #region View Conventions
+
             this.Conventions.ViewLocationConventions.Clear();
+
+            // Views in Systems (AdminSystem, ContentSystem etc...)
+
+            foreach (var system in ModuleResource.Systems)
+            {
+                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                {
+                    return string.Concat("Modules/",
+                                         system,
+                                         "/Views/",
+                                         viewName);
+                });
+
+            }
 
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
@@ -71,6 +89,8 @@ namespace NantCom.NancyBlack.Configuration
             {
                 return viewName.Substring(1); // fully qualify names, remove forward slash at first
             });
+
+            #endregion
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)

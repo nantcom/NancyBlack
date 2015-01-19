@@ -1,38 +1,30 @@
 ﻿input.ng-invalid, textarea.ng-invalid {
-        
     border-color: rgba(242, 148, 148, 0.60);
     box-shadow: 0 0 8px rgba(242, 148, 148, 0.60);
 
     &:focus {
-        
         border-color: red;
-        box-shadow: 0 0 8px rgba(247, 82, 82, 0.60)
+        box-shadow: 0 0 8px rgba(247, 82, 82, 0.60);
     }
-
 }
 
-input.ng-untouched,textarea.ng-untouched {
-    
+input.ng-untouched, textarea.ng-untouched {
     border-color: #ccc;
     box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
-    
+
     &:focus {
-        
         border-color: #66afe9;
         box-shadow: 0 0 8px rgba(102,175,233,0.6);
     }
 }
 
-ncb-picturelist 
-{
+ncb-picturelist {
     > ul {
         height: 300px;
         overflow-x: hidden;
         overflow-y: scroll;
-
         margin: 0;
         padding: 0;
-
         list-style: none;
 
         > li {
@@ -57,7 +49,6 @@ ncb-picturelist
                 display: inline-block;
                 vertical-align: top;
                 margin: 5px;
-
                 width: 100px;
 
                 button {
@@ -68,6 +59,48 @@ ncb-picturelist
 
         > li:hover {
             background-color: #c2e2ed;
+        }
+    }
+}
+
+
+.login-dialog {
+    > .modal-dialog {
+        top: 200px;
+        width: 780px;
+        font-family: 'Leelawadee UI', Leelawadee;
+        font-size: 13px;
+
+        .modal-body {
+            position: relative;
+        }
+
+        .modal-body .facebooklogin {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+        }
+
+        .modal-body > .row > div:first-child {
+            border-right: 1px inset black;
+
+            > h1 {
+                margin-bottom: 20px;
+            }
+        }
+
+        .modal-body > .row > div {
+            > h1 {
+                margin-top: 0;
+                margin-bottom: 20px;
+            }
+        }
+
+        .btn {
+
+            > i {
+                margin-right: 5px;
+            }
         }
     }
 }

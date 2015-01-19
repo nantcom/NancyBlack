@@ -395,38 +395,27 @@
         }
     }(this));
 
-    var membership = angular.module('ncb-angular-membership', []);
+    var membership = angular.module('ncb-membership', ['ncb-controls']);
 
     var currentUser = $.cookie("UserInfo");
-    if (currentUser != null) {
 
-        membership.value("CurrentUser", JSON.parse( currentUser ));
-    } else {
-
-        membership.value("CurrentUser", null);
-    }
-
-    membership.controller('LoginController', ['$scope', '$http', 'CurrentUser', function ($scope, $http, CurrentUser) {
+    membership.controller('MemberShip-LoginController', ['$scope', '$http', function ($scope, $http ) {
 
         $scope.alerts = [];
         $scope.login = {};
+        $scope.user = currentUser;
 
         this.closeAlert = function (index) {
             $scope.alerts.splice(index, 1);
         };
 
-        this.toggleLoginDialog = function () {
+        var loginUser = function () {
 
-            var user = CurrentUser;
-            if (user == null) {
+            $("#loginDialog").modal('hide');
+            $("#profileDialog").modal('show');
 
-                $("#loginDialog").modal('show');
-
-            } else {
-
-                $("#profileDialog").modal('show');
-            }
-
+            var userInfo = JSON.parse($.cookie("UserInfo"));
+            currentUser = userInfo;
         };
 
         this.login = function () {
@@ -438,13 +427,9 @@
 
             $http.post('/membership/login', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
             success(function (data, status, headers, config) {
-                
-                $("#loginDialog").modal('hide');
-                $("#profileDialog").modal('show');
 
-                var userInfo = JSON.parse( $.cookie("UserInfo") );
-                membership.value("CurrentUser", userInfo);
-                CurrentUser = userInfo;
+                $scope.login = {}
+                loginUser();
 
             }).
             error(function (data, status, headers, config) {
@@ -471,10 +456,13 @@
                 $scope.newuser = {}
                 $scope.alerts.push({ type: 'success', msg: 'ลงทะเบียนเรียบร้อยแล้ว' });
 
+                loginUser();
+
             }).
             error(function (data, status, headers, config) {
 
-                $scope.user.password = null;
+                $scope.newuser.password = null;
+                $scope.newuser.passwordConfirm = null;
                 $scope.alerts.push({ type: 'danger', msg: 'อีเมลล์นี้มีผู้ใช้งานแล้ว' });
 
             });
@@ -482,6 +470,76 @@
         };
 
     }]);
-    
+        
+    membership.controller('MemberShip-ProfileController', ['$scope', '$http', 'CurrentUser', function ($scope, $http, CurrentUser) {
+
+        $scope.alerts = [];
+        $scope.user = CurrentUser;
+
+        this.saveProfile = function () {
+
+            $http.post('/membership/saveprofile', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
+            success(function (data, status, headers, config) {
+
+                $("#loginDialog").modal('hide');
+                $("#profileDialog").modal('show');
+
+                var userInfo = JSON.parse($.cookie("UserInfo"));
+                membership.value("CurrentUser", userInfo);
+                CurrentUser = userInfo;
+
+            }).
+            error(function (data, status, headers, config) {
+
+                $scope.user.password = null;
+                $scope.alerts.push({ type: 'danger', msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+
+            });
+
+        };
+
+    }]);
+
+    membership.directive('ncbLoginbutton', ['$http', '$compile', function ($http, $compile) {
+
+        function link(scope, element, attrs) {
+
+            var myScope = scope;
+
+            var dialog = $('<div class="container" ng-controller="MemberShip-LoginController as ctrl"><ncb-logindialog></ncb-logindialog></div>');
+            $("body").append(dialog);
+            $compile(dialog)(scope);
+
+            element.on("click", function () {
+
+                if (currentUser != null) {
+
+                } else {
+
+                    $('#loginDialog').modal('show');
+                }
+
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    }]);
+
+    membership.directive('ncbLogindialog', ['$http', '$compile', function ($http, $compile) {
+
+        function link(scope, element, attrs) {
+
+            var myScope = scope;
+        }
+
+        return {
+            restrict: 'E',
+            templateUrl: '/Modules/MembershipSystem/Templates/ncb-membership-logindialog.html',
+            link: link
+        };
+    }]);
 
 })();

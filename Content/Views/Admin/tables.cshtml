@@ -1,4 +1,4 @@
-﻿@inherits NantCom.NancyBlack.Modules.ContentSystem.NancyBlackRazorViewBase
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 @{
     Layout = (string)this.Model.Content.Layout;
 }
@@ -224,7 +224,7 @@
             var editorSample = new JSONEditor(document.getElementById('sampledata'));
             var $me = this;
 
-            var standardOperations = new ncbOps($scope, table, '#TablesForm');
+            var standardOperations = new ncbOps($scope, table, '#TablesForm', true);
             standardOperations.startScope();
 
             this.delete = standardOperations.del;

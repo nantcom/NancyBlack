@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NantCom.NancyBlack.Modules.ContentSystem
+namespace NantCom.NancyBlack
 {
     public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<dynamic>
     {   
@@ -150,5 +150,6 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
             return string.Concat("/Sites/", this.Site.HostName, path);
         }
+
     }
 }

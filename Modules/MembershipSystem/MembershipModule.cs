@@ -10,7 +10,7 @@ using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 
-namespace NantCom.NancyBlack.Modules.MembershipSystem
+namespace NantCom.NancyBlack.Modules
 {
     public class MembershipModule : NancyBlack.Modules.BaseModule
     {
@@ -31,6 +31,24 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             /// </summary>
             public bool RememberMe { get; set; }
         }
+
+        /// <summary>
+        /// Performs the login sequence
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        private Nancy.Response ProcessLogin( dynamic user )
+        {
+            user.PasswordHash = null;
+            user.Id = 0;
+
+            var response = this.LoginWithoutRedirect((Guid)user.Guid, DateTime.Now.AddMinutes(15));
+
+            user.Guid = null;
+            response.Cookies.Add(new Nancy.Cookies.NancyCookie("UserInfo", JsonConvert.SerializeObject(user)));
+
+            return response;
+        }
         
         public MembershipModule( IRootPathProvider r) : base( r )
         {
@@ -45,15 +63,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     return 403;
                 }
 
-                user.PasswordHash = null;
-                user.Id = 0;
+                return this.ProcessLogin(user);
 
-                var response = this.LoginWithoutRedirect( (Guid)user.Guid, DateTime.Now.AddMinutes(15));
-
-                user.Guid = null;
-                response.Cookies.Add( new Nancy.Cookies.NancyCookie( "UserInfo", JsonConvert.SerializeObject( user )));
-
-                return response;
             };
 
             Post["/membership/register"] = p =>
@@ -76,7 +87,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     PasswordHash = registerParams.Password
                 });
 
-                return this.LoginWithoutRedirect((Guid)user.Guid, DateTime.Now.AddMinutes(15));
+                return this.ProcessLogin(user);
             };
         }
     }

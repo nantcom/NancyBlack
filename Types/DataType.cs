@@ -138,7 +138,15 @@ public class @Model.Name
         /// </summary>
         public void EnsureHasNeccessaryProperties()
         {
-            var properties = this.Properties.ToList();
+            List<DataProperty> properties;
+            if (this.Properties == null)
+            {
+                properties = new List<DataProperty>();
+            }
+            else
+            {
+                properties = this.Properties.ToList();
+            }
 
             Action<string, string> addOrReplaceProperties = (name, type) =>
             {

@@ -54,4 +54,31 @@ ncb-picturelist > ul > li > div button {
 ncb-picturelist > ul > li:hover {
   background-color: #c2e2ed;
 }
+.login-dialog > .modal-dialog {
+  top: 200px;
+  width: 780px;
+  font-family: 'Leelawadee UI', Leelawadee;
+  font-size: 13px;
+}
+.login-dialog > .modal-dialog .modal-body {
+  position: relative;
+}
+.login-dialog > .modal-dialog .modal-body .facebooklogin {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+}
+.login-dialog > .modal-dialog .modal-body > .row > div:first-child {
+  border-right: 1px inset black;
+}
+.login-dialog > .modal-dialog .modal-body > .row > div:first-child > h1 {
+  margin-bottom: 20px;
+}
+.login-dialog > .modal-dialog .modal-body > .row > div > h1 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+.login-dialog > .modal-dialog .btn > i {
+  margin-right: 5px;
+}
 /*# sourceMappingURL=ncb-Controls.css.map */
