@@ -3,6 +3,7 @@ using Nancy.ErrorHandling;
 using Nancy.ViewEngines;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
 
@@ -44,6 +45,12 @@ namespace NantCom.NancyBlack.Configuration
 
         public bool HandlesStatusCode(Nancy.HttpStatusCode statusCode, Nancy.NancyContext context)
         {
+#if DEBUG
+            if (statusCode == HttpStatusCode.InternalServerError && Debugger.IsAttached)
+            {
+                Debugger.Break();
+            }
+#endif
             return
                 (statusCode == HttpStatusCode.Forbidden) ||
                 (statusCode == HttpStatusCode.NotFound) ||

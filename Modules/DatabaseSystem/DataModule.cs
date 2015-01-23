@@ -172,15 +172,18 @@ namespace NantCom.NancyBlack.Modules
         {
             return this.HandleRequest((arg) =>
             {
-                dynamic modifiedSite =  this.SharedDatabase.Query("Site",
-                                        string.Format("Id eq {0}", (string)arg.item_id)).FirstOrDefault();
-
-                if (modifiedSite != null)
+                if (arg.item_id != null)
                 {
-                    MemoryCache.Default.Remove("Site-" + modifiedSite.HostName);
-                    MemoryCache.Default.Remove("Site-" + modifiedSite.Alias);
-                    MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.HostName);
-                    MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.Alias);
+                    dynamic modifiedSite =  this.SharedDatabase.Query("Site",
+                                            string.Format("Id eq {0}", (string)arg.item_id)).FirstOrDefault();
+
+                    if (modifiedSite != null)
+                    {
+                        MemoryCache.Default.Remove("Site-" + modifiedSite.HostName);
+                        MemoryCache.Default.Remove("Site-" + modifiedSite.Alias);
+                        MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.HostName);
+                        MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.Alias);
+                    }
                 }
 
                 arg.table_name = "site";

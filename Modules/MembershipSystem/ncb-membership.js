@@ -395,15 +395,26 @@
         }
     }(this));
 
-    var membership = angular.module('ncb-membership', ['ncb-controls']);
+    var membership = angular.module('ncb-membership', ['ncb-controls', 'ncb-database', 'nantcom-thaiprovinces']);
 
-    var currentUser = $.cookie("UserInfo");
+    // module scoped variables;
+    var $module = {};
+    
+    $module.currentUser = $.cookie("UserInfo");
+    $module.currentProfileController = null;
+    $module.currentLoginController = null;
 
     membership.controller('MemberShip-LoginController', ['$scope', '$http', function ($scope, $http ) {
 
+        if ($module.currentLoginController != null) {
+            throw "Only One Login Controller is permitted";
+        }
+
+        $module.currentLoginController = this;
+
         $scope.alerts = [];
         $scope.login = {};
-        $scope.user = currentUser;
+        $scope.user = $module.currentUser;
 
         this.closeAlert = function (index) {
             $scope.alerts.splice(index, 1);
@@ -415,7 +426,7 @@
             $("#profileDialog").modal('show');
 
             var userInfo = JSON.parse($.cookie("UserInfo"));
-            currentUser = userInfo;
+            $module.currentUser = userInfo;
         };
 
         this.login = function () {
@@ -469,33 +480,49 @@
 
         };
 
+        this.view = function () {
+            $('#loginDialog').modal('show');
+        };
     }]);
         
-    membership.controller('MemberShip-ProfileController', ['$scope', '$http', function ($scope, $http) {
+    membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient, thaiprovinces2) {
 
-        $scope.alerts = [];
-
-        if (currentUser == null || currentUser == "") {
-            return;
+        if ($module.currentProfileController != null) {
+            throw "Only One Profile Controller is permitted";
         }
 
-        $scope.user = JSON.parse( JSON.stringify( currentUser ) ); // create a copy of profile
+        $module.currentProfileController = this;
 
-        this.saveProfile = function () {
+        var me = this;
+        var ncbClient = new ncbDatabaseClient(me, $scope, "User");
 
-            $http.post('/membership/saveprofile', $scope.user).
-            success(function (data, status, headers, config) {
+        me.object = { name: "test" };
+        me.thaiprovinces = thaiprovinces2;
 
-                $scope.alerts.push({ type: 'success', msg: 'บันทึกข้อมูลแล้ว' });
-            }).
-            error(function (data, status, headers, config) {
-
-                $scope.alerts.push({ type: 'danger', msg: 'ไม่สามารถบันทึกข้อมูลได้' });
-            });
-
+        this.test = function () {
+            alert("test");
         };
 
-    }]);
+        this.view = function () {
+
+            if ($module.currentUser == null || $module.currentUser == "") {
+                return;
+            }
+
+            $scope.$apply(function () {
+
+                me.thaiprovinces.initialize($scope);
+            });
+
+            if ($('#profileDialog').length == 0) {
+                throw "Profile Dialog not found";
+            }
+
+            $scope.object = JSON.parse(JSON.stringify($module.currentUser)); // create a copy of profile
+            $('#profileDialog').modal('show');
+        };
+
+    });
 
     membership.directive('ncbLoginbutton', ['$http', '$compile', function ($http, $compile) {
 
@@ -514,16 +541,13 @@
 
             element.on("click", function () {
 
-                if (currentUser != null) {
+                if ($module.currentUser != null) {
 
-                    if ($('#profileDialog').length == 0) {
-                        throw "Profile Dialog not found";
-                    }
+                    $module.currentProfileController.view();
 
-                    $('#profileDialog').modal('show');
                 } else {
 
-                    $('#loginDialog').modal('show');
+                    $module.currentLoginController.view();
                 }
 
             });
@@ -535,21 +559,5 @@
         };
     }]);
 
-    membership.directive('ncbLogindialog', ['$http', '$compile', function ($http, $compile) {
-
-        return {
-            restrict: 'E',
-            templateUrl: '/Modules/MembershipSystem/Templates/ncb-membership-logindialog.html',
-        };
-    }]);
-
-    membership.directive('ncbProfiledialog', ['$http', '$compile', function ($http, $compile) {
-
-        return {
-            restrict: 'E',
-            transclude: true,
-            templateUrl: '/Modules/MembershipSystem/Templates/ncb-membership-profiledialog.html',
-        };
-    }]);
 
 })();

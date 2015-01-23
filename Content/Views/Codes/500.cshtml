@@ -1,7 +1,7 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 
 @{
-    Layout = "_theme.cshtml";
+    Layout = "_basecode";
 }
 
 <div class="alert alert-danger text-center" style="font-size: 200%">
@@ -9,22 +9,48 @@
     <p>
         We have got error while processing your request.<br/>
     </p>
-
-    @if (this.RenderContext.Context.Items.ContainsKey("Exception"))
+</div>
+<pre>
+    @if (this.RenderContext.Context.Items.ContainsKey("ERROR_TRACE"))
     {
-        var ex = this.RenderContext.Context.Items["Exception"] as Exception;
-        <p>
-            <b>@(ex.GetType().Name) :</b> <br />
+        @this.RenderContext.Context.Items["ERROR_TRACE"]
+    }    
+</pre>
 
-            @(ex.Message)
-        </p>
-        <p>
-            <b>Stack Trace:</b>
-            <pre style="overflow-y:scroll; max-height: 300px">
+@if (this.RenderContext.Context.Items.ContainsKey("ERROR_EXCEPTION"))
+{
+    var json = Newtonsoft.Json.JsonConvert.SerializeObject(this.RenderContext.Context.Items["ERROR_EXCEPTION"]);
+    
+    <div id="jsoneditor" style="width: 100%; height: 500px;"></div>
+    <script type="text/javascript">
+        // create the editor
+        var container = document.getElementById("jsoneditor");
+        var editor = new JSONEditor(container);
+
+        // set json
+        var json = @(this.Html.Raw(json));
+        editor.set(json);
+
+        // get json
+        var json = editor.get();
+    </script>
+
+}
+
+
+
+@if (this.RenderContext.Context.Items.ContainsKey("Exception"))
+{
+    var ex = this.RenderContext.Context.Items["Exception"] as Exception;
+    <p>
+        <b>@(ex.GetType().Name) :</b> <br />
+
+        @(ex.Message)
+    </p>
+    <p>
+        <b>Stack Trace:</b>
+        <pre style="overflow-y:scroll; max-height: 300px">
                 @(ex.StackTrace)
             </pre>
-        </p>
-    }
-    
-
-</div>
+    </p>
+}

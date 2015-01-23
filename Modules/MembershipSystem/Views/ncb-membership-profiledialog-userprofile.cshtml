@@ -1,0 +1,101 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+<form name="ProfileForm">
+
+    <h3>ทั่วไป</h3>
+
+    <div class="row">
+
+        <input type="text" title="ชื่อ"
+               ncb-textbox ncb-col="col-sm-6"
+               ng-model="object.FirstName" />
+
+        <input type="text" title="นามสกุล"
+               ncb-textbox ncb-col="col-sm-6"
+               ng-model="object.LastName" />
+    </div>
+
+    <input type="email"
+           title="อีเมลล์"
+           required ncb-textbox
+           ng-model="object.email" />
+
+    <h3>ที่อยู่</h3>
+
+    <div class="row">
+
+        <input type="text"
+               title="เลขที่/หมู่ที่"
+               ncb-textbox ncb-col="col-sm-6"
+               required ncb-textbox
+               ng-model="object.Address_Number" />
+
+        <input type="text"
+               title="ถนน"
+               ncb-textbox ncb-col="col-sm-6"
+               required ncb-textbox
+               ng-model="object.Address_Street" />
+    </div>
+    <div class="row">
+
+        <div class="form-group col-sm-6">
+            <label class="control-label" for="Address_State">จังหวัด</label>
+
+            <ui-select ng-model="object.Address_State"
+                       theme="bootstrap"
+                       on-select="ctrl.setProvince($item.name)"
+                       reset-search-input="true">
+                <ui-select-match placeholder="ระบุจังหวัด...">{{$select.selected.name}}</ui-select-match>
+                <ui-select-choices repeat="item.name as item in thaiprovinces.all | filter: { name: $select.search }">
+                    <span>{{item.name}}</span>
+                </ui-select-choices>
+            </ui-select>
+
+        </div>
+
+        <div class="form-group col-sm-6">
+            <label class="control-label" for="Address_District">อำเภอ/เขต</label>
+
+            <ui-select ng-model="object.Address_District"
+                       theme="bootstrap"
+                       on-select="ctrl.setDistrict($item.name)"
+                       reset-search-input="true">
+                <ui-select-match placeholder="ระบุอำเภอ (เขต)...">{{$select.selected.name}}</ui-select-match>
+                <ui-select-choices repeat="item.name as item in thaiprovinces.districtList | filter: { name: $select.search }">
+                    <span>{{item.name}}</span>
+                </ui-select-choices>
+            </ui-select>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="form-group col-sm-6">
+            <label class="control-label" for="Address_Subdistrict">ตำบล/แขวง</label>
+
+            <ui-select ng-model="object.Address_Subdistrict"
+                       theme="bootstrap"
+                       on-select="ctrl.setSubDistrict($item)"
+                       reset-search-input="true">
+                <ui-select-match placeholder="ระบุตำบล (แขวง)...">{{$select.selected.name}}</ui-select-match>
+                <ui-select-choices repeat="item.name as item in thaiprovinces.subDistrictList | filter: {name : $select.search}">
+                    <span>{{item.name}}</span>
+                </ui-select-choices>
+            </ui-select>
+        </div>
+
+        <div class="form-group col-sm-6">
+            <label class="control-label" for="Address_PostalCode">รหัสไปรษณีย์</label>
+            <input type="text"
+                   class="form-control"
+                   name="Address_PostalCode"
+                   ng-model="object.Address_PostalCode"
+                   placeholder="PostalCode" />
+        </div>
+
+    </div>
+
+
+</form>

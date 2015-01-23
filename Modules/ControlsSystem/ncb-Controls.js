@@ -245,7 +245,7 @@
             link: link
         };
     }]);
-
+    
     // Pictures List
     module.directive('ncbPicturelist', ['$http', function ( $http ) {
         

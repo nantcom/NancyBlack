@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Web;
 using SisoDb.SqlCe4;
+using Newtonsoft.Json.Linq;
 
 namespace NantCom.NancyBlack.Configuration
 {
@@ -43,12 +44,29 @@ namespace NantCom.NancyBlack.Configuration
                 this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
                 {
                     return string.Concat("Modules/",
+                                         viewName);
+                });
+                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                {
+                    return string.Concat("Modules/",
                                          system,
                                          "/Views/",
                                          viewName);
                 });
-
             }
+
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("CurrentSite") == false)
+                {
+                    return string.Empty;
+                }
+
+                return string.Concat("Sites/",
+                                        ((dynamic)context.Context.Items["CurrentSite"]).HostName, 
+                                        "/Views/",
+                                        viewName);
+            });
 
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
@@ -91,6 +109,8 @@ namespace NantCom.NancyBlack.Configuration
             });
 
             #endregion
+
+            pipelines.BeforeRequest.AddItemToStartOfPipeline(this.InitializeSiteForRequest);
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
@@ -104,7 +124,6 @@ namespace NantCom.NancyBlack.Configuration
             };
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
 
-            pipelines.BeforeRequest.AddItemToStartOfPipeline(this.InitializeSiteForRequest);
         }
 
         private static NancyBlackDatabase _SharedDatabase;
@@ -213,7 +232,12 @@ namespace NantCom.NancyBlack.Configuration
                                 RegisteredBy = "System",
                                 SiteType = "SuperAdmin"
                             };
+
                             sharedDatabase.UpsertRecord("Site", site);
+
+                            // on first run we must convert it to JObject
+                            // so that resulting view can use dynamic
+                            site = JObject.FromObject(site);
                         }
 
                     }

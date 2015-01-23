@@ -1,0 +1,63 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+<input type="text" title="ที่อยู่"
+       ncb-textbox
+       ng-model="object.Address_Street" />
+
+<div class="row">
+
+    <div class="form-group col-sm-6">
+        <label class="control-label" for="Address_State">จังหวัด</label>
+
+        <ui-select ng-model="object.Address_State"
+                   theme="bootstrap"
+                   reset-search-input="true">
+            <ui-select-match placeholder="ระบุจังหวัด...">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="item.name as item in thaiprovinces.provinceList | filter: { name: $select.search }">
+                <span>{{item.name}}</span>
+            </ui-select-choices>
+        </ui-select>
+
+    </div>
+
+    <div class="form-group col-sm-6">
+        <label class="control-label" for="Address_District">อำเภอ/เขต</label>
+
+        <ui-select ng-model="object.Address_District"
+                   theme="bootstrap"
+                   reset-search-input="true">
+            <ui-select-match placeholder="ระบุอำเภอ (เขต)...">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="item.name as item in thaiprovinces.districtList | filter: { name: $select.search }">
+                <span>{{item.name}}</span>
+            </ui-select-choices>
+        </ui-select>
+
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="form-group col-sm-6">
+        <label class="control-label" for="Address_Subdistrict">ตำบล/แขวง</label>
+
+        <ui-select ng-model="object.Address_Subdistrict"
+                   theme="bootstrap"
+                   reset-search-input="true">
+            <ui-select-match placeholder="ระบุตำบล (แขวง)...">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="item.name as item in thaiprovinces.subDistrictList | filter: {name : $select.search}">
+                <span>{{item.name}}</span>
+            </ui-select-choices>
+        </ui-select>
+    </div>
+
+    <div class="form-group col-sm-6">
+        <label class="control-label" for="Address_PostalCode">รหัสไปรษณีย์</label>
+        <input type="text"
+               class="form-control"
+               name="Address_PostalCode"
+               ng-model="object.Address_PostalCode"
+               placeholder="PostalCode" />
+    </div>
+
+</div>

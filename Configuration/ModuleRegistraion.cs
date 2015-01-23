@@ -13,6 +13,7 @@ namespace NantCom.NancyBlack.Configuration
         private static string _AngularModules;
 
         private static string[] _Systems;
+        private static string[] _Includes;
 
         /// <summary>
         /// HTML Code for JavaScript Resources
@@ -59,6 +60,17 @@ namespace NantCom.NancyBlack.Configuration
         }
 
         /// <summary>
+        /// List of _include.cshtml files from systems
+        /// </summary>
+        public static string[] Includes
+        {
+            get
+            {
+                return _Includes;
+            }
+        }
+
+        /// <summary>
         /// Read all module resources
         /// </summary>
         /// <param name="rootPath"></param>
@@ -72,9 +84,12 @@ namespace NantCom.NancyBlack.Configuration
             var allCss = from css in Directory.GetFiles(modules, "*.min.css", SearchOption.AllDirectories)
                           select css.Replace(rootPath, "").Replace('\\', '/');
 
+            _Includes = (from inc in Directory.GetFiles(modules, "_include.cshtml", SearchOption.AllDirectories)
+                        select inc.Replace(rootPath, "").Replace('\\', '/').Replace(".cshtml", "")).ToArray();
+
             _Systems = (from module in Directory.GetDirectories(modules)
                         select Path.GetFileNameWithoutExtension(module)).ToArray();
-
+            
             _JsOutput = string.Join("", from js in alljs
                                         select string.Format("<script src=\"/{0}\"></script>", js));
 

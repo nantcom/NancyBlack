@@ -115,9 +115,17 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
+    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO-Regular.css" />
+    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO-Regular.html" />
+    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.svg" />
+    <Content Include="Content\fonts\2006iannnnnnISO\fontsmoothie.min.js" />
     <Content Include="Content\fonts\bangna\stylesheet.css" />
     <Content Include="Content\fonts\bangna\wdb_bangna-demo.html" />
     <Content Include="Content\fonts\bangna\wdb_bangna.svg" />
+    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem.css" />
+    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem.html" />
+    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.svg" />
+    <Content Include="Content\fonts\bolivia-no-problem\fontsmoothie.min.js" />
     <Content Include="Content\fonts\Florencesans\florsn02-demo.html" />
     <Content Include="Content\fonts\Florencesans\florsn02.svg" />
     <Content Include="Content\fonts\Florencesans\generator_config.txt" />
@@ -127,9 +135,35 @@
     <Content Include="Content\fonts\pensuk\edpensook-normaltonebold-demo.html" />
     <Content Include="Content\fonts\pensuk\generator_config.txt" />
     <Content Include="Content\fonts\pensuk\stylesheet.css" />
+    <Content Include="Content\fonts\quark\fontsmoothie.min.js" />
+    <Content Include="Content\fonts\quark\Quark-Bold.css" />
+    <Content Include="Content\fonts\quark\Quark-Bold.html" />
+    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.svg" />
+    <Content Include="Content\fonts\quark\Quark-Light.css" />
+    <Content Include="Content\fonts\quark\Quark-Light.html" />
+    <Content Include="Content\fonts\quark\Quark-Light_directwrite.svg" />
+    <Content Include="Content\fonts\sparmageddon\SPArmageddon.css" />
+    <Content Include="Content\fonts\sparmageddon\SPArmageddon.svg" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css.map">
       <DependentUpon>ncb-Controls.css</DependentUpon>
     </Content>
+    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.eot" />
+    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.ttf" />
+    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.woff" />
+    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.eot" />
+    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.ttf" />
+    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.woff" />
+    <Content Include="Content\fonts\quark\Quark-Light_directwrite.eot" />
+    <Content Include="Content\fonts\quark\Quark-Light_directwrite.ttf" />
+    <Content Include="Content\fonts\quark\Quark-Light_directwrite.woff" />
+    <Content Include="Content\fonts\sparmageddon\SPArmageddon.eot" />
+    <Content Include="Content\fonts\sparmageddon\SPArmageddon.ttf" />
+    <Content Include="Content\fonts\sparmageddon\SPArmageddon.woff" />
+    <Content Include="Content\fonts\sparmageddon\SPArmageddon.woff2" />
+    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.eot" />
+    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.ttf" />
+    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.woff" />
+    <Content Include="Content\Views\_basecode.cshtml" />
     <None Include="Modules\ControlsSystem\ncb-Controls.less" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css">
       <DependentUpon>ncb-Controls.less</DependentUpon>
@@ -597,7 +631,7 @@
     <Content Include="Modules\AdminSystem\admin.css.map">
       <DependentUpon>admin.css</DependentUpon>
     </Content>
-    <None Include="Content\Views\Admin\dashboard.cshtml" />
+    <None Include="Modules\AdminSystem\Views\dashboard.cshtml" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\ace.js" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\ext-searchbox.js" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\mode-json.js" />
@@ -630,20 +664,23 @@
     <Content Include="Content\Views\Editor\editor.css.map">
       <DependentUpon>editor.css</DependentUpon>
     </Content>
-    <Content Include="Content\Views\SuperAdmin\_superadmin.cshtml" />
-    <Content Include="Content\Views\SuperAdmin\dashboard.cshtml" />
-    <Content Include="Content\Views\SuperAdmin\site.cshtml" />
+    <Content Include="Modules\SuperAdminSystem\Views\_superadmin.cshtml" />
+    <Content Include="Modules\SuperAdminSystem\Views\superadmin-dashboard.cshtml" />
+    <Content Include="Modules\SuperAdminSystem\Views\superadmin-site.cshtml" />
     <Content Include="Content\Views\Codes\423.cshtml" />
     <None Include="Content\Views\_basehomelayout.cshtml" />
     <Content Include="Modules\AdminSystem\ncb.js" />
     <None Include="Modules\AdminSystem\admin.less" />
     <Content Include="Modules\AdminSystem\Views\_backendtemplate.cshtml" />
     <Content Include="Content\Scripts\jQuery.FileDrop.js" />
-    <Content Include="Content\Views\Admin\tables.cshtml" />
-    <None Include="Content\Views\Admin\_backend.cshtml" />
+    <Content Include="Modules\AdminSystem\Views\tables.cshtml" />
+    <None Include="Modules\AdminSystem\Views\_backend.cshtml" />
     <Content Include="Content\Scripts\MobileServices.Web-1.1.5.min.js" />
-    <Content Include="Modules\MembershipSystem\Templates\ncb-membership-profiledialog.html" />
-    <Content Include="Modules\MembershipSystem\Templates\ncb-membership-logindialog.html" />
+    <Content Include="Modules\DatabaseSystem\ncb-database.js" />
+    <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
+    <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog-userprofile.cshtml" />
+    <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog.cshtml" />
+    <None Include="Modules\MembershipSystem\Views\ncb-membership-logindialog.cshtml" />
     <Content Include="Modules\MembershipSystem\ncb-membership.js" />
     <Content Include="packages.config" />
     <Content Include="Content\Scripts\angular-animate.js" />
@@ -1424,8 +1461,45 @@
     <Content Include="Content\Views\Codes\403.cshtml" />
     <Content Include="Content\Views\Codes\404.cshtml" />
     <Content Include="Content\Views\Codes\500.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\_include.cshtml" />
     <None Include="Properties\PublishProfiles\Default Settings.pubxml" />
     <None Include="Properties\PublishProfiles\NantCom.pubxml" />
+    <Content Include="Sites\level51pc.com\images\980M.png" />
+    <Content Include="Sites\level51pc.com\images\badde-i7q.png" />
+    <Content Include="Sites\level51pc.com\images\badge-ram.png" />
+    <Content Include="Sites\level51pc.com\images\badge-ssd.png" />
+    <Content Include="Sites\level51pc.com\images\badge-sshd.png" />
+    <Content Include="Sites\level51pc.com\images\bg-blue.fw.png" />
+    <Content Include="Sites\level51pc.com\images\bg-blue.png" />
+    <Content Include="Sites\level51pc.com\images\bg-blue2.fw.png" />
+    <Content Include="Sites\level51pc.com\images\bg-blue2.png" />
+    <Content Include="Sites\level51pc.com\images\bg-order.jpg" />
+    <Content Include="Sites\level51pc.com\images\bg-red.fw.png" />
+    <Content Include="Sites\level51pc.com\images\bg-wave.jpg" />
+    <Content Include="Sites\level51pc.com\images\bluewave.jpg" />
+    <Content Include="Sites\level51pc.com\images\flame.jpg" />
+    <Content Include="Sites\level51pc.com\images\flames2.fw.png" />
+    <Content Include="Sites\level51pc.com\images\flames2.png" />
+    <Content Include="Sites\level51pc.com\images\logo.fw.png" />
+    <Content Include="Sites\level51pc.com\images\quadro.fw.png" />
+    <Content Include="Sites\level51pc.com\images\quadro.png" />
+    <Content Include="Sites\level51pc.com\images\shade.fw.png" />
+    <Content Include="Sites\level51pc.com\images\SLI.png" />
+    <Content Include="Sites\level51pc.com\images\XP1500-back.png" />
+    <Content Include="Sites\level51pc.com\images\XP1500-compare.png" />
+    <Content Include="Sites\level51pc.com\images\XP1500-order.fw.png" />
+    <Content Include="Sites\level51pc.com\images\XP1500-top.png" />
+    <Content Include="Sites\level51pc.com\images\xp1700-back.fw.png" />
+    <Content Include="Sites\level51pc.com\images\xp1700-back.png" />
+    <Content Include="Sites\level51pc.com\images\XP1700-order.fw.png" />
+    <Content Include="Sites\level51pc.com\images\XP1700.fw.png" />
+    <Content Include="Sites\level51pc.com\images\XP1700.png" />
+    <Content Include="Sites\level51pc.com\style.css">
+      <DependentUpon>style.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\level51pc.com\style.min.css">
+      <DependentUpon>style.css</DependentUpon>
+    </Content>
     <Content Include="Sites\masterbody.co.th\.gitignore" />
     <Content Include="Sites\masterbody.co.th\Data.sdf" />
     <Content Include="Sites\masterbody.co.th\images\anonymous.png" />
@@ -1483,7 +1557,14 @@
     <Content Include="Sites\masterbody.co.th\style.css.map">
       <DependentUpon>style.css</DependentUpon>
     </Content>
-    <Content Include="Sites\masterbody.co.th\Views\ProfileDialog.cshtml" />
+    <Content Include="Sites\level51pc.com\style.less" />
+    <Content Include="Sites\level51pc.com\_theme.cshtml" />
+    <Content Include="Sites\level51pc.com\style.css.map">
+      <DependentUpon>style.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\level51pc.com\Home.cshtml">
+      <SubType>Code</SubType>
+    </Content>
     <None Include="Sites\tripsbox.net\Admin\Location-ContactTab.cshtml" />
     <Content Include="Sites\tripsbox.net\Admin\Location.js" />
     <Content Include="Sites\tripsbox.net\Content.cshtml">
@@ -1537,6 +1618,7 @@
     <Compile Include="Configuration\ModuleRegistraion.cs" />
     <Compile Include="Configuration\RazorConfig.cs" />
     <Compile Include="Modules\MembershipSystem\MembershipModule.cs" />
+    <Compile Include="Modules\SuperAdminSystem\SuperAdminModule.cs" />
     <Compile Include="Types\Site.cs" />
     <Content Include="Content\Views\Editor\editor.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
@@ -1553,8 +1635,9 @@
   <ItemGroup>
     <Folder Include="Lib\" />
     <Folder Include="Modules\ControlsSystem\Views\" />
-    <Folder Include="Modules\MembershipSystem\Views\" />
+    <Folder Include="Modules\MembershipSystem\Templates\" />
     <Folder Include="Sites\Admin\" />
+    <Folder Include="Sites\masterbody.co.th\Views\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -1,0 +1,51 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@using NantCom.NancyBlack.Modules.DatabaseSystem
+@{
+    Layout = "_superadmin";
+}
+@section Title
+{
+    Administration
+}
+<div>
+    <h1 class="page-header">
+        Welcome to Central Administration
+    </h1>
+</div>
+
+<div>
+    <h1>Expiring Sites</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th width="40%">Hostname</th>
+                <th width="30%">ExpiryDate</th>
+                <th width="30%">Days to Expiration</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            
+        </tbody>
+    </table>
+</div>
+
+@section Scripts
+{
+
+<script>
+
+    (function () {
+
+        var module = angular.module('DashboardModule', ['ui.bootstrap']);
+
+        module.controller("DashboardController", function ($scope, $rootScope) {
+
+            $scope.object = "";
+        });
+
+    })();
+
+</script>
+
+}

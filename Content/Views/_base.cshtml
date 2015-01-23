@@ -25,23 +25,24 @@
         <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
     }
 
-    @if (this.IsInEditMode)
-    {
-        <link href="/Content/Views/Editor/editor.css" rel="stylesheet" />
-    }
-
     <link href="/Content/Scripts/angular-ui-select/select.min.css" rel="stylesheet" />
 
     @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
 
-    <link rel="stylesheet" href="@this.SitePath("/style.min.css")">
+    @if (this.RenderContext.Context.Request.Url.Path.Contains("/Admin") == false &&
+        this.RenderContext.Context.Request.Url.Path.Contains("/SuperAdmin") == false)
+    {
+        <link rel="stylesheet" href="@this.SitePath("/style.min.css")">
+    }
+    
+    @this.RenderSection("Head", false)
 
 </head>
 <body>
     <script>
         window.fbAsyncInit = function () {
             FB.init({
-                appId: '405546486277679',
+                appId: '@(this.Site.FacebookAppId)',
                 xfbml: true,
                 version: 'v2.2'
             });
@@ -81,21 +82,23 @@
     <script src="/Content/Scripts/angular-ui-select/select.min.js"></script>
     <script src="/Content/Scripts/angular-ui/ui-validate.js"></script>
 
+    <!-- Thai Province List -->
+    <script src="/Content/Scripts/thaiprovinces/angular-thaiprovinces.js"></script>
+
     <!-- Sortable UI -->
     <script src="/Content/Scripts/angular-ui-sortable/jquery-ui.min.js"></script>
     <script src="/Content/Scripts/angular-ui-sortable/angular-ui-sortable.min.js"></script>
 
-    @this.Html.Raw( NantCom.NancyBlack.Configuration.ModuleResource.JS )
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+
+    @{
+        foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
+        {
+            this.Html.Partial(item);
+        }
+    }
 
     @RenderSection("Scripts", false)
-
-    @*@if (this.IsInEditMode &&
-        !this.Request.Url.Path.StartsWith("/Admin") &&
-        !this.Request.Url.Path.StartsWith("/SuperAdmin"))
-    {
-        <script src="/Content/Views/Editor/editor.js"></script>
-        @(this.Html.Partial("Editor/editorui.cshtml", this.Model))
-    }*@
 
     <script>
         // combine all ng-module into one attribute on top of the page
@@ -110,13 +113,26 @@
         modules.push("ui.bootstrap");
         modules.push("ui.select");
         modules.push("ui.validate");
-        
+
         $("body").attr("ng-modules",
             modules.join(",") +
             ",@this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.AngularModules)");
 
     </script>
     <script src="/Content/Scripts/angular.ngmodule.js"></script>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', '@(this.Site.GoogleAnalyticsId)', 'auto');
+        ga('send', 'pageview');
+
+    </script>
 
 </body>
 
