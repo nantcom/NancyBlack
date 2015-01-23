@@ -51,11 +51,7 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                if (this.Model == null)
-                {
-                    return null;
-                }
-                return this.Model.Site;
+                return this.RenderContext.Context.Items["CurrentSite"];
             }
         }
 

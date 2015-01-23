@@ -39,23 +39,6 @@
 
 </head>
 <body>
-    <script>
-        window.fbAsyncInit = function () {
-            FB.init({
-                appId: '@(this.Site.FacebookAppId)',
-                xfbml: true,
-                version: 'v2.2'
-            });
-        };
-
-        (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) { return; }
-            js = d.createElement(s); js.id = id;
-            js.src = "//connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-    </script>
 
     @RenderBody()
 
@@ -101,6 +84,10 @@
     @RenderSection("Scripts", false)
 
     <script>
+        // Querystring extraction function
+        (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
+        
+
         // combine all ng-module into one attribute on top of the page
         // too allow all modules to function
         var modules = [];
@@ -121,18 +108,43 @@
     </script>
     <script src="/Content/Scripts/angular.ngmodule.js"></script>
 
-    <script>
-        (function (i, s, o, g, r, a, m) {
-            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-                (i[r].q = i[r].q || []).push(arguments)
-            }, i[r].l = 1 * new Date(); a = s.createElement(o),
-            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
-        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    @if (this.Site.FacebookAppId != null)
+    {
+        <script>
+            window.fbAsyncInit = function () {
+                FB.init({
+                    appId: '@(this.Site.FacebookAppId)',
+                    xfbml: true,
+                    version: 'v2.2'
+                });
+            };
 
-        ga('create', '@(this.Site.GoogleAnalyticsId)', 'auto');
-        ga('send', 'pageview');
+            (function (d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) { return; }
+                js = d.createElement(s); js.id = id;
+                js.src = "//connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+        </script>
+    }
+    
+    @if (this.Site.GoogleAnalyticsId != null)
+    {
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
-    </script>
+            ga('create', '@(this.Site.GoogleAnalyticsId)', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+
+    }
 
 </body>
 

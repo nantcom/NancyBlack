@@ -16,10 +16,48 @@ namespace NantCom.NancyBlack.Modules
     {
         private string _RootPath;
 
+        /// <summary>
+        /// Whether domain is allowed to use SuperAdmin
+        /// </summary>
+        /// <param name="hostname"></param>
+        /// <returns></returns>
+        public bool IsDomainAllowed( string hostname )
+        {
+            if (hostname == "localhost")
+            {
+                return true; // always allow localhost
+            }
+
+            // superadmin request, and it is a newly installed nancy
+            // read allowed superadmin domain
+            var allowedDomains = File.ReadAllText(
+                Path.Combine( _RootPath, "Modules", "SuperAdminSystem", "alloweddomains.txt"));
+
+
+            if (allowedDomains.IndexOf(hostname) < 0)
+            {
+                return false; // forbidden
+            }
+
+            return true;
+        }
+
         public SuperAdminModule(IRootPathProvider rootPath)
             : base(rootPath)
         {
             _RootPath = rootPath.GetRootPath();
+
+            this.Before.AddItemToStartOfPipeline((ctx) =>
+            {
+                var hostname = ctx.Request.Url.HostName.Replace("www.", "");
+                if (this.IsDomainAllowed( hostname) == false)
+                {
+                    return 403;
+                }
+
+                return null;
+
+            });
 
             Get["/SuperAdmin/Tables/{table_name}"] = this.HandleSuperAdminTabaleRequests;
 

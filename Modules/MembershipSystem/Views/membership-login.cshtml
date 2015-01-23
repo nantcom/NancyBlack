@@ -1,0 +1,36 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    this.Layout = "_base";
+}
+<div class="container" ng-cloak>
+
+    @this.Html.Partial("ncb-membership-logindialog")
+
+</div>
+
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            $("body").addClass("loginView");
+            $(document).on("LoginController-UserLogin", function (e) {
+
+                var target = $.Querystring("returnUrl");
+
+                if (target == null) {
+                    target = "/";
+                }
+
+                window.navigate(target);
+            });
+
+            window.setTimeout(function () {
+
+                $('#loginDialog').modal('show');
+                $('.modal-backdrop').off('click');
+            }, 400);
+        });
+    </script>
+}

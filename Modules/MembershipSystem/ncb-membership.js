@@ -427,6 +427,12 @@
 
             var userInfo = JSON.parse($.cookie("UserInfo"));
             $module.currentUser = userInfo;
+
+            /* Broadcast event */
+            $.event.trigger({
+                type: "LoginController-UserLogin",
+                user: userInfo
+            });
         };
 
         this.login = function () {
@@ -445,7 +451,7 @@
             }).
             error(function (data, status, headers, config) {
                 
-                $scope.user.password = null;
+                $scope.login.password = null;
                 $scope.alerts.push({ type: 'danger', msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
 
             });

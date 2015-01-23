@@ -1,71 +1,75 @@
 ﻿<ncb-modal id="loginDialog" 
            class="login-dialog">
 
-    <div class="row"
-         ng-controller="MemberShip-LoginController as ctrl">
+    <div ng-controller="MemberShip-LoginController as ctrl">
 
-        <div class="col-sm-4">
-            <h1>Login</h1>
-            <form name="LoginForm">
 
-                <input ncb-textbox required
-                       type="email"
-                       title="อีเมลล์"
-                       ng-model="login.email" />
+        <div class="row">
 
-                <input ncb-textbox required
-                       type="password"
-                       title="รหัสผ่าน"
-                       ng-model="login.password" />
+            <div class="col-sm-4">
+                <h1>Login</h1>
+                <form name="LoginForm">
 
-                <div class="btn-group" role="group">
-                    <button class="btn btn-success btn-block"
-                            ng-click="ctrl.login()"
-                            ng-disabled="LoginForm.$valid == false">
+                    <input ncb-textbox required
+                           type="email"
+                           title="อีเมลล์"
+                           ng-model="login.email" />
+
+                    <input ncb-textbox required
+                           type="password"
+                           title="รหัสผ่าน"
+                           ng-model="login.password" />
+
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-success btn-block"
+                                ng-click="ctrl.login()"
+                                ng-disabled="LoginForm.$valid == false">
+                            <i class="fa fa-lock"></i>
+                            เข้าสู่ระบบ
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="col-sm-8">
+                <h1>Sign Up</h1>
+
+                <form name="RegisterForm">
+
+                    <input type="email"
+                           title="อีเมลล์"
+                           required ncb-textbox
+                           ng-model="newuser.email" />
+
+                    <div class="row">
+
+                        <input type="password" title="รหัสผ่าน"
+                               required ncb-textbox ncb-col="col-sm-6"
+                               ng-model="newuser.password" />
+
+                        <input type="password" title="ยืนยัน"
+                               required ncb-textbox ncb-col="col-sm-6"
+                               ui-validate="$value==newuser.password"
+                               ui-validate-watch="newuser.password"
+                               ng-model="newuser.passwordConfirm" />
+
+                    </div>
+                    <button class="btn btn-success"
+                            ng-disabled="RegisterForm.$valid == false"
+                            ng-click="ctrl.register()">
                         <i class="fa fa-lock"></i>
-                        เข้าสู่ระบบ
+                        ลงทะเบียน
                     </button>
-                </div>
+                </form>
+            </div>
 
-            </form>
+        </div><!-- Login/Register-->
+
+        <div style="margin-top: 10px">
+            <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
         </div>
 
-        <div class="col-sm-8">
-            <h1>Sign Up</h1>
-
-            <form name="RegisterForm">
-
-                <input type="email"
-                       title="อีเมลล์"
-                       required ncb-textbox
-                       ng-model="newuser.email" />
-
-                <div class="row">
-
-                    <input type="password" title="รหัสผ่าน"
-                           required ncb-textbox ncb-col="col-sm-6"
-                           ng-model="newuser.password" />
-
-                    <input type="password" title="ยืนยัน"
-                           required ncb-textbox ncb-col="col-sm-6"
-                           ui-validate="$value==newuser.password"
-                           ui-validate-watch="newuser.password"
-                           ng-model="newuser.passwordConfirm" />
-
-                </div>
-                <button class="btn btn-success"
-                        ng-disabled="RegisterForm.$valid == false"
-                        ng-click="ctrl.register()">
-                    <i class="fa fa-lock"></i>
-                    ลงทะเบียน
-                </button>
-            </form>
-        </div>
-
-    </div><!-- Login/Register-->
-
-    <div style="margin-top: 10px">
-        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
     </div>
 
     <button type="button"

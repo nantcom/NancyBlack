@@ -42,7 +42,7 @@ namespace NantCom.NancyBlack.Modules
             user.PasswordHash = null;
             user.Id = 0;
 
-            var response = this.LoginWithoutRedirect((Guid)user.Guid, DateTime.Now.AddMinutes(15));
+            var response = this.LoginWithoutRedirect(Guid.Parse((string)user.Guid), DateTime.Now.AddMinutes(15));
 
             user.Guid = null;
             response.Cookies.Add(new Nancy.Cookies.NancyCookie("UserInfo", JsonConvert.SerializeObject(user)));
@@ -52,6 +52,11 @@ namespace NantCom.NancyBlack.Modules
         
         public MembershipModule( IRootPathProvider r) : base( r )
         {
+            Get["/__membership/login"] = p =>
+            {
+                return View["membership-login"];
+            };
+
             Post["/__membership/login"] = p =>
             {
                 var loginParams = this.Bind<LoginParams>();

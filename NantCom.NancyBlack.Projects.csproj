@@ -631,7 +631,7 @@
     <Content Include="Modules\AdminSystem\admin.css.map">
       <DependentUpon>admin.css</DependentUpon>
     </Content>
-    <None Include="Modules\AdminSystem\Views\dashboard.cshtml" />
+    <None Include="Modules\AdminSystem\Views\admin-dashboard.cshtml" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\ace.js" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\ext-searchbox.js" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\mode-json.js" />
@@ -664,6 +664,7 @@
     <Content Include="Content\Views\Editor\editor.css.map">
       <DependentUpon>editor.css</DependentUpon>
     </Content>
+    <Content Include="Modules\SuperAdminSystem\alloweddomains.txt" />
     <Content Include="Modules\SuperAdminSystem\Views\_superadmin.cshtml" />
     <Content Include="Modules\SuperAdminSystem\Views\superadmin-dashboard.cshtml" />
     <Content Include="Modules\SuperAdminSystem\Views\superadmin-site.cshtml" />
@@ -673,11 +674,12 @@
     <None Include="Modules\AdminSystem\admin.less" />
     <Content Include="Modules\AdminSystem\Views\_backendtemplate.cshtml" />
     <Content Include="Content\Scripts\jQuery.FileDrop.js" />
-    <Content Include="Modules\AdminSystem\Views\tables.cshtml" />
+    <Content Include="Modules\AdminSystem\Views\admin-tables.cshtml" />
     <None Include="Modules\AdminSystem\Views\_backend.cshtml" />
     <Content Include="Content\Scripts\MobileServices.Web-1.1.5.min.js" />
     <Content Include="Modules\DatabaseSystem\ncb-database.js" />
     <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\membership-login.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog-userprofile.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-logindialog.cshtml" />

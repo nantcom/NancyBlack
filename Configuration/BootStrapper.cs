@@ -109,21 +109,15 @@ namespace NantCom.NancyBlack.Configuration
             });
 
             #endregion
-
-            pipelines.BeforeRequest.AddItemToStartOfPipeline(this.InitializeSiteForRequest);
-        }
-
-        protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
-        {
-            base.RequestStartup(container, pipelines, context);
-
+            
             var formsAuthConfiguration = new FormsAuthenticationConfiguration
             {
-                RedirectUrl = "~/login",
+                RedirectUrl = "~/__membership/login",
                 UserMapper = container.Resolve<IUserMapper>(),
             };
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
 
+            pipelines.BeforeRequest.AddItemToStartOfPipeline(this.InitializeSiteForRequest);
         }
 
         private static NancyBlackDatabase _SharedDatabase;
@@ -190,7 +184,7 @@ namespace NantCom.NancyBlack.Configuration
 
             return cached;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -200,19 +194,20 @@ namespace NantCom.NancyBlack.Configuration
         {
             var sharedDatabase = this.GetSharedDatabase();
 
-            var key = "Site-" + ctx.Request.Url.HostName;
+            var hostname = ctx.Request.Url.HostName.Replace("www.", "");
+            var key = "Site-" + hostname;
             dynamic site = MemoryCache.Default.Get(key);
             if (site == null)
             {
                 // check for existing by alias first
                 site = sharedDatabase.Query("Site",
-                                   string.Format("Alias eq '{0}'", ctx.Request.Url.HostName)).FirstOrDefault();
+                                   string.Format("Alias eq '{0}'", hostname)).FirstOrDefault();
 
                 // then by hostname
                 if (site == null)
                 {
                     site = sharedDatabase.Query("Site",
-                                       string.Format("HostName eq '{0}'", ctx.Request.Url.HostName)).FirstOrDefault();
+                                       string.Format("HostName eq '{0}'", hostname)).FirstOrDefault();
 
                     if (site == null)
                     {
@@ -222,10 +217,17 @@ namespace NantCom.NancyBlack.Configuration
                         }
                         else
                         {
-                            // superadmin request, make it a site
+                            var allowedDomains = File.ReadAllText(
+                                Path.Combine(this.RootPathProvider.GetRootPath(), "Modules", "SuperAdminSystem", "alloweddomains.txt"));
+
+                            if (allowedDomains.IndexOf(hostname) < 0 )
+                            {
+                                return 403; // forbidden
+                            }
+
                             site = new Site
                             {
-                                HostName = ctx.Request.Url.HostName,
+                                HostName = hostname,
                                 Alias = string.Empty,
                                 RegisteredDate = DateTime.Now,
                                 ExpireDate = DateTime.Now.AddMonths(1),
