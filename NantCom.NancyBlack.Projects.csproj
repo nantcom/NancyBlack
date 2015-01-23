@@ -1620,7 +1620,10 @@
     <Compile Include="Configuration\CustomStatusCodeHandler.cs" />
     <Compile Include="Configuration\ModuleRegistraion.cs" />
     <Compile Include="Configuration\RazorConfig.cs" />
+    <Compile Include="Modules\AdminSystem\AdminEnrollModule.cs" />
     <Compile Include="Modules\MembershipSystem\MembershipModule.cs" />
+    <Compile Include="Modules\MembershipSystem\NancyBlackUser.cs" />
+    <Compile Include="Modules\MembershipSystem\UserManager.cs" />
     <Compile Include="Modules\SuperAdminSystem\SuperAdminModule.cs" />
     <Content Include="Content\Views\Editor\editor.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />

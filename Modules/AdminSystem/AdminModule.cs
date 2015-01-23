@@ -1,13 +1,15 @@
 ﻿using Nancy;
+using Nancy.Security;
+using Nancy.Authentication.Forms;
+using Nancy.ModelBinding;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 using RazorEngine;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Web;
-using Nancy.ModelBinding;
-using NantCom.NancyBlack.Modules.DatabaseSystem;
-using System.Dynamic;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -18,6 +20,9 @@ namespace NantCom.NancyBlack.Modules
         public AdminModule(IRootPathProvider rootPath) : base(rootPath)
         {
             _RootPath = rootPath.GetRootPath();
+
+            this.RequiresAuthentication();
+            this.RequiresClaims(new string[] { "admin" });
 
             // Administration pages for Table
             Get["/Admin/Tables/{table_name}"] = this.HandleTableRequests;
@@ -65,7 +70,9 @@ namespace NantCom.NancyBlack.Modules
         {
             return this.HandleRequest((arg) =>
             {
-                return dbGetter().DataType.RegisteredTypes;
+                return from type in dbGetter().DataType.RegisteredTypes
+                       where type.Name.StartsWith("__") == false
+                       select type;
             });
         }
 

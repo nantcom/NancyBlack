@@ -79,7 +79,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         /// <summary>
-        /// Queries the entity, result is in Json Strings
+        /// Queries the entity, result is in Json Strings. If data type was not yet registered, the result will be empty list
         /// </summary>
         /// <param name="entityName">Name of the entity.</param>
         /// <param name="oDatafilter">The o datafilter.</param>
@@ -133,7 +133,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="input">Data to be saved, can be anything including anonymous type. But Anonymous Type must include Id parameter</param>
         public dynamic UpsertRecord(string entityName, dynamic inputObject)
         {
-            int? id = inputObject.Id == null ? null : new int?(0);
+            int? id = inputObject.Id == null ? null : new int?(inputObject.Id);
             var inputJson = JsonConvert.SerializeObject(inputObject);
             var type = _dataType.FromJson(entityName, inputJson);
 
@@ -145,9 +145,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             coercedObject.__updatedAt = DateTime.Now;
             coercedObject.__version = DateTime.Now.Ticks.ToString();
 
-            if (id == null || id == 0)
+            if (coercedObject.__createdAt == DateTime.MinValue)
             {
                 coercedObject.__createdAt = DateTime.Now;
+            }
+
+            if (id == null || id == 0)
+            {
                 _db.UseOnceTo().Insert(actualType, (object)coercedObject);
             }
             else

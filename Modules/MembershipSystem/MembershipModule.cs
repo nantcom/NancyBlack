@@ -10,7 +10,7 @@ using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 
-namespace NantCom.NancyBlack.Modules
+namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
     public class MembershipModule : NancyBlack.Modules.BaseModule
     {
@@ -97,71 +97,5 @@ namespace NantCom.NancyBlack.Modules
         }
     }
 
-    public class FormsUserMapper : IUserMapper
-    {
-
-        public Nancy.Security.IUserIdentity GetUserFromIdentifier(Guid identifier, NancyContext context)
-        {
-            var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
-            dynamic user = siteDb.QueryAsJsonString("User",
-                            string.Format("(Guid eq '{0}')", identifier)).FirstOrDefault();
-
-            if (user == null)
-            {
-                return NancyBlackUser.Anonymous;
-            }
-
-            return JsonConvert.DeserializeObject<NancyBlackUser>( user );
-        }
-    }
-
-    /// <summary>
-    /// A very basic Nancy User
-    /// </summary>
-    public class NancyBlackUser : IUserIdentity
-    {
-        /// <summary>
-        /// Guid
-        /// </summary>
-        public Guid Guid { get; set; }
-
-        /// <summary>
-        /// User Roles
-        /// </summary>
-        public IEnumerable<string> Claims
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Current User Name
-        /// </summary>
-        public string UserName
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Email
-        /// </summary>
-        public string Email
-        {
-            get
-            {
-                return this.UserName;
-            }
-            set
-            {
-                this.UserName = value;
-            }
-        }
-
-        /// <summary>
-        /// Anonymous User
-        /// </summary>
-        public static readonly NancyBlackUser Anonymous = new NancyBlackUser() { UserName = "Anonymous", Claims = new string[0] };
-    }
 
 }

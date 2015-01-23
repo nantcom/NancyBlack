@@ -177,13 +177,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
                     // sometimes when client is sending data, some fields will be missing
                     // only allow fields to be added automatically but not removed
-                    existingDataType.CombineProperties(clientDataType);
+                    clientDataType.CombineProperties(existingDataType);
 
                 }
             }
 
-            // if changed - set to new client's data type
-            // we will always update our type to match client's
             this.Types[clientDataType.Name] = clientDataType;
 
             if (clientDataType.Id != default(int))

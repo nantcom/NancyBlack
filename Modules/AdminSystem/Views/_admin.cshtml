@@ -44,7 +44,12 @@
 
             <ul class="nav nav-sidebar sidebar">
                 <li><span>Tables</span></li>
-                @foreach (var item in this.Database.DataType.RegisteredTypes)
+                @{
+                    var validTypes = from item in this.Database.DataType.RegisteredTypes
+                                     where item.Name.StartsWith("__") == false
+                                     select item;
+                }
+                @foreach (var item in validTypes)
                 {
                     <li><a href="/Admin/Tables/@item.Name">@item.OriginalName</a></li>
                 }
