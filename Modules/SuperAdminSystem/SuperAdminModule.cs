@@ -1,5 +1,4 @@
 ﻿using Nancy;
-using NantCom.NancyBlack.Types;
 using RazorEngine;
 using System;
 using System.Collections.Generic;
@@ -64,12 +63,12 @@ namespace NantCom.NancyBlack.Modules
             Get["/SuperAdmin"] = this.HandleSysAdminDashboard();
             Get["/SuperAdmin/"] = this.HandleSysAdminDashboard();
 
-            Get["/SuperAdmin/Core/Tables"] = this.HandleStaticRequest("/Admin/tables", () =>
+            Get["/SuperAdmin/Tables"] = this.HandleStaticRequest("/Admin/tables", () =>
             {
                 return new
                 {
                     Table = "DataType",
-                    Layout = "_superadmin.cshtml"
+                    Layout = "_superadmin"
                 };
 
             });

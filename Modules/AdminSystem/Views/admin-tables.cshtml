@@ -18,7 +18,7 @@
     </p>
 
 
-    <div id="TablesForm"
+    <div id="DataTypeModal"
          class="modal fade" data-keyboard="false" data-backdrop="static">
 
         <div class="modal-dialog">
@@ -31,7 +31,7 @@
                     </button>
                     <button type="button"
                             ng-hide="object.id == null"
-                            ng-click="ctrl.delete(object)"
+                            ng-click="ctrl.del(object)"
                             class="close text-warning"
                             style="margin-right: 10px">
                         <span class="glyphicon glyphicon-trash"></span>
@@ -114,9 +114,7 @@
                                 
                             </div>
 
-                            <div class="alert alert-danger alert-dismissible" ng-show="error != null">
-                                {{error.message}}
-                            </div>
+                            <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
 
                         </div>
                         <div class="tab-pane fade" id="scaffold">
@@ -163,7 +161,7 @@
 
     </div>
 
-    <table class="table table-striped">
+    <table class="table table-striped" ng-cloak>
         <thead>
             <tr>
                 <th width="20%">Entity Name</th>
@@ -204,104 +202,6 @@
 @section Scripts
 {
 
-<script>
-
-    (function () {
-
-        var module = angular.module('TablesModule', ['ui.bootstrap', 'ncb']);
-
-        module.factory("TablesDialog", ['ncbDialog', function (ncbDialog) {
-
-            return function () {
-                return new ncbDialog('#TablesForm');
-            };
-
-        }]);
-
-        module.controller("TablesController", function ($scope, $rootScope, $http, zumo, ncbOps, TablesDialog) {
-
-            var table = zumo.getTable("@(this.Content.Table)");
-            var editorSample = new JSONEditor(document.getElementById('sampledata'));
-            var $me = this;
-
-            var standardOperations = new ncbOps($scope, table, '#TablesForm', true);
-            standardOperations.startScope();
-
-            this.delete = standardOperations.del;
-            this.refresh = standardOperations.list;
-            this.save = standardOperations.save;
-
-            this.refresh();
-
-            $scope.$watch('object.OriginalName',
-                function () {
-
-                    editorSample.setName($scope.object.OriginalName);
-                }
-            );
-
-            $scope.dataTypes = [ "int", "double", "Boolean", "string", "String", "DateTime"];
-
-
-            this.view = function (object) {
-                $scope.object = object;
-
-                var dialog = new TablesDialog();
-                dialog.show(object);
-
-                $scope.object.Properties.forEach(function (e) {
-
-                    delete e.$$hashKey;
-                });
-
-                $scope.object.Properties.sort(function (p1, p2) {
-                    return p1.Name.charCodeAt(0) - p2.Name.charCodeAt(0)
-                });
-                
-                $scope.sampleData = {};
-                editorSample.set($scope.sampleData);
-                editorSample.setName($scope.object.OriginalName);
-            }
-
-            this.scaffold = function () {
-
-                $scope.isBusy = true;
-                $scope.sampleData = editorSample.get();
-                $http.post('/tables/DataType/Scaffold', $scope.sampleData).success(function (value) {
-
-                    $scope.object.Properties = value.Properties;
-                    $scope.isBusy = false;
-                    
-                    $('#TablesFormTabs a:first').tab('show');
-                });
-            }
-
-            this.create = function () {
-                $me.view({
-
-                    OriginalName: "NewEntity",
-                    Properties: [
-                        {
-                            Name: "Property1",
-                            Type: "string"
-                        }
-                    ],
-
-                });
-            }
-
-            $scope.newProperty = { Name: '', Type: 'string'};
-            this.appendProperty = function ( newProperty ) {
-
-                $scope.object.Properties.push(newProperty);
-                $scope.newProperty = {};
-
-            };
-
-        });
-
-    })();
-
-</script>
+<script src="/Modules/AdminSystem/Views/adminsystem-tablescontroller.js"></script>
 
 }

@@ -1,6 +1,6 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 @{
-    Layout = "_base.cshtml";
+    Layout = "_base";
 }
 
 @section Head
@@ -49,8 +49,8 @@
                     <li><a href="/Admin/Tables/@item.Name">@item.OriginalName</a></li>
                 }
                 <li><span>Administration</span></li>
-                <li><a href="/Admin/Core/Tables">Manage Tables</a></li>
-                <li><a href="/Admin/Core/Users">Administrators</a></li>
+                <li><a href="/Admin/Tables">Manage Tables</a></li>
+                <li><a href="/Admin/Tables/Administrators">Administrators</a></li>
             </ul>
         </div>
         <div class="col-md-9">

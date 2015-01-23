@@ -1,5 +1,5 @@
 ﻿@{
-    var entity = this.Model.DataType as NantCom.NancyBlack.Types.DataType;
+    var entity = this.Model.DataType as NantCom.NancyBlack.Modules.DatabaseSystem.DataType;
     var entityName = entity.OriginalName;
     
 }
@@ -34,7 +34,7 @@
         </p>
     </div>
 
-    <div id="@(entityName)Form"
+    <div id="@(entityName)Modal"
          class="modal fade" data-keyboard="false" data-backdrop="static">
 
         <div class="modal-dialog">
@@ -94,15 +94,7 @@
                                     {
                                         // Lookup
                                         var tableName = property.Name.Substring(0, property.Name.Length - 2);
-                                        <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(tableName)</label>
-                                            <select name="@(property.Name)"
-                                                    class="form-control"
-                                                    ng-init="ctrl.getLookup('@(tableName)')"
-                                                    ng-model="object.@(property.Name)">
-                                                <option ng-repeat="selection in lookup['@(tableName)']" value="{{selection.Id}}">{{selection.Name}}</option>
-                                            </select>
-                                        </div>
+                                        <b>TODO - CHANGE TO UI-SELECT, Lookup Function is "Lookup"</b>
                                     }
                                     else if (property.Type == "System.Boolean")
                                     {
@@ -243,13 +235,6 @@
                 {
                     <td>{{item.@(property.Name) | date:'dd MMMM yyyy, HH:mm' }}</td>
                 }
-                else if (property.Name == "AttachmentUrl")
-                {
-                    <td>
-                        <img class="img-responsive"
-                             ng-src="{{item.AttachmentUrl}}" />
-                    </td>
-                }
                 else
                 {
                     <td>{{item.@(property.Name) }}</td>
@@ -291,48 +276,28 @@
 
     (function () {
 
-        var module = angular.module('@(entityName)Module', ['ui.bootstrap', 'ui.select', 'ncb', 'ncb-controls']);
+        var module = angular.module('@(entityName)Module', ['ui.bootstrap', 'ncb-database']);
 
-        module.factory("@(entityName)Dialog", ['ncbDialog', function (ncbDialog) {
+        module.controller("@(entityName)Controller", function ($scope, $rootScope, $http, ncbDatabaseClient) {
 
-            return function () {
-                return new ncbDialog('#@(entityName)Form');
-            };
+            var $me = this;
 
-        }]);
+            var ncbClient = new ncbDatabaseClient($me, $scope, "@(entityName)");
+            ncbClient.list();
 
-        module.controller("@(entityName)Controller", function ($scope, $rootScope, zumo, ncbOps, ncbLookup, @(entityName)Dialog) {
-
-            $scope.tableName = "@(entityName)";
-
-            var table = zumo.getTable("@(entityName)");
-            var ncbLookup = new ncbLookup($scope, zumo);
-
-            var standardOperations = new ncbOps($scope, table, '#@(entityName)Form');
-            standardOperations.startScope();
-
-            this.delete = standardOperations.del;
-            this.save = standardOperations.save;
-            this.refresh = standardOperations.list;
-
-            this.getLookup = ncbLookup.lookup;
-
-            this.refresh();
+            this.get
 
             this.view = function (object) {
-                $scope.object = object;
 
-                var dialog = new @(entityName)Dialog();
-                dialog.show(object);
+                $scope.object = object;
+                $("#@(entityName)Modal").modal('show');
             }
 
             this.create = function () {
                 $scope.object = {};
-
-                var dialog = new @(entityName)Dialog();
-                dialog.show($scope.object);
+                $("#@(entityName)Modal").modal('show');
             }
-
+            
             $scope.datepickeropen = {};
             this.opendatepicker = function ($event, target) {
                 $event.preventDefault();

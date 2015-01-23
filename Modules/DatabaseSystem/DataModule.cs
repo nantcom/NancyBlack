@@ -1,6 +1,5 @@
 ﻿using Nancy;
 using Nancy.ModelBinding;
-using NantCom.NancyBlack.Types;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -207,36 +206,6 @@ namespace NantCom.NancyBlack.Modules
             var json = streamReader.ReadToEnd();
             
             var record = db.UpsertRecord(entityName, id, json);
-
-            // TODO: Move Attachment to other place
-            if (json.IndexOf( "AttachmentBase64" ) > 0)
-            {
-                dynamic inputJsonObject = JsonConvert.DeserializeObject(json);
-                if (string.IsNullOrEmpty((string)inputJsonObject.AttachmentExtension))
-                {
-                    throw new InvalidOperationException("AttachmentExtension is required to use Attachment Feature. (data will not be saved to database)");
-                }
-
-                // this request has file attachment
-                var attachmentFolder = Path.Combine( _RootPath, 
-                                                "Site", 
-                                                (string)this.CurrentSite.HostName,
-                                                "Attachments",
-                                                entityName);
-
-                Directory.CreateDirectory( attachmentFolder );
-
-
-                File.WriteAllBytes(
-                    Path.Combine(attachmentFolder, record.Id.ToString() + "." + (string)inputJsonObject.AttachmentExtension),
-                    Convert.FromBase64String((string)inputJsonObject.AttachmentBase64));
-
-                record.AttachmentUrl =
-                    "/CustomContent/Attachments/" + entityName + "/" +
-                    record.Id + "." + (string)inputJsonObject.AttachmentExtension;
-
-                db.UpsertRecord(entityName, record);
-            }
 
             return this.Negotiate
                 .WithContentType("application/json")

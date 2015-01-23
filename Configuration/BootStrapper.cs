@@ -3,7 +3,6 @@ using Nancy.Authentication.Forms;
 using Nancy.Bootstrapper;
 using Nancy.TinyIoc;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
-using NantCom.NancyBlack.Types;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -225,7 +224,7 @@ namespace NantCom.NancyBlack.Configuration
                                 return 403; // forbidden
                             }
 
-                            site = new Site
+                            site = new
                             {
                                 HostName = hostname,
                                 Alias = string.Empty,

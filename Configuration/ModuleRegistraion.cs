@@ -79,6 +79,7 @@ namespace NantCom.NancyBlack.Configuration
             var modules = Path.Combine(rootPath, "Modules");
 
             var alljs = from js in Directory.GetFiles(modules, "*.js", SearchOption.AllDirectories)
+                        where js.Contains("\\Views\\") == false
                          select js.Replace(rootPath, "").Replace('\\', '/');
 
             var allCss = from css in Directory.GetFiles(modules, "*.min.css", SearchOption.AllDirectories)

@@ -31,26 +31,13 @@
                 });
             };
 
-            $me.dispatchEvent = function (name) {
-
-                var evt = document.createEvent("CustomEvent");
-                evt.initCustomEvent(name, false, false, {
-                    'data': $scope.object,
-                    'type': $table,
-                    'id': $scope.object.id,
-                    'scope': $scope,
-                });
-                window.dispatchEvent(evt);
-
-            };
-
             this.listFilter = function () {
 
                 if (controller.listFilter != null) {
                     return controller.listFilter;
                 }
 
-                return $table;
+                return $me.$table;
             };
 
             this.list = function () {
@@ -85,10 +72,11 @@
 
                         });
 
-                        if (controller.onListed) {
-                            controller.onListed();
-                        }
-
+                        $.event.trigger({
+                            type: "ncb-database",
+                            action: "listed",
+                            list: $scope.list
+                        });
 
                     });
 
@@ -109,7 +97,7 @@
                     return;
                 }
 
-                $table.del(toDelete)
+                $me.$table.del(toDelete)
                     .done(function () {
 
                         $scope.$apply(function () {
@@ -120,10 +108,14 @@
                             $scope.isBusy = false;
                             $scope.isDeleted = true;
                         });
-                        
-                        if (controller.onDeleted) {
-                            controller.onDeleted();
-                        }
+
+                        $.event.trigger({
+                            type: "ncb-database",
+                            action: "deleted",
+                            object: $scope.object
+                        });
+
+                        $("#" + tableName + "Modal").modal('hide');
 
                     }, $me.handleError);
             };
@@ -151,7 +143,7 @@
 
                 // find the properties where type is Object or Array
                 // and JSON stringify it
-                if (this.disableJsonify == false || this.disableJsonify == null) {
+                if ($me.disableJsonify == false || $me.disableJsonify == null) {
 
                     for (var key in toSave) {
                         var type = ({}).toString.call(toSave[key]).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
@@ -168,7 +160,7 @@
 
                 if (toSave.id != null) {
 
-                    $table.update(toSave).done(
+                    $me.$table.update(toSave).done(
                         function (result) {
 
                             $scope.$apply(function () {
@@ -178,27 +170,33 @@
                                 $scope.files = null;
                             });
 
-                            $me.dispatchEvent("updated");
+                            $.event.trigger({
+                                type: "ncb-database",
+                                action: "update",
+                                object: $scope.object
+                            });
+
 
                         }, $me.handleError
                     );
 
                 } else {
 
-                    $table.insert(toSave).done(
+                    $me.$table.insert(toSave).done(
                         function (result) {
 
                             $scope.$apply(function () {
                                 $scope.object.id = result.Id;
 
-                                if (result.AttachmentUrl) {
-                                    $scope.object.AttachmentUrl = result.AttachmentUrl;
-                                }
-
                                 $scope.list.push($scope.object);
                                 $scope.isBusy = false;
                             });
-                            $me.dispatchEvent("inserted");
+
+                            $.event.trigger({
+                                type: "ncb-database",
+                                action: "insert",
+                                object: $scope.object
+                            });
 
                         }, $me.handleError
                     );
@@ -207,6 +205,42 @@
 
             };
             
+            this.lookup = function (tableName) {
+                
+                if ($scope.lookup == null) {
+                    $scope.lookup = [];
+                }
+
+                if ($scope.lookup[tableName] != null) {
+
+                    return $scope.lookup[tableName];
+                }
+
+                $scope.lookup[tableName] = [];
+
+                var table = zumo.getTable(tableName);
+                table.read().done(function (results) {
+
+                    $scope.$apply(function () {
+
+                        $scope.isBusy = false;
+
+                        var lookupTable = [];
+
+                        results.forEach(function (item) {
+                            lookupTable[item.Id] = item;
+                        });
+
+                        $scope.lookup[tableName] = lookupTable;
+                    });
+
+                }, $me.handleError );
+
+
+                return []; // return empty array first and update later
+
+            };
+
             // Initialize standard controller properties
             $scope.object = null;
             $scope.isBusy = false;
@@ -219,6 +253,10 @@
             controller.save = this.save;
             controller.list = this.list;
             controller.del = this.del;
+            
+            controller.closeAlert = function (index) {
+                $scope.alerts.splice(index, 1);
+            };
 
         };
     });

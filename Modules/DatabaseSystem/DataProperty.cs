@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace NantCom.NancyBlack.Types
+namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
     /// <summary>
     /// Represents a Property in Type

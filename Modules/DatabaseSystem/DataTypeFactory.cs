@@ -9,7 +9,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Web;
 
-namespace NantCom.NancyBlack.Types
+namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
     /// <summary>
     /// Factory which handle the creation and registration of DataType for Database

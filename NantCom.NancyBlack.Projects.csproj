@@ -144,6 +144,7 @@
     <Content Include="Content\fonts\quark\Quark-Light_directwrite.svg" />
     <Content Include="Content\fonts\sparmageddon\SPArmageddon.css" />
     <Content Include="Content\fonts\sparmageddon\SPArmageddon.svg" />
+    <Content Include="Modules\AdminSystem\Views\adminsystem-tablescontroller.js" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css.map">
       <DependentUpon>ncb-Controls.css</DependentUpon>
     </Content>
@@ -675,7 +676,7 @@
     <Content Include="Modules\AdminSystem\Views\_backendtemplate.cshtml" />
     <Content Include="Content\Scripts\jQuery.FileDrop.js" />
     <Content Include="Modules\AdminSystem\Views\admin-tables.cshtml" />
-    <None Include="Modules\AdminSystem\Views\_backend.cshtml" />
+    <None Include="Modules\AdminSystem\Views\_admin.cshtml" />
     <Content Include="Content\Scripts\MobileServices.Web-1.1.5.min.js" />
     <Content Include="Modules\DatabaseSystem\ncb-database.js" />
     <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
@@ -1621,7 +1622,6 @@
     <Compile Include="Configuration\RazorConfig.cs" />
     <Compile Include="Modules\MembershipSystem\MembershipModule.cs" />
     <Compile Include="Modules\SuperAdminSystem\SuperAdminModule.cs" />
-    <Compile Include="Types\Site.cs" />
     <Content Include="Content\Views\Editor\editor.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
     <Compile Include="Modules\BaseModule.cs" />
@@ -1630,15 +1630,16 @@
     <Compile Include="Modules\DatabaseSystem\NancyBlackDatabase.cs" />
     <Compile Include="Modules\DatabaseSystem\DataModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Types\DataProperty.cs" />
-    <Compile Include="Types\DataType.cs" />
-    <Compile Include="Types\DataTypeFactory.cs" />
+    <Compile Include="Modules\DatabaseSystem\DataProperty.cs" />
+    <Compile Include="Modules\DatabaseSystem\DataType.cs" />
+    <Compile Include="Modules\DatabaseSystem\DataTypeFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Lib\" />
     <Folder Include="Modules\ControlsSystem\Views\" />
     <Folder Include="Modules\MembershipSystem\Templates\" />
     <Folder Include="Sites\Admin\" />
+    <Folder Include="Sites\level51pc.com\Views\" />
     <Folder Include="Sites\masterbody.co.th\Views\" />
   </ItemGroup>
   <PropertyGroup>

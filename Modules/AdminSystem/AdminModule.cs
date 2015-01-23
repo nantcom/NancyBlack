@@ -1,5 +1,4 @@
 ﻿using Nancy;
-using NantCom.NancyBlack.Types;
 using RazorEngine;
 using System;
 using System.Collections.Generic;
@@ -23,14 +22,14 @@ namespace NantCom.NancyBlack.Modules
             // Administration pages for Table
             Get["/Admin/Tables/{table_name}"] = this.HandleTableRequests;
             
-            Get["/Admin"] = this.HandleStaticRequest("/Admin/dashboard", null);
-            Get["/Admin/"] = this.HandleStaticRequest("/Admin/dashboard", null);
-            Get["/Admin/Core/Tables"] = this.HandleStaticRequest("/Admin/tables", () =>
+            Get["/Admin"] = this.HandleStaticRequest("admin-dashboard", null);
+            Get["/Admin/"] = this.HandleStaticRequest("admin-dashboard", null);
+            Get["/Admin/Tables"] = this.HandleStaticRequest("admin-tables", () =>
             {
                 return new
                 {
                     Table = "DataType",
-                    Layout = "Admin/_backend.cshtml",
+                    Layout = "_admin",
                 };
 
             });
@@ -120,7 +119,13 @@ namespace NantCom.NancyBlack.Modules
 
             this.GenerateAdminView(type.OriginalName, replace);
 
-            return View["Admin/" + arg.table_name, this.GetModel( type )];
+            if (replace == true)
+            {
+                // redirect to remove query string and avoid re-generating again
+                return this.Response.AsRedirect(this.Context.Request.Path);
+            }
+
+            return View["admin-" + arg.table_name, this.GetModel( type )];
         }
 
         /// <summary>
@@ -182,9 +187,9 @@ namespace NantCom.NancyBlack.Modules
                                     _RootPath,
                                     "Sites",
                                     (string)this.CurrentSite.HostName,
-                                    "Admin");
+                                    "Views");
 
-            this.GenerateView(this.SiteDatabase, templatePath, table_name, "Admin/_backend.cshtml", replace);
+            this.GenerateView(this.SiteDatabase, templatePath, table_name, "_admin.cshtml", replace, "admin-" + table_name);
         }
 
     }

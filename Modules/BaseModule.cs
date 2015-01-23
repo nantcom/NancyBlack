@@ -3,7 +3,6 @@ using Nancy.Authentication.Forms;
 using Nancy.TinyIoc;
 using Nancy.ViewEngines;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
-using NantCom.NancyBlack.Types;
 using Newtonsoft.Json;
 using SisoDb;
 using SisoDb.SqlCe4;

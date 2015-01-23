@@ -17,7 +17,7 @@ using System.Linq.Expressions;
 using System.Collections.ObjectModel;
 using NantCom.NancyBlack.Modules;
 
-namespace NantCom.NancyBlack.Types
+namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
 
     /// <summary>
@@ -166,15 +166,9 @@ public class @Model.Name
             };
 
             addOrReplaceProperties("Id", "int");
-            addOrReplaceProperties("AttachmentUrl", "string");
             addOrReplaceProperties("__createdAt", "DateTime");
             addOrReplaceProperties("__updatedAt", "DateTime");
             addOrReplaceProperties("__version", "string");
-
-            // find AttachmentBase64 field and remove it
-            // we will not keep this field in database, but will be kept in 
-            // attachment folder
-            properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
 
             this.Properties = new ReadOnlyCollection<DataProperty>(properties);
         }

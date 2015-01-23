@@ -1,4 +1,6 @@
-﻿(function () {
+﻿/* DEPRECATED !*/
+
+(function () {
 
     var mobileService = WindowsAzure.MobileServiceClient;
     var path = window.location.origin;
@@ -294,10 +296,6 @@
 
                             $scope.$apply(function () {
                                 $scope.object.id = result.Id;
-
-                                if (result.AttachmentUrl) {
-                                    $scope.object.AttachmentUrl = result.AttachmentUrl;
-                                }
 
                                 $scope.list.push($scope.object);
                                 $scope.isBusy = false;
