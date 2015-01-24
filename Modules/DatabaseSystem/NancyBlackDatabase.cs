@@ -14,6 +14,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
     public class NancyBlackDatabase
     {
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectUpdated = delegate { };
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectCreated = delegate { };      
+
         private ISisoDatabase _db;
         private DataTypeFactory _dataType;
 
@@ -127,6 +131,24 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         /// <summary>
+        /// Gets an object from database given table name and id
+        /// </summary>
+        /// <param name="entityName"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public JObject GetById(string entityName, int id)
+        {
+            var type = _dataType.FromName(entityName);
+            var json = _db.UseOnceTo().GetByIdAsJson(type.GetCompiledType(), id);
+
+            if (json == null)
+            {
+                return null;
+            }
+            return JObject.Parse( json );
+        }
+
+        /// <summary>
         /// Upserts the specified entity name.
         /// </summary>
         /// <param name="entityName">Name of the entity.</param>
@@ -153,10 +175,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             if (id == null || id == 0)
             {
                 _db.UseOnceTo().Insert(actualType, (object)coercedObject);
+                NancyBlackDatabase.ObjectCreated(this, entityName, coercedObject);
             }
             else
             {
                 _db.UseOnceTo().Update(actualType, (object)coercedObject);
+                NancyBlackDatabase.ObjectUpdated(this, entityName, coercedObject);
             }
 
             return coercedObject;
@@ -185,10 +209,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 coercedObject.__createdAt = DateTime.Now;
                 _db.UseOnceTo().Insert(actualType, (object)coercedObject);
+                NancyBlackDatabase.ObjectCreated(this, entityName, coercedObject);
             }
             else
             {
                 _db.UseOnceTo().Update(actualType, (object)coercedObject);
+                NancyBlackDatabase.ObjectUpdated(this, entityName, coercedObject);
             }
 
             return coercedObject;
@@ -218,7 +244,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 throw new InvalidOperationException("Id of inputObject is not set or has default value");
             }
 
+            var deleting = this.GetById(entityName, id.Value); // get the object out before delete
             _db.UseOnceTo().DeleteById(type.GetCompiledType(), id);
+
+            NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
 
     }

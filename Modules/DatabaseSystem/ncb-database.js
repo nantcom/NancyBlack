@@ -18,11 +18,12 @@
 
             $scope.tableName = tableName;
 
-            this.$scope = $scope;
-            this.$table = client.getTable(tableName);
-            this.disableJsonify = disableJsonify;
-
             var $me = this;
+            $me.$scope = $scope;
+            $me.$controller = controller;
+            $me.$table = client.getTable(tableName);
+            $me.disableJsonify = disableJsonify;
+
             $me.handleError = function (err) {
 
                 $scope.$apply(function () {
@@ -112,7 +113,8 @@
                         $.event.trigger({
                             type: "ncb-database",
                             action: "deleted",
-                            object: $scope.object
+                            object: $scope.object,
+                            sender: $me,
                         });
 
                         $("#" + tableName + "Modal").modal('hide');
@@ -173,7 +175,8 @@
                             $.event.trigger({
                                 type: "ncb-database",
                                 action: "update",
-                                object: $scope.object
+                                object: $scope.object,
+                                sender: $me,
                             });
 
 
@@ -195,7 +198,8 @@
                             $.event.trigger({
                                 type: "ncb-database",
                                 action: "insert",
-                                object: $scope.object
+                                object: $scope.object,
+                                sender: $me,
                             });
 
                         }, $me.handleError
@@ -244,15 +248,14 @@
             // Initialize standard controller properties
             $scope.object = null;
             $scope.isBusy = false;
-            $scope.isDeleted = false;
             $scope.alerts = [];
             $scope.list = [];
             $scope.timestamp = (new Date()).getTime();
 
-            controller.$table = this.$table;
-            controller.save = this.save;
-            controller.list = this.list;
-            controller.del = this.del;
+            controller.$table = $me.$table;
+            controller.save = $me.save;
+            controller.list = $me.list;
+            controller.del = $me.del;
             
             controller.closeAlert = function (index) {
                 $scope.alerts.splice(index, 1);

@@ -37,7 +37,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        private Nancy.Response ProcessLogin( dynamic user )
+        private Nancy.Response ProcessLogin(dynamic user)
         {
             user.PasswordHash = null;
             user.Id = 0;
@@ -49,12 +49,20 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             return response;
         }
-        
-        public MembershipModule( IRootPathProvider r) : base( r )
+
+        public MembershipModule(IRootPathProvider r)
+            : base(r)
         {
+            Get["/Admin/Membership/Roles"] = this.HandleStaticRequest("membership-roles", null);
+
             Get["/__membership/login"] = p =>
             {
                 return View["membership-login"];
+            };
+
+            Get["/__membership/logout"] = p =>
+            {
+                return this.LogoutAndRedirect("/");
             };
 
             Post["/__membership/login"] = p =>
@@ -69,7 +77,6 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 }
 
                 return this.ProcessLogin(user);
-
             };
 
             Post["/__membership/register"] = p =>
@@ -94,6 +101,38 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 return this.ProcessLogin(user);
             };
+
+            Get["/__membership/enroll"] = _ =>
+            {
+                if (this.Context.CurrentUser == null ||
+                    this.Context.CurrentUser == NancyBlackUser.Anonymous)
+                {
+                    return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
+                }
+
+                return View["membership-enroll"];
+            };
+
+            Post["/__membership/enroll"] = _ =>
+            {
+                if (this.Context.CurrentUser == null ||
+                    this.Context.CurrentUser == NancyBlackUser.Anonymous)
+                {
+                    return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
+                }
+
+                var code = (string)this.Request.Form.code;
+                var user = this.Context.CurrentUser as NancyBlackUser;
+
+                var ok = UserManager.Current.EnrollUser(user.Guid, this.Context, code);
+                if (ok == false)
+                {
+                    return this.Response.AsRedirect("/__membership/enroll?failed=true");
+                }
+
+                return this.Response.AsRedirect("/__membership/enroll?success=true");
+            };
+
         }
     }
 

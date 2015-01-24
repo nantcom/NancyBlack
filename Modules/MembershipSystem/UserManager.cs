@@ -31,10 +31,21 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public UserManager()
         {
             UserManager.Current = this;
+            NancyBlackDatabase.ObjectDeleted += NancyBlackDatabase_ObjectDeleted;
+        }
+
+        void NancyBlackDatabase_ObjectDeleted(NancyBlackDatabase db, string entity, dynamic item)
+        {
+            // remove cached user
+            if (entity == "__Enrollment")
+            {
+                MemoryCache.Default.Remove("User-" + item.UserGuid);
+            }
         }
 
         private NancyBlackUser GetUserByGuid(Guid guid, NancyContext context)
         {
+            // cache will never collide because the guid should be unique among all sites
             var key = "User-" + guid;
             var cached = MemoryCache.Default[key];
             if (cached != null)
@@ -65,39 +76,65 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             return user;
         }
-
+        
         /// <summary>
         /// Enroll user with a new claim
         /// </summary>
         /// <param name="identifier"></param>
         /// <param name="context"></param>
-        /// <param name="claim"></param>
-        public void EnrollUser(Guid guid, NancyContext context, string claim, string code)
+        /// <param name="code"></param>
+        /// <param name="isFailSafe">Whether this enroll is fail safe enroll which will automatically create code</param>
+        public bool EnrollUser(Guid guid, NancyContext context, string code, bool isFailSafe = false)
         {
             var user = this.GetUserByGuid(guid, context);
             if (user == NancyBlackUser.Anonymous)
             {
                 throw new InvalidOperationException("User is not found");
             }
-            
-            var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
-            var existing = siteDb.QueryAsJsonString("__Enrollment",
-                               string.Format("(code eq '{0}')", code)).FirstOrDefault();
 
-            if (existing != null)
+            var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
+            dynamic existing = siteDb.Query("__Enrollment",
+                               string.Format("(Code eq '{0}')", code)).FirstOrDefault();
+
+            if (existing == null)
             {
-                throw new InvalidOperationException("Code already claimed");
+                if (isFailSafe == false)
+                {
+                    return false;
+                }
+
+                // create new enrollment record in fail safe mode
+                existing = new
+                {
+                    Id = 0,
+                    Claim = "admin",
+                    Code = code,
+                };
+            }
+            else
+            {
+                if (existing.UserGuid != null &&
+                    existing.UserGuid != user.Guid)
+                { 
+                    //someone already claimed this code
+                    return false;
+                }
+
+                if (existing.UserGuid == user.Guid)
+                {
+                    // this user already claimed the code, just let him pass
+                    return true;
+                }
+
+                existing.UserId = user.Id;
+                existing.UserGuid = user.Guid;
+                existing.UserJSONText = JsonConvert.SerializeObject(user);
             }
 
-            var result = siteDb.UpsertRecord("__Enrollment", new
-            {
-                Id = 0,
-                UserId = user.Id,
-                Claim = claim,
-                Code = code,
-            });
-
+            siteDb.UpsertRecord("__Enrollment", existing);
             MemoryCache.Default.Remove("User-" + guid);
+
+            return true;
         }
 
         /// <summary>

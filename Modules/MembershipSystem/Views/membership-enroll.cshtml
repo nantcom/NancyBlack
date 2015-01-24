@@ -1,0 +1,66 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    this.Layout = "_base";
+}
+<div class="container" ng-cloak>
+    
+    <!-- Modal -->
+    <div class="modal fade" id="enrollModal" tabindex="-1" role="dialog" aria-labelledby="enrollModalLabel" aria-hidden="true">
+
+        <form method="post" action="/__membership/enroll">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title" id="enrollModalLabel">Enter Code</h1>
+                    </div>
+                    <div class="modal-body">
+
+                        <p>
+                            Please enter the code that you was given to activate your permission.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="control-label">Code</label>
+                            <input type="text" name="code" class="form-control" placeholder="Enroll Code" ng-model="code" />
+                        </div>
+                        
+                        <div class="alert alert-danger" style="display: none">That code does not work</div>
+                        <div class="alert alert-success" style="display: none">Enrollment was a success. <a href="/">Go back to Homepage</a></div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" 
+                               class="btn btn-lg btn-success" 
+                               ng-disabled="code == '' || code == null"
+                               value="Enroll" />
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            if (window.location.href.indexOf( "?failed") > 0) {
+                $("div.alert-danger").css("display", "block");
+            }
+
+            if (window.location.href.indexOf("?success") > 0) {
+                $("div.alert-success").css("display", "block");
+            }
+
+            $("body").addClass("loginView");
+            window.setTimeout(function () {
+
+                $('#enrollModal').modal('show');
+                $('.modal-backdrop').off('click');
+            }, 400);
+        });
+
+    </script>
+}

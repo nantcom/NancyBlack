@@ -1,0 +1,120 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin";
+}
+@section Title
+{
+    Roles
+}
+@section Scripts
+{
+    <script src="~/Modules/MembershipSystem/Views/membership-roles.js"></script>
+}
+
+<div ng-module="RolesModule"
+     ng-controller="RoleController as ctrl">
+
+    <h1 class="page-header">
+        Manage Role Assignment
+    </h1>
+    <p>
+        This page allows you to assign user to be a particular role within NancyBlack system.
+    </p>
+
+    <table class="table table-striped" ng-cloak>
+        <thead>
+            <tr>
+                <th width="20%">User</th>
+                <th>Claim</th>
+                <th>Code</th>
+                <th>Created Date</th>
+                <th>Assigned Date</th>
+            </tr>
+        </thead>
+        <tr ng-repeat="item in list">
+            <td>
+                <span ng-show="item.User == null"
+                      class="text-muted">
+                    (Not Assigned)
+                </span>
+                {{item.User.Email}}
+            </td>
+            <td>
+                {{item.Claim}}
+            </td>
+            <td>
+                {{item.Code}}
+            </td>
+            <td>
+                {{item.__createdAt | date:'dd MMMM yyyy, HH:mm'}}
+            </td>
+            <td>
+                <span ng-show="item.User != null">
+                    {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
+                </span>
+
+                <span ng-show="item.User == null"
+                      class="text-muted">
+                    (Not Assigned)
+                </span>
+            </td>
+            <td style="white-space: nowrap">
+                <button class="btn btn-danger"
+                        ng-click="ctrl.del(item)">
+                    <span class="glyphicon glyphicon-remove"></span>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="input-group">
+                    <input ncb-textbox
+                           ng-model="newitem.email"
+                           placeholder="User, blank to get code only" />
+
+                    <span class="input-group-btn">
+                        <button class="btn btn-success"
+                                ng-click="ctrl.removeEmail()"
+                                ng-show="newitem.User != null"
+                                ncb-icon="glyphicon-remove"
+                                type="button"></button>
+
+                        <button class="btn"
+                                ng-class="{ 'btn-default' : $scope.isEmailValid == null,  'btn-success' : $scope.isEmailValid === true, 'btn-danger' : $scope.isEmailValid === false}"
+                                ng-click="ctrl.checkEmail( newitem.email )"
+                                ng-show="newitem.User == null"
+                                ncb-icon="glyphicon-ok"
+                                type="button"></button>
+                    </span>
+                </div>
+                
+            </td>
+            <td>
+                <select class="form-control" ng-model="newitem.Claim">
+                    <option>admin</option>
+                    <option>editor</option>
+                </select>
+            </td>
+            <td>
+                <input ncb-textbox
+                       ng-model="newitem.Code"
+                       ng-disabled="newitem.User != null"
+                       placeholder="leave blnk to get random code" />
+            </td>
+            <td>
+
+            </td>
+            <td>
+
+            </td>
+            <td>
+                <button class="btn btn-primary"
+                        ng-disabled="newitem.Claim == null || isBusy"
+                        ng-click="ctrl.create(item)">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+            </td>
+        </tr>
+    </table>
+
+</div>

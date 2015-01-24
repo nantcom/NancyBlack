@@ -144,6 +144,7 @@
     <Content Include="Content\fonts\quark\Quark-Light_directwrite.svg" />
     <Content Include="Content\fonts\sparmageddon\SPArmageddon.css" />
     <Content Include="Content\fonts\sparmageddon\SPArmageddon.svg" />
+    <Content Include="Modules\MembershipSystem\Views\membership-roles.js" />
     <Content Include="Modules\AdminSystem\Views\adminsystem-tablescontroller.js" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css.map">
       <DependentUpon>ncb-Controls.css</DependentUpon>
@@ -165,6 +166,8 @@
     <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.ttf" />
     <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.woff" />
     <Content Include="Content\Views\_basecode.cshtml" />
+    <Content Include="Modules\EditorSystem\Views\_include.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\membership-roles.cshtml" />
     <None Include="Modules\ControlsSystem\ncb-Controls.less" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css">
       <DependentUpon>ncb-Controls.less</DependentUpon>
@@ -576,13 +579,13 @@
       <DependentUpon>admin.css</DependentUpon>
     </Content>
     <Content Include="Modules\ControlsSystem\Templates\ncbPictureList.html" />
-    <Content Include="Content\Views\Editor\editor.css">
+    <Content Include="Modules\EditorSystem\editor.css">
       <DependentUpon>editor.less</DependentUpon>
     </Content>
-    <Content Include="Content\Views\Editor\editor.min.css">
+    <Content Include="Modules\EditorSystem\editor.min.css">
       <DependentUpon>editor.css</DependentUpon>
     </Content>
-    <Content Include="Content\Views\Editor\editorui.cshtml" />
+    <Content Include="Modules\EditorSystem\Views\editor-ui.cshtml" />
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\fonts\bangna\source\WDB_Bangna.ttf" />
     <Content Include="Content\fonts\bangna\wdb_bangna-webfont.eot" />
@@ -661,8 +664,8 @@
     <Content Include="Content\Themes\Glissade\license.txt" />
     <Content Include="Content\Themes\Glissade\style.css" />
     <Content Include="Content\Views\_basecontentlayout.cshtml" />
-    <Content Include="Content\Views\Editor\editor.less" />
-    <Content Include="Content\Views\Editor\editor.css.map">
+    <Content Include="Modules\EditorSystem\editor.less" />
+    <Content Include="Modules\EditorSystem\editor.css.map">
       <DependentUpon>editor.css</DependentUpon>
     </Content>
     <Content Include="Modules\SuperAdminSystem\alloweddomains.txt" />
@@ -681,6 +684,7 @@
     <Content Include="Modules\DatabaseSystem\ncb-database.js" />
     <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-login.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\membership-enroll.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog-userprofile.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-logindialog.cshtml" />
@@ -1625,7 +1629,7 @@
     <Compile Include="Modules\MembershipSystem\NancyBlackUser.cs" />
     <Compile Include="Modules\MembershipSystem\UserManager.cs" />
     <Compile Include="Modules\SuperAdminSystem\SuperAdminModule.cs" />
-    <Content Include="Content\Views\Editor\editor.js" />
+    <Content Include="Modules\EditorSystem\Views\editor-ui.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
     <Compile Include="Modules\BaseModule.cs" />
     <Compile Include="Modules\ContentSystem\ContentModule.cs" />

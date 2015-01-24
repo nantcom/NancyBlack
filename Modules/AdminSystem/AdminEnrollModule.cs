@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using Nancy.Security;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,10 @@ namespace NantCom.NancyBlack.Modules.AdminSystem
                     _FailSafeCode);
             }
 
-            
+            this.RequiresAuthentication();
+
+            // Fail-Safe mechanism to grant access to admin system in case
+            // of password forget
             Post["/Admin/__enroll"] = _ =>
             {
                 var code = (string)this.Request.Form.code;
@@ -36,12 +40,14 @@ namespace NantCom.NancyBlack.Modules.AdminSystem
                 if (code == _FailSafeCode)
                 {
                     var user = this.Context.CurrentUser as NancyBlackUser;
-                    UserManager.Current.EnrollUser(user.Guid, this.Context, "admin", code);
+                    UserManager.Current.EnrollUser(user.Guid, this.Context, code, true);
                 }
 
                 return this.Response.AsRedirect("/Admin");
 
             };
+
+
         }
     }
 }
