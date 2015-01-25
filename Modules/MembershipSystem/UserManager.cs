@@ -64,7 +64,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             var user = JsonConvert.DeserializeObject<NancyBlackUser>(userJson);
             var claims = siteDb.QueryAsJsonString("__Enrollment",
-                               string.Format("(UserId eq {0})", user.Id));
+                               string.Format("(UserGuid eq {0})", user.Guid));
 
             user.Claims = (from item in claims
                            let jo = JObject.Parse(item) as dynamic
@@ -104,12 +104,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 }
 
                 // create new enrollment record in fail safe mode
-                existing = new
+                existing = JObject.FromObject( new
                 {
                     Id = 0,
                     Claim = "admin",
                     Code = code,
-                };
+                });
             }
             else
             {
@@ -125,11 +125,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     // this user already claimed the code, just let him pass
                     return true;
                 }
-
-                existing.UserId = user.Id;
-                existing.UserGuid = user.Guid;
-                existing.UserJSONText = JsonConvert.SerializeObject(user);
             }
+
+            existing.UserId = user.Id;
+            existing.UserGuid = user.Guid;
+            existing.UserJSONText = JsonConvert.SerializeObject(user);
 
             siteDb.UpsertRecord("__Enrollment", existing);
             MemoryCache.Default.Remove("User-" + guid);

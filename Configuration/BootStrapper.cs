@@ -37,7 +37,7 @@ namespace NantCom.NancyBlack.Configuration
             this.Conventions.ViewLocationConventions.Clear();
 
             // Views in Systems (AdminSystem, ContentSystem etc...)
-
+            // host most priority
             foreach (var system in ModuleResource.Systems)
             {
                 this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
@@ -54,6 +54,7 @@ namespace NantCom.NancyBlack.Configuration
                 });
             }
 
+            // followed by site's View Folder
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
                 if (context.Context.Items.ContainsKey("CurrentSite") == false)
@@ -67,6 +68,7 @@ namespace NantCom.NancyBlack.Configuration
                                         viewName);
             });
 
+            // and outside
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
                 if (context.Context.Items.ContainsKey("CurrentSite") == false )
@@ -115,6 +117,19 @@ namespace NantCom.NancyBlack.Configuration
                 UserMapper = container.Resolve<IUserMapper>(),
             };
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
+
+            NancyBlackDatabase.ObjectUpdated += (sender, entity, obj) =>
+            {
+                if (sender != _SharedDatabase)
+                {
+                    return;
+                }
+
+                if (entity == "site")
+                {
+                    MemoryCache.Default.Remove("Site-" + obj.HostName);
+                }
+            };
 
             pipelines.BeforeRequest.AddItemToStartOfPipeline(this.InitializeSiteForRequest);
         }
@@ -226,6 +241,7 @@ namespace NantCom.NancyBlack.Configuration
 
                             site = new
                             {
+                                Id = 0,
                                 HostName = hostname,
                                 Alias = string.Empty,
                                 RegisteredDate = DateTime.Now,

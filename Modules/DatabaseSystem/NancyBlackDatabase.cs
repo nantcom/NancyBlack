@@ -1,4 +1,5 @@
-﻿using Linq2Rest.Parser;
+﻿using Linq2Rest;
+using Linq2Rest.Parser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SisoDb;
@@ -50,33 +51,41 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
         {
             var parser = new ParameterParser<T>();
-            var modelFilter = parser.Parse(odataFilter);
-
             var queryable = _db.UseOnceTo().Query<T>();
-
-            if (odataFilter["$filter"] != null)
+            
+            try
             {
-                queryable = queryable.Where(modelFilter.FilterExpression);
+                var modelFilter = parser.Parse(odataFilter);
+
+                if (odataFilter["$filter"] != null)
+                {
+                    queryable = queryable.Where(modelFilter.FilterExpression);
+
+                }
+
+                var sortExpressions = (from sort in modelFilter.SortDescriptions
+                                       where sort != null
+                                       select sort.KeySelector as Expression<Func<T, object>>).ToArray();
+
+                if (sortExpressions.Length > 0)
+                {
+                    queryable = queryable.OrderBy(sortExpressions);
+                }
+
+                if (modelFilter.SkipCount > 0)
+                {
+                    queryable = queryable.Skip(modelFilter.SkipCount);
+                }
+
+                if (modelFilter.TakeCount > 0)
+                {
+                    queryable = queryable.Take(modelFilter.SkipCount);
+                }
 
             }
-
-            var sortExpressions = (from sort in modelFilter.SortDescriptions
-                                   where sort != null
-                                   select sort.KeySelector as Expression<Func<T, object>>).ToArray();
-
-            if (sortExpressions.Length > 0)
+            catch (Exception)
             {
-                queryable = queryable.OrderBy(sortExpressions);
-            }
-
-            if (modelFilter.SkipCount > 0)
-            {
-                queryable = queryable.Skip(modelFilter.SkipCount);
-            }
-
-            if (modelFilter.TakeCount > 0)
-            {
-                queryable = queryable.Take(modelFilter.SkipCount);
+                // cannot create query - just ignores them
             }
 
             return queryable.ToListOfJson();

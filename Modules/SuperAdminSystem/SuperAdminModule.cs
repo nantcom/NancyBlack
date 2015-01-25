@@ -63,7 +63,7 @@ namespace NantCom.NancyBlack.Modules
             Get["/SuperAdmin"] = this.HandleSysAdminDashboard();
             Get["/SuperAdmin/"] = this.HandleSysAdminDashboard();
 
-            Get["/SuperAdmin/Tables"] = this.HandleStaticRequest("/Admin/tables", () =>
+            Get["/SuperAdmin/Tables"] = this.HandleStaticRequest("admin-tables", () =>
             {
                 return new
                 {

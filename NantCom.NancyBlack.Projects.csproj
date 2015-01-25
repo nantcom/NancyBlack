@@ -1572,6 +1572,15 @@
     <Content Include="Sites\level51pc.com\Home.cshtml">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="Sites\masterbody.co.th\Views\admin-car.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-car_customer.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-content.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-customer.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-customer_match_sale.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-package.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-promotion.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-promotion_transaction.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\admin-promotion_usage.cshtml" />
     <None Include="Sites\tripsbox.net\Admin\Location-ContactTab.cshtml" />
     <Content Include="Sites\tripsbox.net\Admin\Location.js" />
     <Content Include="Sites\tripsbox.net\Content.cshtml">
@@ -1647,7 +1656,6 @@
     <Folder Include="Modules\MembershipSystem\Templates\" />
     <Folder Include="Sites\Admin\" />
     <Folder Include="Sites\level51pc.com\Views\" />
-    <Folder Include="Sites\masterbody.co.th\Views\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

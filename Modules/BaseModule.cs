@@ -3,6 +3,7 @@ using Nancy.Authentication.Forms;
 using Nancy.TinyIoc;
 using Nancy.ViewEngines;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
 using SisoDb;
 using SisoDb.SqlCe4;
@@ -40,6 +41,22 @@ namespace NantCom.NancyBlack.Modules
             get
             {
                 return this.Context.Items["CurrentSite"];
+            }
+        }
+
+        /// <summary>
+        /// Currently accessing user
+        /// </summary>
+        protected NancyBlackUser CurrentUser
+        {
+            get
+            {
+                if (this.Context.CurrentUser == null)
+                {
+                    return NancyBlackUser.Anonymous;
+                }
+
+                return this.Context.CurrentUser as NancyBlackUser;
             }
         }
 
