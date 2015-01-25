@@ -147,6 +147,36 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         {
             return this.GetUserByGuid(identifier, context);
         }
+
+        /// <summary>
+        /// Ensures that the current site has the specifed role registered
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="role"></param>
+        public void EnsureRoleRegistered( NancyContext context, string role )
+        {
+            dynamic site = context.Items["CurrentSite"];
+
+            lock ("RoleEdit-" + site.HostName)
+            {
+                if (site.Roles == null)
+                {
+                    site.Roles = role;
+                }
+                else
+                {
+                    var roles = (string)site.Roles;
+                    if (roles.Contains("," + role) == false)
+                    {
+                        site.Roles = roles + "," + role;
+                    }
+                }
+
+                var siteDb = context.Items["SharedDatabase"] as NancyBlackDatabase;
+                siteDb.UpsertRecord("Site", site);
+            }
+
+        }
     }
 
 }

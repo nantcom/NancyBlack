@@ -51,8 +51,34 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         }
 
         /// <summary>
+        /// Whether this is an anonymous user
+        /// </summary>
+        [JsonIgnore]
+        public bool IsAnonymous
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Determine whether user has give claim.
+        /// If user has admin claim, this method always return true
+        /// </summary>
+        /// <param name="claim"></param>
+        /// <returns></returns>
+        public bool HasClaim( string claim )
+        {
+            // admin has all claim
+            if (this.Claims.Contains("admin"))
+            {
+                return true;
+            }
+            return this.Claims.Contains(claim);
+        }
+
+        /// <summary>
         /// Anonymous User
         /// </summary>
-        public static readonly NancyBlackUser Anonymous = new NancyBlackUser() { UserName = "Anonymous", Claims = new string[0] };
+        public static readonly NancyBlackUser Anonymous = new NancyBlackUser() { UserName = "Anonymous", Claims = new string[0], IsAnonymous = true };
     }
 }

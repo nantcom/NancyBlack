@@ -1,4 +1,6 @@
 ﻿using Nancy;
+using NantCom.NancyBlack.Modules.MembershipSystem;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,13 @@ namespace NantCom.NancyBlack.Modules
         {
             _RootPath = rootPath.GetRootPath();
 
-            Get["/{path*}"] = this.HandleRequest( this.HandleContentRequest );
+            Get["/__role/{roleName}/{path*}"] = this.HandleProtectedContentRequest(this.HandleContentRequest);
+
+            Get["/__role/{roleName}"] = this.HandleProtectedContentRequest(this.HandleContentRequest);
+            
+            Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
+
+
             Get["/"] = this.HandleRequest( this.HandleContentRequest );
         }
 
@@ -24,21 +32,22 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="site">The site.</param>
         /// <param name="content">The content.</param>
-        private void GenerateLayoutPage( dynamic site, dynamic content )
+        protected void GenerateLayoutPage( dynamic site, dynamic content )
         {
             var theme = (string)site.Theme;
             var layout = (string)content.Layout;
 
-            var layoutPath = Path.Combine(_RootPath, "Sites", (string)site.HostName);
-            Directory.CreateDirectory(layoutPath);
+            string layoutPath = Path.Combine(_RootPath, "Sites", (string)site.HostName, "Views", Path.GetDirectoryName(layout));
+            string layoutFilename = Path.Combine(layoutPath, Path.GetFileName(layout) + ".cshtml");
 
-            var layoutFilename = Path.Combine(layoutPath, layout + ".cshtml");
             if (File.Exists(layoutFilename))
             {
                 return;
             }
 
-            var sourceFile = Path.Combine(_RootPath, "Content", "Views", "_base" + layout + "layout.cshtml");
+            Directory.CreateDirectory(layoutPath);
+
+            var sourceFile = Path.Combine(_RootPath, "Content", "Views", "_base" + Path.GetFileName(layout) + "layout.cshtml");
             if (File.Exists(sourceFile) == false)
             {
                 sourceFile = Path.Combine(_RootPath, "Content", "Views", "_basecontentlayout.cshtml");
@@ -46,7 +55,34 @@ namespace NantCom.NancyBlack.Modules
             File.Copy(sourceFile, layoutFilename);
         }
 
-        private dynamic HandleContentRequest(dynamic arg)
+        protected Func<dynamic, dynamic> HandleProtectedContentRequest(Func<dynamic, dynamic> action)
+        {
+            return (arg) =>
+            {
+                if (this.CurrentUser.IsAnonymous)
+                {
+                    return 401;
+                }
+
+                var role = (string)arg.roleName;
+                var path = (string)arg.path;
+
+                if (this.CurrentUser.HasClaim(role) == false)
+                {
+                    return 403;
+                }
+
+                UserManager.Current.EnsureRoleRegistered(this.Context, role);
+
+                return action(new
+                {
+                    path = "__role/" + role + "/" + path,
+                    roleName = role
+                });
+            };
+        }
+
+        protected dynamic HandleContentRequest(dynamic arg)
         {
             var url = (string)arg.path;
             if (url == "/" || url == null)
@@ -66,7 +102,6 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
-
             dynamic requestedContent = this.SiteDatabase.Query("Content", 
                                     string.Format("Url eq '{0}'", url)).FirstOrDefault();
 
@@ -77,16 +112,22 @@ namespace NantCom.NancyBlack.Modules
                     return 404;
                 }
 
-                if (this.IsInEditMode == false)
+                if (this.CurrentUser.HasClaim("admin") == false)
                 {
                     return 404;
+                }
+
+                var layout = url == "/home" ? "Home" : "Content";
+                if (arg.roleName != null)
+                {
+                    layout = arg.roleName + "/" + layout;
                 }
 
                 requestedContent = this.SiteDatabase.UpsertRecord("Content", new
                                     {
                                         Id = 0,
                                         Url = url,
-                                        Layout = url == "/home" ? "Home" : "Content"
+                                        Layout = layout
                                     });
             }
 
