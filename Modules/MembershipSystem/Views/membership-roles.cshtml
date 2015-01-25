@@ -30,9 +30,11 @@
 	        {
                 roles += "," + this.Site.Roles;
             }
+
+            var rolesArray = roles.Split(',');
         }
 
-        @foreach (var item in roles.Split(','))
+        @foreach (var item in rolesArray)
         {
             <tab heading="@(item)" ng-click="ctrl.filter('@(item)')"></tab>
         }
@@ -109,8 +111,10 @@
             </td>
             <td>
                 <select class="form-control" ng-model="newitem.Claim">
-                    <option>admin</option>
-                    <option>editor</option>
+                    @foreach (var item in rolesArray)
+                    {
+                        <option>item</option>
+                    }
                 </select>
             </td>
             <td>

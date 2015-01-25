@@ -77,7 +77,7 @@
     @{
         foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
         {
-            this.Html.Partial(item);
+            @this.Html.Partial(item, this.Model);
         }
     }
 

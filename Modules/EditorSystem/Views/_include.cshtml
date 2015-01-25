@@ -1,0 +1,16 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@if (this.CurrentUser.HasClaim("editor"))
+{
+    if (this.RenderContext.Context.Request.Cookies.ContainsKey("editmode") &&
+        this.RenderContext.Context.Request.Cookies["editmode"] == "enabled")
+    {
+
+        @this.Html.Partial("editor-ui", this.Model)
+    }
+    else
+    {
+        @this.Html.Partial("editor-enableeditmode")
+    }
+
+}

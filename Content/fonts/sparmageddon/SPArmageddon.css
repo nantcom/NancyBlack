@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'SPArmageddon';
+    src: url('SPArmageddon.eot');
+    src: url('SPArmageddon.eot') format('embedded-opentype'),
+         url('SPArmageddon.woff2') format('woff2'),
+         url('SPArmageddon.woff') format('woff'),
+         url('SPArmageddon.ttf') format('truetype'),
+         url('SPArmageddon.svg#SPArmageddon') format('svg');
+}

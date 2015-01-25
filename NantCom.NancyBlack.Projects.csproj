@@ -685,6 +685,7 @@
     <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-login.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-enroll.cshtml" />
+    <Content Include="Modules\EditorSystem\Views\editor-enableeditmode.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog-userprofile.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog.cshtml" />
     <None Include="Modules\MembershipSystem\Views\ncb-membership-logindialog.cshtml" />
@@ -1581,6 +1582,8 @@
     <Content Include="Sites\masterbody.co.th\Views\admin-promotion.cshtml" />
     <Content Include="Sites\masterbody.co.th\Views\admin-promotion_transaction.cshtml" />
     <Content Include="Sites\masterbody.co.th\Views\admin-promotion_usage.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\sale\Content.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\sale\_saletheme.cshtml" />
     <None Include="Sites\tripsbox.net\Admin\Location-ContactTab.cshtml" />
     <Content Include="Sites\tripsbox.net\Admin\Location.js" />
     <Content Include="Sites\tripsbox.net\Content.cshtml">
@@ -1634,6 +1637,7 @@
     <Compile Include="Configuration\ModuleRegistraion.cs" />
     <Compile Include="Configuration\RazorConfig.cs" />
     <Compile Include="Modules\AdminSystem\AdminEnrollModule.cs" />
+    <Compile Include="Modules\EditorSystem\EditorModule.cs" />
     <Compile Include="Modules\MembershipSystem\MembershipModule.cs" />
     <Compile Include="Modules\MembershipSystem\NancyBlackUser.cs" />
     <Compile Include="Modules\MembershipSystem\UserManager.cs" />

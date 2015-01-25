@@ -1,5 +1,6 @@
 ﻿using Nancy.ViewEngines.Razor;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,22 @@ namespace NantCom.NancyBlack
                     return null;
                 }
                 return this.Model.Content;
+            }
+        }
+
+        /// <summary>
+        /// Currently accessing user
+        /// </summary>
+        protected NancyBlackUser CurrentUser
+        {
+            get
+            {
+                if (this.RenderContext.Context.CurrentUser == null)
+                {
+                    return NancyBlackUser.Anonymous;
+                }
+
+                return this.RenderContext.Context.CurrentUser as NancyBlackUser;
             }
         }
 
