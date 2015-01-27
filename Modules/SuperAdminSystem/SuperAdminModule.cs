@@ -1,63 +1,26 @@
 ﻿using Nancy;
-using RazorEngine;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Web;
+using Nancy.Bootstrapper;
 using Nancy.ModelBinding;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.MembershipSystem;
+using Newtonsoft.Json.Linq;
+using RazorEngine;
+using SisoDb.SqlCe4;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Caching;
+using System.Web;
 
 namespace NantCom.NancyBlack.Modules
 {
     public class SuperAdminModule : AdminModule
     {
-        private string _RootPath;
-
-        /// <summary>
-        /// Whether domain is allowed to use SuperAdmin
-        /// </summary>
-        /// <param name="hostname"></param>
-        /// <returns></returns>
-        public bool IsDomainAllowed( string hostname )
-        {
-            if (hostname == "localhost")
-            {
-                return true; // always allow localhost
-            }
-
-            // superadmin request, and it is a newly installed nancy
-            // read allowed superadmin domain
-            var allowedDomains = File.ReadAllText(
-                Path.Combine( _RootPath, "Modules", "SuperAdminSystem", "alloweddomains.txt"));
-
-
-            if (allowedDomains.IndexOf(hostname) < 0)
-            {
-                return false; // forbidden
-            }
-
-            return true;
-        }
-
         public SuperAdminModule(IRootPathProvider rootPath)
             : base(rootPath)
         {
-            _RootPath = rootPath.GetRootPath();
-
-            this.Before.AddItemToStartOfPipeline((ctx) =>
-            {
-                var hostname = ctx.Request.Url.HostName.Replace("www.", "");
-                if (this.IsDomainAllowed( hostname) == false)
-                {
-                    return 403;
-                }
-
-                return null;
-
-            });
-
             Get["/SuperAdmin/Tables/{table_name}"] = this.HandleSuperAdminTabaleRequests;
 
             Get["/SuperAdmin"] = this.HandleSysAdminDashboard();
@@ -86,7 +49,7 @@ namespace NantCom.NancyBlack.Modules
             return this.HandleStaticRequest("superadmin-dashboard.cshtml", () =>
             {
                 // get site that expire this year
-                return this.SharedDatabase.Query("Site", "year(ExpiryDate) eq " + DateTime.Now.Year);
+                return this.SharedDatabase.Query("Site");
             });
         }
 
@@ -123,5 +86,226 @@ namespace NantCom.NancyBlack.Modules
             this.GenerateView(this.SharedDatabase, templatePath, table_name, "_superadmin.cshtml", replace, "superadmin." + table_name);
         }
 
+        #region Handles configuring site for the current request
+
+        private static NancyBlackDatabase _SharedDatabase;
+        private static string _SharedRootPath;
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="rootPath"></param>
+        public static void Initialize(string rootPath, IPipelines pipelines)
+        {
+            _SharedRootPath = rootPath;
+
+            NancyBlackDatabase.ObjectUpdated += (sender, entity, obj) =>
+            {
+                if (sender != _SharedDatabase)
+                {
+                    return;
+                }
+
+                if (entity == "site")
+                {
+                    MemoryCache.Default.Remove("Site-" + obj.HostName);
+                    MemoryCache.Default.Remove("SiteDatabse-" + obj.Alias);
+
+                    if (obj.Alias != null)
+                    {
+                        var aliases = ((string)obj.Alias).Split(',');
+                        foreach (var item in aliases)
+                        {
+                            MemoryCache.Default.Remove("Site-" + item);
+                            MemoryCache.Default.Remove("SiteDatabse-" + item);
+                        }
+                    }
+                }
+            };
+
+
+            pipelines.BeforeRequest.AddItemToStartOfPipeline(SuperAdminModule.InitializeRequest);
+        }
+
+        /// <summary>
+        /// Create a shared NancyBlack Database Instance
+        /// </summary>
+        /// <returns></returns>
+        private static NancyBlackDatabase GetSharedDatabase()
+        {
+            if (_SharedDatabase == null)
+            {
+                var sisodb = ("Data Source=" + Path.Combine(_SharedRootPath, "Sites", "Shared.sdf") + ";Persist Security Info=False")
+                        .CreateSqlCe4Db()
+                        .CreateIfNotExists();
+
+                _SharedDatabase = new NancyBlackDatabase(sisodb);
+            }
+
+            return _SharedDatabase;
+        }
+
+        /// <summary>
+        /// Gets site database from given Context
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <returns></returns>
+        private static NancyBlackDatabase GetSiteDatabase(NancyContext ctx)
+        {
+            if (ctx.Items.ContainsKey("SiteDatabase"))
+            {
+                return ctx.Items["SiteDatabase"] as NancyBlackDatabase;
+            }
+
+            var key = "SiteDatabse-" + ctx.Request.Url.HostName;
+            var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
+            if (cached != null)
+            {
+                ctx.Items["SiteDatabase"] = cached;
+                return cached;
+            }
+
+            lock (key)
+            {
+                dynamic site = ctx.Items["CurrentSite"];
+
+                var path = Path.Combine(_SharedRootPath,
+                            "Sites",
+                            (string)site.HostName);
+
+                Directory.CreateDirectory(path);
+
+                var fileName = Path.Combine(path, "Data.sdf");
+                var sisodb = ("Data Source=" + fileName + ";Persist Security Info=False")
+                                .CreateSqlCe4Db()
+                                .CreateIfNotExists();
+
+                cached = new NancyBlackDatabase(sisodb);
+
+                // cache in memory and in current request
+                MemoryCache.Default.Add(key, cached, DateTimeOffset.MaxValue);
+                ctx.Items["SiteDatabase"] = cached;
+            }
+
+            return cached;
+        }
+
+        /// <summary>
+        /// Gets the super admin site
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        private static dynamic GetSuperAdminSite( NancyContext ctx )
+        {
+            var hostname = ctx.Request.Url.HostName.Replace("www.", "");
+
+            // allowed superadmin domains are in text files
+            var allowedDomains = File.ReadAllLines(
+                Path.Combine(_SharedRootPath, "Modules", "SuperAdminSystem", "alloweddomains.dat"));
+
+            if (hostname != "localhost")
+            {
+                if (allowedDomains.Contains(hostname) == false)
+                {
+                    return 423; // not allowed
+                }
+            }
+
+            // if request is from allowed domain, create a site
+            // and return
+            var site = JObject.FromObject( new
+            {
+                Id = 9999,
+                HostName = "SuperAdmin",
+                Alias = string.Empty,
+                RegisteredDate = DateTime.Now,
+                ExpireDate = DateTime.MaxValue,
+                RegisteredBy = "System",
+                SiteType = "SuperAdmin",
+                Theme = "Basic"
+            });
+
+            return site;
+        }
+
+        private static dynamic GetSite(NancyContext ctx)
+        {
+            var isSuperAdmin = ctx.Request.Path.StartsWith("/SuperAdmin", StringComparison.InvariantCultureIgnoreCase);
+            if (isSuperAdmin)
+            {
+                return SuperAdminModule.GetSuperAdminSite(ctx);
+            }
+
+            var sharedDatabase = SuperAdminModule.GetSharedDatabase();
+
+            var hostname = ctx.Request.Url.HostName.Replace("www.", "");
+            var key = "Site-" + hostname;
+
+            dynamic site = MemoryCache.Default.Get(key);
+            if ((site as string) == "423" )
+            {
+                return 423; // this was a repeated request to not configured site
+            }
+
+            if (site == null)
+            {
+                // check from hostname
+                site = sharedDatabase.Query("Site",
+                                       string.Format("HostName eq '{0}'", hostname)).FirstOrDefault();
+
+                // then from alias
+                if (site == null)
+                {
+                    site = sharedDatabase.Query("Site",
+                                       string.Format("Alias eq '{0}'", hostname)).FirstOrDefault();
+
+                    // alias not found, return that site was not configured
+                    // and also cache the result
+                    if (site == null)
+                    {
+                        MemoryCache.Default.Add(key, "423", new CacheItemPolicy()
+                        {
+                            SlidingExpiration = TimeSpan.FromMinutes(5)
+                        });
+
+                        return 423;
+                    }
+                }
+
+                if (site.Theme == null)
+                {
+                    site.Theme = "Basic";
+                }
+
+                MemoryCache.Default.Add(key, site, new CacheItemPolicy()
+                {
+                    SlidingExpiration = TimeSpan.FromMinutes(5)
+                });
+            }
+
+            return site;
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        private static Nancy.Response InitializeRequest(NancyContext ctx)
+        {
+            if (ctx.Request.Url.HostName == "localhost")
+            {
+                ctx.CurrentUser = NancyBlackUser.LocalHostAdmin;
+            }
+            
+            ctx.Items["CurrentSite"] = SuperAdminModule.GetSite(ctx);
+            ctx.Items["SiteDatabase"] = SuperAdminModule.GetSiteDatabase(ctx);
+            ctx.Items["SharedDatabase"] = SuperAdminModule.GetSharedDatabase();
+
+            return null;
+        }
+
+        #endregion
     }
 }

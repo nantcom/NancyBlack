@@ -423,7 +423,11 @@
         var loginUser = function () {
 
             $("#loginDialog").modal('hide');
-            $("#profileDialog").modal('show');
+
+            // show profile dialog if not from login page
+            if (window.location.href.indexOf("__membership/login") < 0) {
+                $("#profileDialog").modal('show');
+            }
 
             var userInfo = JSON.parse($.cookie("UserInfo"));
             $module.currentUser = userInfo;

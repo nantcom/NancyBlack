@@ -75,7 +75,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             }
             return this.Claims.Contains(claim);
         }
-
+        
+        /// <summary>
+        /// Localhost Admin
+        /// </summary>
+        public static readonly NancyBlackUser LocalHostAdmin = new NancyBlackUser() { UserName = "LocalHostAdmin", Claims = new string[] { "admin" }, IsAnonymous = false };
+        
         /// <summary>
         /// Anonymous User
         /// </summary>

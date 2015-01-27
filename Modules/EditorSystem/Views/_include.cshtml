@@ -1,6 +1,8 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 
-@if (this.CurrentUser.HasClaim("editor"))
+@if (this.CurrentUser.HasClaim("editor") &&
+    this.RenderContext.Context.Request.Url.Path.ToLowerInvariant().Contains("admin") == false &&
+    this.RenderContext.Context.Request.Url.Path.ToLowerInvariant().Contains("superadmin") == false)
 {
     if (this.RenderContext.Context.Request.Cookies.ContainsKey("editmode") &&
         this.RenderContext.Context.Request.Cookies["editmode"] == "enabled")

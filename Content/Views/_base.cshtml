@@ -34,7 +34,7 @@
     {
         <link rel="stylesheet" href="@this.SitePath("/style.min.css")">
     }
-    
+    @this.RenderSection("Style", false)
     @this.RenderSection("Head", false)
 
 </head>
@@ -82,6 +82,7 @@
     }
 
     @RenderSection("Scripts", false)
+    @RenderSection("Script", false)
 
     <script>
         // Querystring extraction function

@@ -46,28 +46,33 @@
       <HintPath>..\packages\Linq2Rest.4.1.0.0\lib\Net45\Linq2Rest.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Nancy">
-      <HintPath>..\packages\Nancy.0.23.2\lib\net40\Nancy.dll</HintPath>
+    <Reference Include="Nancy, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nancy.1.0.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Authentication.Forms">
-      <HintPath>..\packages\Nancy.Authentication.Forms.0.23.2\lib\net40\Nancy.Authentication.Forms.dll</HintPath>
+    <Reference Include="Nancy.Authentication.Forms, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nancy.Authentication.Forms.1.0.0\lib\net40\Nancy.Authentication.Forms.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Aspnet">
-      <HintPath>..\packages\Nancy.Hosting.Aspnet.0.23.2\lib\net40\Nancy.Hosting.Aspnet.dll</HintPath>
+    <Reference Include="Nancy.Hosting.Aspnet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nancy.Hosting.Aspnet.1.0.0\lib\net40\Nancy.Hosting.Aspnet.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Serialization.JsonNet">
-      <HintPath>..\packages\Nancy.Serialization.JsonNet.0.23.2\lib\net40\Nancy.Serialization.JsonNet.dll</HintPath>
+    <Reference Include="Nancy.Serialization.JsonNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nancy.Serialization.JsonNet.1.0.0\lib\net40\Nancy.Serialization.JsonNet.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.ViewEngines.Razor">
-      <HintPath>..\packages\Nancy.Viewengines.Razor.0.23.2\lib\net40\Nancy.ViewEngines.Razor.dll</HintPath>
+    <Reference Include="Nancy.ViewEngines.Razor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nancy.Viewengines.Razor.1.0.0\lib\net40\Nancy.ViewEngines.Razor.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RazorEngine, Version=3.5.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
+    <Reference Include="RazorEngine, Version=3.5.2.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RazorEngine.3.4.2\lib\net45\RazorEngine.dll</HintPath>
+      <HintPath>..\packages\RazorEngine.3.5.2\lib\net45\RazorEngine.dll</HintPath>
     </Reference>
     <Reference Include="SisoDb">
       <HintPath>..\packages\SisoDb.16.2.1\lib\net40\SisoDb.dll</HintPath>
@@ -668,7 +673,7 @@
     <Content Include="Modules\EditorSystem\editor.css.map">
       <DependentUpon>editor.css</DependentUpon>
     </Content>
-    <Content Include="Modules\SuperAdminSystem\alloweddomains.txt" />
+    <None Include="Modules\SuperAdminSystem\alloweddomains.dat" />
     <Content Include="Modules\SuperAdminSystem\Views\_superadmin.cshtml" />
     <Content Include="Modules\SuperAdminSystem\Views\superadmin-dashboard.cshtml" />
     <Content Include="Modules\SuperAdminSystem\Views\superadmin-site.cshtml" />
@@ -1470,6 +1475,7 @@
     <Content Include="Content\Views\Codes\404.cshtml" />
     <Content Include="Content\Views\Codes\500.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\_include.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\_additionaluserprofile.cshtml" />
     <None Include="Properties\PublishProfiles\Default Settings.pubxml" />
     <None Include="Properties\PublishProfiles\NantCom.pubxml" />
     <Content Include="Sites\level51pc.com\images\980M.png" />
@@ -1488,6 +1494,7 @@
     <Content Include="Sites\level51pc.com\images\flame.jpg" />
     <Content Include="Sites\level51pc.com\images\flames2.fw.png" />
     <Content Include="Sites\level51pc.com\images\flames2.png" />
+    <Content Include="Sites\level51pc.com\images\icon-line.png" />
     <Content Include="Sites\level51pc.com\images\logo.fw.png" />
     <Content Include="Sites\level51pc.com\images\quadro.fw.png" />
     <Content Include="Sites\level51pc.com\images\quadro.png" />
@@ -1539,6 +1546,13 @@
     <Content Include="Sites\masterbody.co.th\style.min.css">
       <DependentUpon>style.css</DependentUpon>
     </Content>
+    <Content Include="Sites\masterbody.co.th\Views\front\front.js" />
+    <Content Include="Sites\masterbody.co.th\Views\front\front.css">
+      <DependentUpon>front.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\masterbody.co.th\Views\front\front.min.css">
+      <DependentUpon>front.css</DependentUpon>
+    </Content>
     <Content Include="Sites\tripsbox.net\.git" />
     <Content Include="Sites\tripsbox.net\admin.css">
       <DependentUpon>admin.less</DependentUpon>
@@ -1546,20 +1560,11 @@
     <Content Include="Sites\tripsbox.net\admin.min.css">
       <DependentUpon>admin.css</DependentUpon>
     </Content>
-    <Content Include="Sites\tripsbox.net\Admin\content.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AttributesTab-Transportation.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AttributesTab-Shop.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AttributesTab-Attraction.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AttributesTab-Event.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AttributesTab-Hotel.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AttributesTab-Restaurant.cshtml" />
     <Content Include="Sites\tripsbox.net\admin.less" />
     <Content Include="Sites\tripsbox.net\admin.css.map">
       <DependentUpon>admin.css</DependentUpon>
     </Content>
     <Content Include="Sites\masterbody.co.th\.git" />
-    <Content Include="Sites\masterbody.co.th\Content.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Home.cshtml" />
     <Content Include="Sites\masterbody.co.th\style.less" />
     <Content Include="Sites\masterbody.co.th\_theme.cshtml" />
     <Content Include="Sites\masterbody.co.th\style.css.map">
@@ -1569,9 +1574,6 @@
     <Content Include="Sites\level51pc.com\_theme.cshtml" />
     <Content Include="Sites\level51pc.com\style.css.map">
       <DependentUpon>style.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\Home.cshtml">
-      <SubType>Code</SubType>
     </Content>
     <Content Include="Sites\masterbody.co.th\Views\admin-car.cshtml" />
     <Content Include="Sites\masterbody.co.th\Views\admin-car_customer.cshtml" />
@@ -1584,17 +1586,119 @@
     <Content Include="Sites\masterbody.co.th\Views\admin-promotion_usage.cshtml" />
     <Content Include="Sites\masterbody.co.th\Views\sale\Content.cshtml" />
     <Content Include="Sites\masterbody.co.th\Views\sale\_saletheme.cshtml" />
-    <None Include="Sites\tripsbox.net\Admin\Location-ContactTab.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location.js" />
+    <Content Include="Sites\masterbody.co.th\Views\front\Content.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\front\_fronttheme.cshtml" />
+    <Content Include="Sites\masterbody.co.th\Views\front\front.less" />
+    <Content Include="Sites\masterbody.co.th\Views\front\front.css.map">
+      <DependentUpon>front.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\masterbody.co.th\Views\_additionaluserprofile.cshtml" />
     <Content Include="Sites\tripsbox.net\Content.cshtml">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="Sites\tripsbox.net\Home.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-AddressTab.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-GeneralTab.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-ServicesTab.cshtml" />
-    <Content Include="Sites\tripsbox.net\Admin\Location-Products.cshtml" />
+    <Content Include="Sites\tripsbox.net\Font\generator_config.txt" />
+    <Content Include="Sites\tripsbox.net\Font\stylesheet.css" />
+    <Content Include="Sites\tripsbox.net\images\hilight\big.jpg" />
+    <Content Include="Sites\tripsbox.net\images\hilight\sample1.jpg" />
+    <Content Include="Sites\tripsbox.net\images\hilight\sample2.jpg" />
+    <Content Include="Sites\tripsbox.net\images\u_banner.jpg" />
+    <Content Include="Sites\tripsbox.net\images\u_cat_accom.png" />
+    <Content Include="Sites\tripsbox.net\images\u_cat_eat.png" />
+    <Content Include="Sites\tripsbox.net\images\u_cat_event.png" />
+    <Content Include="Sites\tripsbox.net\images\u_cat_fun.png" />
+    <Content Include="Sites\tripsbox.net\images\u_cat_shop.png" />
+    <Content Include="Sites\tripsbox.net\images\u_cat_travel.png" />
+    <Content Include="Sites\tripsbox.net\images\u_footer_logo.png" />
+    <Content Include="Sites\tripsbox.net\images\u_menubar_butt_createtrip.png" />
+    <Content Include="Sites\tripsbox.net\images\u_menubar_logo_navibar.png" />
+    <Content Include="Sites\tripsbox.net\images\u_menubar_search.png" />
+    <Content Include="Sites\tripsbox.net\style.css">
+      <DependentUpon>style.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\style.min.css">
+      <DependentUpon>style.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\admin-location.js" />
+    <Content Include="Sites\tripsbox.net\Views\Home.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\home.js" />
+    <Content Include="Sites\tripsbox.net\Views\theme.js" />
+    <Content Include="Sites\tripsbox.net\_theme.cshtml" />
+    <Content Include="Sites\tripsbox.net\style.less" />
+    <Content Include="Sites\tripsbox.net\style.css.map">
+      <DependentUpon>style.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\admin-content.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location.cshtml">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_bd_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_blk_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_li_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_med_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_thin_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_it_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_it_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_it_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_it_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_ulli_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_v3.2-webfont.eot" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_v3.2-webfont.ttf" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_v3.2-webfont.woff" />
+    <Content Include="Sites\tripsbox.net\Font\db_helvethaica_x_v3.2-webfont.woff2" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AddressTab.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-Attraction.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-Event.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-Hotel.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-Restaurant.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-Shop.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-Transportation.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-ContactTab.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-GeneralTab.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-Products.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-ServicesTab.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location.GeneralTab.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -1655,6 +1759,7 @@
     <Compile Include="Modules\DatabaseSystem\DataTypeFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Content\Scripts\util-utils\" />
     <Folder Include="Lib\" />
     <Folder Include="Modules\ControlsSystem\Views\" />
     <Folder Include="Modules\MembershipSystem\Templates\" />
@@ -1690,8 +1795,8 @@
   <PropertyGroup>
     <PostBuildEvent>
 if $(ConfigurationName) == Debug (
-xcopy /s /y /R "$(SolutionDir)packages\Nancy.Viewengines.Razor.0.23.2\BuildProviders\Nancy.ViewEngines.Razor.BuildProviders.dll" "$(ProjectDir)bin\"
-xcopy /s /y /R "$(SolutionDir)packages\Nancy.Viewengines.Razor.0.23.2\lib\Net40\Nancy.ViewEngines.Razor.dll" "$(ProjectDir)bin\"
+xcopy /s /y /R "$(SolutionDir)packages\Nancy.Viewengines.Razor.1.0.0\BuildProviders\Nancy.ViewEngines.Razor.BuildProviders.dll" "$(ProjectDir)bin\"
+xcopy /s /y /R "$(SolutionDir)packages\Nancy.Viewengines.Razor.1.0.0\lib\Net40\Nancy.ViewEngines.Razor.dll" "$(ProjectDir)bin\"
 )</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

@@ -5,9 +5,15 @@
         var icon = $('<i></i>');
         var iconName = element.attr("ncb-icon");
 
-        if (iconName.indexOf("glyphicon") == 0) {
+        if (iconName.indexOf("glyphicon-") == 0) {
 
             icon.addClass("glyphicon");
+            icon.addClass(iconName);
+        }
+
+        if (iconName.indexOf("fa-") == 0) {
+
+            icon.addClass("fa");
             icon.addClass(iconName);
         }
 
@@ -21,6 +27,20 @@
     };
 
     var module = angular.module('ncb-controls', []);
+
+    module.factory("ncbForm", function () {
+
+        return function (controller, $scope) {
+
+            $scope.datepickeropen = {};
+            controller.opendatepicker = function ($event, target) {
+                $event.preventDefault();
+                $event.stopPropagation();
+
+                $scope.datepickeropen[target] = !$scope.datepickeropen[target];
+            }
+        };
+    });
 
     // A Shorter, leaner Input boxes
     module.directive('ncbTextbox', function ($document, $timeout) {

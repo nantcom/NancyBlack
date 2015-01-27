@@ -3,6 +3,11 @@
 (function () {
 
     var mobileService = WindowsAzure.MobileServiceClient;
+
+    if (!window.location.origin) {
+        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+    }
+
     var path = window.location.origin;
 
     if (window.location.pathname.indexOf( "/SuperAdmin" ) == 0) {

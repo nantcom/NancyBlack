@@ -275,6 +275,16 @@
             this.create = function () {
                 $scope.object = {};
 
+                if ($scope.object.RegisteredDate == null) {
+                    $scope.object.RegisteredDate = new Date();
+                }
+
+                if ($scope.object.ExpireDate == null) {
+                    $scope.object.ExpireDate = new Date();
+                    $scope.object.ExpireDate.setYear(2020);
+                }
+
+
                 var dialog = new siteDialog();
                 dialog.show($scope.object);
             }

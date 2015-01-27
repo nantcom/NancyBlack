@@ -13,8 +13,13 @@ else
     var GLOBAL_CONTENT = @this.Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(this.Content));
 </script>
 
+<form id="leaveEditMode" 
+      style="display:none"
+      action="/__editor/disable" 
+      method="post"></form>
+
 <div id="editorPanel"
-     ng-module="ncbEditor"
+     ng-module="editor-ui"
      ng-class="{ in : show % 2 != 0 }"
      ng-controller="PanelController as ctrl">
     <div>
@@ -32,7 +37,7 @@ else
             </i>
             <div class="pull-right">
                 <button class="btn btn-success"
-                        ng-disabled="activeEditor != null"
+                        ng-show="isDirty == true && activeEditor == null"
                         ng-click="ctrl.save()">
                     <i class="fa fa-cloud-upload"></i>
                 </button>
@@ -54,10 +59,10 @@ else
                         ng-click="ctrl.commitEditArea( true )">
                     <i class="fa fa-undo"></i>
                 </button>
-
-                <button class="btn btn-primary">
-                    <i class="fa fa-dot-circle-o"></i>
-                </button>
+                <button class="btn btn-danger"  
+                        ng-click="ctrl.leaveEditMode()"                      
+                        ng-show="activeEditor == null && isDirty == false"
+                        ncb-icon="glyphicon-remove"></button>
             </div>
         </div>
 
@@ -112,4 +117,4 @@ else
 
 
 
-<script src="/Content/Views/Editor/editor.js"></script>
+<script src="/Modules/EditorSystem/Views/editor-ui.js"></script>

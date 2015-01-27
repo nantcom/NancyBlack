@@ -10,7 +10,7 @@
         You are not authorized to access this resource.
     </p>
 
-    @if (this.Request.Url.Path.IndexOf("/Admin") == 0 &&
+    @if (this.Request.Url.Path.IndexOf("/admin", StringComparison.InvariantCultureIgnoreCase) == 0 &&
      this.RenderContext.Context.CurrentUser != null &&
      this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NancyBlackUser.Anonymous)
     {
