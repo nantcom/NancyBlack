@@ -9,6 +9,15 @@
     <p>
         You are not authorized to access this resource.
     </p>
+    <p>
+        Your roles:
+        <ul>
+            @foreach (var item in this.RenderContext.Context.CurrentUser.Claims)
+            {
+                <li>@item</li>
+            }
+        </ul>
+    </p>
 
     @if (this.Request.Url.Path.IndexOf("/admin", StringComparison.InvariantCultureIgnoreCase) == 0 &&
      this.RenderContext.Context.CurrentUser != null &&

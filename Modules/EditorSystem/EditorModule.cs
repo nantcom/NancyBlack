@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using Nancy.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
     {
         public EditorModule(IRootPathProvider r) : base(r)
         {
+            this.RequiresAuthentication();
             Post["/__editor/enable"] = _ =>
             {
                 var redirect = this.Request.Query.returnUrl;
@@ -20,7 +22,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
                 if (this.CurrentUser.HasClaim("editor") == false)
                 {
-                    return 403;
+                    return 403; 
                 }
 
                 return this.Response
@@ -28,6 +30,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
                     .WithCookie( "editmode", "enabled" );
 
             };
+
             Post["/__editor/disable"] = _ =>
             {
                 var redirect = this.Request.Query.returnUrl;
@@ -46,6 +49,8 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
                     .WithCookie("editmode", "disabled");
 
             };
+
+
         }
     }
 }

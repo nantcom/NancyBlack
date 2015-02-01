@@ -42,6 +42,39 @@ namespace NantCom.NancyBlack.Modules
             Patch["/system/tables/DataType/{item_id}"] = this.HandleUpdateDataTypeRequest(() => this.SharedDatabase);
             Delete["/system/tables/DataType/{item_id}"] = this.HandleDeleteDataTypeRequest(() => this.SharedDatabase);
 
+            Post["/SuperAdmin/maplocal"] = p =>
+            {
+                var targetSite = this.Request.Form.targetSite;
+                if (targetSite == null)
+                {
+                    return 400;
+                }
+
+                // maps localhost request to a given site
+                _LocalhostSite = SuperAdminModule.GetSharedDatabase().Query("Site",
+                                       string.Format("HostName eq '{0}'", (string)targetSite)).FirstOrDefault();
+
+                return this.Response.AsRedirect( "/" );
+            };
+
+            Get["/SuperAdmin/resetlocal"] = p =>
+            {
+                _LocalhostSite = null;
+
+                return 423;
+            };
+        }
+
+        /// <summary>
+        /// Gets list of all sites
+        /// </summary>
+        public static IEnumerable<dynamic> GetAllSites()
+        {
+            var sites = SuperAdminModule.GetSharedDatabase().Query("Site");
+            foreach (var item in sites)
+            {
+                yield return (dynamic)item;
+            }
         }
 
         private dynamic HandleSysAdminDashboard()
@@ -90,6 +123,7 @@ namespace NantCom.NancyBlack.Modules
 
         private static NancyBlackDatabase _SharedDatabase;
         private static string _SharedRootPath;
+        private static dynamic _LocalhostSite;
 
         /// <summary>
         /// Initialize
@@ -157,7 +191,9 @@ namespace NantCom.NancyBlack.Modules
                 return ctx.Items["SiteDatabase"] as NancyBlackDatabase;
             }
 
-            var key = "SiteDatabse-" + ctx.Request.Url.HostName;
+            dynamic currentSite = ctx.Items["CurrentSite"];
+
+            var key = "SiteDatabase-" + (string)currentSite.HostName;
             var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
             if (cached != null)
             {
@@ -231,11 +267,23 @@ namespace NantCom.NancyBlack.Modules
         private static dynamic GetSite(NancyContext ctx)
         {
             var isSuperAdmin = ctx.Request.Path.StartsWith("/SuperAdmin", StringComparison.InvariantCultureIgnoreCase);
-            if (isSuperAdmin)
+            var isSuperAdminApi = ctx.Request.Path.StartsWith("/system/tables", StringComparison.InvariantCultureIgnoreCase);
+            if (isSuperAdmin || isSuperAdminApi)
             {
                 return SuperAdminModule.GetSuperAdminSite(ctx);
             }
 
+            // localhost request
+            if ( ctx.Request.Url.HostName == "localhost" )
+            {
+                if (_LocalhostSite == null)
+                {
+                    return 423;
+                }
+
+                return _LocalhostSite;
+            }
+            
             var sharedDatabase = SuperAdminModule.GetSharedDatabase();
 
             var hostname = ctx.Request.Url.HostName.Replace("www.", "");
@@ -298,8 +346,14 @@ namespace NantCom.NancyBlack.Modules
             {
                 ctx.CurrentUser = NancyBlackUser.LocalHostAdmin;
             }
+
+            var currentSite = SuperAdminModule.GetSite(ctx);
+            if (currentSite is int)
+            {
+                return currentSite;
+            }
             
-            ctx.Items["CurrentSite"] = SuperAdminModule.GetSite(ctx);
+            ctx.Items["CurrentSite"] = currentSite;
             ctx.Items["SiteDatabase"] = SuperAdminModule.GetSiteDatabase(ctx);
             ctx.Items["SharedDatabase"] = SuperAdminModule.GetSharedDatabase();
 

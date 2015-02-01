@@ -68,11 +68,11 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RazorEngine, Version=3.5.2.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
+    <Reference Include="RazorEngine, Version=3.5.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RazorEngine.3.5.2\lib\net45\RazorEngine.dll</HintPath>
+      <HintPath>..\packages\RazorEngine.3.4.2\lib\net45\RazorEngine.dll</HintPath>
     </Reference>
     <Reference Include="SisoDb">
       <HintPath>..\packages\SisoDb.16.2.1\lib\net40\SisoDb.dll</HintPath>
@@ -103,7 +103,7 @@
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.2\lib\net45\System.Web.Razor.dll</HintPath>
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.0.0\lib\net45\System.Web.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
@@ -1598,9 +1598,17 @@
     </Content>
     <Content Include="Sites\tripsbox.net\Font\generator_config.txt" />
     <Content Include="Sites\tripsbox.net\Font\stylesheet.css" />
+    <Content Include="Sites\tripsbox.net\images\hilight\89-matta-fair.jpg" />
+    <Content Include="Sites\tripsbox.net\images\hilight\Article Sample Picture2.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\big.jpg" />
+    <Content Include="Sites\tripsbox.net\images\hilight\Metrojaya Travel Fair 2013.jpg" />
+    <Content Include="Sites\tripsbox.net\images\hilight\promotion-orient-thai.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\sample1.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\sample2.jpg" />
+    <Content Include="Sites\tripsbox.net\images\hilight\Travel_Promo_THAI_01_big.jpg" />
+    <Content Include="Sites\tripsbox.net\images\slides\Pangong_Tso_Summer_Panorama_View_1.jpg" />
+    <Content Include="Sites\tripsbox.net\images\slides\Pangong_Tso_Summer_Panorama_View_2.jpg" />
+    <Content Include="Sites\tripsbox.net\images\slides\Pangong_Tso_Summer_Panorama_View_3.jpg" />
     <Content Include="Sites\tripsbox.net\images\u_banner.jpg" />
     <Content Include="Sites\tripsbox.net\images\u_cat_accom.png" />
     <Content Include="Sites\tripsbox.net\images\u_cat_eat.png" />
@@ -1621,6 +1629,7 @@
     <Content Include="Sites\tripsbox.net\Views\admin-location.js" />
     <Content Include="Sites\tripsbox.net\Views\Home.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\home.js" />
+    <Content Include="Sites\tripsbox.net\Views\home2.js" />
     <Content Include="Sites\tripsbox.net\Views\theme.js" />
     <Content Include="Sites\tripsbox.net\_theme.cshtml" />
     <Content Include="Sites\tripsbox.net\style.less" />
@@ -1699,6 +1708,10 @@
     <Content Include="Sites\tripsbox.net\Views\admin-location-Products.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-location-ServicesTab.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-location.GeneralTab.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\Article.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\Content.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\detail.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\home2.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

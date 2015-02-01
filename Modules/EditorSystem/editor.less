@@ -1,17 +1,21 @@
-﻿#editorPanel
-{
+﻿@orange: #ff6a00;
+
+#editorPanel {
     font-family: Leelawadee;
+    font-size: 12pt;
+    color: black;
+
     position: fixed;
     width: 250px;
     height: 100%;
     top: 0;
     left: -220px;
-
     background-color: #ccc;
     box-shadow: #555 5px 5px 20px;
-
+    -moz-transition: all ease-out 0.2s;
+    -o-transition: all ease-out 0.2s;
+    -webkit-transition: all ease-out 0.2s;
     transition: all ease-out 0.2s;
-
     z-index: 9999;
 
     &.in {
@@ -20,10 +24,10 @@
 
     > div {
         position: relative;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
         box-sizing: border-box;
-
         padding: 15px;
-
         width: 100%;
         height: 100%;
 
@@ -35,11 +39,13 @@
             border-radius: 0 10px 10px 0;
             display: inline-block;
             padding: 5px;
-
             font-size: 180%;
             box-shadow: #555 8px 5px 10px;
 
             > i {
+                -moz-transition: all ease-out 1s;
+                -o-transition: all ease-out 1s;
+                -webkit-transition: all ease-out 1s;
                 transition: all ease-out 1s;
                 color: black;
             }
@@ -47,14 +53,32 @@
     }
 }
 
-.editarea
-{
-    box-shadow: #ff6a00 0 0 40px;
-    transition: all ease-out 0.2s;
+#enableEditMode {
+    position: absolute;
+    background-color: @orange;
+    border-radius: 10px;
+    box-shadow: darken(@orange, 20%) 0 10px 0;
+    top: -10px;
+    left: -10px;
+    z-index: 99999;
+    padding: 15px 10px 10px 15px;
+    color: white;
+    text-shadow: 1px 1px 0 black;
 
-    &:hover{
-        box-shadow: #ff6a00 0 0 5px;
-        
+    &:active {
+        top: -5px;
+        box-shadow: darken(@orange, 10%) 0 0 0;
     }
 }
 
+.editarea {
+    box-shadow: #ff6a00 0 0 40px;
+    -moz-transition: all ease-out 0.2s;
+    -o-transition: all ease-out 0.2s;
+    -webkit-transition: all ease-out 0.2s;
+    transition: all ease-out 0.2s;
+
+    &:hover {
+        box-shadow: #ff6a00 0 0 5px;
+    }
+}
