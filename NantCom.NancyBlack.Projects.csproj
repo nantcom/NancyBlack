@@ -86,6 +86,7 @@
     <Reference Include="SisoDb.SqlServer">
       <HintPath>..\packages\SisoDb.SqlCe4.16.2.1\lib\net40\SisoDb.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
@@ -149,6 +150,10 @@
     <Content Include="Content\fonts\quark\Quark-Light_directwrite.svg" />
     <Content Include="Content\fonts\sparmageddon\SPArmageddon.css" />
     <Content Include="Content\fonts\sparmageddon\SPArmageddon.svg" />
+    <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.js" />
+    <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.min.js" />
+    <Content Include="Content\Scripts\util-utils\ui-utils.js" />
+    <Content Include="Content\Scripts\util-utils\ui-utils.min.js" />
     <Content Include="Modules\MembershipSystem\Views\membership-roles.js" />
     <Content Include="Modules\AdminSystem\Views\adminsystem-tablescontroller.js" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css.map">
@@ -1478,43 +1483,88 @@
     <Content Include="Modules\MembershipSystem\Views\_additionaluserprofile.cshtml" />
     <None Include="Properties\PublishProfiles\Default Settings.pubxml" />
     <None Include="Properties\PublishProfiles\NantCom.pubxml" />
+    <Content Include="Sites\deka2015.local\.gitignore" />
+    <Content Include="Sites\deka2015.local\Data.sdf" />
+    <Content Include="Sites\deka2015.local\images\2_bg-main.gif" />
+    <Content Include="Sites\deka2015.local\images\2_head-main_02.gif" />
+    <Content Include="Sites\deka2015.local\images\2_head-main_03.gif" />
+    <Content Include="Sites\deka2015.local\images\bg-logo.png" />
+    <Content Include="Sites\deka2015.local\images\bg.jpg" />
+    <Content Include="Sites\deka2015.local\images\community.png" />
+    <Content Include="Sites\deka2015.local\images\itc.png" />
+    <Content Include="Sites\deka2015.local\images\Logo.png" />
+    <Content Include="Sites\deka2015.local\images\LogoOriginal.png" />
+    <Content Include="Sites\deka2015.local\modules\Home.js" />
+    <Content Include="Sites\deka2015.local\modules\HomeModern.js" />
+    <Content Include="Sites\deka2015.local\Styles\Flatly.css" />
+    <Content Include="Sites\deka2015.local\Styles\style.css" />
+    <Content Include="Sites\deka2015.local\Styles\style.min.css" />
+    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.css" />
+    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.min.css" />
+    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.css">
+      <DependentUpon>form4_carreceive.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.min.css">
+      <DependentUpon>form4_carreceive.css</DependentUpon>
+    </Content>
     <Content Include="Sites\level51pc.com\images\980M.png" />
-    <Content Include="Sites\level51pc.com\images\badde-i7q.png" />
-    <Content Include="Sites\level51pc.com\images\badge-ram.png" />
-    <Content Include="Sites\level51pc.com\images\badge-ssd.png" />
-    <Content Include="Sites\level51pc.com\images\badge-sshd.png" />
-    <Content Include="Sites\level51pc.com\images\bg-blue.fw.png" />
-    <Content Include="Sites\level51pc.com\images\bg-blue.png" />
-    <Content Include="Sites\level51pc.com\images\bg-blue2.fw.png" />
-    <Content Include="Sites\level51pc.com\images\bg-blue2.png" />
+    <Content Include="Sites\level51pc.com\images\awesomeflame.jpg" />
+    <Content Include="Sites\level51pc.com\images\bg-custom.jpg" />
+    <Content Include="Sites\level51pc.com\images\bg-keyboard.jpg" />
     <Content Include="Sites\level51pc.com\images\bg-order.jpg" />
-    <Content Include="Sites\level51pc.com\images\bg-red.fw.png" />
+    <Content Include="Sites\level51pc.com\images\bg-sound.jpg" />
     <Content Include="Sites\level51pc.com\images\bg-wave.jpg" />
     <Content Include="Sites\level51pc.com\images\bluewave.jpg" />
+    <Content Include="Sites\level51pc.com\images\bottomshade_03.png" />
+    <Content Include="Sites\level51pc.com\images\cpu_devil.png" />
+    <Content Include="Sites\level51pc.com\images\cpu_i3.png" />
+    <Content Include="Sites\level51pc.com\images\cpu_i5.png" />
+    <Content Include="Sites\level51pc.com\images\cpu_i7.png" />
+    <Content Include="Sites\level51pc.com\images\delivery-mobilio.png" />
+    <Content Include="Sites\level51pc.com\images\delivery-pickup.png" />
+    <Content Include="Sites\level51pc.com\images\devilcanyon_03.png" />
     <Content Include="Sites\level51pc.com\images\flame.jpg" />
     <Content Include="Sites\level51pc.com\images\flames2.fw.png" />
     <Content Include="Sites\level51pc.com\images\flames2.png" />
+    <Content Include="Sites\level51pc.com\images\gtxbadge_03.png" />
+    <Content Include="Sites\level51pc.com\images\gtx_03.png" />
+    <Content Include="Sites\level51pc.com\images\hdd1tb.png" />
     <Content Include="Sites\level51pc.com\images\icon-line.png" />
-    <Content Include="Sites\level51pc.com\images\logo.fw.png" />
-    <Content Include="Sites\level51pc.com\images\quadro.fw.png" />
+    <Content Include="Sites\level51pc.com\images\infestation_01.jpg" />
+    <Content Include="Sites\level51pc.com\images\infested15_03.png" />
+    <Content Include="Sites\level51pc.com\images\laptops_03.png" />
+    <Content Include="Sites\level51pc.com\images\logo-text-horz_01.png" />
+    <Content Include="Sites\level51pc.com\images\nohdd.png" />
+    <Content Include="Sites\level51pc.com\images\nossd.png" />
     <Content Include="Sites\level51pc.com\images\quadro.png" />
-    <Content Include="Sites\level51pc.com\images\shade.fw.png" />
+    <Content Include="Sites\level51pc.com\images\ram1x8.png" />
+    <Content Include="Sites\level51pc.com\images\ram2x4.png" />
+    <Content Include="Sites\level51pc.com\images\ram2x8.png" />
+    <Content Include="Sites\level51pc.com\images\ram4x8.png" />
     <Content Include="Sites\level51pc.com\images\SLI.png" />
-    <Content Include="Sites\level51pc.com\images\XP1500-back.png" />
-    <Content Include="Sites\level51pc.com\images\XP1500-compare.png" />
-    <Content Include="Sites\level51pc.com\images\XP1500-order.fw.png" />
+    <Content Include="Sites\level51pc.com\images\ssd.png" />
+    <Content Include="Sites\level51pc.com\images\ssd256.png" />
+    <Content Include="Sites\level51pc.com\images\ssd256x2.png" />
+    <Content Include="Sites\level51pc.com\images\ssdsata1tb.png" />
+    <Content Include="Sites\level51pc.com\images\ssdsata256.png" />
+    <Content Include="Sites\level51pc.com\images\ssdsata512.png" />
+    <Content Include="Sites\level51pc.com\images\ssdx2.png" />
+    <Content Include="Sites\level51pc.com\images\sshd1tb.png" />
+    <Content Include="Sites\level51pc.com\images\sshd500.png" />
+    <Content Include="Sites\level51pc.com\images\thin500.png" />
+    <Content Include="Sites\level51pc.com\images\topshade_01.png" />
+    <Content Include="Sites\level51pc.com\images\warranty1y.png" />
+    <Content Include="Sites\level51pc.com\images\warranty2y.png" />
+    <Content Include="Sites\level51pc.com\images\warranty3y.png" />
+    <Content Include="Sites\level51pc.com\images\wave.png" />
     <Content Include="Sites\level51pc.com\images\XP1500-top.png" />
-    <Content Include="Sites\level51pc.com\images\xp1700-back.fw.png" />
-    <Content Include="Sites\level51pc.com\images\xp1700-back.png" />
-    <Content Include="Sites\level51pc.com\images\XP1700-order.fw.png" />
-    <Content Include="Sites\level51pc.com\images\XP1700.fw.png" />
-    <Content Include="Sites\level51pc.com\images\XP1700.png" />
     <Content Include="Sites\level51pc.com\style.css">
       <DependentUpon>style.less</DependentUpon>
     </Content>
     <Content Include="Sites\level51pc.com\style.min.css">
       <DependentUpon>style.css</DependentUpon>
     </Content>
+    <Content Include="Sites\level51pc.com\Views\home.js" />
     <Content Include="Sites\masterbody.co.th\.gitignore" />
     <Content Include="Sites\masterbody.co.th\Data.sdf" />
     <Content Include="Sites\masterbody.co.th\images\anonymous.png" />
@@ -1712,6 +1762,33 @@
     <Content Include="Sites\tripsbox.net\Views\Content.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\detail.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\home2.cshtml" />
+    <Content Include="Sites\deka2015.local\.git" />
+    <Content Include="Sites\deka2015.local\Admin\content.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\Home.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\_theme.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\ModernHome.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\SearchResult.cshtml" />
+    <Content Include="Sites\deka2015.local\Styles\style.css.map" />
+    <Content Include="Sites\deka2015.local\Styles\style.less" />
+    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.css.map" />
+    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.less" />
+    <Content Include="Sites\deka2015.local\Views\Home-AdvanceSearch.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\Home-AdvanceSearchModern.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\Home-RegularSearch.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\Home-RegularSearchModern.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-District.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-FuelStation.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-Product.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\admin-Province.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\_theme.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\Home.cshtml" />
+    <Content Include="Sites\deka2015.local\Views\Community.cshtml" />
+    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.cshtml" />
+    <Content Include="Sites\inventory.summit.local\views\_theme.cshtml" />
+    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.less" />
+    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.css.map">
+      <DependentUpon>form4_carreceive.css</DependentUpon>
+    </Content>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -1758,7 +1835,13 @@
     <Compile Include="Modules\MembershipSystem\MembershipModule.cs" />
     <Compile Include="Modules\MembershipSystem\NancyBlackUser.cs" />
     <Compile Include="Modules\MembershipSystem\UserManager.cs" />
+    <Compile Include="Modules\SQLDatabaseSystem\SQLDatabaseAccess.cs" />
     <Compile Include="Modules\SuperAdminSystem\SuperAdminModule.cs" />
+    <Compile Include="Sites\deka2015.local\modules\HomeModule.cs" />
+    <Compile Include="Sites\deka2015.local\modules\MemoryCache.cs" />
+    <Compile Include="Sites\deka2015.local\modules\SearchTag.cs" />
+    <Compile Include="Sites\deka2015.local\modules\SqlReader.cs" />
+    <Compile Include="Sites\inventory.summit.local\modules\SummitDatabase.cs" />
     <Content Include="Modules\EditorSystem\Views\editor-ui.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
     <Compile Include="Modules\BaseModule.cs" />
@@ -1772,12 +1855,13 @@
     <Compile Include="Modules\DatabaseSystem\DataTypeFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Content\Scripts\util-utils\" />
     <Folder Include="Lib\" />
     <Folder Include="Modules\ControlsSystem\Views\" />
     <Folder Include="Modules\MembershipSystem\Templates\" />
     <Folder Include="Sites\Admin\" />
-    <Folder Include="Sites\level51pc.com\Views\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

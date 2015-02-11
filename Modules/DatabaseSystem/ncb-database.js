@@ -7,8 +7,14 @@
     var mobileService = WindowsAzure.MobileServiceClient;
     var path = window.location.origin;
 
-    if (window.location.pathname.indexOf("/SuperAdmin") == 0) {
-        path = path + "/system";
+    if (window.databasepath) {
+        path = path + "/" + window.databasepath;
+
+    } else {
+
+        if (window.location.pathname.indexOf("/SuperAdmin") == 0) {
+            path = path + "/system";
+        }
     }
 
     var client = new mobileService(
@@ -22,6 +28,23 @@
 
             $scope.tableName = tableName;
 
+            // allow this client to work with plain object
+            if (controller == null) {
+
+                controller = {};
+            }
+
+            // allow this client to work with $scope that is not angular object
+            if ($scope.$apply == null) {
+
+                $scope.$apply = function (a) {
+
+                    if (typeof(a) == "function") {
+                        a();
+                    }
+                };
+            }
+
             var $me = this;
             $me.$scope = $scope;
             $me.$controller = controller;
@@ -31,7 +54,9 @@
             $me.handleError = function (err) {
 
                 $scope.$apply(function () {
+                    err.type = "danger";
                     $scope.alerts.push(err);;
+
                     $scope.isBusy = false;
                 });
             };
@@ -59,8 +84,11 @@
 
                         $scope.list.forEach(function (item) {
 
-                            item.id = item.Id;
-                            delete item.Id;
+                            if (item.Id != null) {
+
+                                item.id = item.Id;
+                                delete item.Id;
+                            }
 
                             for (var key in item) {
 
@@ -80,7 +108,8 @@
                         $.event.trigger({
                             type: "ncb-database",
                             action: "listed",
-                            list: $scope.list
+                            list: $scope.list,
+                            sender: $me
                         });
 
                     });
@@ -247,6 +276,16 @@
 
                 return []; // return empty array first and update later
 
+            };
+
+            /// get an item from database
+            this.get = function (id, callback) {
+
+                $me.$table.lookup(id).done(function (result) {
+                    
+                    callback(result);
+
+                }, $me.handleError);
             };
 
             // Initialize standard controller properties

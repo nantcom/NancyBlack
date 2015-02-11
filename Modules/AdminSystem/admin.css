@@ -159,6 +159,10 @@ h1.page-header > span {
 .addendum .row {
   margin: 10px 0 10px 50px;
 }
+table.busy {
+  opacity: 0.1;
+  pointer-events: none;
+}
 /* Fixes */
 @media (min-width: 800px) {
   .modal-lg {

@@ -56,6 +56,7 @@
   padding: 15px 10px 10px 15px;
   color: white;
   text-shadow: 1px 1px 0 black;
+  font-size: 12pt;
 }
 #enableEditMode:active {
   top: -5px;
