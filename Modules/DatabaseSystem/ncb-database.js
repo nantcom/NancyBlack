@@ -23,7 +23,7 @@
 
     var ncb = angular.module("ncb-database", []);
     
-    ncb.factory('ncbDatabaseClient', function () {
+    ncb.factory('ncbDatabaseClient', function ($http) {
         return function (controller, $scope, tableName, disableJsonify) {
 
             $scope.tableName = tableName;
@@ -61,6 +61,43 @@
                 });
             };
 
+            $me.processServerObject = function (item) {
+
+                if (item.Id != null) {
+
+                    item.id = item.Id;
+                    delete item.Id;
+                }
+
+                for (var key in item) {
+
+                    // fields that has word 'JSONText' will be de-serialized
+                    // into the field without 'JSONText' word
+                    // text is added to designate that SiSoDB should use ntext type
+                    if (key.indexOf("JSONText") > 0) {
+
+                        var value = JSON.parse(item[key]);
+                        item[key.replace("JSONText", "")] = value;
+
+                    }
+                }
+
+                for (var key in item) {
+
+                    // fields that has word 'JSONText' will be de-serialized
+                    // into the field without 'JSONText' word
+                    // text is added to designate that SiSoDB should use ntext type
+                    if (key.indexOf("JSONText") > 0) {
+
+                        var value = JSON.parse(item[key]);
+                        item[key.replace("JSONText", "")] = value;
+
+                    }
+                }
+
+                return item;
+            };
+
             this.listFilter = function () {
 
                 if (controller.listFilter != null) {
@@ -82,28 +119,7 @@
                         $scope.list = results;
                         $scope.isBusy = false;
 
-                        $scope.list.forEach(function (item) {
-
-                            if (item.Id != null) {
-
-                                item.id = item.Id;
-                                delete item.Id;
-                            }
-
-                            for (var key in item) {
-
-                                // fields that has word 'JSONText' will be de-serialized
-                                // into the field without 'JSONText' word
-                                // text is added to designate that SiSoDB should use ntext type
-                                if (key.indexOf("JSONText") > 0) {
-
-                                    var value = JSON.parse(item[key]);
-                                    item[key.replace("JSONText", "")] = value;
-
-                                }
-                            }
-
-                        });
+                        $scope.list.forEach($me.processServerObject);
 
                         $.event.trigger({
                             type: "ncb-database",
@@ -200,6 +216,8 @@
 
                             $scope.$apply(function () {
 
+                                $scope.object = $me.processServerObject( result );
+
                                 $scope.isBusy = false;
                                 $scope.timestamp = (new Date()).getTime();
                                 $scope.files = null;
@@ -218,11 +236,14 @@
 
                 } else {
 
+                    toSave.__createdAt = new Date();
+
                     $me.$table.insert(toSave).done(
                         function (result) {
 
                             $scope.$apply(function () {
-                                $scope.object.id = result.Id;
+
+                                $scope.object = $me.processServerObject( result );
 
                                 $scope.list.push($scope.object);
                                 $scope.isBusy = false;
@@ -241,7 +262,7 @@
                 }
 
             };
-            
+
             this.lookup = function (tableName) {
                 
                 if ($scope.lookup == null) {
@@ -278,6 +299,62 @@
 
             };
 
+            // refreshlookup for UI-select
+            this.refreshLookup = function (tableName, search, fieldName, done) {
+
+                if (done == null) {
+                    done = function () { };
+                }
+
+                if ($scope.lookup == null) {
+                    $scope.lookup = {};
+                }
+
+                var targetFieldName = fieldName;
+                if (targetFieldName == null) {
+                    targetFieldName = "Title";
+                }
+
+                var targetLookupName = tableName + "By" + targetFieldName;
+                if (targetFieldName == "Title") {
+                    targetLookupName = tableName;
+                }
+
+                var buildLookupTable = function (data) {
+
+                    var lookupTable = [];
+
+                    data.forEach(function (item) {
+                        lookupTable[item.Id] = item;
+                    });
+
+                    return lookupTable;
+                };
+
+                var url = '/tables/' + tableName + "?$orderby=Title";
+                if (search != null && search != "") {
+
+                    url = '/tables/' + tableName + "?$top=10&$orderby=Title&$filter=startswith(" + targetFieldName + ",'" + search + "')";
+                }
+
+                $scope.timestamp = (new Date()).getTime();
+                url += "&ts=" + $scope.timestamp;
+
+                $http.get(url).
+                  success(function (data, status, headers, config) {
+                      $scope.lookup[targetLookupName] = buildLookupTable(data);
+                      done();
+                  }).
+                  error(function (data, status, headers, config) {
+                      $scope.alerts.push({
+                          type: 'warning',
+                          message: 'Lookup Error'
+                      });
+                  });
+
+
+            };
+
             /// get an item from database
             this.get = function (id, callback) {
 
@@ -289,7 +366,6 @@
             };
 
             // Initialize standard controller properties
-            $scope.object = null;
             $scope.isBusy = false;
             $scope.alerts = [];
             $scope.list = [];
@@ -299,6 +375,8 @@
             controller.save = $me.save;
             controller.list = $me.list;
             controller.del = $me.del;
+            controller.delete = $me.del;
+            controller.refreshLookup = $me.refreshLookup;
             
             controller.closeAlert = function (index) {
                 $scope.alerts.splice(index, 1);

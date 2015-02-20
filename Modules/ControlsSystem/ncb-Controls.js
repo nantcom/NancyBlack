@@ -1,9 +1,12 @@
 ﻿(function () {
 
-    function addIcon(element) {
+    function addIcon(element, iconName) {
 
         var icon = $('<i></i>');
-        var iconName = element.attr("ncb-icon");
+
+        if (iconName == null) {
+            iconName = element.attr("ncb-icon");
+        }
 
         if (iconName.indexOf("glyphicon-") == 0) {
 
@@ -42,6 +45,7 @@
         };
     });
 
+
     // more readable select
     module.directive('ncbSelect', function ($document, $timeout) {
 
@@ -75,7 +79,7 @@
             link: link
         };
     });
-
+    
     // A Shorter, leaner Input boxes
     module.directive('ncbTextbox', function ($document, $timeout) {
 
@@ -105,6 +109,46 @@
             // Final touch ups
             if (element.is("[placeholder]") == false) {
                 element.attr("placeholder", element.attr("title"));
+            }
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    });
+
+    // add button into input box
+    module.directive('ncbInputgroup', function ($document, $timeout) {
+
+        function link(scope, element, attrs) {
+
+            // Bootstrap Setup
+            var inputGroup = $('<div class="input-group"></div>');
+            var inputBtn = $('<span class="input-group-btn"></span>');
+            element.wrap( inputGroup );
+
+            var button = $('<button class="btn btn-default" type="button"></button>');
+            inputBtn.append(button);
+
+            if (element.is("[buttontype]")) {
+                button.removeClass("btn-default");
+                button.addClass(element.attr("buttontype"));
+            }
+
+            // Label            
+            if (element.is("[before]")) {
+                button.text(element.attr("before"));
+                element.before(inputBtn);
+            }
+
+            if (element.is("[after]")) {
+                button.text(element.attr("after"));
+                element.after(inputBtn);
+            }
+
+            if (element.is("[icon]")) {
+                addIcon(button, element.attr("icon"));
             }
         }
 

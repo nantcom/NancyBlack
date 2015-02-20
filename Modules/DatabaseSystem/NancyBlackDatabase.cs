@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
+using SisoDb.Dynamic;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -51,7 +52,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
         {
             var parser = new ParameterParser<T>();
-            var queryable = _db.UseOnceTo().Query<T>();
+            var queryable = _db.BeginSession().Query(typeof(T));
             
             try
             {
@@ -59,27 +60,27 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
                 if (odataFilter["$filter"] != null)
                 {
-                    queryable = queryable.Where(modelFilter.FilterExpression);
+                    queryable = queryable.Where(modelFilter.FilterExpression.ToString());
 
                 }
 
                 var sortExpressions = (from sort in modelFilter.SortDescriptions
                                        where sort != null
-                                       select sort.KeySelector as Expression<Func<T, object>>).ToArray();
+                                       select sort.KeySelector.ToString()).ToArray();
 
-                if (sortExpressions.Length > 0)
+                foreach (var item in sortExpressions)
                 {
-                    queryable = queryable.OrderBy(sortExpressions);
+                    queryable = queryable.OrderBy(item.ToString());
                 }
 
-                if (modelFilter.SkipCount > 0)
+                if (modelFilter.SkipCount > 0 && modelFilter.TakeCount == 0)
                 {
-                    queryable = queryable.Skip(modelFilter.SkipCount);
+                    queryable = queryable.Page(1, modelFilter.SkipCount);
                 }
 
-                if (modelFilter.TakeCount > 0)
+                if (modelFilter.SkipCount > 0 && modelFilter.TakeCount > 0)
                 {
-                    queryable = queryable.Take(modelFilter.SkipCount);
+                    queryable = queryable.Page(modelFilter.SkipCount / modelFilter.TakeCount, modelFilter.TakeCount);
                 }
 
             }
@@ -205,7 +206,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public dynamic UpsertRecord(string entityName, int id, string inputJson)
         {
             var type = _dataType.FromJson(entityName, inputJson);
-
             var actualType = type.GetCompiledType();
 
             // inputObject is now copied into internal object format
@@ -213,6 +213,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             dynamic coercedObject = JsonConvert.DeserializeObject(inputJson, actualType);
             coercedObject.__updatedAt = DateTime.Now;
             coercedObject.__version = DateTime.Now.Ticks.ToString();
+
+            if (coercedObject.__createdAt == DateTime.MinValue)
+            {
+                coercedObject.__createdAt = DateTime.Now;
+            }
+
+
 
             if (id == 0)
             {

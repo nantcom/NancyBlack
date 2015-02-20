@@ -69,100 +69,107 @@
                                     orderby g.Key
                                     select g;
                     }
+                    
+                    <form role="form">
 
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs" role="tablist">
-                        @foreach (var g in groups)
-                        {
-                            <li class=""><a href="#@(g.Key)" role="tab" data-toggle="tab">@(g.Key)</a></li>
-                        }
-                    </ul>
+                        <tabset>
+                            @foreach (var g in groups)
+                            {
+                                <tab heading="@g.Key">
 
-                    <div class="tab-content">
-                    @foreach (var g in groups)
-                    {
-                        <div class="tab-pane fade in active" id="@(g.Key)">
-                            <form role="form">
+                                    @foreach (var property in g)
+                                    {
+                                        if (property.Name == "Id" || property.Name.StartsWith("__"))
+                                        {
+                                            continue;
+                                        }
+                                        else if (property.Name.EndsWith("Id"))
+                                        {
+                                            // Lookup
+                                            var tableName = property.Name.Substring(0, property.Name.Length - 2);
 
-                                @foreach (var property in g)
-                                {
-                                    if (property.Name == "Id" || property.Name.StartsWith("__"))
-                                    {
-                                        continue;
-                                    }
-                                    else if (property.Name.EndsWith("Id"))
-                                    {
-                                        // Lookup
-                                        var tableName = property.Name.Substring(0, property.Name.Length - 2);
-                                        <b>TODO - CHANGE TO UI-SELECT, Lookup Function is "Lookup"</b>
-                                    }
-                                    else if (property.Type == "System.Boolean")
-                                    {
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox"
-                                                       ng-model="object.@(property.Name)" /> @(property.Name.Replace(g.Key + "_", ""))
-                                            </label>
-                                        </div>
-                                    }
-                                    else if (property.Name.Contains("Hours") || property.Name.Contains("Time"))
-                                    {
-                                        <div class="dropdown form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
-                                            <timepicker ng-model="object.@(property.Name)" show-meridian="false"></timepicker>
-                                        </div>
-                                    }
-                                    else if (property.Type == "DateTime")
-                                    {
-                                        <div class="dropdown form-group">
+                                            <div class="form-group">
+                                                <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
 
-                                            <label class="control-label" for="start">@(property.Name.Replace(g.Key + "_", ""))</label>
+                                                <ui-select ng-model="object.@(property.Name)"
+                                                           theme="bootstrap"
+                                                           reset-search-input="true">
+                                                    <ui-select-match placeholder="@(property.Name)...">{{$select.selected.Title}}</ui-select-match>
+                                                    <ui-select-choices refresh="ctrl.refreshLookup('@(tableName)', $select.search)"
+                                                                       repeat="item.Id as item in lookup.@(tableName) | filter: { Title: $select.search }">
+                                                        <span>{{item.Title}}</span>
+                                                    </ui-select-choices>
+                                                </ui-select>
+                                            </div>
+                                        }
+                                        else if (property.Type == "System.Boolean")
+                                        {
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox"
+                                                           ng-model="object.@(property.Name)" /> @(property.Name.Replace(g.Key + "_", ""))
+                                                    </label>
+                                                </div>
+                                        }
+                                        else if (property.Name.Contains("Hours") || property.Name.Contains("Time"))
+                                        {
+                                            <div class="dropdown form-group">
+                                                <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
+                                                <timepicker ng-model="object.@(property.Name)" show-meridian="false"></timepicker>
+                                            </div>
+                                        }
+                                        else if (property.Type == "DateTime")
+                                        {
+                                            <div class="dropdown form-group">
 
-                                            <p class="input-group">
-                                                <input type="text"
-                                                       class="form-control"
-                                                       datepicker-popup="dd MMMM yyyy, HH:mm"
-                                                       ng-model="object.@(property.Name)"
-                                                       is-open="datepickeropen['@(property.Name)']"
-                                                       close-text="Close" />
-                                                <span class="input-group-btn">
-                                                    <button type="button"
-                                                            class="btn btn-default"
-                                                            ng-click="ctrl.opendatepicker($event, '@(property.Name)')">
-                                                        <i class="glyphicon glyphicon-calendar"></i>
-                                                    </button>
-                                                </span>
-                                            </p>
+                                                <label class="control-label" for="start">@(property.Name.Replace(g.Key + "_", ""))</label>
 
-                                        </div>
-                                    }
-                                    else if (property.Name.EndsWith("Text"))
-                                    {
-                                        <div class="form-group">
-                                            <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
-                                            <textarea name="@(property.Name)"
-                                                      class="form-control"
-                                                      ng-model="object.@(property.Name)"
-                                                      placeholder="@(property.Name.Replace(g.Key + "_", ""))" rows="10"></textarea>
-                                        </div>
-                                    
-                                    }
-                                    else
-                                    {
-                                        <input type="text" name="@(property.Name)" title="@(property.Name.Replace(g.Key + "_", ""))"
-                                               ncb-textbox
-                                               ng-model="object.@(property.Name)" />
-                                    }
-                                }
-                            </form>
-                        </div>                            
-                    }
-                    </div>
+                                                <p class="input-group">
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           datepicker-popup="dd MMMM yyyy, HH:mm"
+                                                           ng-model="object.@(property.Name)"
+                                                           is-open="datepickeropen['@(property.Name)']"
+                                                           close-text="Close" />
+                                                    <span class="input-group-btn">
+                                                        <button type="button"
+                                                                class="btn btn-default"
+                                                                ng-click="ctrl.opendatepicker($event, '@(property.Name)')">
+                                                            <i class="glyphicon glyphicon-calendar"></i>
+                                                        </button>
+                                                    </span>
+                                                </p>
 
+                                            </div>
+                                        }
+                                        else if (property.Name.EndsWith("Text"))
+                                        {
+                                            <div class="form-group">
+                                                <label class="control-label" for="@(property.Name)">@(property.Name.Replace(g.Key + "_", ""))</label>
+                                                <textarea name="@(property.Name)"
+                                                          class="form-control"
+                                                          ng-model="object.@(property.Name)"
+                                                          placeholder="@(property.Name.Replace(g.Key + "_", ""))" rows="10"></textarea>
+                                            </div>
+
+                                        }
+                                        else
+                                        {
+                                            <input type="text" name="@(property.Name)" title="@(property.Name.Replace(g.Key + "_", ""))"
+                                                   ncb-textbox
+                                                   ng-model="object.@(property.Name)" />
+                                        }
+                                    }
+                                </tab>
+                            }
+                        </tabset>
+
+                    </form>
                     <div class="alert alert-danger alert-dismissible" ng-show="error != null">
                         {{error.message}}
                     </div>
 
+                    <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.message}}</alert>
                 </div>
                 <div class="modal-footer">
                     <button type="button"
@@ -183,6 +190,15 @@
 
     </div>
 
+    <div>
+        <button class="btn btn-success"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>Create new @(entityName)</span>
+        </button>
+    </div>
+
+    <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.message}}</alert>
 
     <table id="@(entityName)Table"
            class="table table-striped table-hover"
@@ -221,7 +237,7 @@
                 {
                     // Lookup
                     var tableName = property.Name.Substring(0, property.Name.Length - 2);
-                    <td>{{ lookup['@(tableName)'][item.@(property.Name)].Name }}</td>
+                    <td>{{ (lookup.@(tableName) | filter: { Id : item.@(property.Name) })[0].Title }}</td>
                 }
                 else if (property.Type == "int")
                 {
@@ -253,18 +269,6 @@
 
     </table>
 
-    <div>
-        <button class="btn btn-success"
-                ng-click="ctrl.create()">
-            <span class="glyphicon glyphicon-plus-sign"></span>
-            <span>Create new @(entityName)</span>
-        </button>
-    </div>
-
-    <div class="alert alert-danger"
-         ng-show="error">
-        {{error.message}}
-    </div>
 </div>
 
 

@@ -46,6 +46,9 @@
       <HintPath>..\packages\Linq2Rest.4.1.0.0\lib\Net45\Linq2Rest.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Mono.CSharp">
+      <HintPath>..\packages\SisoDb.Dynamic.16.2.1\lib\net40\Mono.CSharp.dll</HintPath>
+    </Reference>
     <Reference Include="Nancy, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Nancy.1.0.0\lib\net40\Nancy.dll</HintPath>
@@ -76,6 +79,9 @@
     </Reference>
     <Reference Include="SisoDb">
       <HintPath>..\packages\SisoDb.16.2.1\lib\net40\SisoDb.dll</HintPath>
+    </Reference>
+    <Reference Include="SisoDb.Dynamic">
+      <HintPath>..\packages\SisoDb.Dynamic.16.2.1\lib\net40\SisoDb.Dynamic.dll</HintPath>
     </Reference>
     <Reference Include="SisoDb.Serialization">
       <HintPath>..\packages\SisoDb.16.2.1\lib\net40\SisoDb.Serialization.dll</HintPath>
@@ -1501,6 +1507,12 @@
     <Content Include="Sites\deka2015.local\Styles\style.min.css" />
     <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.css" />
     <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.min.css" />
+    <Content Include="Sites\inventory.summit.local\views\form2_pr.css">
+      <DependentUpon>form2_pr.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\inventory.summit.local\views\form2_pr.min.css">
+      <DependentUpon>form2_pr.css</DependentUpon>
+    </Content>
     <Content Include="Sites\inventory.summit.local\views\form4_carreceive.css">
       <DependentUpon>form4_carreceive.less</DependentUpon>
     </Content>
@@ -1789,6 +1801,24 @@
     <Content Include="Sites\inventory.summit.local\views\form4_carreceive.css.map">
       <DependentUpon>form4_carreceive.css</DependentUpon>
     </Content>
+    <Content Include="Sites\inventory.summit.local\views\form2_pr.cshtml" />
+    <Content Include="Sites\inventory.summit.local\views\form2_pr.less" />
+    <Content Include="Sites\inventory.summit.local\views\form2_pr.css.map">
+      <DependentUpon>form2_pr.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\inventory.summit.local\views\form2_po.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-chasis.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-Component.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-content.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-Inventory.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-Product.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-PurchaseOrder.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-user.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-Supplier.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-ComponentType.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\admin-SaleOrder.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\ComingSoon.cshtml" />
+    <Content Include="Sites\level51pc.com\Views\_admin.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

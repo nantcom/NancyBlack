@@ -48,8 +48,23 @@
                     var validTypes = from item in this.Database.DataType.RegisteredTypes
                                      where item.Name.StartsWith("__") == false
                                      select item;
+
+                    var systemTableNames = new string[] { "user", "content" };
+                                     
+                    var userTables = from item in validTypes
+                                     where systemTableNames.Contains(item.Name) == false
+                                     select item;
+                                     
+                    var systemTables = from item in validTypes
+                                       where systemTableNames.Contains(item.Name) == true
+                                     select item;
                 }
-                @foreach (var item in validTypes)
+                @foreach (var item in userTables)
+                {
+                    <li><a href="/Admin/Tables/@item.Name">@item.OriginalName</a></li>
+                }
+                <li><span>System Tables</span></li>
+                @foreach (var item in systemTables)
                 {
                     <li><a href="/Admin/Tables/@item.Name">@item.OriginalName</a></li>
                 }

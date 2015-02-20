@@ -10,8 +10,8 @@ namespace NantCom.NancyBlack.Configuration
     {
         public CustomJsonSerializer()
         {
-            this.NullValueHandling = NullValueHandling.Ignore;
-            this.DefaultValueHandling = DefaultValueHandling.Ignore;
+            this.NullValueHandling = NullValueHandling.Include;
+            this.DefaultValueHandling = DefaultValueHandling.Include;
             this.Formatting = Formatting.None;
         }
     }
