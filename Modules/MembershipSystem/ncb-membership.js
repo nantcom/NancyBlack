@@ -495,7 +495,7 @@
         };
     }]);
         
-    membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient, thaiprovinces2) {
+    membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient, thaiprovinces) {
 
         if ($module.currentProfileController != null) {
             throw "Only One Profile Controller is permitted";
@@ -507,7 +507,7 @@
         var ncbClient = new ncbDatabaseClient(me, $scope, "User");
 
         me.object = { name: "test" };
-        me.thaiprovinces = thaiprovinces2;
+        me.thaiprovinces = new thaiprovinces();
 
         this.test = function () {
             alert("test");

@@ -101,7 +101,7 @@
             this.listFilter = function () {
 
                 if (controller.listFilter != null) {
-                    return controller.listFilter;
+                    return controller.listFilter();
                 }
 
                 return $me.$table;
@@ -112,7 +112,9 @@
 
                 $scope.isBusy = true;
 
-                $me.listFilter().read().done(function (results) {
+                var source = $me.listFilter();
+
+                source.read().done(function (results) {
 
                     $scope.$apply(function () {
 
@@ -186,6 +188,10 @@
 
                 delete toSave.$$hashKey;
 
+                if (toSave.Id == null) {
+                    delete toSave.Id;
+                }
+
                 // fix the 'id' casing
                 if (toSave.Id != null && $scope.id == null) {
                     toSave.id = toSave.Id;
@@ -230,6 +236,13 @@
                                 sender: $me,
                             });
 
+                            $.event.trigger({
+                                type: "ncb-database",
+                                action: "save",
+                                object: $scope.object,
+                                sender: $me,
+                            });
+
 
                         }, $me.handleError
                     );
@@ -252,6 +265,13 @@
                             $.event.trigger({
                                 type: "ncb-database",
                                 action: "insert",
+                                object: $scope.object,
+                                sender: $me,
+                            });
+                            
+                            $.event.trigger({
+                                type: "ncb-database",
+                                action: "save",
                                 object: $scope.object,
                                 sender: $me,
                             });
@@ -331,10 +351,10 @@
                     return lookupTable;
                 };
 
-                var url = '/tables/' + tableName + "?$orderby=Title";
+                var url = '/tables/' + tableName + "?$orderby=" + targetFieldName;
                 if (search != null && search != "") {
 
-                    url = '/tables/' + tableName + "?$top=10&$orderby=Title&$filter=startswith(" + targetFieldName + ",'" + search + "')";
+                    url = '/tables/' + tableName + "?$top=10&$orderby=" + targetFieldName + "&$filter=startswith(" + targetFieldName + ",'" + search + "')";
                 }
 
                 $scope.timestamp = (new Date()).getTime();

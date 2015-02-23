@@ -119,7 +119,7 @@
     });
 
     // add button into input box
-    module.directive('ncbInputgroup', function ($document, $timeout) {
+    module.directive('ncbInputgroup', function ($document, $timeout, $compile) {
 
         function link(scope, element, attrs) {
 
@@ -150,6 +150,13 @@
             if (element.is("[icon]")) {
                 addIcon(button, element.attr("icon"));
             }
+
+            if (element.is("[btnclick]")) {
+                button.attr("ng-click", element.attr("btnclick"));
+            }
+
+            var tpl = $compile(button);
+            tpl(scope);
         }
 
         return {
