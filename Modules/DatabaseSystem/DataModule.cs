@@ -204,6 +204,14 @@ namespace NantCom.NancyBlack.Modules
             // get the json from request body
             var streamReader = new StreamReader(this.Request.Body);
             var json = streamReader.ReadToEnd();
+
+            if (this.SiteDatabase.DataType.FromName(entityName) == null)
+            {
+                if (this.Request.Url.HostName != "localhost")
+                {
+                    return 403;
+                }
+            }
             
             var record = db.UpsertRecord(entityName, id, json);
 

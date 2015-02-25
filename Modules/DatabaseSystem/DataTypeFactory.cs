@@ -93,6 +93,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public DataType Register(DataType toRegister)
         {
+            if (this.RegisteredTypes.Where( t => t.Name == toRegister.Name ).FirstOrDefault() != null)
+            {
+                throw new InvalidOperationException("Duplicate Structure Name");
+            }
+
             toRegister.EnsureHasNeccessaryProperties();
 
             if (toRegister.Id != default(int))
@@ -103,6 +108,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 _db.UseOnceTo().Insert(toRegister);
             }
+
+            _db.UpsertStructureSet(toRegister.GetCompiledType());
 
             _CachedDataType = null;
 
