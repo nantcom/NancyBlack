@@ -166,6 +166,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public dynamic UpsertRecord(string entityName, dynamic inputObject)
         {
             int? id = inputObject.Id == null ? null : new int?(inputObject.Id);
+
+            // there is a possibility of casing error of Id from Angular
+            if (id == null)
+            {
+                id = inputObject.id == null ? null : new int?(inputObject.id);
+            }
+
             var inputJson = JsonConvert.SerializeObject(inputObject);
             var type = _dataType.FromJson(entityName, inputJson);
 
@@ -218,8 +225,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 coercedObject.__createdAt = DateTime.Now;
             }
-
-
 
             if (id == 0)
             {

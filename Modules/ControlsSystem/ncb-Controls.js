@@ -31,6 +31,79 @@
 
     var module = angular.module('ncb-controls', []);
 
+    // Take Picture and upload
+    module.directive('ncbCameraOpen', function ($document, $timeout) {
+
+        function link(scope, element, attrs) {
+
+            var previewTarget = null;
+            var previewModal = null;
+
+            if (element.is("[previewtarget]") == false) {
+                throw "previewtarget attribute is required";
+                return;
+            } else {
+
+                previewTarget = element.attr("previewtarget");
+            }
+
+            if (element.is("[previewmodal]")) {
+
+                previewModal = element.attr("previewmodal");
+            }
+
+            navigator.getUserMedia = (navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
+
+            if (navigator.getUserMedia) {
+                navigator.getUserMedia(
+
+                   // constraints
+                   {
+                       video: true,
+                       audio: false
+                   },
+
+                   // successCallback
+                   function (localMediaStream) {
+
+                       cameraStream = localMediaStream;
+
+                       if (previewModal != null) {
+                           $(previewModal).modal('show');
+                       }
+
+                       var video = $("#photoPreview")[0];
+                       video.src = window.URL.createObjectURL(localMediaStream);
+                       video.onloadedmetadata = function (e) {
+
+                           video.play();
+                       };
+                   },
+
+                   // errorCallback
+                   function (err) {
+
+                       alert("ไม่สามารถเปิดกล้องได้ กรุณาใช้ Chrome หรือ Firefox" + err);
+                   }
+                );
+            } else {
+
+                alert("ไม่สามารถเปิดกล้องได้ กรุณาใช้ Chrome หรือ Firefox");
+            }
+
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    });
+
+
     module.factory("ncbForm", function () {
 
         return function (controller, $scope) {
@@ -44,7 +117,6 @@
             }
         };
     });
-
 
     // more readable select
     module.directive('ncbSelect', function ($document, $timeout) {
@@ -288,6 +360,8 @@
 
             if (element.is("[title]") == false) {
                 element.find("h2.modal-title").remove();
+            } else {
+                element.find("h2.modal-title").text(element.attr("title"));
             }
 
             if (element.find(".modal-header").children().length == 0) {
@@ -295,6 +369,10 @@
             }
 
             var footer = element.find("ncb-footer").remove();
+            if (footer.length > 0) {
+                var footerTpl = $compile(footer);
+                footerTpl(scope);
+            }
             element.find(".modal-footer").append(footer);
 
             if (element.find(".modal-footer").children().length == 0) {
@@ -524,7 +602,6 @@
 
         };
     }]);
-
 
 })();
 

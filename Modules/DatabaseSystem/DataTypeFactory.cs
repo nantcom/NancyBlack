@@ -95,7 +95,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             if (this.RegisteredTypes.Where( t => t.Name == toRegister.Name ).FirstOrDefault() != null)
             {
-                throw new InvalidOperationException("Duplicate Structure Name");
+                if (toRegister.Id == default(int))
+                {
+                    throw new InvalidOperationException("Duplicate Structure Name");
+                }
             }
 
             toRegister.EnsureHasNeccessaryProperties();

@@ -8,6 +8,7 @@ using RazorEngine;
 using SisoDb.SqlCe4;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlServerCe;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
@@ -159,6 +160,7 @@ namespace NantCom.NancyBlack.Modules
 
 
             pipelines.BeforeRequest.AddItemToStartOfPipeline(SuperAdminModule.InitializeRequest);
+            pipelines.AfterRequest.AddItemToEndOfPipeline(SuperAdminModule.CleanupRequest);
         }
 
         /// <summary>
@@ -169,9 +171,13 @@ namespace NantCom.NancyBlack.Modules
         {
             if (_SharedDatabase == null)
             {
-                var sisodb = ("Data Source=" + Path.Combine(_SharedRootPath, "Sites", "Shared.sdf") + ";Persist Security Info=False")
-                        .CreateSqlCe4Db()
-                        .CreateIfNotExists();
+                var connectionString = ("Data Source=" + Path.Combine(_SharedRootPath, "Sites", "Shared.sdf") + ";Persist Security Info=False;");
+                
+                SqlCeEngine engine = new SqlCeEngine(connectionString);
+                engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
+                engine.Compact(connectionString);
+
+                var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
 
                 _SharedDatabase = new NancyBlackDatabase(sisodb);
             }
@@ -194,15 +200,17 @@ namespace NantCom.NancyBlack.Modules
             dynamic currentSite = ctx.Items["CurrentSite"];
 
             var key = "SiteDatabase-" + (string)currentSite.HostName;
-            var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
-            if (cached != null)
-            {
-                ctx.Items["SiteDatabase"] = cached;
-                return cached;
-            }
+            ctx.Items["SiteDatabaseCacheKey"] = key;
 
             lock (key)
             {
+                var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
+                if (cached != null)
+                {
+                    ctx.Items["SiteDatabase"] = cached;
+                    return cached;
+                }
+
                 dynamic site = ctx.Items["CurrentSite"];
 
                 var path = Path.Combine(_SharedRootPath,
@@ -212,18 +220,22 @@ namespace NantCom.NancyBlack.Modules
                 Directory.CreateDirectory(path);
 
                 var fileName = Path.Combine(path, "Data.sdf");
-                var sisodb = ("Data Source=" + fileName + ";Persist Security Info=False")
-                                .CreateSqlCe4Db()
-                                .CreateIfNotExists();
+                var connectionString = "Data Source=" + fileName + ";Persist Security Info=False";
 
+                SqlCeEngine engine = new SqlCeEngine(connectionString);
+                engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
+                engine.Compact(connectionString);
+
+                var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
                 cached = new NancyBlackDatabase(sisodb);
 
                 // cache in memory and in current request
                 MemoryCache.Default.Add(key, cached, DateTimeOffset.MaxValue);
                 ctx.Items["SiteDatabase"] = cached;
-            }
 
-            return cached;
+
+                return cached;
+            }
         }
 
         /// <summary>
@@ -358,6 +370,27 @@ namespace NantCom.NancyBlack.Modules
             ctx.Items["SharedDatabase"] = SuperAdminModule.GetSharedDatabase();
 
             return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        private static void CleanupRequest(NancyContext ctx)
+        {
+            if (ctx.Items.ContainsKey("Exception")) 
+            {
+                var ex = ctx.Items["Exception"] as SqlCeException;
+                if (ex != null)
+                {
+                    // has exception related to sql ce - database is maybe already in faulted state
+                    // remove the cached nancyblack database
+                    // to force database to restart
+                    MemoryCache.Default.Remove((string)ctx.Items["SiteDatabaseCacheKey"]);
+                }
+
+            }
         }
 
         #endregion

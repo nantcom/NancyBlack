@@ -24,7 +24,7 @@
     var ncb = angular.module("ncb-database", []);
     
     ncb.factory('ncbDatabaseClient', function ($http) {
-        return function (controller, $scope, tableName, disableJsonify) {
+        return function (controller, $scope, tableName, disableJsonify, $angularScope) {
 
             $scope.tableName = tableName;
 
@@ -37,12 +37,22 @@
             // allow this client to work with $scope that is not angular object
             if ($scope.$apply == null) {
 
-                $scope.$apply = function (a) {
+                if ($angularScope != null) {
 
-                    if (typeof(a) == "function") {
-                        a();
-                    }
-                };
+                    $scope.$apply = function (a) {
+
+                        $angularScope.$apply(a);
+                    };
+
+                } else {
+                    $scope.$apply = function (a) {
+
+                        if (typeof (a) == "function") {
+                            a();
+                        }
+                    };
+                }
+
             }
 
             var $me = this;

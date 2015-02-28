@@ -88,6 +88,44 @@ namespace NantCom.NancyBlack.Modules
             return Directory.GetFiles(path);
         }
 
+        /// <summary>
+        /// Attach file to a record
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="id"></param>
+        private string AttachFile( string tableName, string id, string fileName, Stream input, bool replace = true)
+        {
+            var path = this.GetAttachmentFolder(tableName, id);
+            var filePath = Path.Combine(path, fileName);
+
+            if (File.Exists(filePath) && replace == false)
+            {
+                fileName = Path.GetFileNameWithoutExtension(fileName) +
+                    Guid.NewGuid() +
+                    Path.GetExtension(fileName);
+
+                filePath = Path.Combine(path, fileName);
+            }
+
+            using (var fs = File.Create(filePath))
+            {
+                input.CopyTo(fs);
+                return (
+                    Path.Combine(
+                        "/Sites",
+                        (string)this.CurrentSite.HostName,
+                        "Attachments",
+                        tableName,
+                        id,
+                        fileName).Replace('\\', '/'));
+            }
+        }
+
+        /// <summary>
+        /// Handles file upload request, currently not consolidated with Attach File function
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         private dynamic HandleFileUploadRequest(dynamic args)
         {
             var tableName = (string)args.table_name;
@@ -150,7 +188,6 @@ namespace NantCom.NancyBlack.Modules
             return 204;
         }
 
-
         private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
         {
             return this.HandleRequest((arg) =>
@@ -212,8 +249,69 @@ namespace NantCom.NancyBlack.Modules
                     return 403;
                 }
             }
+
+            dynamic record = null;
+            var fromClient = JObject.Parse(json);
+            var imageBase64 = fromClient.Value<string>("Image");
+
+            if (imageBase64 != null && imageBase64.StartsWith("data:") == true)
+            {
+                fromClient["Image"] = string.Empty; // remove image data as it will be overflow when save
+            }
+
+            Func<string> saveDataUriImage = () =>
+            {
+                if (imageBase64 != null)
+                {
+                    var fileName = "image.jpg";
+
+                    // cut out data-uri
+                    if (imageBase64.StartsWith("data:"))
+                    {
+                        if (imageBase64.IndexOf("image/png") > 0)
+                        {
+                            fileName = "image.png";
+                        }
+
+                        var dataStart = imageBase64.IndexOf("base64,") + "base64,".Length;
+                        imageBase64 = imageBase64.Substring(dataStart);
+
+                        var stream = new MemoryStream(Convert.FromBase64String(imageBase64));
+                        return this.AttachFile(entityName, id.ToString(), fileName, stream);
+                    }
+                }
+
+                return null;
+            };
+
+            if (id == 0)
+            {
+                //insert, need to insert first to get id
+                record = db.UpsertRecord(entityName, fromClient);
+                id = record.Id;
+
+                // then upload and save
+                var url = saveDataUriImage();
+                if (url != null)
+                {
+                    record.Image = url;
+                    record = db.UpsertRecord(entityName, fromClient);
+                }
+            }
+            else
+            {
+                // update, can save immediately
+                var url = saveDataUriImage();
+                if (url != null)
+                {
+                    fromClient["Image"] = url;
+                }
+
+                record = db.UpsertRecord(entityName, fromClient);
+            }
+
+
             
-            var record = db.UpsertRecord(entityName, id, json);
 
             return this.Negotiate
                 .WithContentType("application/json")
