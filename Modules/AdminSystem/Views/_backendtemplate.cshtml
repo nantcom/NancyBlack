@@ -120,27 +120,9 @@
                                         }
                                         else if (property.Type == "DateTime")
                                         {
-                                            <div class="dropdown form-group">
-
-                                                <label class="control-label" for="start">@(property.Name.Replace(g.Key + "_", ""))</label>
-
-                                                <p class="input-group">
-                                                    <input type="text"
-                                                           class="form-control"
-                                                           datepicker-popup="dd MMMM yyyy, HH:mm"
-                                                           ng-model="object.@(property.Name)"
-                                                           is-open="datepickeropen['@(property.Name)']"
-                                                           close-text="Close" />
-                                                    <span class="input-group-btn">
-                                                        <button type="button"
-                                                                class="btn btn-default"
-                                                                ng-click="ctrl.opendatepicker($event, '@(property.Name)')">
-                                                            <i class="glyphicon glyphicon-calendar"></i>
-                                                        </button>
-                                                    </span>
-                                                </p>
-
-                                            </div>
+                                            <ncb-datepicker placeholder="To Date"
+                                                            format="'dd MMMM yyyy'"
+                                                            model="object.@(property.Name)"></ncb-datepicker>
                                         }
                                         else if (property.Name.EndsWith("Text"))
                                         {

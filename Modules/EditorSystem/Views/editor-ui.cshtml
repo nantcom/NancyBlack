@@ -103,15 +103,15 @@ else
 
         <div class="form-group">
             <label>Publishing</label>
-            <input type="text"
-                   class="form-control"
-                   ng-model="object.PublishFrom"
-                   placeholder="From Date" />
-            <input type="text"
-                   class="form-control"
-                   ng-model="object.PublishTo"
-                   placeholder="To Date" />
+            <ncb-datepicker placeholder="From Date"
+                            format="'dd MMMM yyyy'"
+                            model="object.PublishFrom"></ncb-datepicker>
+
+            <ncb-datepicker placeholder="To Date"
+                            format="'dd MMMM yyyy'"
+                            model="object.PublishTo"></ncb-datepicker>
         </div>
+
     </div>
 </div>
 

@@ -206,6 +206,21 @@ namespace NantCom.NancyBlack.Modules
                         });
                 }
 
+                if (result is Nancy.Responses.Negotiation.Negotiator)
+                {
+                    var negotiator = result as Nancy.Responses.Negotiation.Negotiator;
+                    if (negotiator.NegotiationContext.Headers.ContainsKey("Content-Type"))
+                    {
+                        if (negotiator.NegotiationContext.Headers["Content-Type"] == "application/json")
+                        {
+                            negotiator.NegotiationContext.Headers["Cache-Control"] = "no-store";
+                            negotiator.NegotiationContext.Headers["Expires"]= "Mon, 26 Jul 1997 05:00:00 GMT";
+                            negotiator.NegotiationContext.Headers["Vary"]= "*";
+                        }
+                        
+                    }
+                }
+
                 return result;
             };
         }

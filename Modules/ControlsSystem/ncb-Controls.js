@@ -345,6 +345,49 @@
         };
     });
     
+    // Date Picker Control
+    
+    // Add Button
+    module.directive('ncbDatepicker', function ($compile) {
+
+        function link(scope, element, attrs) {
+            
+            if (element.is("[title]")) {
+
+                element.find(".control-label").text(element.attr("title"));
+            } else {
+
+                element.find(".control-label").remove();
+            }
+
+            if (element.is("[placeholder]")) {
+
+                element.find("input").attr("placeholder", element.attr("placeholder"));
+            }
+
+            scope.isopen = false;
+            scope.opendatepicker = function ($event) {
+
+                $event.preventDefault();
+                $event.stopPropagation();
+
+                scope.isopen = !scope.isopen;
+            };
+
+        }
+
+        return {
+            restrict: 'E',
+            link: link,
+            scope: {
+                model: '=model',
+                format: '=format'
+            },
+            templateUrl: '/Modules/ControlsSystem/Templates/ncbDatePicker.html',
+        };
+    });
+    
+
     // Modal Dialog
     module.directive('ncbModal', ['$compile', function ($compile) {
 

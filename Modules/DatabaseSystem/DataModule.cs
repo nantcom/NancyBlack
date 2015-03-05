@@ -23,7 +23,8 @@ namespace NantCom.NancyBlack.Modules
     {
         private string _RootPath;
 
-        public DataModule( IRootPathProvider rootProvider ) : base( rootProvider )
+        public DataModule(IRootPathProvider rootProvider)
+            : base(rootProvider)
         {
             _RootPath = rootProvider.GetRootPath();
 
@@ -63,10 +64,10 @@ namespace NantCom.NancyBlack.Modules
 
             Delete["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleDeleteRecordRequest);
 
-            
+
         }
 
-        private string GetAttachmentFolder( string tableName, string id )
+        protected string GetAttachmentFolder(string tableName, string id)
         {
             var path = Path.Combine(this.GetSiteFolder(), "Attachments", tableName, id);
             Directory.CreateDirectory(path);
@@ -79,7 +80,7 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        private dynamic HandleFileListRequest(dynamic args)
+        protected dynamic HandleFileListRequest(dynamic args)
         {
             var tableName = (string)args.table_name;
             var id = (string)args.item_id;
@@ -93,7 +94,7 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="id"></param>
-        private string AttachFile( string tableName, string id, string fileName, Stream input, bool replace = true)
+        protected string AttachFile(string tableName, string id, string fileName, Stream input, bool replace = true)
         {
             var path = this.GetAttachmentFolder(tableName, id);
             var filePath = Path.Combine(path, fileName);
@@ -122,14 +123,34 @@ namespace NantCom.NancyBlack.Modules
         }
 
         /// <summary>
+        /// Attach file to a record
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="id"></param>
+        protected string AttachFileFromDataUri(string tableName, string id, string fileName, string dataUri, bool replace = true)
+        {
+            // cut out data-uri
+            if (dataUri.StartsWith("data:") == false)
+            {
+                throw new InvalidOperationException(" must be data uri");
+            }
+
+            var dataStart = dataUri.IndexOf("base64,") + "base64,".Length;
+            dataUri = dataUri.Substring(dataStart);
+
+            var stream = new MemoryStream(Convert.FromBase64String(dataUri));
+            return this.AttachFile(tableName, id.ToString(), fileName, stream);
+        }
+
+        /// <summary>
         /// Handles file upload request, currently not consolidated with Attach File function
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        private dynamic HandleFileUploadRequest(dynamic args)
+        protected dynamic HandleFileUploadRequest(dynamic args)
         {
             var tableName = (string)args.table_name;
-            var id =  (string)args.item_id;
+            var id = (string)args.item_id;
             var path = this.GetAttachmentFolder(tableName, id);
 
             List<string> urls = new List<string>();
@@ -138,7 +159,7 @@ namespace NantCom.NancyBlack.Modules
             {
                 var fileName = Path.GetFileName(item.Name);
                 var filePath = Path.Combine(path, fileName);
-                if (File.Exists( filePath ))
+                if (File.Exists(filePath))
                 {
                     fileName = Path.GetFileNameWithoutExtension(item.Name) +
                         Guid.NewGuid() +
@@ -150,21 +171,21 @@ namespace NantCom.NancyBlack.Modules
                 using (var fs = File.Create(filePath))
                 {
                     item.Value.CopyTo(fs);
-                    urls.Add( 
-                        Path.Combine( 
+                    urls.Add(
+                        Path.Combine(
                             "/Sites",
                             (string)this.CurrentSite.HostName,
                             "Attachments",
                             tableName,
                             id,
-                            fileName).Replace( '\\', '/' ));
+                            fileName).Replace('\\', '/'));
                 }
             }
 
             return urls;
         }
 
-        private dynamic HandleFileDeleteRequest(dynamic args)
+        protected dynamic HandleFileDeleteRequest(dynamic args)
         {
             var tableName = (string)args.table_name;
             var id = (string)args.item_id;
@@ -173,7 +194,7 @@ namespace NantCom.NancyBlack.Modules
             var directory = this.GetAttachmentFolder(tableName, id);
             var path = Path.Combine(directory, fileName);
 
-            if (File.Exists( path ))
+            if (File.Exists(path))
             {
                 try
                 {
@@ -188,7 +209,7 @@ namespace NantCom.NancyBlack.Modules
             return 204;
         }
 
-        private dynamic HandleRequestForSharedDatabase( Func<NancyBlackDatabase, dynamic, dynamic> action )
+        protected dynamic HandleRequestForSharedDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
         {
             return this.HandleRequest((arg) =>
             {
@@ -196,7 +217,7 @@ namespace NantCom.NancyBlack.Modules
             });
         }
 
-        private dynamic HandleRequestForSiteDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
+        protected dynamic HandleRequestForSiteDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
         {
             return this.HandleRequest((arg) =>
             {
@@ -204,13 +225,13 @@ namespace NantCom.NancyBlack.Modules
             });
         }
 
-        private dynamic HandleUpdateRequestForSiteTable(Func<NancyBlackDatabase, dynamic, dynamic> action)
+        protected dynamic HandleUpdateRequestForSiteTable(Func<NancyBlackDatabase, dynamic, dynamic> action)
         {
             return this.HandleRequest((arg) =>
             {
                 if (arg.item_id != null)
                 {
-                    dynamic modifiedSite =  this.SharedDatabase.Query("Site",
+                    dynamic modifiedSite = this.SharedDatabase.Query("Site",
                                             string.Format("Id eq {0}", (string)arg.item_id)).FirstOrDefault();
 
                     if (modifiedSite != null)
@@ -233,7 +254,7 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="action">The action.</param>
         /// <returns></returns>
-        private dynamic HandleInsertUpdateRequest( NancyBlackDatabase db, dynamic arg )
+        protected dynamic HandleInsertUpdateRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
             int id = arg.item_id == null ? 0 : (int)arg.item_id;
@@ -311,18 +332,18 @@ namespace NantCom.NancyBlack.Modules
             }
 
 
-            
+
 
             return this.Negotiate
                 .WithContentType("application/json")
                 .WithModel((object)record);
         }
 
-        private dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
+        protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
-            IList<string> rowsAsJson = db.QueryAsJsonString(entityName, 
-                                this.Request.Query["$filter"], 
+            IList<string> rowsAsJson = db.QueryAsJsonString(entityName,
+                                this.Request.Query["$filter"],
                                 this.Request.Query["$orderby"]);
 
             // Write output row as RAW json
@@ -332,7 +353,7 @@ namespace NantCom.NancyBlack.Modules
             {
                 var sw = new StreamWriter(s);
                 sw.Write("[");
-                foreach (var row in rowsAsJson.Take( rowsAsJson.Count - 1) )
+                foreach (var row in rowsAsJson.Take(rowsAsJson.Count - 1))
                 {
                     sw.WriteLine(row + ",");
                 }
@@ -349,7 +370,7 @@ namespace NantCom.NancyBlack.Modules
             return output;
         }
 
-        private dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
+        protected dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
             var id = arg.item_id == null ? 0 : (int?)arg.item_id;

@@ -160,6 +160,7 @@
     <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.min.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils.min.js" />
+    <Content Include="Modules\ControlsSystem\Templates\ncbDatePicker.html" />
     <Content Include="Modules\MembershipSystem\Views\membership-roles.js" />
     <Content Include="Modules\AdminSystem\Views\adminsystem-tablescontroller.js" />
     <Content Include="Modules\ControlsSystem\ncb-Controls.css.map">
@@ -1848,7 +1849,9 @@
     <Content Include="Content\Scripts\npm.js" />
     <Content Include="Sites\tripsbox.net\Data.sdf" />
     <Content Include="Sites\tripsbox.net\README.txt" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />
@@ -1885,6 +1888,7 @@
     <Compile Include="Sites\deka2015.local\modules\SearchTag.cs" />
     <Compile Include="Sites\deka2015.local\modules\SqlReader.cs" />
     <Compile Include="Sites\inventory.summit.local\modules\SummitDatabase.cs" />
+    <Compile Include="Sites\masterbody.co.th\Modules\MasterBodyModule.cs" />
     <Content Include="Modules\EditorSystem\Views\editor-ui.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
     <Compile Include="Modules\BaseModule.cs" />
