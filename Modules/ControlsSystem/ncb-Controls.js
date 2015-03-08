@@ -29,6 +29,78 @@
         }
     };
 
+    function processFormElement(element)
+    {
+        // Bootstrap Setup
+        element.addClass("form-control");
+
+        // if parent is form-horizontal, do things differently
+        if (element.closest("form").hasClass("form-horizontal")) {
+
+            var group = $('<div class="form-group"></div>');
+
+            if (element.is("[ncb-lg]")) {
+                group.addClass("form-group-lg");
+            }
+
+            var labelCol = 3;
+            if (element.is("[labelcol]")) {
+
+                labelCol = element.attr("labelcol");
+            }
+
+            var inputCol = 12 - labelCol;
+
+            // Label            
+            if (element.is("[title]")) {
+
+                var label = $('<label class="control-label col-xs-' + labelCol + '"></label>');
+                label.attr("for", element.attr("name"));
+                label.text(element.attr("title"));
+
+                group.append(label);
+            }
+
+            var inputColumn = $('<div class="col-xs-' + inputCol + '"></div>')
+            group.append(inputColumn);
+
+            // no title, put offset
+            if (element.is("[title]") == false) {
+
+                inputColumn.addClass("col-xs-offset-" + labelCol);
+            }
+
+            element.before(group); // add group at the element's position
+            element.remove(); // detach element from DOM
+
+            inputColumn.append(element); // add it into input column instead
+
+
+        } else {
+
+            element.wrap('<div class="form-group"></div>');
+
+            if (element.is("[ncb-lg]")) {
+                element.parent().addClass("form-group-lg");
+            }
+
+            if (element.is("[ncb-col]")) {
+                element.parent().addClass(element.attr("ncb-col"));
+            }
+
+            // Label            
+            if (element.is("[title]")) {
+
+                var label = $('<label class="control-label"></label>');
+                label.attr("for", element.attr("name"));
+                label.text(element.attr("title"));
+                element.before(label);
+            }
+        }
+
+
+    }
+
     var module = angular.module('ncb-controls', []);
 
     // Take Picture and upload
@@ -103,7 +175,6 @@
         };
     });
 
-
     module.factory("ncbForm", function () {
 
         return function (controller, $scope) {
@@ -122,28 +193,8 @@
     module.directive('ncbSelect', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
-
-            // Bootstrap Setup
-            element.addClass("form-control");
-            element.wrap('<div class="form-group"></div>');
-
-            if (element.is("[ncb-lg]")) {
-                element.parent().addClass("form-group-lg");
-            }
-
-            if (element.is("[ncb-col]")) {
-                element.parent().addClass(element.attr("ncb-col"));
-            }
-
-            // Label            
-            if (element.is("[title]")) {
-
-                var label = $('<label class="control-label"></label>');
-                label.attr("for", element.attr("name"));
-                label.text(element.attr("title"));
-                element.before(label);
-            }
-
+            
+            processFormElement(element);
         }
 
         return {
@@ -157,27 +208,8 @@
 
         function link(scope, element, attrs) {
 
-            // Bootstrap Setup
-            element.addClass("form-control");
-            element.wrap('<div class="form-group"></div>');
-
-            if (element.is("[ncb-lg]")) {
-                element.parent().addClass("form-group-lg");
-            }
-
-            if (element.is("[ncb-col]")) {
-                element.parent().addClass(element.attr("ncb-col"));
-            }
-
-            // Label            
-            if (element.is("[title]")) {
-
-                var label = $('<label class="control-label"></label>');
-                label.attr("for", element.attr("name"));
-                label.text(element.attr("title"));
-                element.before(label);
-            }
-
+            processFormElement(element);
+            
             // Final touch ups
             if (element.is("[placeholder]") == false) {
                 element.attr("placeholder", element.attr("title"));
@@ -189,6 +221,81 @@
             link: link
         };
     });
+    
+    // A Shorter, leaner checkbox
+    module.directive('ncbCheckbox', function ($document, $compile) {
+
+        function link(scope, element, attrs) {
+
+            var inputColumn = null;
+
+            if (element.parent().is("[form-horizontal]")) {
+
+                var group = $('<div class="form-group"></div>');
+
+                if (element.is("[ncb-lg]")) {
+                    group.addClass("form-group-lg");
+                }
+
+                var labelCol = 3;
+                if (element.is("[labelcol]")) {
+
+                    labelCol = element.attr("labelcol");
+                }
+
+                // Label            
+                if (element.is("[title]")) {
+
+                    var label = $('<label class="control-label col-xs-' + labelCol + '"></label>');
+                    label.attr("for", element.attr("name"));
+                    label.text(element.attr("title"));
+
+                    group.append(label);
+                }
+
+                var inputCol = 12 - labelCol;
+                inputColumn = $('<div class="col-xs-' + inputCol + '"></div>')
+                group.append(inputColumn);
+
+                // no title, put offset
+                if (element.is("[title]") == false) {
+
+                    inputColumn.addClass("col-xs-offset-" + labelCol);
+                }
+            }
+
+            var parent = $('<div class="checkbox"></div>');
+            var label = $('<label></label>');
+
+            parent.append(label);
+
+            element.before(parent);
+            element.remove();
+
+            label.append(element);
+            
+            if (element.is("[text]")) {
+
+                var text = $('<span>' + element.attr("text") + '</span>');
+                var compiled = $compile(text);
+
+                compiled(scope);
+
+                element.after( text );
+            }
+
+            if (inputColumn != null) {
+                
+                inputColumn.append(parent);
+            }
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    });
+
 
     // add button into input box
     module.directive('ncbInputgroup', function ($document, $timeout, $compile) {
@@ -242,26 +349,15 @@
 
         function link(scope, element, attrs) {
 
+            if (element.parent().hasClass("form-horizontal") == false) {
+
+                element.addClass("form-control-static");
+            }
+
             // Bootstrap Setup
-            element.addClass("form-control-static");
-            element.wrap('<div class="form-group"></div>');
+            processFormElement(element);
 
-            if (element.is("[ncb-lg]")) {
-                element.parent().addClass("form-group-lg");
-            }
-
-            if (element.is("[ncb-col]")) {
-                element.parent().addClass(element.attr("ncb-col"));
-            }
-
-            // Label            
-            if (element.is("[title]")) {
-
-                var label = $('<label class="control-label"></label>');
-                label.attr("for", element.attr("name"));
-                label.text(element.attr("title"));
-                element.before(label);
-            }
+            element.removeClass("form-control");
 
         }
 
@@ -346,8 +442,6 @@
     });
     
     // Date Picker Control
-    
-    // Add Button
     module.directive('ncbDatepicker', function ($compile) {
 
         function link(scope, element, attrs) {
@@ -373,7 +467,6 @@
 
                 scope.isopen = !scope.isopen;
             };
-
         }
 
         return {
@@ -386,8 +479,74 @@
             templateUrl: '/Modules/ControlsSystem/Templates/ncbDatePicker.html',
         };
     });
-    
 
+    // Date Picker Control
+    module.directive('ncbSimpledatepicker', function ($compile) {
+
+        function link($scope, element, attrs) {
+
+            if (element.is("[title]")) {
+
+                element.find("label").text(element.attr("title"));
+            }
+
+            $scope.object = {};
+            $scope.object.BirthDate = new Date();
+            $scope.object.Interests = {};
+
+            $scope.oneTo31 = [];
+            for (var i = 1; i <= 31; i++) {
+                $scope.oneTo31.push(i);
+            }
+
+            $scope.oneTo12 = [];
+            for (var i = 1; i <= 12; i++) {
+                $scope.oneTo12.push(i);
+            }
+
+            $scope.years = [];
+
+            var minYear = "-100";
+            var maxYear = "-13";
+            var startYear = (new Date()).getFullYear();
+
+            if (element.is("[minYear]")) {
+
+                minYear = element.attr("minYear");
+            }
+
+            if (element.is("[maxYear]")) {
+
+                maxYear = element.attr("maxYear");
+            }
+
+            if (element.is("[startYear]")) {
+
+                startYear = element.attr("startYear");
+            }
+
+            minYear = eval(startYear + minYear);
+            maxYear = eval(startYear + maxYear);
+
+            for (var i = maxYear; i >= minYear; i--) {
+                $scope.years.push(i);
+            }
+
+            $scope.tempDate = (new Date()).getDate();
+            $scope.tempMonth = (new Date()).getMonth();
+            $scope.tempYear = startYear;
+        }
+
+        return {
+            restrict: 'E',
+            link: link,
+            scope: {
+                model: '=model',
+            },
+            templateUrl: '/Modules/ControlsSystem/Templates/ncbSimpleDatePicker.html',
+        };
+    });
+    
     // Modal Dialog
     module.directive('ncbModal', ['$compile', function ($compile) {
 

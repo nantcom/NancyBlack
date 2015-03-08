@@ -164,5 +164,14 @@ namespace NantCom.NancyBlack
             return string.Concat("/Sites/", this.Site.HostName, path);
         }
 
+        /// <summary>
+        /// Create Razor Compatible dynamic from anonymous type
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public dynamic GetDynamicModel( object input )
+        {
+            return JObject.FromObject(input);
+        }
     }
 }

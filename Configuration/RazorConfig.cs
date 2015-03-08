@@ -16,6 +16,7 @@ namespace NantCom.NancyBlack.Configuration
         public IEnumerable<string> GetDefaultNamespaces()
         {
             yield return "Newtonsoft.Json";
+            yield return "Newtonsoft.Json.Linq";
             yield return "System.Linq";
             yield return "System.Collections.Generic";
         }

@@ -22,97 +22,108 @@ else
      ng-module="editor-ui"
      ng-class="{ in : show % 2 != 0 }"
      ng-controller="PanelController as ctrl">
+
     <div>
-        <a class="toggle"
-           ng-click="show = show + 1"
-           ng-init="show = 0"
-           href="#">
-            <i class="fa fa-arrow-circle-o-left"
-               ng-class="{ 'fa-rotate-180' : show % 2 == 0}"></i>
-        </a>
 
-        <div class="form-group">
-            <i class="fa fa-cog fa-2x"
-               ng-class=" { 'fa-spin' : isBusy }">
-            </i>
-            <div class="pull-right">
-                <button class="btn btn-success"
-                        ng-show="isDirty == true && activeEditor == null"
-                        ng-click="ctrl.save()">
-                    <i class="fa fa-cloud-upload"></i>
-                </button>
+        <form name="pageEditor">
 
-                <button class="btn btn-primary"
-                        ng-hide="activeEditor != null"
-                        ng-click="ctrl.enableEditArea()">
-                    <i class="fa fa-edit"></i>
-                </button>
+            <a class="toggle"
+               ng-click="show = show + 1"
+               ng-init="show = 0"
+               href="#">
+                <i class="fa fa-arrow-circle-o-left"
+                   ng-class="{ 'fa-rotate-180' : show % 2 == 0}"></i>
+            </a>
 
-                <button class="btn btn-success"
-                        ng-show="activeEditor != null"
-                        ng-click="ctrl.commitEditArea( false )">
-                    <i class="fa fa-save"></i>
-                </button>
+            <div class="form-group">
+                <i class="fa fa-cog fa-2x"
+                   ng-class=" { 'fa-spin' : isBusy }">
+                </i>
+                <div class="pull-right">
+                    <button class="btn btn-success"
+                            ng-show="(pageEditor.$dirty == true || isDirty == true ) && activeEditor == null"
+                            ng-click="ctrl.save()">
+                        <i class="fa fa-cloud-upload"></i>
+                    </button>
+
+                    <button class="btn btn-primary"
+                            ng-hide="activeEditor != null"
+                            ng-click="ctrl.enableEditArea()">
+                        <i class="fa fa-edit"></i>
+                    </button>
+
+                    <button class="btn btn-success"
+                            ng-show="activeEditor != null"
+                            ng-click="ctrl.commitEditArea( false )">
+                        <i class="fa fa-save"></i>
+                    </button>
+
+                    <button class="btn btn-danger"
+                            ng-show="activeEditor != null"
+                            ng-click="ctrl.commitEditArea( true )">
+                        <i class="fa fa-undo"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group"
+                 style="margin-top: 10px">
+                <input type="text"
+                       class="form-control input-lg"
+                       ng-model="object.Title"
+                       placeholder="Page Title" />
+            </div>
+
+            <div class="form-group">
+                <label>Layout</label>
+                <select class="form-control"
+                        ng-model="object.Layout">
+                    <option ng-repeat="layout in AvailableLayouts">{{layout}}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>SEO</label>
+                <input type="text"
+                       class="form-control"
+                       ng-model="object.SEOKeywords"
+                       placeholder="SEO Keywords" />
+            </div>
+
+            <div class="form-group">
+                <textarea type="text"
+                          class="form-control"
+                          ng-model="object.SEODescription"
+                          rows="5"
+                          placeholder="SEO Description"></textarea>
+            </div>
+
+            <hr />
+
+            <div class="form-group">
+                <label>Publishing</label>
+                <ncb-datepicker placeholder="From Date"
+                                format="'dd MMMM yyyy'"
+                                model="object.PublishFrom"></ncb-datepicker>
+
+                <ncb-datepicker placeholder="To Date"
+                                format="'dd MMMM yyyy'"
+                                model="object.PublishTo"></ncb-datepicker>
+            </div>
+
+            <div class="form-group fillwidth">
 
                 <button class="btn btn-danger"
-                        ng-show="activeEditor != null"
-                        ng-click="ctrl.commitEditArea( true )">
-                    <i class="fa fa-undo"></i>
+                        ng-click="ctrl.leaveEditMode()"
+                        ng-show="pageEditor.$valid == true && pageEditor.$dirty == false"
+                        ncb-icon="glyphicon-remove">
+                    &nbsp; Leave Edit Mode
                 </button>
-                <button class="btn btn-danger"  
-                        ng-click="ctrl.leaveEditMode()"                      
-                        ng-show="activeEditor == null && isDirty == false"
-                        ncb-icon="glyphicon-remove"></button>
             </div>
-        </div>
 
-        <div class="form-group"
-             style="margin-top: 10px">
-            <input type="text"
-                   class="form-control input-lg"
-                   ng-model="object.Title"
-                   placeholder="Page Title"/>
-        </div>
-
-        <div class="form-group">
-            <label>Layout</label>
-            <select class="form-control"
-                    ng-model="object.Layout">
-                <option ng-repeat="layout in AvailableLayouts">{{layout}}</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>SEO</label>
-            <input type="text"
-                   class="form-control"
-                   ng-model="object.SEOKeywords"
-                   placeholder="SEO Keywords" />
-        </div>
-
-        <div class="form-group">
-            <textarea type="text"
-                   class="form-control"
-                   ng-model="object.SEODescription"
-                   rows="5"
-                   placeholder="SEO Description">
-            </textarea>
-        </div>
-
-        <hr/>
-
-        <div class="form-group">
-            <label>Publishing</label>
-            <ncb-datepicker placeholder="From Date"
-                            format="'dd MMMM yyyy'"
-                            model="object.PublishFrom"></ncb-datepicker>
-
-            <ncb-datepicker placeholder="To Date"
-                            format="'dd MMMM yyyy'"
-                            model="object.PublishTo"></ncb-datepicker>
-        </div>
-
+        </form>
     </div>
+
 </div>
 
 

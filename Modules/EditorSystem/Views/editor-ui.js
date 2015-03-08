@@ -3,17 +3,36 @@
     var ncbEditor = angular.module("editor-ui", ['ui.bootstrap', 'ncb-database']);
 
     
-    ncbEditor.controller("PanelController", function ($scope, $rootScope, ncbDatabaseClient ) {
+    ncbEditor.controller("PanelController", function ($scope, $rootScope, $http, ncbDatabaseClient ) {
 
         var $me = this;
         var ncbClient = new ncbDatabaseClient($me, $scope, "Content");
 
+        $http.get('/__editor/data/availablelayouts').
+          success(function (data) {
+
+              $scope.AvailableLayouts = data;
+          }).
+          error(function (data) {
+              alert("Failed to get available layout list");
+          });
+
         $scope.object = GLOBAL_CONTENT;
         $scope.isDirty = false;
+
+        $scope.originalLayout = $scope.object.Layout;
 
         $(document).on("ncb-database", function (e) {
 
             if (e.action == "update" && e.sender == ncbClient) {
+
+                if ($scope.object.Layout != $scope.originalLayout) {
+
+                    if (confirm("Do you want to reload to see new Layout?")) {
+
+                        window.location.reload();
+                    }
+                }
 
                 $scope.$apply(function () {
 

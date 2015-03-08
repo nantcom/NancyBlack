@@ -5,6 +5,7 @@ using Nancy.ViewEngines;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SisoDb;
 using SisoDb.SqlCe4;
 using System;
@@ -127,22 +128,14 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         protected dynamic GetModel(dynamic content = null)
         {
-            if (content != null &&
-                ((object)content).GetType().Name.Contains("AnonymousType"))
-            {
-                // anonymous type will have problem in template
-                // convert it to JObject
-                var json = JsonConvert.SerializeObject(content);
-                content = JsonConvert.DeserializeObject(json);
-            }
-
-            return new
+            return JObject.FromObject(new
             {
                 Site = this.CurrentSite,
                 Database = this.SiteDatabase,
                 SharedDatabase = this.SharedDatabase,
                 Content = content
-            };
+            });
+
         }
 
         /// <summary>

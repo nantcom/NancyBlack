@@ -2,6 +2,7 @@
 using Nancy.Security;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 
@@ -9,25 +10,26 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 {
     public class EditorModule : BaseModule
     {
-        public EditorModule(IRootPathProvider r) : base(r)
+        public EditorModule(IRootPathProvider r)
+            : base(r)
         {
             this.RequiresAuthentication();
             Post["/__editor/enable"] = _ =>
             {
                 var redirect = this.Request.Query.returnUrl;
                 if (redirect == null)
-	            {
-		            redirect = "/";
-	            }
+                {
+                    redirect = "/";
+                }
 
                 if (this.CurrentUser.HasClaim("editor") == false)
                 {
-                    return 403; 
+                    return 403;
                 }
 
                 return this.Response
                     .AsRedirect((string)redirect)
-                    .WithCookie( "editmode", "enabled" );
+                    .WithCookie("editmode", "enabled");
 
             };
 
@@ -50,7 +52,20 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
             };
 
+            Get["/__editor/data/availablelayouts"] = this.HandleRequest((args) =>
+            {
+                dynamic site = this.Context.Items["CurrentSite"];
+                var viewPath = Path.Combine(this.RootPath, "Sites", (string)site.HostName, "Views");
+                var views = Directory.GetFiles(viewPath, "*.cshtml", SearchOption.AllDirectories);
 
+                var userViews = from view in views
+                       let viewName = view.Replace(viewPath + "\\", "").Replace("\\", "/").Replace(".cshtml", "")
+                       where viewName.StartsWith("admin-") == false && viewName.StartsWith("_") == false
+                       select viewName;
+
+                return userViews.Distinct();
+
+            });
         }
     }
 }
