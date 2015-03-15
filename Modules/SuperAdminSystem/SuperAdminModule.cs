@@ -93,6 +93,26 @@ namespace NantCom.NancyBlack.Modules
             var replace = this.Context.Request.Query.regenerate == "true";
 
             var type = this.SharedDatabase.DataType.FromName(table_name);
+
+            if (type == null && table_name == "site")
+            {
+                type = this.SharedDatabase.DataType.Scaffold(JObject.FromObject(new
+                {
+                    Id = 9999,
+                    HostName = "SuperAdmin",
+                    Alias = string.Empty,
+                    RegisteredDate = DateTime.Now,
+                    ExpireDate = DateTime.MaxValue,
+                    RegisteredBy = "System",
+                    SiteType = "SuperAdmin",
+                    Theme = "Basic"
+
+                }).ToString());
+
+                type.OriginalName = "Site";
+                this.SharedDatabase.DataType.Register(type);
+            }
+
             if (type == null)
             {
                 return 404;
@@ -171,15 +191,22 @@ namespace NantCom.NancyBlack.Modules
         {
             if (_SharedDatabase == null)
             {
-                var connectionString = ("Data Source=" + Path.Combine(_SharedRootPath, "Sites", "Shared.sdf") + ";Persist Security Info=False;");
-                
-                SqlCeEngine engine = new SqlCeEngine(connectionString);
-                engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
-                engine.Compact(connectionString);
+                var path = Path.Combine(_SharedRootPath, "Sites", "Shared.sdf");
+                var connectionString = ("Data Source=" + path + ";Persist Security Info=False;");
+
+                try
+                {
+                    SqlCeEngine engine = new SqlCeEngine(connectionString);
+                    engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
+                    engine.Compact(connectionString);
+                }
+                catch (Exception)
+                {
+                }
 
                 var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
-
                 _SharedDatabase = new NancyBlackDatabase(sisodb);
+
             }
 
             return _SharedDatabase;
@@ -222,9 +249,16 @@ namespace NantCom.NancyBlack.Modules
                 var fileName = Path.Combine(path, "Data.sdf");
                 var connectionString = "Data Source=" + fileName + ";Persist Security Info=False";
 
-                SqlCeEngine engine = new SqlCeEngine(connectionString);
-                engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
-                engine.Compact(connectionString);
+                try
+                {
+                    SqlCeEngine engine = new SqlCeEngine(connectionString);
+
+                    engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
+                    engine.Compact(connectionString);
+                }
+                catch (Exception)
+                {
+                }
 
                 var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
                 cached = new NancyBlackDatabase(sisodb);

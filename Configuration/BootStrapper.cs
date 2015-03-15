@@ -4,6 +4,7 @@ using Nancy.Bootstrapper;
 using Nancy.TinyIoc;
 using Newtonsoft.Json;
 using NantCom.NancyBlack.Modules;
+using System.Text.RegularExpressions;
 
 namespace NantCom.NancyBlack.Configuration
 {
@@ -29,6 +30,42 @@ namespace NantCom.NancyBlack.Configuration
             this.Conventions.ViewLocationConventions.Clear();
 
             // Site's View Folder has most priority
+            // Mobile View Overrides
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("CurrentSite") == false)
+                {
+                    return string.Empty;
+                }
+
+                string u = context.Context.Request.Headers.UserAgent.ToLowerInvariant();
+                if (u.Contains( "mobile/" ))
+                {
+                    return string.Concat("Sites/",
+                                            ((dynamic)context.Context.Items["CurrentSite"]).HostName,
+                                            "/Views/Mobile/",
+                                            viewName);
+                }
+
+                return string.Empty; // not mobile browser
+
+            });
+
+            // Desktop View Location
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("CurrentSite") == false)
+                {
+                    return string.Empty;
+                }
+
+                return string.Concat("Sites/",
+                                        ((dynamic)context.Context.Items["CurrentSite"]).HostName,
+                                        "/Views/Desktop/",
+                                        viewName);
+            });
+
+            // Generic View Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
                 if (context.Context.Items.ContainsKey("CurrentSite") == false)
@@ -42,7 +79,7 @@ namespace NantCom.NancyBlack.Configuration
                                         viewName);
             });
 
-            // than Views in Systems (AdminSystem, ContentSystem etc...)
+            // then try Views in Systems (AdminSystem, ContentSystem etc...)
             foreach (var system in ModuleResource.Systems)
             {
                 this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>

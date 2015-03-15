@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Configuration
 {
-    public class RazorConfig : IRazorConfiguration
+    public class RazorConfig //: IRazorConfiguration
     {
         public IEnumerable<string> GetAssemblyNames()
         {

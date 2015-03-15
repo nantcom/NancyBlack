@@ -189,6 +189,30 @@
         };
     });
 
+    // add 'active' class to A tags
+    module.directive('ncbActive', function ($document) {
+
+        function link(scope, element, attrs) {
+
+            var url = element.attr("href");
+            if (url == null) {
+                return;
+            }
+
+            var urlMatch = window.location.href.indexOf(url) >= 0;
+            if (urlMatch == true) {
+
+                element.addClass("active");
+            }
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    });
+
     // more readable select
     module.directive('ncbSelect', function ($document, $timeout) {
 
@@ -295,7 +319,6 @@
             link: link
         };
     });
-
 
     // add button into input box
     module.directive('ncbInputgroup', function ($document, $timeout, $compile) {

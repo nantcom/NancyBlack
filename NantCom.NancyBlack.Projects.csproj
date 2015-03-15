@@ -653,7 +653,7 @@
     <Content Include="Modules\AdminSystem\admin.css.map">
       <DependentUpon>admin.css</DependentUpon>
     </Content>
-    <None Include="Modules\AdminSystem\Views\admin-dashboard.cshtml" />
+    <Content Include="Modules\AdminSystem\Views\admin-dashboard.cshtml" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\ace.js" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\ext-searchbox.js" />
     <Content Include="Content\Scripts\jsoneditor\asset\ace\mode-json.js" />
@@ -674,11 +674,11 @@
     <Content Include="Content\Scripts\jsoneditor\jsoneditor.js" />
     <Content Include="Content\Scripts\jsoneditor\jsoneditor.min.css" />
     <Content Include="Content\Scripts\jsoneditor\jsoneditor.min.js" />
-    <None Include="Content\Themes\Basic\_theme.cshtml" />
+    <Content Include="Content\Themes\Basic\_theme.cshtml" />
     <Content Include="Content\Themes\Glissade\images\img01.jpg" />
     <Content Include="Content\Themes\Glissade\images\img02.jpg" />
     <Content Include="Content\Themes\Glissade\images\img03.jpg" />
-    <None Include="Content\Themes\Glissade\_theme.cshtml" />
+    <Content Include="Content\Themes\Glissade\_theme.cshtml" />
     <Content Include="Content\Themes\Glissade\license.txt" />
     <Content Include="Content\Themes\Glissade\style.css" />
     <Content Include="Content\Views\_basecontentlayout.cshtml" />
@@ -691,22 +691,22 @@
     <Content Include="Modules\SuperAdminSystem\Views\superadmin-dashboard.cshtml" />
     <Content Include="Modules\SuperAdminSystem\Views\superadmin-site.cshtml" />
     <Content Include="Content\Views\Codes\423.cshtml" />
-    <None Include="Content\Views\_basehomelayout.cshtml" />
+    <Content Include="Content\Views\_basehomelayout.cshtml" />
     <Content Include="Modules\AdminSystem\ncb.js" />
     <None Include="Modules\AdminSystem\admin.less" />
     <Content Include="Modules\AdminSystem\Views\_backendtemplate.cshtml" />
     <Content Include="Content\Scripts\jQuery.FileDrop.js" />
     <Content Include="Modules\AdminSystem\Views\admin-tables.cshtml" />
-    <None Include="Modules\AdminSystem\Views\_admin.cshtml" />
+    <Content Include="Modules\AdminSystem\Views\_admin.cshtml" />
     <Content Include="Content\Scripts\MobileServices.Web-1.1.5.min.js" />
     <Content Include="Modules\DatabaseSystem\ncb-database.js" />
     <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-login.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-enroll.cshtml" />
     <Content Include="Modules\EditorSystem\Views\editor-enableeditmode.cshtml" />
-    <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog-userprofile.cshtml" />
-    <None Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog.cshtml" />
-    <None Include="Modules\MembershipSystem\Views\ncb-membership-logindialog.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog-userprofile.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\ncb-membership-profiledialog.cshtml" />
+    <Content Include="Modules\MembershipSystem\Views\ncb-membership-logindialog.cshtml" />
     <Content Include="Modules\MembershipSystem\ncb-membership.js" />
     <Content Include="packages.config" />
     <Content Include="Content\Scripts\angular-animate.js" />
@@ -1491,139 +1491,6 @@
     <Content Include="Modules\MembershipSystem\Views\_additionaluserprofile.cshtml" />
     <None Include="Properties\PublishProfiles\Default Settings.pubxml" />
     <None Include="Properties\PublishProfiles\NantCom.pubxml" />
-    <Content Include="Sites\deka2015.local\.gitignore" />
-    <Content Include="Sites\deka2015.local\Data.sdf" />
-    <Content Include="Sites\deka2015.local\images\2_bg-main.gif" />
-    <Content Include="Sites\deka2015.local\images\2_head-main_02.gif" />
-    <Content Include="Sites\deka2015.local\images\2_head-main_03.gif" />
-    <Content Include="Sites\deka2015.local\images\bg-logo.png" />
-    <Content Include="Sites\deka2015.local\images\bg.jpg" />
-    <Content Include="Sites\deka2015.local\images\community.png" />
-    <Content Include="Sites\deka2015.local\images\itc.png" />
-    <Content Include="Sites\deka2015.local\images\Logo.png" />
-    <Content Include="Sites\deka2015.local\images\LogoOriginal.png" />
-    <Content Include="Sites\deka2015.local\modules\Home.js" />
-    <Content Include="Sites\deka2015.local\modules\HomeModern.js" />
-    <Content Include="Sites\deka2015.local\Styles\Flatly.css" />
-    <Content Include="Sites\deka2015.local\Styles\style.css" />
-    <Content Include="Sites\deka2015.local\Styles\style.min.css" />
-    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.css" />
-    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.min.css" />
-    <Content Include="Sites\inventory.summit.local\views\form2_pr.css">
-      <DependentUpon>form2_pr.less</DependentUpon>
-    </Content>
-    <Content Include="Sites\inventory.summit.local\views\form2_pr.min.css">
-      <DependentUpon>form2_pr.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.css">
-      <DependentUpon>form4_carreceive.less</DependentUpon>
-    </Content>
-    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.min.css">
-      <DependentUpon>form4_carreceive.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\images\980M.png" />
-    <Content Include="Sites\level51pc.com\images\awesomeflame.jpg" />
-    <Content Include="Sites\level51pc.com\images\bg-custom.jpg" />
-    <Content Include="Sites\level51pc.com\images\bg-keyboard.jpg" />
-    <Content Include="Sites\level51pc.com\images\bg-order.jpg" />
-    <Content Include="Sites\level51pc.com\images\bg-sound.jpg" />
-    <Content Include="Sites\level51pc.com\images\bg-wave.jpg" />
-    <Content Include="Sites\level51pc.com\images\bluewave.jpg" />
-    <Content Include="Sites\level51pc.com\images\bottomshade_03.png" />
-    <Content Include="Sites\level51pc.com\images\cpu_devil.png" />
-    <Content Include="Sites\level51pc.com\images\cpu_i3.png" />
-    <Content Include="Sites\level51pc.com\images\cpu_i5.png" />
-    <Content Include="Sites\level51pc.com\images\cpu_i7.png" />
-    <Content Include="Sites\level51pc.com\images\delivery-mobilio.png" />
-    <Content Include="Sites\level51pc.com\images\delivery-pickup.png" />
-    <Content Include="Sites\level51pc.com\images\devilcanyon_03.png" />
-    <Content Include="Sites\level51pc.com\images\flame.jpg" />
-    <Content Include="Sites\level51pc.com\images\flames2.fw.png" />
-    <Content Include="Sites\level51pc.com\images\flames2.png" />
-    <Content Include="Sites\level51pc.com\images\gtxbadge_03.png" />
-    <Content Include="Sites\level51pc.com\images\gtx_03.png" />
-    <Content Include="Sites\level51pc.com\images\hdd1tb.png" />
-    <Content Include="Sites\level51pc.com\images\icon-line.png" />
-    <Content Include="Sites\level51pc.com\images\infestation_01.jpg" />
-    <Content Include="Sites\level51pc.com\images\infested15_03.png" />
-    <Content Include="Sites\level51pc.com\images\laptops_03.png" />
-    <Content Include="Sites\level51pc.com\images\logo-text-horz_01.png" />
-    <Content Include="Sites\level51pc.com\images\nohdd.png" />
-    <Content Include="Sites\level51pc.com\images\nossd.png" />
-    <Content Include="Sites\level51pc.com\images\quadro.png" />
-    <Content Include="Sites\level51pc.com\images\ram1x8.png" />
-    <Content Include="Sites\level51pc.com\images\ram2x4.png" />
-    <Content Include="Sites\level51pc.com\images\ram2x8.png" />
-    <Content Include="Sites\level51pc.com\images\ram4x8.png" />
-    <Content Include="Sites\level51pc.com\images\SLI.png" />
-    <Content Include="Sites\level51pc.com\images\ssd.png" />
-    <Content Include="Sites\level51pc.com\images\ssd256.png" />
-    <Content Include="Sites\level51pc.com\images\ssd256x2.png" />
-    <Content Include="Sites\level51pc.com\images\ssdsata1tb.png" />
-    <Content Include="Sites\level51pc.com\images\ssdsata256.png" />
-    <Content Include="Sites\level51pc.com\images\ssdsata512.png" />
-    <Content Include="Sites\level51pc.com\images\ssdx2.png" />
-    <Content Include="Sites\level51pc.com\images\sshd1tb.png" />
-    <Content Include="Sites\level51pc.com\images\sshd500.png" />
-    <Content Include="Sites\level51pc.com\images\thin500.png" />
-    <Content Include="Sites\level51pc.com\images\topshade_01.png" />
-    <Content Include="Sites\level51pc.com\images\warranty1y.png" />
-    <Content Include="Sites\level51pc.com\images\warranty2y.png" />
-    <Content Include="Sites\level51pc.com\images\warranty3y.png" />
-    <Content Include="Sites\level51pc.com\images\wave.png" />
-    <Content Include="Sites\level51pc.com\images\XP1500-top.png" />
-    <Content Include="Sites\level51pc.com\style.css">
-      <DependentUpon>style.less</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\style.min.css">
-      <DependentUpon>style.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\Views\admin-saleorder.js" />
-    <Content Include="Sites\level51pc.com\Views\admin.css">
-      <DependentUpon>admin.less</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\Views\admin.min.css">
-      <DependentUpon>admin.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\Views\home.js" />
-    <Content Include="Sites\masterbody.co.th\.gitignore" />
-    <Content Include="Sites\masterbody.co.th\Data.sdf" />
-    <Content Include="Sites\masterbody.co.th\images\anonymous.png" />
-    <Content Include="Sites\masterbody.co.th\images\bighome.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\cardetail.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\colorrestore.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\colorrestore\step1.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\colorrestore\step2.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\colorrestore\step3.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\customer1\front.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\footer.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\footer.png" />
-    <Content Include="Sites\masterbody.co.th\images\glasscoating\step1.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\glasscoating\step2.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\glasscoating\step3.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\headlamp.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\headlamp\step1.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\headlamp\step2.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\headlamp\step3.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\location.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\location\location1.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\location\location2.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\location\location3.jpg" />
-    <Content Include="Sites\masterbody.co.th\images\logo.png" />
-    <Content Include="Sites\masterbody.co.th\images\products.jpg" />
-    <Content Include="Sites\masterbody.co.th\style.css">
-      <DependentUpon>style.less</DependentUpon>
-    </Content>
-    <Content Include="Sites\masterbody.co.th\style.min.css">
-      <DependentUpon>style.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\masterbody.co.th\Views\front\front.js" />
-    <Content Include="Sites\masterbody.co.th\Views\front\front.css">
-      <DependentUpon>front.less</DependentUpon>
-    </Content>
-    <Content Include="Sites\masterbody.co.th\Views\front\front.min.css">
-      <DependentUpon>front.css</DependentUpon>
-    </Content>
     <Content Include="Sites\tripsbox.net\.git" />
     <Content Include="Sites\tripsbox.net\admin.css">
       <DependentUpon>admin.less</DependentUpon>
@@ -1635,40 +1502,18 @@
     <Content Include="Sites\tripsbox.net\admin.css.map">
       <DependentUpon>admin.css</DependentUpon>
     </Content>
-    <Content Include="Sites\masterbody.co.th\.git" />
-    <Content Include="Sites\masterbody.co.th\style.less" />
-    <Content Include="Sites\masterbody.co.th\_theme.cshtml" />
-    <Content Include="Sites\masterbody.co.th\style.css.map">
-      <DependentUpon>style.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\style.less" />
-    <Content Include="Sites\level51pc.com\_theme.cshtml" />
-    <Content Include="Sites\level51pc.com\style.css.map">
-      <DependentUpon>style.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\masterbody.co.th\Views\admin-car.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-car_customer.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-content.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-customer.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-customer_match_sale.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-package.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-promotion.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-promotion_transaction.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\admin-promotion_usage.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\sale\Content.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\sale\_saletheme.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\front\Content.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\front\_fronttheme.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\front\front.less" />
-    <Content Include="Sites\masterbody.co.th\Views\front\front.css.map">
-      <DependentUpon>front.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\masterbody.co.th\Views\_additionaluserprofile.cshtml" />
     <Content Include="Sites\tripsbox.net\Content.cshtml">
       <SubType>Code</SubType>
     </Content>
     <Content Include="Sites\tripsbox.net\Font\generator_config.txt" />
     <Content Include="Sites\tripsbox.net\Font\stylesheet.css" />
+    <Content Include="Sites\tripsbox.net\images\mobileview.jpg" />
+    <Content Include="Sites\tripsbox.net\images\bottomshade.png" />
+    <Content Include="Sites\tripsbox.net\images\box-comment.png" />
+    <Content Include="Sites\tripsbox.net\images\box-link.png" />
+    <Content Include="Sites\tripsbox.net\images\friends_header.jpg" />
+    <Content Include="Sites\tripsbox.net\images\header-line.png" />
+    <Content Include="Sites\tripsbox.net\images\header-right.png" />
     <Content Include="Sites\tripsbox.net\images\hilight\89-matta-fair.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\Article Sample Picture2.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\big.jpg" />
@@ -1677,9 +1522,17 @@
     <Content Include="Sites\tripsbox.net\images\hilight\sample1.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\sample2.jpg" />
     <Content Include="Sites\tripsbox.net\images\hilight\Travel_Promo_THAI_01_big.jpg" />
+    <Content Include="Sites\tripsbox.net\images\location_header.jpg" />
+    <Content Include="Sites\tripsbox.net\images\sample1.jpg" />
+    <Content Include="Sites\tripsbox.net\images\sample1_profile.jpg" />
+    <Content Include="Sites\tripsbox.net\images\sample2.jpg" />
+    <Content Include="Sites\tripsbox.net\images\sample3.jpg" />
+    <Content Include="Sites\tripsbox.net\images\sample_trip.jpg" />
     <Content Include="Sites\tripsbox.net\images\slides\Pangong_Tso_Summer_Panorama_View_1.jpg" />
     <Content Include="Sites\tripsbox.net\images\slides\Pangong_Tso_Summer_Panorama_View_2.jpg" />
     <Content Include="Sites\tripsbox.net\images\slides\Pangong_Tso_Summer_Panorama_View_3.jpg" />
+    <Content Include="Sites\tripsbox.net\images\topbar_youtube.png" />
+    <Content Include="Sites\tripsbox.net\images\trips_header.jpg" />
     <Content Include="Sites\tripsbox.net\images\u_banner.jpg" />
     <Content Include="Sites\tripsbox.net\images\u_cat_accom.png" />
     <Content Include="Sites\tripsbox.net\images\u_cat_eat.png" />
@@ -1691,11 +1544,11 @@
     <Content Include="Sites\tripsbox.net\images\u_menubar_butt_createtrip.png" />
     <Content Include="Sites\tripsbox.net\images\u_menubar_logo_navibar.png" />
     <Content Include="Sites\tripsbox.net\images\u_menubar_search.png" />
-    <Content Include="Sites\tripsbox.net\style.css">
-      <DependentUpon>style.less</DependentUpon>
+    <Content Include="Sites\tripsbox.net\desktopstyle.css">
+      <DependentUpon>desktopstyle.less</DependentUpon>
     </Content>
-    <Content Include="Sites\tripsbox.net\style.min.css">
-      <DependentUpon>style.css</DependentUpon>
+    <Content Include="Sites\tripsbox.net\desktopstyle.min.css">
+      <DependentUpon>desktopstyle.css</DependentUpon>
     </Content>
     <Content Include="Sites\tripsbox.net\Views\admin-Attraction.js" />
     <Content Include="Sites\tripsbox.net\Views\admin-event.js" />
@@ -1707,14 +1560,58 @@
     <Content Include="Sites\tripsbox.net\Views\admin-Restaurant.js" />
     <Content Include="Sites\tripsbox.net\Views\admin-Shop.js" />
     <Content Include="Sites\tripsbox.net\Views\admin-Transportation.js" />
+    <Content Include="Sites\tripsbox.net\Views\CoverArticle.css">
+      <DependentUpon>CoverArticle.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\CoverArticle.min.css">
+      <DependentUpon>CoverArticle.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\location.css">
+      <DependentUpon>location.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\location.min.css">
+      <DependentUpon>location.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\friends.js" />
+    <Content Include="Sites\tripsbox.net\Views\area.js" />
+    <Content Include="Sites\tripsbox.net\Views\search.css">
+      <DependentUpon>search.less</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\search.min.css">
+      <DependentUpon>search.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\tripcreator.js" />
+    <Content Include="Sites\tripsbox.net\Views\trips.js" />
     <Content Include="Sites\tripsbox.net\Views\Home.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\home.js" />
     <Content Include="Sites\tripsbox.net\Views\home2.js" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\area.js" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\bg_login.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\bottomshade.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\box-comment.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\box-link.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\logo_square.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-add.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-cats-event.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-cats-restaurant.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-cats-shop.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-cats-sleep.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-cats-transport.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-cats-trip.png" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\Image\menu-icon.png" />
-    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\plus-icon.png" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\Image\profile-background.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample1.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample1_blur.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample1_profile.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample2.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample2_blur.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample3.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample3_blur.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\samplead1.jpg" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample_profileedit.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\sample_trip.jpg" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\Image\SearchBox.png" />
+    <Content Include="Sites\tripsbox.net\Views\Mobile\Image\toplogo.png" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\login.js" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\profile.js" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\search.js" />
@@ -1792,10 +1689,10 @@
     <Content Include="Sites\tripsbox.net\Views\Style\ng-tags-input.css" />
     <Content Include="Sites\tripsbox.net\Views\Style\ng-tags-input.js" />
     <Content Include="Sites\tripsbox.net\Views\theme.js" />
-    <Content Include="Sites\tripsbox.net\_theme.cshtml" />
-    <Content Include="Sites\tripsbox.net\style.less" />
-    <Content Include="Sites\tripsbox.net\style.css.map">
-      <DependentUpon>style.css</DependentUpon>
+    <Content Include="Sites\tripsbox.net\Views\_theme.cshtml" />
+    <Content Include="Sites\tripsbox.net\desktopstyle.less" />
+    <Content Include="Sites\tripsbox.net\desktopstyle.css.map">
+      <DependentUpon>desktopstyle.css</DependentUpon>
     </Content>
     <Content Include="Sites\tripsbox.net\Views\admin-content.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-location.cshtml">
@@ -1869,61 +1766,14 @@
     <Content Include="Sites\tripsbox.net\Views\admin-location-Products.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-location-ServicesTab.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-location.GeneralTab.cshtml" />
-    <Content Include="Sites\tripsbox.net\Views\Article.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\Article-old.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\Content.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\detail.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\home2.cshtml" />
-    <Content Include="Sites\deka2015.local\.git" />
-    <Content Include="Sites\deka2015.local\Admin\content.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\Home.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\_theme.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\ModernHome.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\SearchResult.cshtml" />
-    <Content Include="Sites\deka2015.local\Styles\style.css.map" />
-    <Content Include="Sites\deka2015.local\Styles\style.less" />
-    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.css.map" />
-    <Content Include="Sites\deka2015.local\Styles\StyleSheetModern.less" />
-    <Content Include="Sites\deka2015.local\Views\Home-AdvanceSearch.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\Home-AdvanceSearchModern.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\Home-RegularSearch.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\Home-RegularSearchModern.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-District.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-location-AttributesTab-FuelStation.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-Product.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-Province.cshtml" />
-    <Content Include="Sites\tripsbox.net\Views\_theme.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\Home.cshtml" />
-    <Content Include="Sites\deka2015.local\Views\Community.cshtml" />
-    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.cshtml" />
-    <Content Include="Sites\inventory.summit.local\views\_theme.cshtml" />
-    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.less" />
-    <Content Include="Sites\inventory.summit.local\views\form4_carreceive.css.map">
-      <DependentUpon>form4_carreceive.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\inventory.summit.local\views\form2_pr.cshtml" />
-    <Content Include="Sites\inventory.summit.local\views\form2_pr.less" />
-    <Content Include="Sites\inventory.summit.local\views\form2_pr.css.map">
-      <DependentUpon>form2_pr.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\inventory.summit.local\views\form2_po.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-chasis.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-Component.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-content.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-Inventory.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-Product.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-PurchaseOrder.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-user.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-Supplier.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-ComponentType.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin-SaleOrder.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\ComingSoon.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\_admin.cshtml" />
-    <Content Include="Sites\level51pc.com\Views\admin.less" />
-    <Content Include="Sites\level51pc.com\Views\admin.css.map">
-      <DependentUpon>admin.css</DependentUpon>
-    </Content>
-    <Content Include="Sites\level51pc.com\Views\admin-Assembly.cshtml" />
-    <Content Include="Sites\masterbody.co.th\Views\front\Content - Copy.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-Attraction.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-event.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\admin-GasStation.cshtml" />
@@ -2082,7 +1932,6 @@
     <Content Include="Sites\tripsbox.net\Views\Mobile\style.css.map" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\style.less" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\_theme.cshtml" />
-    <Content Include="Sites\tripsbox.net\Views\Mobile\_component_contentbox.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\profile.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\mytripsbox.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\friends.cshtml" />
@@ -2092,6 +1941,34 @@
     <Content Include="Sites\tripsbox.net\Views\Mobile\content.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\trip.cshtml" />
     <Content Include="Sites\tripsbox.net\Views\Mobile\tripcreator.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\_component_contentbox.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\_component_contentlist.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\Trips.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\area.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\Friends.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\_component_friendlink.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\tripcreator.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\article.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\CoverArticle.less" />
+    <Content Include="Sites\tripsbox.net\Views\location.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\location.less" />
+    <Content Include="Sites\tripsbox.net\Views\profileNew.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\search.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\search.less" />
+    <Content Include="Sites\tripsbox.net\Views\search.css.map">
+      <DependentUpon>search.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\location.css.map">
+      <DependentUpon>location.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\CoverArticle.css.map">
+      <DependentUpon>CoverArticle.css</DependentUpon>
+    </Content>
+    <Content Include="Sites\tripsbox.net\Views\_layout_twocolumns.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\_component_rightsidebox.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\mytripbox.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\mytripsbox.cshtml" />
+    <Content Include="Sites\tripsbox.net\Views\Login.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -2142,12 +2019,6 @@
     <Compile Include="Modules\MembershipSystem\UserManager.cs" />
     <Compile Include="Modules\SQLDatabaseSystem\SQLDatabaseAccess.cs" />
     <Compile Include="Modules\SuperAdminSystem\SuperAdminModule.cs" />
-    <Compile Include="Sites\deka2015.local\modules\HomeModule.cs" />
-    <Compile Include="Sites\deka2015.local\modules\MemoryCache.cs" />
-    <Compile Include="Sites\deka2015.local\modules\SearchTag.cs" />
-    <Compile Include="Sites\deka2015.local\modules\SqlReader.cs" />
-    <Compile Include="Sites\inventory.summit.local\modules\SummitDatabase.cs" />
-    <Compile Include="Sites\masterbody.co.th\Modules\MasterBodyModule.cs" />
     <Compile Include="Sites\tripsbox.net\MobilePagesModule.cs" />
     <Content Include="Modules\EditorSystem\Views\editor-ui.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
@@ -2165,7 +2036,6 @@
     <Folder Include="Lib\" />
     <Folder Include="Modules\ControlsSystem\Views\" />
     <Folder Include="Modules\MembershipSystem\Templates\" />
-    <Folder Include="Sites\Admin\" />
     <Folder Include="Sites\tripsbox.net\Views\SortTable\addons\.svn\prop-base\" />
     <Folder Include="Sites\tripsbox.net\Views\SortTable\addons\.svn\props\" />
     <Folder Include="Sites\tripsbox.net\Views\SortTable\addons\.svn\text-base\" />

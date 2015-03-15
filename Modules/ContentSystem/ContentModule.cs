@@ -87,7 +87,7 @@ namespace NantCom.NancyBlack.Modules
             var url = (string)arg.path;
             if (url == "/" || url == null)
             {
-                url = "/home";
+                url = "/";
             }
 
             if (url.StartsWith("Admin/", StringComparison.InvariantCultureIgnoreCase))

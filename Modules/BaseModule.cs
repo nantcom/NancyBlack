@@ -128,13 +128,13 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         protected dynamic GetModel(dynamic content = null)
         {
-            return JObject.FromObject(new
+            return new
             {
                 Site = this.CurrentSite,
                 Database = this.SiteDatabase,
                 SharedDatabase = this.SharedDatabase,
                 Content = content
-            });
+            };
 
         }
 
