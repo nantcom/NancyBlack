@@ -1,6 +1,7 @@
 ﻿using Nancy.ViewEngines.Razor;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -172,6 +173,16 @@ namespace NantCom.NancyBlack
         public dynamic GetDynamicModel( object input )
         {
             return JObject.FromObject(input);
+        }
+
+        /// <summary>
+        /// Serializes input to json
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public string GetJson( object input )
+        {
+            return JsonConvert.SerializeObject(input);
         }
     }
 }

@@ -482,6 +482,13 @@
                 element.find("input").attr("placeholder", element.attr("placeholder"));
             }
 
+            // if parent is form-horizontal, do things differently
+            if (element.closest("form").hasClass("form-horizontal"))
+            {
+                element.find("label").addClass("col-xs-3");
+                element.find("p.input-group").addClass("col-xs-7");
+            }
+
             scope.isopen = false;
             scope.opendatepicker = function ($event) {
 
@@ -499,6 +506,7 @@
                 model: '=model',
                 format: '=format'
             },
+            replace: true,
             templateUrl: '/Modules/ControlsSystem/Templates/ncbDatePicker.html',
         };
     });

@@ -148,6 +148,7 @@ namespace NantCom.NancyBlack.Configuration
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
 
             SuperAdminModule.Initialize(this.RootPathProvider.GetRootPath(), pipelines);
+            DataWatcherModule.Initialize(pipelines);
         }
 
     }

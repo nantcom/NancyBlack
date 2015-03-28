@@ -39,6 +39,23 @@ namespace NantCom.NancyBlack.Modules
 
             });
 
+            Get["/Admin/sitesettings"] = this.HandleStaticRequest("admin-sitesettings", null);
+            Post["/Admin/sitesettings/current"] = this.HandleRequest((arg) =>
+            {
+                var input = arg.body.Value;
+                dynamic original = this.SharedDatabase.GetById("Site", (int)input.Id);
+                
+                // protect integrity of some data
+                input.HostName = original.HostName;
+                input.Alias = original.Alias;
+                input.ExpireDate = original.ExpireDate;
+                input.RegisteredDate = original.RegisteredDate;
+                input.__createdAt = original.__createdAt;
+
+                return this.SharedDatabase.UpsertRecord("Site", input);
+
+            });
+
             Get["/tables/DataType"] = this.HandleListDataTypeRequest(()=> this.SiteDatabase);
             Post["/tables/DataType/Scaffold"] = this.HandleScaffoldRequest(()=> this.SiteDatabase);
             Post["/tables/DataType"] = this.HandleRegisterDataTypeRequest(()=> this.SiteDatabase);

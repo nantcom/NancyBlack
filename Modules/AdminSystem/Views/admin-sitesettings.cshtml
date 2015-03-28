@@ -1,0 +1,98 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin";
+}
+@section Title
+{
+    Administration - Site Settings
+}
+
+<div ng-module="SiteSettingsModule"
+     ng-controller="SiteSettingsController as ctrl">
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <h1>Facebook</h1>
+
+            <input type="text" title="Application Id"
+                   ncb-textbox ng-model="object.FacebookAppId" />
+
+        </div>
+
+        <div class="col-md-4">
+
+            <h1>Google</h1>
+
+            <input type="text" title="Analytics Id"
+                   ncb-textbox ng-model="object.GoogleAnalyticsId" />
+
+        </div>
+
+        <div class="col-md-4">
+
+            <h1>Email Sender</h1>
+
+            <input type="text" title="Send From Email"
+                   ncb-textbox ng-model="object.SMTPFromEmail" />
+
+            <input type="text" title="SMTP Server"
+                   ncb-textbox ng-model="object.SMTPServer" />
+
+            <input type="text" title="SMTP Server Port"
+                   ncb-textbox ng-model="object.SMTPServerPort" />
+
+            <input type="text" title="SMTP Username"
+                   ncb-textbox ng-model="object.SMTPUsername" />
+
+            <input type="password" title="SMTP Password"
+                   ncb-textbox ng-model="object.SMTPPassword" />
+
+            <div class="form-group">
+                <label>SMTP SSL Settings</label><br/>
+
+                <a class="btn btn-default" btn-checkbox ng-model="object.SMTPUseSSL">Use SSL</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+
+            <h1>Data Insert Watcher</h1>
+            <p>
+                Allows system to send email to the specified email when data in the watched tables
+                has been created.
+            </p>
+
+            <input type="text" title="Send Email To"
+                   ncb-textbox ng-model="object.DataWatcher_WatchEmail" />
+
+            <textarea type="text" title="Tables to Watch"
+                   ncb-textbox ng-model="object.DataWatcher_Tables"></textarea>
+        </div>
+    </div>
+    <a class="btn btn-primary btn-lg pull-right"
+       ng-click="ctrl.save()">Save Settings</a>
+</div>
+
+@section Script
+{
+    <script>
+
+        (function () {
+
+            var module = angular.module('SiteSettingsModule', []);
+
+            module.controller("SiteSettingsController", function ($scope, $rootScope, $http ) {
+                
+                $scope.object = @this.Html.Raw(this.GetJson(this.Site));
+
+                this.save = function() {
+
+                    $http.post( '/Admin/sitesettings/current', $scope.object )
+
+                };
+            });
+
+        })();
+    </script>
+}

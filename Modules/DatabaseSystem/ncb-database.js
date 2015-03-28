@@ -52,7 +52,20 @@
                         }
                     };
                 }
+            }
 
+            if ($scope.$watch == null) {
+
+                if ($angularScope != null) {
+
+                    $scope.$watch = function (s, a) {
+
+                        $angularScope.$watch(s, a);
+                    };
+
+                } else {
+                    $scope.$watch = function () { }; // cannot actually do anything
+                }
             }
 
             var $me = this;
@@ -124,12 +137,27 @@
 
                 var source = $me.listFilter();
 
+                if ($scope.paging.page > 0) {
+
+                    source = source.skip(($scope.paging.page - 1) * $scope.paging.size);
+                }
+
+                if ($scope.paging.size > 0 ) {
+
+                    source = source.take($scope.paging.size);
+                }
+
                 source.read().done(function (results) {
 
                     $scope.$apply(function () {
 
                         $scope.list = results;
                         $scope.isBusy = false;
+
+                        if (results.length == 0) {
+
+                            $scope.paging.total = $scope.paging.page * $scope.paging.size;
+                        }
 
                         $scope.list.forEach($me.processServerObject);
 
@@ -395,11 +423,26 @@
                 }, $me.handleError);
             };
 
+            $scope.$watch("paging.page", function (newValue, oldValue) {
+
+                if (oldValue != newValue) {
+                    // refresh the data due to paging change
+                    $me.list();
+                }
+
+            });
+
             // Initialize standard controller properties
             $scope.isBusy = false;
             $scope.alerts = [];
             $scope.list = [];
             $scope.timestamp = (new Date()).getTime();
+            $scope.paging = {
+
+                page: 1,
+                size: 25,
+                total: 250,
+            };
 
             controller.$table = $me.$table;
             controller.save = $me.save;

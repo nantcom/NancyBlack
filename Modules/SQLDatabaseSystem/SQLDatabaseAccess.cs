@@ -125,7 +125,61 @@ namespace NantCom.NancyBlack.Modules.SQLDatabaseSystem
         /// <param name="input"></param>
         /// <param name="keyGetter"></param>
         /// <returns></returns>
-        private static SqlCommand GenerateUpdateCommand( UpdateEntry entry)
+        public static SqlCommand GenerateInsertCommand(UpdateEntry entry)
+        {
+            SqlCommand cmd = new SqlCommand();
+
+            var command = new StringBuilder();
+            command.AppendLine("INSERT INTO " + entry.TableName + " VALUES (");
+
+            foreach (var k in entry.Data.Properties())
+            {
+                if (k.Name.StartsWith("$") || k.Name == entry.KeyName)
+                {
+                    continue;
+                }
+                command.AppendLine(k.Name + "@" + k.Name + ",");
+            }
+
+            command.Remove(command.Length - 3, 3);
+            command.Append( ")" );
+
+            cmd.CommandText = command.ToString();
+
+            foreach (var k in entry.Data.Properties())
+            {
+                if (k.Name.StartsWith("$") || k.Name == entry.KeyName)
+                {
+                    continue;
+                }
+                var value = entry.Data[k.Name].ToObject(SQLDatabaseAccess.GetTypeFromJTokenType(entry.Data[k.Name].Type));
+
+                if (value != null)
+                {
+                    cmd.Parameters.AddWithValue("@" + k.Name, value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@" + k.Name, DBNull.Value);
+                }
+
+            }
+
+            cmd.Parameters.AddWithValue("@IDParameter",
+                        entry.Data[entry.KeyName].ToObject(
+                            SQLDatabaseAccess.GetTypeFromJTokenType(entry.Data[entry.KeyName].Type)));
+
+            return cmd;
+        }
+
+        /// <summary>
+        /// Generate Update Command from give object
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="input"></param>
+        /// <param name="keyGetter"></param>
+        /// <returns></returns>
+        public static SqlCommand GenerateUpdateCommand( UpdateEntry entry)
         {
             SqlCommand cmd = new SqlCommand();
 

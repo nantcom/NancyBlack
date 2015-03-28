@@ -8,19 +8,24 @@
     @if (this.Context.Request.Url.HostName == "localhost")
     {
         <h1>Localhost Request was not mapped.</h1>
-        <form method="post" action="/SuperAdmin/maplocal">
-            <p>
-                Configure Localhost to serve up this site:
-            </p>
-            <select name="targetSite" class="form-control" style="max-width: 300px; margin-bottom: 10px">
-                @foreach (var site in NantCom.NancyBlack.Modules.SuperAdminModule.GetAllSites())
-                {
-                    <option>@site.HostName</option>
-                }
-            </select>
-            <input type="submit" class="btn btn-primary btn-lg" value="Map Localhost Request" />
-            <a class="btn btn-info btn-lg" href="/SuperAdmin/Tables/site" target="_blank">Create site</a>
-        </form>
+    <form method="post" action="/SuperAdmin/maplocal">
+        <p>
+            Configure Localhost to serve up this site:
+        </p>
+        <p>
+
+            After mapping, localhost will be permanently mapped to this site for 1 hour. <br />
+            To map to new site, go to <a href="/SuperAdmin/resetlocal">/SuperAdmin/resetlocal</a>.
+        </p>
+        <select name="targetSite" class="form-control" style="max-width: 300px; margin-bottom: 10px">
+            @foreach (var site in NantCom.NancyBlack.Modules.SuperAdminModule.GetAllSites())
+            {
+                <option>@site.HostName</option>
+            }
+        </select>
+        <input type="submit" class="btn btn-primary btn-lg" value="Map Localhost Request" />
+        <a class="btn btn-info btn-lg" href="/SuperAdmin/Tables/site" target="_blank">Create site</a>
+    </form>
     }
     else
     {

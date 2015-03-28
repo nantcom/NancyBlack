@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using SisoDb;
 using SisoDb.SqlCe4;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,49 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules
 {
+    public class StandardModel
+    {
+        /// <summary>
+        /// Site
+        /// </summary>
+        public dynamic Site { get; set; }
+
+        public NancyBlackDatabase Database { get; set; }
+
+        public NancyBlackDatabase SharedDatabase { get; set; }
+
+        private dynamic _Content;
+
+        public dynamic Content
+        {
+            get
+            {
+                if (_Content == null)
+                {
+                    return new JObject();
+                }
+                return _Content;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    _Content = null;
+                    return;
+                }
+
+                try
+                {
+                    _Content = JObject.FromObject(value);
+                }
+                catch (Exception)
+                {
+                    _Content = JArray.FromObject(value);
+                }
+            }
+        }
+    }
+
     public abstract class BaseModule : NancyModule
     {
         /// <summary>
@@ -126,9 +170,9 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="content">The content.</param>
         /// <returns></returns>
-        protected dynamic GetModel(dynamic content = null)
+        protected StandardModel GetModel(dynamic content = null)
         {
-            return new
+            return new StandardModel()
             {
                 Site = this.CurrentSite,
                 Database = this.SiteDatabase,
@@ -170,6 +214,24 @@ namespace NantCom.NancyBlack.Modules
                 dynamic result = null;
                 try
                 {
+                    if (this.Request.Headers.ContentType.Contains( "application/json" ))
+                    {
+                        try
+                        {
+                            using (var sr = new StreamReader(this.Request.Body))
+                            {
+                                using (var jr = new JsonTextReader(sr))
+                                {
+                                    arg.body = JsonSerializer.Create().Deserialize(jr);
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Failed to read JSON from body");
+                        }
+                    }
+
                     result = action(arg);
                 }
                 catch (InvalidOperationException ex)

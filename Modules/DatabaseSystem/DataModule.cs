@@ -259,9 +259,10 @@ namespace NantCom.NancyBlack.Modules
             var entityName = (string)arg.table_name;
             int id = arg.item_id == null ? 0 : (int)arg.item_id;
 
-            // get the json from request body
-            var streamReader = new StreamReader(this.Request.Body);
-            var json = streamReader.ReadToEnd();
+            if (arg.body == null)
+            {
+                return 400;
+            }
 
             if (this.SiteDatabase.DataType.FromName(entityName) == null)
             {
@@ -272,7 +273,7 @@ namespace NantCom.NancyBlack.Modules
             }
 
             dynamic record = null;
-            var fromClient = JObject.Parse(json);
+            var fromClient = arg.body.Value as JObject;
             var imageBase64 = fromClient.Value<string>("Image");
 
             if (imageBase64 != null && imageBase64.StartsWith("data:") == true)

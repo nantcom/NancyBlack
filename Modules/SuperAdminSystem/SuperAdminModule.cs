@@ -55,14 +55,18 @@ namespace NantCom.NancyBlack.Modules
                 _LocalhostSite = SuperAdminModule.GetSharedDatabase().Query("Site",
                                        string.Format("HostName eq '{0}'", (string)targetSite)).FirstOrDefault();
 
-                return this.Response.AsRedirect( "/" );
+                return this.Response
+                            .AsRedirect( "/" )
+                            .WithCookie("localhostSite", (string)targetSite, DateTime.Now.AddHours(1) );
             };
 
             Get["/SuperAdmin/resetlocal"] = p =>
             {
                 _LocalhostSite = null;
 
-                return 423;
+                return this.Response
+                    .AsRedirect("/")
+                    .WithCookie("localhostSite", "", DateTime.MinValue);
             };
         }
 
@@ -161,7 +165,7 @@ namespace NantCom.NancyBlack.Modules
                     return;
                 }
 
-                if (entity == "site")
+                if (entity.Equals( "site", StringComparison.InvariantCultureIgnoreCase ))
                 {
                     MemoryCache.Default.Remove("Site-" + obj.HostName);
                     MemoryCache.Default.Remove("SiteDatabse-" + obj.Alias);
@@ -324,6 +328,17 @@ namespace NantCom.NancyBlack.Modules
             {
                 if (_LocalhostSite == null)
                 {
+                    if (ctx.Request.Cookies.ContainsKey("localhostSite") == true)
+                    {
+                        var localhostSite = ctx.Request.Cookies["localhostSite"];
+                        _LocalhostSite = SuperAdminModule.GetSharedDatabase().Query("Site",
+                                       string.Format("HostName eq '{0}'", (string)localhostSite)).FirstOrDefault();
+
+                        if (_LocalhostSite != null)
+                        {
+                            return _LocalhostSite;
+                        }
+                    }
                     return 423;
                 }
 
