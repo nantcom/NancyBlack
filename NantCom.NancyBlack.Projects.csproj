@@ -677,13 +677,6 @@
     <Content Include="Content\Scripts\jsoneditor\jsoneditor.js" />
     <Content Include="Content\Scripts\jsoneditor\jsoneditor.min.css" />
     <Content Include="Content\Scripts\jsoneditor\jsoneditor.min.js" />
-    <Content Include="Content\Themes\Basic\_theme.cshtml" />
-    <Content Include="Content\Themes\Glissade\images\img01.jpg" />
-    <Content Include="Content\Themes\Glissade\images\img02.jpg" />
-    <Content Include="Content\Themes\Glissade\images\img03.jpg" />
-    <Content Include="Content\Themes\Glissade\_theme.cshtml" />
-    <Content Include="Content\Themes\Glissade\license.txt" />
-    <Content Include="Content\Themes\Glissade\style.css" />
     <Content Include="Content\Views\_basecontentlayout.cshtml" />
     <Content Include="Modules\EditorSystem\editor.less" />
     <Content Include="Modules\EditorSystem\editor.css.map">
@@ -1490,8 +1483,11 @@
     <Content Include="Modules\MembershipSystem\Views\_include.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\_additionaluserprofile.cshtml" />
     <None Include="Properties\PublishProfiles\Default Settings.pubxml" />
+    <None Include="Properties\PublishProfiles\FS.pubxml" />
     <None Include="Properties\PublishProfiles\Level51PAck.pubxml" />
     <None Include="Properties\PublishProfiles\NantCom.pubxml" />
+    <None Include="Properties\PublishProfiles\Package.pubxml" />
+    <Content Include="Site\Views\Home.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -1558,7 +1554,6 @@
   <ItemGroup>
     <Folder Include="Modules\ControlsSystem\Views\" />
     <Folder Include="Modules\MembershipSystem\Templates\" />
-    <Folder Include="Sites\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />

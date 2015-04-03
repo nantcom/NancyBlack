@@ -105,6 +105,8 @@ namespace NantCom.NancyBlack
             }
         }
 
+        #region Content Editing
+
         /// <summary>
         /// Output an Editable Area of Content
         /// </summary>
@@ -134,7 +136,7 @@ namespace NantCom.NancyBlack
 
             return value;
         }
-
+        
         /// <summary>
         /// Determines whether the specified property name has content.
         /// </summary>
@@ -149,6 +151,8 @@ namespace NantCom.NancyBlack
 
             return false;
         }
+
+        #endregion
 
         /// <summary>
         /// Gets the absolute site path from given path

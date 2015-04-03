@@ -55,7 +55,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
             Get["/__editor/data/availablelayouts"] = this.HandleRequest((args) =>
             {
                 dynamic site = this.Context.Items["CurrentSite"];
-                var viewPath = Path.Combine(this.RootPath, "Sites", (string)site.HostName, "Views");
+                var viewPath = Path.Combine(this.RootPath, "Site", "Views");
                 var views = Directory.GetFiles(viewPath, "*.cshtml", SearchOption.AllDirectories);
 
                 var userViews = from view in views

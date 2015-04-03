@@ -144,7 +144,10 @@ namespace NantCom.NancyBlack.Configuration
 
             pipelines.AfterRequest.AddItemToEndOfPipeline(this.CleanupRequest);
 
-            container.Resolve<IPipelineHook>().Hook(pipelines);
+            if (container.CanResolve<IPipelineHook>())
+            {
+                container.Resolve<IPipelineHook>().Hook(pipelines);
+            }
 
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
             DataWatcherModule.Initialize(pipelines);

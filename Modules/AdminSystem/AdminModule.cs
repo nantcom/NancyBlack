@@ -206,11 +206,7 @@ namespace NantCom.NancyBlack.Modules
         /// <exception cref="System.InvalidOperationException">Entity: + table_name +  does not exists, Insert some sample data before running this page.</exception>
         protected void GenerateAdminView(string table_name, bool replace = false)
         {
-            var templatePath = Path.Combine(
-                                    _RootPath,
-                                    "Sites",
-                                    (string)this.CurrentSite.HostName,
-                                    "Views");
+            var templatePath = Path.Combine( _RootPath, "Site", "Views");
 
             this.GenerateView(this.SiteDatabase, templatePath, table_name, "_admin.cshtml", replace, "admin-" + table_name);
         }

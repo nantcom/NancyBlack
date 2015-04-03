@@ -13,18 +13,19 @@ namespace NantCom.NancyBlack.Modules
     {
         private string _RootPath;
 
-        public ContentModule( IRootPathProvider rootPath) : base( rootPath )
+        public ContentModule(IRootPathProvider rootPath)
+            : base(rootPath)
         {
             _RootPath = rootPath.GetRootPath();
 
             Get["/__role/{roleName}/{path*}"] = this.HandleProtectedContentRequest(this.HandleContentRequest);
 
             Get["/__role/{roleName}"] = this.HandleProtectedContentRequest(this.HandleContentRequest);
-            
+
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
 
 
-            Get["/"] = this.HandleRequest( this.HandleContentRequest );
+            Get["/"] = this.HandleRequest(this.HandleContentRequest);
         }
 
         /// <summary>
@@ -32,12 +33,12 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="site">The site.</param>
         /// <param name="content">The content.</param>
-        protected void GenerateLayoutPage( dynamic site, dynamic content )
+        protected void GenerateLayoutPage(dynamic site, dynamic content)
         {
             var theme = (string)site.Theme;
             var layout = (string)content.Layout;
 
-            string layoutPath = Path.Combine(_RootPath, "Sites", (string)site.HostName, "Views", Path.GetDirectoryName(layout));
+            string layoutPath = Path.Combine(_RootPath, "Site", "Views", Path.GetDirectoryName(layout));
             string layoutFilename = Path.Combine(layoutPath, Path.GetFileName(layout) + ".cshtml");
 
             if (File.Exists(layoutFilename))
@@ -102,12 +103,12 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
-            dynamic requestedContent = this.SiteDatabase.Query("Content", 
+            dynamic requestedContent = this.SiteDatabase.Query("Content",
                                     string.Format("Url eq '{0}'", url)).FirstOrDefault();
 
             if (requestedContent == null)
             {
-                if (string.IsNullOrEmpty( Path.GetExtension( url ) ) == false)
+                if (string.IsNullOrEmpty(Path.GetExtension(url)) == false)
                 {
                     return 404;
                 }
@@ -124,19 +125,19 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 requestedContent = this.SiteDatabase.UpsertRecord("Content", new
-                                    {
-                                        Id = 0,
-                                        Url = url,
-                                        Layout = layout
-                                    });
+                {
+                    Id = 0,
+                    Url = url,
+                    Layout = layout
+                });
             }
 
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
 
-            return View[(string)requestedContent.Layout, this.GetModel( requestedContent )];
+            return View[(string)requestedContent.Layout, this.GetModel(requestedContent)];
         }
 
-        
+
     }
 
 }
