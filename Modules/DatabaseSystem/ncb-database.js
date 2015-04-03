@@ -22,7 +22,7 @@
                     '-');
 
     var ncb = angular.module("ncb-database", []);
-    
+
     ncb.factory('ncbDatabaseClient', function ($http) {
         return function (controller, $scope, tableName, disableJsonify, $angularScope) {
 
@@ -142,7 +142,7 @@
                     source = source.skip(($scope.paging.page - 1) * $scope.paging.size);
                 }
 
-                if ($scope.paging.size > 0 ) {
+                if ($scope.paging.size > 0) {
 
                     source = source.take($scope.paging.size);
                 }
@@ -154,9 +154,13 @@
                         $scope.list = results;
                         $scope.isBusy = false;
 
-                        if (results.length == 0) {
+                        if (results.length < $scope.paging.size) {
 
                             $scope.paging.total = $scope.paging.page * $scope.paging.size;
+
+                        } else {
+
+                            $scope.paging.total = ($scope.paging.page * $scope.paging.size) + 1;
                         }
 
                         $scope.list.forEach($me.processServerObject);
@@ -260,7 +264,7 @@
 
                             $scope.$apply(function () {
 
-                                $scope.object = $me.processServerObject( result );
+                                $scope.object = $me.processServerObject(result);
 
                                 $scope.isBusy = false;
                                 $scope.timestamp = (new Date()).getTime();
@@ -294,7 +298,7 @@
 
                             $scope.$apply(function () {
 
-                                $scope.object = $me.processServerObject( result );
+                                $scope.object = $me.processServerObject(result);
 
                                 $scope.list.push($scope.object);
                                 $scope.isBusy = false;
@@ -306,7 +310,7 @@
                                 object: $scope.object,
                                 sender: $me,
                             });
-                            
+
                             $.event.trigger({
                                 type: "ncb-database",
                                 action: "save",
@@ -322,7 +326,7 @@
             };
 
             this.lookup = function (tableName) {
-                
+
                 if ($scope.lookup == null) {
                     $scope.lookup = [];
                 }
@@ -350,7 +354,7 @@
                         $scope.lookup[tableName] = lookupTable;
                     });
 
-                }, $me.handleError );
+                }, $me.handleError);
 
 
                 return []; // return empty array first and update later
@@ -417,7 +421,7 @@
             this.get = function (id, callback) {
 
                 $me.$table.lookup(id).done(function (result) {
-                    
+
                     callback(result);
 
                 }, $me.handleError);
@@ -440,8 +444,8 @@
             $scope.paging = {
 
                 page: 1,
-                size: 25,
-                total: 250,
+                size: 10,
+                total: 20,
             };
 
             controller.$table = $me.$table;
@@ -450,7 +454,7 @@
             controller.del = $me.del;
             controller.delete = $me.del;
             controller.refreshLookup = $me.refreshLookup;
-            
+
             controller.closeAlert = function (index) {
                 $scope.alerts.splice(index, 1);
             };

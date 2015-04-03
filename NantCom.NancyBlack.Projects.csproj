@@ -128,35 +128,8 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
-    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO-Regular.css" />
-    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO-Regular.html" />
-    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.svg" />
-    <Content Include="Content\fonts\2006iannnnnnISO\fontsmoothie.min.js" />
-    <Content Include="Content\fonts\bangna\stylesheet.css" />
-    <Content Include="Content\fonts\bangna\wdb_bangna-demo.html" />
-    <Content Include="Content\fonts\bangna\wdb_bangna.svg" />
-    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem.css" />
-    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem.html" />
-    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.svg" />
-    <Content Include="Content\fonts\bolivia-no-problem\fontsmoothie.min.js" />
-    <Content Include="Content\fonts\Florencesans\florsn02-demo.html" />
-    <Content Include="Content\fonts\Florencesans\florsn02.svg" />
-    <Content Include="Content\fonts\Florencesans\generator_config.txt" />
-    <Content Include="Content\fonts\Florencesans\stylesheet.css" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Content\fonts\fontawesome-webfont.svg" />
-    <Content Include="Content\fonts\pensuk\edpensook-normaltonebold-demo.html" />
-    <Content Include="Content\fonts\pensuk\generator_config.txt" />
-    <Content Include="Content\fonts\pensuk\stylesheet.css" />
-    <Content Include="Content\fonts\quark\fontsmoothie.min.js" />
-    <Content Include="Content\fonts\quark\Quark-Bold.css" />
-    <Content Include="Content\fonts\quark\Quark-Bold.html" />
-    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.svg" />
-    <Content Include="Content\fonts\quark\Quark-Light.css" />
-    <Content Include="Content\fonts\quark\Quark-Light.html" />
-    <Content Include="Content\fonts\quark\Quark-Light_directwrite.svg" />
-    <Content Include="Content\fonts\sparmageddon\SPArmageddon.css" />
-    <Content Include="Content\fonts\sparmageddon\SPArmageddon.svg" />
     <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.min.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils.js" />
@@ -168,22 +141,6 @@
     <Content Include="Modules\ControlsSystem\ncb-Controls.css.map">
       <DependentUpon>ncb-Controls.css</DependentUpon>
     </Content>
-    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.eot" />
-    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.ttf" />
-    <Content Include="Content\fonts\2006iannnnnnISO\2006iannnnnISO_gdi.woff" />
-    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.eot" />
-    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.ttf" />
-    <Content Include="Content\fonts\quark\Quark-Bold_directwrite.woff" />
-    <Content Include="Content\fonts\quark\Quark-Light_directwrite.eot" />
-    <Content Include="Content\fonts\quark\Quark-Light_directwrite.ttf" />
-    <Content Include="Content\fonts\quark\Quark-Light_directwrite.woff" />
-    <Content Include="Content\fonts\sparmageddon\SPArmageddon.eot" />
-    <Content Include="Content\fonts\sparmageddon\SPArmageddon.ttf" />
-    <Content Include="Content\fonts\sparmageddon\SPArmageddon.woff" />
-    <Content Include="Content\fonts\sparmageddon\SPArmageddon.woff2" />
-    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.eot" />
-    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.ttf" />
-    <Content Include="Content\fonts\bolivia-no-problem\Bolivia-No-Problem_directwrite.woff" />
     <Content Include="Content\Views\_basecode.cshtml" />
     <Content Include="Modules\EditorSystem\Views\_include.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-roles.cshtml" />
@@ -608,49 +565,6 @@
     </Content>
     <Content Include="Modules\EditorSystem\Views\editor-ui.cshtml" />
     <Content Include="Content\bootstrap-theme.css.map" />
-    <Content Include="Content\fonts\bangna\source\WDB_Bangna.ttf" />
-    <Content Include="Content\fonts\bangna\wdb_bangna-webfont.eot" />
-    <Content Include="Content\fonts\bangna\wdb_bangna-webfont.ttf" />
-    <Content Include="Content\fonts\bangna\wdb_bangna-webfont.woff" />
-    <Content Include="Content\fonts\bangna\wdb_bangna-webfont.woff2" />
-    <Content Include="Content\fonts\bangna\wdb_bangna.eot" />
-    <Content Include="Content\fonts\bangna\wdb_bangna.ttf" />
-    <Content Include="Content\fonts\bangna\wdb_bangna.woff" />
-    <Content Include="Content\fonts\bangna\wdb_bangna.woff2" />
-    <Content Include="Content\fonts\Florencesans\florsn02.eot" />
-    <Content Include="Content\fonts\Florencesans\florsn02.ttf" />
-    <Content Include="Content\fonts\Florencesans\florsn02.woff" />
-    <Content Include="Content\fonts\Florencesans\florsn02.woff2" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn01.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn02.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn03.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn04.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn05.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn06.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn07.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn08.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn09.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn10.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn11.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn12.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn13.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn14.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn15.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn16.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn33.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn34.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn37.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn38.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn41.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn42.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn45.ttf" />
-    <Content Include="Content\fonts\Florencesans\source\Florsn46.ttf" />
-    <Content Include="Content\fonts\pensuk\EDPenSook-NormalTone.ttf" />
-    <Content Include="Content\fonts\pensuk\edpensook-normaltonebold-webfont.eot" />
-    <Content Include="Content\fonts\pensuk\edpensook-normaltonebold-webfont.ttf" />
-    <Content Include="Content\fonts\pensuk\edpensook-normaltonebold-webfont.woff" />
-    <Content Include="Content\fonts\pensuk\edpensook-normaltonebold-webfont.woff2" />
-    <Content Include="Content\fonts\pensuk\EDPenSook-NormalToneBold.ttf" />
     <Content Include="Content\Scripts\thaiprovinces\.git" />
     <Content Include="Content\Scripts\thaiprovinces\README.md" />
     <Content Include="Modules\AdminSystem\admin.css.map">
@@ -1590,7 +1504,11 @@
 if $(ConfigurationName) == Debug (
 xcopy /s /y /R "$(SolutionDir)packages\Nancy.Viewengines.Razor.1.1\BuildProviders\Nancy.ViewEngines.Razor.BuildProviders.dll" "$(ProjectDir)bin\"
 xcopy /s /y /R "$(SolutionDir)packages\Nancy.Viewengines.Razor.1.1\lib\Net40\Nancy.ViewEngines.Razor.dll" "$(ProjectDir)bin\"
-)</PostBuildEvent>
+)
+
+$(SolutionDir)\GenNuspec\bin\Debug\GenNuspec.exe
+
+</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
