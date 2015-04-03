@@ -1415,7 +1415,12 @@
     <Content Include="Content\Scripts\angular-ui\ui-bootstrap.js" />
     <Content Include="Content\Scripts\angular-ui\ui-bootstrap.min.js" />
     <Content Include="Content\Scripts\npm.js" />
+    <Content Include="Site\controllers\placeholder.txt" />
+    <Content Include="Site\modules\placeholder.txt" />
     <Content Include="Site\SiteFileGoesHere.txt" />
+    <Content Include="Site\styles\images\placeholder.txt" />
+    <Content Include="Site\styles\placeholder.txt" />
+    <Content Include="Site\views\placeholder.txt" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
