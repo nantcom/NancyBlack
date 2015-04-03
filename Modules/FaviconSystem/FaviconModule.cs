@@ -1,6 +1,4 @@
-﻿using ImageProcessor;
-using ImageProcessor.Imaging.Formats;
-using Nancy;
+﻿using Nancy;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,7 +18,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
 
         private dynamic CreateIcon(dynamic arg)
         {
-            var sourceFile = Path.Combine(this.GetSiteFolder(), "favicon.png");
+            var sourceFile = Path.Combine(this.RootPath, "Content", "favicon.png");
 
             if (File.Exists(sourceFile) == false)
             {

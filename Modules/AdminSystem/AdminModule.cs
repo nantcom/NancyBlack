@@ -10,6 +10,8 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Web;
+using Newtonsoft.Json.Linq;
+using System.Runtime.Caching;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -42,18 +44,15 @@ namespace NantCom.NancyBlack.Modules
             Get["/Admin/sitesettings"] = this.HandleStaticRequest("admin-sitesettings", null);
             Post["/Admin/sitesettings/current"] = this.HandleRequest((arg) =>
             {
-                var input = arg.body.Value;
-                dynamic original = this.SharedDatabase.GetById("Site", (int)input.Id);
-                
-                // protect integrity of some data
-                input.HostName = original.HostName;
-                input.Alias = original.Alias;
-                input.ExpireDate = original.ExpireDate;
-                input.RegisteredDate = original.RegisteredDate;
-                input.__createdAt = original.__createdAt;
+                var input = arg.body.Value as JObject;
+                var settingsFile = Path.Combine(_RootPath, "App_Data", "sitesettings.json");
 
-                return this.SharedDatabase.UpsertRecord("Site", input);
+                File.Copy( settingsFile, settingsFile + ".bak");
+                File.WriteAllText(settingsFile, input.ToString());
 
+                MemoryCache.Default["CurrentSite"] = input;
+
+                return input;
             });
 
             Get["/tables/DataType"] = this.HandleListDataTypeRequest(()=> this.SiteDatabase);

@@ -2,12 +2,25 @@
 using Nancy.Authentication.Forms;
 using Nancy.Bootstrapper;
 using Nancy.TinyIoc;
-using Newtonsoft.Json;
 using NantCom.NancyBlack.Modules;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json;
+using System;
+using System.Data.SqlServerCe;
+using System.IO;
+using System.Runtime.Caching;
 using System.Text.RegularExpressions;
+using SisoDb.SqlCe4;
+using Newtonsoft.Json.Linq;
+using NantCom.NancyBlack.Modules.MembershipSystem;
 
 namespace NantCom.NancyBlack.Configuration
 {
+    public interface IPipelineHook
+    {
+        void Hook(IPipelines p);
+    }
+
     public class BootStrapper : DefaultNancyBootstrapper
     {
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
@@ -17,12 +30,16 @@ namespace NantCom.NancyBlack.Configuration
             StaticConfiguration.DisableErrorTraces = false;
             StaticConfiguration.Caching.EnableRuntimeViewDiscovery = true;
             StaticConfiguration.Caching.EnableRuntimeViewUpdates = true;
-            
+
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
+            // create App_Data
+            Directory.CreateDirectory(Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data"));
+            Directory.CreateDirectory(Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data", "Attachments"));
+
             ModuleResource.ReadSystemsAndResources(this.RootPathProvider.GetRootPath());
 
             #region View Conventions
@@ -33,18 +50,10 @@ namespace NantCom.NancyBlack.Configuration
             // Mobile View Overrides
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                if (context.Context.Items.ContainsKey("CurrentSite") == false)
-                {
-                    return string.Empty;
-                }
-
                 string u = context.Context.Request.Headers.UserAgent.ToLowerInvariant();
-                if (u.Contains( "mobile/" ))
+                if (u.Contains("mobile/"))
                 {
-                    return string.Concat("Sites/",
-                                            ((dynamic)context.Context.Items["CurrentSite"]).HostName,
-                                            "/Views/Mobile/",
-                                            viewName);
+                    return "Site/Views/Mobile/" + viewName;
                 }
 
                 return string.Empty; // not mobile browser
@@ -54,29 +63,20 @@ namespace NantCom.NancyBlack.Configuration
             // Desktop View Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                if (context.Context.Items.ContainsKey("CurrentSite") == false)
-                {
-                    return string.Empty;
-                }
-
-                return string.Concat("Sites/",
-                                        ((dynamic)context.Context.Items["CurrentSite"]).HostName,
-                                        "/Views/Desktop/",
-                                        viewName);
+                return "Site/Views/Desktop/" + viewName;
             });
 
             // Generic View Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                if (context.Context.Items.ContainsKey("CurrentSite") == false)
-                {
-                    return string.Empty;
-                }
+                return "Site/Views/" + viewName;
+            });
 
-                return string.Concat("Sites/",
-                                        ((dynamic)context.Context.Items["CurrentSite"]).HostName, 
-                                        "/Views/",
-                                        viewName);
+            // NancyBlack's View Location
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+
+                return "Content/Views/" + viewName;
             });
 
             // then try Views in Systems (AdminSystem, ContentSystem etc...)
@@ -96,38 +96,6 @@ namespace NantCom.NancyBlack.Configuration
                 });
             }
 
-
-            // and outside
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                if (context.Context.Items.ContainsKey("CurrentSite") == false )
-                {
-                    return string.Empty;
-                }
-
-                return string.Concat( "Sites/",
-                                        ((dynamic)context.Context.Items["CurrentSite"]).HostName, "/",
-                                        viewName );
-            });
-
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                if (context.Context.Items.ContainsKey("CurrentSite") == false)
-                {
-                    return string.Empty;
-                }
-
-                return string.Concat("Content/Themes/",
-                                        ((dynamic)context.Context.Items["CurrentSite"]).Theme, "/",
-                                        viewName);
-            });
-
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                return string.Concat( "Content/Views/",
-                                        viewName ); // part of the name
-            });
-
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
                 return viewName; // fully qualify names
@@ -139,16 +107,115 @@ namespace NantCom.NancyBlack.Configuration
             });
 
             #endregion
-            
+
             var formsAuthConfiguration = new FormsAuthenticationConfiguration
             {
                 RedirectUrl = "~/__membership/login",
                 UserMapper = container.Resolve<IUserMapper>(),
             };
-            FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
 
-            SuperAdminModule.Initialize(this.RootPathProvider.GetRootPath(), pipelines);
+            pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
+            {
+                ctx.Items["SiteDatabase"] = this.GetSiteDatabase(ctx);
+
+                if (MemoryCache.Default["CurrentSite"] != null)
+                {
+                    ctx.Items["CurrentSite"] = MemoryCache.Default["CurrentSite"];
+                }
+                else
+                {
+                    var settingsFile = Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data", "sitesettings.json");
+                    var json = File.ReadAllText(settingsFile);
+
+                    var settingsObject = JObject.Parse(json);
+                    MemoryCache.Default["CurrentSite"] = settingsObject;
+
+                    ctx.Items["CurrentSite"] = settingsObject;
+                }
+
+                ctx.CurrentUser = NancyBlackUser.Anonymous;
+                if (ctx.Request.Url.HostName == "localhost")
+                {
+                    ctx.CurrentUser = NancyBlackUser.LocalHostAdmin;
+                }
+
+                return null;
+            });
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(this.CleanupRequest);
+
+            container.Resolve<IPipelineHook>().Hook(pipelines);
+
+            FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
             DataWatcherModule.Initialize(pipelines);
+        }
+
+
+        /// <summary>
+        /// Gets site database from given Context
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <returns></returns>
+        private NancyBlackDatabase GetSiteDatabase(NancyContext ctx)
+        {
+            var key = "SiteDatabase";
+            lock (key)
+            {
+                var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
+                if (cached != null)
+                {
+                    ctx.Items["SiteDatabase"] = cached;
+                    return cached;
+                }
+
+                var path = Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data");
+                Directory.CreateDirectory(path);
+
+                var fileName = Path.Combine(path, "Data.sdf");
+                var connectionString = "Data Source=" + fileName + ";Persist Security Info=False";
+
+                try
+                {
+                    SqlCeEngine engine = new SqlCeEngine(connectionString);
+
+                    engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
+                    engine.Compact(connectionString);
+                }
+                catch (Exception)
+                {
+                }
+
+                var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
+                cached = new NancyBlackDatabase(sisodb);
+
+                // cache in memory and in current request
+                MemoryCache.Default.Add(key, cached, DateTimeOffset.MaxValue);
+                ctx.Items["SiteDatabase"] = cached;
+
+
+                return cached;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        private void CleanupRequest(NancyContext ctx)
+        {
+            if (ctx.Items.ContainsKey("Exception"))
+            {
+                var ex = ctx.Items["Exception"] as SqlCeException;
+                if (ex != null)
+                {
+                    // has exception related to sql ce - database is maybe already in faulted state
+                    // remove the cached nancyblack database
+                    // to force database to restart
+                    MemoryCache.Default.Remove("SiteDatabase");
+                }
+
+            }
         }
 
     }

@@ -17,7 +17,7 @@ namespace NantCom.NancyBlack
         /// <value>
         /// The request.
         /// </value>
-        public Nancy.Request Request
+        public new Nancy.Request Request
         {
             get
             {

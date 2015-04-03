@@ -39,15 +39,6 @@ namespace NantCom.NancyBlack.Modules
 
             Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
 
-
-            Get["/system/tables/{table_name}"] = this.HandleRequestForSharedDatabase(this.HandleQueryRequest);
-
-            Post["/system/tables/{table_name}"] = this.HandleRequestForSharedDatabase(this.HandleInsertUpdateRequest);
-
-            Patch["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleInsertUpdateRequest);
-
-            Delete["/system/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSharedDatabase(this.HandleDeleteRecordRequest);
-
             // Files
 
             Get["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileListRequest;
@@ -56,20 +47,11 @@ namespace NantCom.NancyBlack.Modules
 
             Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
 
-            // Special Handling for Site, which must update cache
-
-            Post["/system/tables/site"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
-
-            Patch["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleInsertUpdateRequest);
-
-            Delete["/system/tables/site/{item_id:int}"] = this.HandleUpdateRequestForSiteTable(this.HandleDeleteRecordRequest);
-
-
         }
 
         protected string GetAttachmentFolder(string tableName, string id)
         {
-            var path = Path.Combine(this.GetSiteFolder(), "Attachments", tableName, id);
+            var path = Path.Combine(_RootPath, "App_Data", "Attachments", tableName, id);
             Directory.CreateDirectory(path);
 
             return path;
@@ -208,44 +190,12 @@ namespace NantCom.NancyBlack.Modules
 
             return 204;
         }
-
-        protected dynamic HandleRequestForSharedDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
-        {
-            return this.HandleRequest((arg) =>
-            {
-                return action(this.SharedDatabase, arg);
-            });
-        }
-
+        
         protected dynamic HandleRequestForSiteDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
         {
             return this.HandleRequest((arg) =>
             {
                 return action(this.SiteDatabase, arg);
-            });
-        }
-
-        protected dynamic HandleUpdateRequestForSiteTable(Func<NancyBlackDatabase, dynamic, dynamic> action)
-        {
-            return this.HandleRequest((arg) =>
-            {
-                if (arg.item_id != null)
-                {
-                    dynamic modifiedSite = this.SharedDatabase.Query("Site",
-                                            string.Format("Id eq {0}", (string)arg.item_id)).FirstOrDefault();
-
-                    if (modifiedSite != null)
-                    {
-                        MemoryCache.Default.Remove("Site-" + modifiedSite.HostName);
-                        MemoryCache.Default.Remove("Site-" + modifiedSite.Alias);
-                        MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.HostName);
-                        MemoryCache.Default.Remove("SiteDatabse-" + modifiedSite.Alias);
-                    }
-                }
-
-                arg.table_name = "site";
-
-                return action(this.SharedDatabase, arg);
             });
         }
 

@@ -27,8 +27,6 @@ namespace NantCom.NancyBlack.Modules
 
         public NancyBlackDatabase Database { get; set; }
 
-        public NancyBlackDatabase SharedDatabase { get; set; }
-
         private dynamic _Content;
 
         public dynamic Content
@@ -76,7 +74,7 @@ namespace NantCom.NancyBlack.Modules
         }
 
         /// <summary>
-        /// Gets the currently requesting site.
+        /// Gets the current site information
         /// </summary>
         /// <value>
         /// The site.
@@ -102,20 +100,6 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 return this.Context.CurrentUser as NancyBlackUser;
-            }
-        }
-
-        /// <summary>
-        /// Gets the shared database.
-        /// </summary>
-        /// <value>
-        /// The shared database.
-        /// </value>
-        protected NancyBlackDatabase SharedDatabase
-        {
-            get
-            {
-                return (NancyBlackDatabase)this.Context.Items["SharedDatabase"];
             }
         }
 
@@ -157,15 +141,6 @@ namespace NantCom.NancyBlack.Modules
         }
 
         /// <summary>
-        /// Gets the site's folder
-        /// </summary>
-        /// <returns></returns>
-        protected string GetSiteFolder()
-        {
-            return Path.Combine(this.RootPath, "Sites", (string)this.CurrentSite.HostName);
-        }
-
-        /// <summary>
         /// Gets the standard model which require for NancyBlackRazorViewBase
         /// </summary>
         /// <param name="content">The content.</param>
@@ -174,9 +149,7 @@ namespace NantCom.NancyBlack.Modules
         {
             return new StandardModel()
             {
-                Site = this.CurrentSite,
                 Database = this.SiteDatabase,
-                SharedDatabase = this.SharedDatabase,
                 Content = content
             };
 
