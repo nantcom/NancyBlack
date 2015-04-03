@@ -1401,7 +1401,6 @@
     <None Include="Properties\PublishProfiles\Level51PAck.pubxml" />
     <None Include="Properties\PublishProfiles\NantCom.pubxml" />
     <None Include="Properties\PublishProfiles\Package.pubxml" />
-    <Content Include="Site\Views\Home.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

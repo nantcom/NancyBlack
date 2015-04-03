@@ -43,8 +43,18 @@ body {
     background-color: #f5f5f5;
     border-right: 1px solid #eee;
   }
+}
+.main > .row {
+  margin-top: 20px;
+}
+@media (min-width: 768px) and (max-width: 991px) {
   .main > .row {
     margin-left: 175px;
+  }
+}
+@media (min-width: 992px) {
+  .main > .row {
+    margin-left: 20px;
   }
 }
 /* Sidebar navigation */
