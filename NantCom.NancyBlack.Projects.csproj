@@ -130,6 +130,7 @@
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Content\fonts\fontawesome-webfont.svg" />
+    <Content Include="Content\Scripts\MobileServices.Web-1.2.5.min.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.min.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils.js" />
@@ -603,7 +604,6 @@
     <Content Include="Content\Scripts\jQuery.FileDrop.js" />
     <Content Include="Modules\AdminSystem\Views\admin-tables.cshtml" />
     <Content Include="Modules\AdminSystem\Views\_admin.cshtml" />
-    <Content Include="Content\Scripts\MobileServices.Web-1.1.5.min.js" />
     <Content Include="Modules\DatabaseSystem\ncb-database.js" />
     <Content Include="Modules\MembershipSystem\Views\ncb-membership-addressedit.cshtml" />
     <Content Include="Modules\MembershipSystem\Views\membership-login.cshtml" />
