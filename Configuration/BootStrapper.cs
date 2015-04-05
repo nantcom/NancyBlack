@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using SisoDb.SqlCe4;
 using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.MembershipSystem;
+using System.Collections.Generic;
 
 namespace NantCom.NancyBlack.Configuration
 {
@@ -117,21 +118,7 @@ namespace NantCom.NancyBlack.Configuration
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
                 ctx.Items["SiteDatabase"] = this.GetSiteDatabase(ctx);
-
-                if (MemoryCache.Default["CurrentSite"] != null)
-                {
-                    ctx.Items["CurrentSite"] = MemoryCache.Default["CurrentSite"];
-                }
-                else
-                {
-                    var settingsFile = Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data", "sitesettings.json");
-                    var json = File.ReadAllText(settingsFile);
-
-                    var settingsObject = JObject.Parse(json);
-                    MemoryCache.Default["CurrentSite"] = settingsObject;
-
-                    ctx.Items["CurrentSite"] = settingsObject;
-                }
+                ctx.Items["CurrentSite"] = this.GetSiteSettings(ctx);
 
                 ctx.CurrentUser = NancyBlackUser.Anonymous;
                 if (ctx.Request.Url.HostName == "localhost")
@@ -200,6 +187,32 @@ namespace NantCom.NancyBlack.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the site settings
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        private dynamic GetSiteSettings(NancyContext ctx)
+        {
+            if (MemoryCache.Default["CurrentSite"] != null)
+            {
+                return MemoryCache.Default["CurrentSite"];
+            }
+            else
+            {
+                var settingsFile = Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data", "sitesettings.json");
+                var json = File.ReadAllText(settingsFile);
+
+                var settingsObject = JObject.Parse(json);
+
+                var cachePolicy = new CacheItemPolicy();
+                cachePolicy.ChangeMonitors.Add(new HostFileChangeMonitor( new List<string>() { settingsFile } ));
+                MemoryCache.Default.Add("CurrentSite", settingsObject, cachePolicy);
+
+                return settingsObject;
+            }
+        }
+        
         /// <summary>
         /// 
         /// </summary>

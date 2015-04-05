@@ -18,12 +18,7 @@ namespace NantCom.NancyBlack.Modules
         {
             _RootPath = rootPath.GetRootPath();
 
-            Get["/__role/{roleName}/{path*}"] = this.HandleProtectedContentRequest(this.HandleContentRequest);
-
-            Get["/__role/{roleName}"] = this.HandleProtectedContentRequest(this.HandleContentRequest);
-
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
-
 
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
         }
@@ -55,52 +50,13 @@ namespace NantCom.NancyBlack.Modules
             }
             File.Copy(sourceFile, layoutFilename);
         }
-
-        protected Func<dynamic, dynamic> HandleProtectedContentRequest(Func<dynamic, dynamic> action)
-        {
-            return (arg) =>
-            {
-                if (this.CurrentUser.IsAnonymous)
-                {
-                    return 401;
-                }
-
-                var role = (string)arg.roleName;
-                var path = (string)arg.path;
-
-                if (this.CurrentUser.HasClaim(role) == false)
-                {
-                    return 403;
-                }
-
-                UserManager.Current.EnsureRoleRegistered(this.Context, role);
-
-                return action(new
-                {
-                    path = "__role/" + role + "/" + path,
-                    roleName = role
-                });
-            };
-        }
-
+        
         protected dynamic HandleContentRequest(dynamic arg)
         {
             var url = (string)arg.path;
-            if (url == "/" || url == null)
+            if (url == null)
             {
                 url = "/";
-            }
-
-            if (url.StartsWith("Admin/", StringComparison.InvariantCultureIgnoreCase))
-            {
-                // reached this page by error
-                return 404;
-            }
-
-            if (this.CurrentSite.SiteType == "SuperAdmin")
-            {
-                // reached this page by error
-                return 404;
             }
 
             dynamic requestedContent = this.SiteDatabase.Query("Content",
@@ -118,18 +74,29 @@ namespace NantCom.NancyBlack.Modules
                     return 404;
                 }
 
-                var layout = url == "/home" ? "Home" : "Content";
-                if (arg.roleName != null)
-                {
-                    layout = arg.roleName + "/" + layout;
-                }
-
                 requestedContent = this.SiteDatabase.UpsertRecord("Content", new
                 {
                     Id = 0,
                     Url = url,
-                    Layout = layout
+                    Layout = "Content",
+                    RequiredClaims = string.Empty
                 });
+            }
+
+            if (string.IsNullOrEmpty( (string)requestedContent.RequiredClaims ) == false)
+            {
+                var required = ((string)requestedContent.RequiredClaims).Split(',');
+                var user = this.Context.CurrentUser as NancyBlackUser;
+                if ( required.Any( c => user.HasClaim(c) ) == false)
+                {
+                    // user does not have any required claims
+                    if (this.Context.CurrentUser == NancyBlackUser.Anonymous)
+                    {
+                        return 401;
+                    }
+
+                    return 403;
+                }
             }
 
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
