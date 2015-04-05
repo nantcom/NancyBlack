@@ -64,21 +64,32 @@ namespace NantCom.NancyBlack.Modules
 
             if (requestedContent == null)
             {
+                // won't generate path which contains extension
+                // as user might be requesting file
                 if (string.IsNullOrEmpty(Path.GetExtension(url)) == false)
                 {
                     return 404;
                 }
 
+                // only admin can generate
                 if (this.CurrentUser.HasClaim("admin") == false)
                 {
                     return 404;
+                }
+
+                // if Site contains layout with the same name as path, use it
+                var layout = "Content";
+                var layoutFile = Path.Combine(_RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
+                if (File.Exists( layoutFile ))
+                {
+                    layout = url;
                 }
 
                 requestedContent = this.SiteDatabase.UpsertRecord("Content", new
                 {
                     Id = 0,
                     Url = url,
-                    Layout = "Content",
+                    Layout = layout,
                     RequiredClaims = string.Empty
                 });
             }
