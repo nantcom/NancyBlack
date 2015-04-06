@@ -4,12 +4,28 @@
 }
 
 <div class="row" style="margin-top: 100px">
-    <div class="col-md-8" @this.EditAttributes( "FullText" )>
-        <h2>Heading</h2>
-        <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-        <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    <div class="col-md-8" @this.EditAttributes("FullText")>
+        @if (this.Content.FullText == null)
+        {
+            <h2>Heading</h2>
+            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        }
+        else
+        {
+            @this.GetContent("FullText")
+        }
     </div>
-    <div class="col-md-4">
-        Sidebar
+    <div class="col-md-4" @this.EditAttributes("Sidebar")>
+        @if (this.Content.FullText == null)
+        {
+            <h2>Heading</h2>
+            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        }
+        else
+        {
+            @this.Html.Raw((string)this.Content.Sidebar)
+        }
     </div>
 </div>
