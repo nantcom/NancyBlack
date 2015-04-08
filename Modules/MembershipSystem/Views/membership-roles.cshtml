@@ -20,27 +20,7 @@
     <p>
         This page allows you to assign user to be a particular role within NancyBlack system.
     </p>
-
-
-    <tabset>
-        <tab heading="all" ng-click="ctrl.filter()"></tab>
-        @{
-            var roles = "admin,editor";
-            if (this.Site.Roles != null)
-	        {
-                roles += "," + this.Site.Roles;
-            }
-
-            var rolesArray = roles.Split(',');
-        }
-
-        @foreach (var item in rolesArray)
-        {
-            <tab heading="@(item)" ng-click="ctrl.filter('@(item)')"></tab>
-        }
-    </tabset>
-
-
+    
     <table class="table table-striped" ng-cloak>
         <thead>
             <tr>
@@ -110,12 +90,10 @@
 
             </td>
             <td>
-                <select class="form-control" ng-model="newitem.Claim">
-                    @foreach (var item in rolesArray)
-                    {
-                        <option>item</option>
-                    }
-                </select>
+
+                <input ncb-textbox
+                       ng-model="newitem.Claim"
+                       placeholder="admin, etc." />
             </td>
             <td>
                 <input ncb-textbox

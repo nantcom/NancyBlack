@@ -114,16 +114,22 @@ namespace NantCom.NancyBlack.Configuration
                 RedirectUrl = "~/__membership/login",
                 UserMapper = container.Resolve<IUserMapper>(),
             };
+            FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
+
+            DataWatcherModule.Initialize(pipelines);
 
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
                 ctx.Items["SiteDatabase"] = this.GetSiteDatabase(ctx);
                 ctx.Items["CurrentSite"] = this.GetSiteSettings(ctx);
 
-                ctx.CurrentUser = NancyBlackUser.Anonymous;
-                if (ctx.Request.Url.HostName == "localhost")
+                if (ctx.CurrentUser == null)
                 {
-                    ctx.CurrentUser = NancyBlackUser.LocalHostAdmin;
+                    ctx.CurrentUser = NancyBlackUser.Anonymous;
+                    if (ctx.Request.Url.HostName == "localhost")
+                    {
+                        ctx.CurrentUser = NancyBlackUser.LocalHostAdmin;
+                    }
                 }
 
                 return null;
@@ -136,8 +142,6 @@ namespace NantCom.NancyBlack.Configuration
                 container.Resolve<IPipelineHook>().Hook(pipelines);
             }
 
-            FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
-            DataWatcherModule.Initialize(pipelines);
         }
 
 

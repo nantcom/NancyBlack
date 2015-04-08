@@ -61,6 +61,15 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         }
 
         /// <summary>
+        /// All properties of user from database
+        /// </summary>
+        public dynamic Info
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Determine whether user has give claim.
         /// If user has admin claim, this method always return true
         /// </summary>
@@ -69,10 +78,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public bool HasClaim( string claim )
         {
             // admin has all claim
-            if (this.Claims.Contains("admin"))
-            {
-                return true;
-            }
+            //if (this.Claims.Contains("admin"))
+            //{
+            //    return true;
+            //}
             return this.Claims.Contains(claim);
         }
         

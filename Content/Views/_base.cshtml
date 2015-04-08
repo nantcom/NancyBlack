@@ -55,10 +55,9 @@
             src: url(data:application/font-woff;charset=utf-8;base64,d09GRk9UVE8AAAQ0AAoAAAAAA+wAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABDRkYgAAAA9AAAAJ4AAACeXQ48j09TLzIAAAGUAAAAYAAAAGAIIgbWY21hcAAAAfQAAABEAAAARAAyAGlnYXNwAAACOAAAAAgAAAAIAAAAEGhlYWQAAAJAAAAANgAAADb9mzB5aGhlYQAAAngAAAAkAAAAJAHiAeVobXR4AAACnAAAABAAAAAQAAAAAG1heHAAAAKsAAAABgAAAAYABFAAbmFtZQAAArQAAAFdAAABXVqZXRlwb3N0AAAEFAAAACAAAAAgAAMAAAEABAQAAQEBDHNwYWNlLWVtcHR5AAECAAEAOvgcAvgbA/gYBB4KABlT/4uLHgoAGVP/i4sMB4tr+JT4dAUdAAAAfA8dAAAAgREdAAAACR0AAACVEgAFAQEMFxkbHnNwYWNlLWVtcHR5c3BhY2UtZW1wdHl1MHUxdTIwAAACAYkAAgAEAQEEBwoN/JQO/JQO/JQO/JQO+JQU+JQViwwKAAAAAwIAAZAABQAAAUwBZgAAAEcBTAFmAAAA9QAZAIQAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAABAAAAAIAHg/+D/4AHgACAAAAABAAAAAAAAAAAAAAAgAAAAAAACAAAAAwAAABQAAwABAAAAFAAEADAAAAAIAAgAAgAAAAEAIP/9//8AAAAAACD//f//AAH/4wADAAEAAAAAAAAAAAABAAH//wAPAAEAAAABAAAAeR2GXw889QALAgAAAAAAzz54vgAAAADPPni+AAAAAAAAAAAAAAAIAAIAAAAAAAAAAQAAAeD/4AAAAgAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAABQAAAEAAAAAAAOAK4AAQAAAAAAAQAWAAAAAQAAAAAAAgAOAGMAAQAAAAAAAwAWACwAAQAAAAAABAAWAHEAAQAAAAAABQAWABYAAQAAAAAABgALAEIAAQAAAAAACgAoAIcAAwABBAkAAQAWAAAAAwABBAkAAgAOAGMAAwABBAkAAwAWACwAAwABBAkABAAWAHEAAwABBAkABQAWABYAAwABBAkABgAWAE0AAwABBAkACgAoAIcAcwBwAGEAYwBlAC0AZQBtAHAAdAB5AFYAZQByAHMAaQBvAG4AIAAxAC4AMABzAHAAYQBjAGUALQBlAG0AcAB0AHlzcGFjZS1lbXB0eQBzAHAAYQBjAGUALQBlAG0AcAB0AHkAUgBlAGcAdQBsAGEAcgBzAHAAYQBjAGUALQBlAG0AcAB0AHkARwBlAG4AZQByAGEAdABlAGQAIABiAHkAIABJAGMAbwBNAG8AbwBuAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=) format('woff');
         }
     </style>
-</head>
-<body>
 
-    @RenderBody()
+    <!-- String Format -->
+    <script src="/Content/Scripts/stringformat/stringformat-1.09.min.js"></script>
 
     <script src="/Content/Scripts/jquery-2.1.1.js"></script>
     <script src="/Content/Scripts/bootstrap.js"></script>
@@ -67,7 +66,6 @@
     <script src="/Content/Scripts/angular-sanitize.js"></script>
     <script src="/Content/Scripts/angular-cookies.min.js"></script>
     <script src="/Content/Scripts/angular-ui/ui-bootstrap-tpls.js"></script>
-
     <script src="/Content/Scripts/MobileServices.Web-1.2.5.min.js"></script>
 
     <!-- Angular UI Modules -->
@@ -77,9 +75,11 @@
     <!-- Thai Province List -->
     <script src="/Content/Scripts/thaiprovinces/angular-thaiprovinces.js"></script>
 
-    <!-- Sortable UI -->
-    <script src="/Content/Scripts/angular-ui-sortable/jquery-ui.min.js"></script>
-    <script src="/Content/Scripts/angular-ui-sortable/angular-ui-sortable.min.js"></script>
+
+</head>
+<body>
+
+    @RenderBody()
 
     @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
 
@@ -93,11 +93,20 @@
     @RenderSection("Scripts", false)
     @RenderSection("Script", false)
 
+    @if (this.CurrentUser != null && this.CurrentUser.Info != null)
+    {
+        <script>
+
+            // automatically set current user info into window variable
+            window.currentUser =  @this.Html.Raw( this.CurrentUser.Info.ToString() );
+
+        </script>
+    }
+
     <script>
         // Querystring extraction function
         (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
         
-
         // combine all ng-module into one attribute on top of the page
         // too allow all modules to function
         var modules = [];

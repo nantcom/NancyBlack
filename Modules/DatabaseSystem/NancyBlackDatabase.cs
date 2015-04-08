@@ -10,7 +10,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
-using SisoDb.Dynamic;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -52,41 +51,33 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
         {
             var parser = new ParameterParser<T>();
-            var queryable = _db.BeginSession().Query(typeof(T));
-            
-            try
+            var queryable = _db.BeginSession().Query<T>();
+
+            var modelFilter = parser.Parse(odataFilter);
+
+            if (odataFilter["$filter"] != null)
             {
-                var modelFilter = parser.Parse(odataFilter);
-
-                if (odataFilter["$filter"] != null)
-                {
-                    queryable = queryable.Where(modelFilter.FilterExpression.ToString());
-
-                }
-
-                var sortExpressions = (from sort in modelFilter.SortDescriptions
-                                       where sort != null
-                                       select sort.KeySelector.ToString()).ToArray();
-
-                foreach (var item in sortExpressions)
-                {
-                    queryable = queryable.OrderBy(item.ToString());
-                }
-
-                if (modelFilter.SkipCount > 0 && modelFilter.TakeCount == 0)
-                {
-                    queryable = queryable.Page(1, modelFilter.SkipCount);
-                }
-
-                if (modelFilter.SkipCount > 0 && modelFilter.TakeCount > 0)
-                {
-                    queryable = queryable.Page(modelFilter.SkipCount / modelFilter.TakeCount, modelFilter.TakeCount);
-                }
+                queryable = queryable.Where(modelFilter.FilterExpression);
 
             }
-            catch (Exception)
+
+            var sortExpressions = (from sort in modelFilter.SortDescriptions
+                                   where sort != null
+                                   select sort.KeySelector).ToArray();
+
+            foreach (var item in sortExpressions)
             {
-                // cannot create query - just ignores them
+                //queryable = queryable.OrderBy(item);
+            }
+
+            if (modelFilter.SkipCount > 0 && modelFilter.TakeCount == 0)
+            {
+                queryable = queryable.Page(1, modelFilter.SkipCount);
+            }
+
+            if (modelFilter.SkipCount > 0 && modelFilter.TakeCount > 0)
+            {
+                queryable = queryable.Page(modelFilter.SkipCount / modelFilter.TakeCount, modelFilter.TakeCount);
             }
 
             return queryable.ToListOfJson();

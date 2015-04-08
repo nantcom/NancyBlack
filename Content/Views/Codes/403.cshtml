@@ -19,45 +19,12 @@
         </ul>
     </p>
 
-    @if (this.Request.Url.Path.IndexOf("/admin", StringComparison.InvariantCultureIgnoreCase) == 0 &&
-     this.RenderContext.Context.CurrentUser != null &&
-     this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NancyBlackUser.Anonymous)
+    @if (this.RenderContext.Context.CurrentUser != null &&
+          this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NancyBlackUser.Anonymous)
     {
-        <text>
 
-            <button data-toggle="modal" data-target="#enrollModal" class="btn btn-primary btn-lg">
-                Have Code?
-            </button>
-
-            <!-- Modal -->
-            <div class="modal fade" id="enrollModal" tabindex="-1" role="dialog" aria-labelledby="enrollModalLabel" aria-hidden="true">
-
-                <form method="post" action="/Admin/__enroll">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" id="enrollModalLabel">Enter Code</h4>
-                            </div>
-                            <div class="modal-body">
-
-                                <div class="form-group">
-                                    <label class="control-label">Code</label>
-                                    <input type="text" name="code" class="form-control" placeholder="Enroll Code" />
-                                </div>
-
-
-                            </div>
-                            <div class="modal-footer">
-                                <input type="submit" class="btn btn-lg btn-success" value="Enroll" />
-                            </div>
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-
-
-        </text>
+        <a class="btn btn-lg btn-success" href="/__membership/enroll">
+            Have Code?
+        </a>
     }
 </div>

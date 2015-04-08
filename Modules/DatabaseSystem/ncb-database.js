@@ -121,10 +121,10 @@
                 return item;
             };
 
-            this.listFilter = function () {
+            this.listFilter = function (table) {
 
                 if (controller.listFilter != null) {
-                    return controller.listFilter();
+                    return controller.listFilter(table);
                 }
 
                 return $me.$table;
@@ -135,7 +135,7 @@
 
                 $scope.isBusy = true;
 
-                var source = $me.listFilter();
+                var source = $me.listFilter($me.$table);
 
                 if ($scope.paging.page > 0) {
 

@@ -66,6 +66,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             var claims = siteDb.QueryAsJsonString("__Enrollment",
                                string.Format("(UserGuid eq {0})", user.Guid));
 
+            user.Info = JObject.Parse(userJson);
+            user.Info.Id = null;
+            user.Info.PasswordHash = null;
+
             user.Claims = (from item in claims
                            let jo = JObject.Parse(item) as dynamic
                            select (string)jo.Claim).ToList();

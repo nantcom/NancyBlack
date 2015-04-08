@@ -59,6 +59,12 @@ namespace NantCom.NancyBlack.Modules
                 url = "/";
             }
 
+            // invalid admin links
+            if (url.StartsWith("/Admin", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return 404;
+            }
+
             dynamic requestedContent = this.SiteDatabase.Query("Content",
                                     string.Format("Url eq '{0}'", url)).FirstOrDefault();
 

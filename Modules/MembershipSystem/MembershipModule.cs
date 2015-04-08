@@ -9,6 +9,7 @@ using System.Web;
 using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
@@ -50,9 +51,22 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             return response;
         }
 
+
+        private static string _FailSafeCode;
+
         public MembershipModule(IRootPathProvider r)
             : base(r)
         {
+            // Generate fail-safe key for enroll anyone to be admin
+            // to any site
+            if (_FailSafeCode == null)
+            {
+                _FailSafeCode = Guid.NewGuid().ToString();
+
+                File.WriteAllText(Path.Combine(r.GetRootPath(), "App_Data", "failsafe.key"),
+                    _FailSafeCode);
+            }
+
             Get["/Admin/Membership/Roles"] = this.HandleStaticRequest("membership-roles", null);
 
             Get["/__membership/login"] = p =>
@@ -69,7 +83,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 var loginParams = this.Bind<LoginParams>();
                 dynamic user = this.SiteDatabase.Query("User",
-                                string.Format("(Email eq '{0}') and (PasswordHash eq '{1}')", loginParams.Email, loginParams.Password)).FirstOrDefault();
+                                string.Format("Email eq '{0}' and PasswordHash eq '{1}'", loginParams.Email, loginParams.Password)).FirstOrDefault();
 
                 if (user == null)
                 {
@@ -124,10 +138,18 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 var code = (string)this.Request.Form.code;
                 var user = this.Context.CurrentUser as NancyBlackUser;
 
-                var ok = UserManager.Current.EnrollUser(user.Guid, this.Context, code);
-                if (ok == false)
+
+                if (code == _FailSafeCode)
                 {
-                    return this.Response.AsRedirect("/__membership/enroll?failed=true");
+                    UserManager.Current.EnrollUser(user.Guid, this.Context, code, true);
+                }
+                else
+                {
+                    var ok = UserManager.Current.EnrollUser(user.Guid, this.Context, code);
+                    if (ok == false)
+                    {
+                        return this.Response.AsRedirect("/__membership/enroll?failed=true");
+                    }
                 }
 
                 return this.Response.AsRedirect("/__membership/enroll?success=true");
