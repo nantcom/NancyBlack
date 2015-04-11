@@ -13,6 +13,7 @@ namespace NantCom.NancyBlack.Configuration
             this.NullValueHandling = NullValueHandling.Include;
             this.DefaultValueHandling = DefaultValueHandling.Include;
             this.Formatting = Formatting.None;
+            this.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Objects;
         }
     }
 }

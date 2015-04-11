@@ -2,6 +2,7 @@
 using Nancy.Authentication.Forms;
 using Nancy.TinyIoc;
 using Nancy.ViewEngines;
+using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
@@ -61,6 +62,8 @@ namespace NantCom.NancyBlack.Modules
 
     public abstract class BaseModule : NancyModule
     {
+        protected CustomJsonSerializer _Serializer = new CustomJsonSerializer();
+
         /// <summary>
         /// Gets the root path.
         /// </summary>
@@ -171,9 +174,10 @@ namespace NantCom.NancyBlack.Modules
                     model = modelGetter();
                 }
 
-                return View[view, this.GetModel( model )];
+                return View[view, this.GetModel(model)];
             };
         }
+
 
         /// <summary>
         /// Handles the request.
@@ -187,7 +191,7 @@ namespace NantCom.NancyBlack.Modules
                 dynamic result = null;
                 try
                 {
-                    if (this.Request.Headers.ContentType.Contains( "application/json" ))
+                    if (this.Request.Headers.ContentType.Contains("application/json"))
                     {
                         try
                         {
@@ -195,7 +199,7 @@ namespace NantCom.NancyBlack.Modules
                             {
                                 using (var jr = new JsonTextReader(sr))
                                 {
-                                    arg.body = JsonSerializer.Create().Deserialize(jr);
+                                    arg.body = _Serializer.Deserialize(jr);
                                 }
                             }
                         }
@@ -242,10 +246,10 @@ namespace NantCom.NancyBlack.Modules
                         if (negotiator.NegotiationContext.Headers["Content-Type"] == "application/json")
                         {
                             negotiator.NegotiationContext.Headers["Cache-Control"] = "no-store";
-                            negotiator.NegotiationContext.Headers["Expires"]= "Mon, 26 Jul 1997 05:00:00 GMT";
-                            negotiator.NegotiationContext.Headers["Vary"]= "*";
+                            negotiator.NegotiationContext.Headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";
+                            negotiator.NegotiationContext.Headers["Vary"] = "*";
                         }
-                        
+
                     }
                 }
 
