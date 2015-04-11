@@ -47,7 +47,7 @@ namespace NantCom.NancyBlack.Modules
                 var input = arg.body.Value as JObject;
                 var settingsFile = Path.Combine(_RootPath, "App_Data", "sitesettings.json");
 
-                File.Copy( settingsFile, settingsFile + ".bak");
+                File.Copy( settingsFile, settingsFile + ".bak", true);
                 File.WriteAllText(settingsFile, input.ToString());
 
                 MemoryCache.Default["CurrentSite"] = input;
