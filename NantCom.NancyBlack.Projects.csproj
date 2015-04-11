@@ -425,6 +425,7 @@
     <Content Include="Content\Scripts\util-utils\ui-utils-ieshiv.min.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils.js" />
     <Content Include="Content\Scripts\util-utils\ui-utils.min.js" />
+    <Content Include="deploy.gitignore" />
     <Content Include="Modules\ControlsSystem\Templates\ncbDatePicker.html" />
     <Content Include="Modules\ControlsSystem\Templates\ncbSimpleDatePicker.html" />
     <Content Include="Modules\MembershipSystem\Views\membership-roles.js" />
