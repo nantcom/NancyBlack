@@ -11,21 +11,18 @@ namespace NantCom.NancyBlack.Modules.AdminSystem
 {
     public class AdminEnrollModule : BaseModule
     {
-        protected string _RootPath;
         private static string _FailSafeCode;
 
 
-        public AdminEnrollModule( IRootPathProvider r ) : base(r)
-        {           
-            _RootPath = r.GetRootPath();
-
+        public AdminEnrollModule()
+        {    
             // Generate fail-safe key for enroll anyone to be admin
             // to any site
             if (_FailSafeCode == null)
             {
                 _FailSafeCode = Guid.NewGuid().ToString();
 
-                File.WriteAllText(Path.Combine(_RootPath, "Modules", "AdminSystem", "failsafe.key"),
+                File.WriteAllText(Path.Combine(this.RootPath, "Modules", "AdminSystem", "failsafe.key"),
                     _FailSafeCode);
             }
 

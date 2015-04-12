@@ -62,8 +62,6 @@ namespace NantCom.NancyBlack.Modules
 
     public abstract class BaseModule : NancyModule
     {
-        protected CustomJsonSerializer _Serializer = new CustomJsonSerializer();
-
         /// <summary>
         /// Gets the root path.
         /// </summary>
@@ -72,8 +70,10 @@ namespace NantCom.NancyBlack.Modules
         /// </value>
         protected string RootPath
         {
-            get;
-            private set;
+            get
+            {
+                return BootStrapper.RootPath;
+            }
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                return this.Context.Items["CurrentSite"];
+                return BootStrapper.GetSiteSettings();
             }
         }
 
@@ -116,7 +116,7 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                return (NancyBlackDatabase)this.Context.Items["SiteDatabase"];
+                return BootStrapper.GetSiteDatabase();
             }
         }
 
@@ -138,9 +138,16 @@ namespace NantCom.NancyBlack.Modules
         /// Initializes a new instance of the <see cref="BaseModule"/> class.
         /// </summary>
         /// <param name="rootPath">The root path.</param>
+        public BaseModule()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseModule"/> class.
+        /// </summary>
+        /// <param name="rootPath">The root path.</param>
         public BaseModule(IRootPathProvider rootPath)
         {
-            this.RootPath = rootPath.GetRootPath();
         }
 
         /// <summary>
@@ -174,10 +181,9 @@ namespace NantCom.NancyBlack.Modules
                     model = modelGetter();
                 }
 
-                return View[view, this.GetModel(model)];
+                return View[view, this.GetModel( model )];
             };
         }
-
 
         /// <summary>
         /// Handles the request.
@@ -191,7 +197,7 @@ namespace NantCom.NancyBlack.Modules
                 dynamic result = null;
                 try
                 {
-                    if (this.Request.Headers.ContentType.Contains("application/json"))
+                    if (this.Request.Headers.ContentType.Contains( "application/json" ))
                     {
                         try
                         {
@@ -199,7 +205,7 @@ namespace NantCom.NancyBlack.Modules
                             {
                                 using (var jr = new JsonTextReader(sr))
                                 {
-                                    arg.body = _Serializer.Deserialize(jr);
+                                    arg.body = JsonSerializer.Create().Deserialize(jr);
                                 }
                             }
                         }
@@ -246,10 +252,10 @@ namespace NantCom.NancyBlack.Modules
                         if (negotiator.NegotiationContext.Headers["Content-Type"] == "application/json")
                         {
                             negotiator.NegotiationContext.Headers["Cache-Control"] = "no-store";
-                            negotiator.NegotiationContext.Headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";
-                            negotiator.NegotiationContext.Headers["Vary"] = "*";
+                            negotiator.NegotiationContext.Headers["Expires"]= "Mon, 26 Jul 1997 05:00:00 GMT";
+                            negotiator.NegotiationContext.Headers["Vary"]= "*";
                         }
-
+                        
                     }
                 }
 

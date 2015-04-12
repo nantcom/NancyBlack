@@ -54,8 +54,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
         private static string _FailSafeCode;
 
-        public MembershipModule(IRootPathProvider r)
-            : base(r)
+        public MembershipModule()
         {
             // Generate fail-safe key for enroll anyone to be admin
             // to any site
@@ -63,7 +62,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 _FailSafeCode = Guid.NewGuid().ToString();
 
-                File.WriteAllText(Path.Combine(r.GetRootPath(), "App_Data", "failsafe.key"),
+                File.WriteAllText(Path.Combine(this.RootPath, "App_Data", "failsafe.key"),
                     _FailSafeCode);
             }
 

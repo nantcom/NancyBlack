@@ -11,7 +11,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
 {
     public class FaviconModule : BaseModule
     {
-        public FaviconModule(IRootPathProvider r) : base(r)
+        public FaviconModule()
         {
             Get["/__favicon/{w}x{h}.{type}"] = this.CreateIcon;
         }

@@ -11,13 +11,8 @@ namespace NantCom.NancyBlack.Modules
 {
     public class ContentModule : BaseModule
     {
-        private string _RootPath;
-
-        public ContentModule(IRootPathProvider rootPath)
-            : base(rootPath)
+        public ContentModule()
         {
-            _RootPath = rootPath.GetRootPath();
-
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
 
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
@@ -33,7 +28,7 @@ namespace NantCom.NancyBlack.Modules
             var theme = (string)site.Theme;
             var layout = (string)content.Layout;
 
-            string layoutPath = Path.Combine(_RootPath, "Site", "Views", Path.GetDirectoryName(layout));
+            string layoutPath = Path.Combine(this.RootPath, "Site", "Views", Path.GetDirectoryName(layout));
             string layoutFilename = Path.Combine(layoutPath, Path.GetFileName(layout) + ".cshtml");
 
             if (File.Exists(layoutFilename))
@@ -43,10 +38,10 @@ namespace NantCom.NancyBlack.Modules
 
             Directory.CreateDirectory(layoutPath);
 
-            var sourceFile = Path.Combine(_RootPath, "Content", "Views", "_base" + Path.GetFileName(layout) + "layout.cshtml");
+            var sourceFile = Path.Combine(this.RootPath, "Content", "Views", "_base" + Path.GetFileName(layout) + "layout.cshtml");
             if (File.Exists(sourceFile) == false)
             {
-                sourceFile = Path.Combine(_RootPath, "Content", "Views", "_basecontentlayout.cshtml");
+                sourceFile = Path.Combine(this.RootPath, "Content", "Views", "_basecontentlayout.cshtml");
             }
             File.Copy(sourceFile, layoutFilename);
         }
@@ -85,7 +80,7 @@ namespace NantCom.NancyBlack.Modules
 
                 // if Site contains layout with the same name as path, use it
                 var layout = "Content";
-                var layoutFile = Path.Combine(_RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
+                var layoutFile = Path.Combine(this.RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
                 if (File.Exists( layoutFile ))
                 {
                     layout = url;

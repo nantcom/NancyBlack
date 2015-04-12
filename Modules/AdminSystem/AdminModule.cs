@@ -19,10 +19,8 @@ namespace NantCom.NancyBlack.Modules
     {
         protected string _RootPath;
 
-        public AdminModule(IRootPathProvider rootPath) : base(rootPath)
+        public AdminModule()
         {
-            _RootPath = rootPath.GetRootPath();
-
             this.RequiresAuthentication();
             this.RequiresClaims(new string[] { "admin" });
 
@@ -45,7 +43,7 @@ namespace NantCom.NancyBlack.Modules
             Post["/Admin/sitesettings/current"] = this.HandleRequest((arg) =>
             {
                 var input = arg.body.Value as JObject;
-                var settingsFile = Path.Combine(_RootPath, "App_Data", "sitesettings.json");
+                var settingsFile = Path.Combine(this.RootPath, "App_Data", "sitesettings.json");
 
                 File.Copy( settingsFile, settingsFile + ".bak", true);
                 File.WriteAllText(settingsFile, input.ToString());

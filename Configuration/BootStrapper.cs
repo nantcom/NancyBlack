@@ -37,11 +37,13 @@ namespace NantCom.NancyBlack.Configuration
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            // create App_Data
-            Directory.CreateDirectory(Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data"));
-            Directory.CreateDirectory(Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data", "Attachments"));
+            BootStrapper.RootPath = this.RootPathProvider.GetRootPath();
 
-            ModuleResource.ReadSystemsAndResources(this.RootPathProvider.GetRootPath());
+            // create App_Data
+            Directory.CreateDirectory(Path.Combine(BootStrapper.RootPath, "App_Data"));
+            Directory.CreateDirectory(Path.Combine(BootStrapper.RootPath, "App_Data", "Attachments"));
+
+            ModuleResource.ReadSystemsAndResources(BootStrapper.RootPath);
 
             #region View Conventions
 
@@ -120,8 +122,8 @@ namespace NantCom.NancyBlack.Configuration
 
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
-                ctx.Items["SiteDatabase"] = this.GetSiteDatabase(ctx);
-                ctx.Items["CurrentSite"] = this.GetSiteSettings(ctx);
+                ctx.Items["SiteDatabase"] = BootStrapper.GetSiteDatabase();
+                ctx.Items["CurrentSite"] = BootStrapper.GetSiteSettings();
 
                 if (ctx.CurrentUser == null)
                 {
@@ -144,13 +146,21 @@ namespace NantCom.NancyBlack.Configuration
 
         }
 
+        /// <summary>
+        /// Gets the Application's root path
+        /// </summary>
+        public static string RootPath
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets site database from given Context
         /// </summary>
         /// <param name="hostName"></param>
         /// <returns></returns>
-        private NancyBlackDatabase GetSiteDatabase(NancyContext ctx)
+        public static NancyBlackDatabase GetSiteDatabase()
         {
             var key = "SiteDatabase";
             lock (key)
@@ -158,11 +168,10 @@ namespace NantCom.NancyBlack.Configuration
                 var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
                 if (cached != null)
                 {
-                    ctx.Items["SiteDatabase"] = cached;
                     return cached;
                 }
 
-                var path = Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data");
+                var path = Path.Combine(BootStrapper.RootPath, "App_Data");
                 Directory.CreateDirectory(path);
 
                 var fileName = Path.Combine(path, "Data.sdf");
@@ -184,7 +193,6 @@ namespace NantCom.NancyBlack.Configuration
 
                 // cache in memory and in current request
                 MemoryCache.Default.Add(key, cached, DateTimeOffset.MaxValue);
-                ctx.Items["SiteDatabase"] = cached;
 
 
                 return cached;
@@ -194,9 +202,8 @@ namespace NantCom.NancyBlack.Configuration
         /// <summary>
         /// Gets the site settings
         /// </summary>
-        /// <param name="ctx"></param>
         /// <returns></returns>
-        private dynamic GetSiteSettings(NancyContext ctx)
+        public static dynamic GetSiteSettings()
         {
             if (MemoryCache.Default["CurrentSite"] != null)
             {
@@ -204,7 +211,7 @@ namespace NantCom.NancyBlack.Configuration
             }
             else
             {
-                var settingsFile = Path.Combine(this.RootPathProvider.GetRootPath(), "App_Data", "sitesettings.json");
+                var settingsFile = Path.Combine(BootStrapper.RootPath, "App_Data", "sitesettings.json");
                 var json = File.ReadAllText(settingsFile);
 
                 var settingsObject = JObject.Parse(json);

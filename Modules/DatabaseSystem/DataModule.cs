@@ -23,11 +23,8 @@ namespace NantCom.NancyBlack.Modules
     {
         private string _RootPath;
 
-        public DataModule(IRootPathProvider rootProvider)
-            : base(rootProvider)
+        public DataModule()
         {
-            _RootPath = rootProvider.GetRootPath();
-
             // the interface of data mobile is compatible with Azure Mobile Service
             // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
 
