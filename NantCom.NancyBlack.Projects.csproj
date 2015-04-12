@@ -1748,6 +1748,7 @@
     <Compile Include="Modules\MembershipSystem\NancyBlackUser.cs" />
     <Compile Include="Modules\MembershipSystem\UserManager.cs" />
     <Compile Include="Modules\SQLDatabaseSystem\SQLDatabaseAccess.cs" />
+    <Compile Include="Site\SiteSettings.cs" />
     <Content Include="Modules\EditorSystem\Views\editor-ui.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
     <Compile Include="Modules\BaseModule.cs" />

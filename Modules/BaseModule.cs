@@ -5,6 +5,7 @@ using Nancy.ViewEngines;
 using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
+using NantCom.NancyBlack.Site;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SisoDb;
@@ -82,7 +83,7 @@ namespace NantCom.NancyBlack.Modules
         /// <value>
         /// The site.
         /// </value>
-        protected dynamic CurrentSite
+        protected SiteSettings CurrentSite
         {
             get
             {
