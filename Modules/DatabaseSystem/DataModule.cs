@@ -48,7 +48,7 @@ namespace NantCom.NancyBlack.Modules
 
         protected string GetAttachmentFolder(string tableName, string id)
         {
-            var path = Path.Combine(_RootPath, "App_Data", "Attachments", tableName, id);
+            var path = Path.Combine(_RootPath, "Site", "attachments", tableName, id);
             Directory.CreateDirectory(path);
 
             return path;
@@ -92,9 +92,8 @@ namespace NantCom.NancyBlack.Modules
                 input.CopyTo(fs);
                 return (
                     Path.Combine(
-                        "/Sites",
-                        (string)this.CurrentSite.HostName,
-                        "Attachments",
+                        "/Site/",
+                        "attachments",
                         tableName,
                         id,
                         fileName).Replace('\\', '/'));
@@ -152,9 +151,8 @@ namespace NantCom.NancyBlack.Modules
                     item.Value.CopyTo(fs);
                     urls.Add(
                         Path.Combine(
-                            "/Sites",
-                            (string)this.CurrentSite.HostName,
-                            "Attachments",
+                            "/Site",
+                            "attachments",
                             tableName,
                             id,
                             fileName).Replace('\\', '/'));

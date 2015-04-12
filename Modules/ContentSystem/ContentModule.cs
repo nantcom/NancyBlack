@@ -25,7 +25,6 @@ namespace NantCom.NancyBlack.Modules
         /// <param name="content">The content.</param>
         protected void GenerateLayoutPage(dynamic site, dynamic content)
         {
-            var theme = (string)site.Theme;
             var layout = (string)content.Layout;
 
             string layoutPath = Path.Combine(this.RootPath, "Site", "Views", Path.GetDirectoryName(layout));

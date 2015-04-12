@@ -1706,6 +1706,7 @@
     <Content Include="Content\Scripts\angular-ui\ui-bootstrap.js" />
     <Content Include="Content\Scripts\angular-ui\ui-bootstrap.min.js" />
     <Content Include="Content\Scripts\npm.js" />
+    <Content Include="Site\attachments\placeholder.txt" />
     <Content Include="Site\controllers\placeholder.txt" />
     <Content Include="Site\modules\placeholder.txt" />
     <Content Include="Site\SiteFileGoesHere.txt" />
@@ -1748,7 +1749,6 @@
     <Compile Include="Modules\MembershipSystem\NancyBlackUser.cs" />
     <Compile Include="Modules\MembershipSystem\UserManager.cs" />
     <Compile Include="Modules\SQLDatabaseSystem\SQLDatabaseAccess.cs" />
-    <Compile Include="Site\SiteSettings.cs" />
     <Content Include="Modules\EditorSystem\Views\editor-ui.js" />
     <Compile Include="Modules\AdminSystem\AdminModule.cs" />
     <Compile Include="Modules\BaseModule.cs" />

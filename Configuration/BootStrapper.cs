@@ -14,7 +14,6 @@ using SisoDb.SqlCe4;
 using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using System.Collections.Generic;
-using NantCom.NancyBlack.Site;
 
 namespace NantCom.NancyBlack.Configuration
 {
@@ -42,7 +41,6 @@ namespace NantCom.NancyBlack.Configuration
 
             // create App_Data
             Directory.CreateDirectory(Path.Combine(BootStrapper.RootPath, "App_Data"));
-            Directory.CreateDirectory(Path.Combine(BootStrapper.RootPath, "App_Data", "Attachments"));
 
             ModuleResource.ReadSystemsAndResources(BootStrapper.RootPath);
 
@@ -204,18 +202,18 @@ namespace NantCom.NancyBlack.Configuration
         /// Gets the site settings
         /// </summary>
         /// <returns></returns>
-        public static SiteSettings GetSiteSettings()
+        public static dynamic GetSiteSettings()
         {
             if (MemoryCache.Default["CurrentSite"] != null)
             {
-                return MemoryCache.Default["CurrentSite"] as SiteSettings;
+                return MemoryCache.Default["CurrentSite"];
             }
             else
             {
                 var settingsFile = Path.Combine(BootStrapper.RootPath, "App_Data", "sitesettings.json");
                 var json = File.ReadAllText(settingsFile);
 
-                var settingsObject = JsonConvert.DeserializeObject<SiteSettings>( json );
+                var settingsObject = JObject.Parse(json);
 
                 var cachePolicy = new CacheItemPolicy();
                 cachePolicy.ChangeMonitors.Add(new HostFileChangeMonitor( new List<string>() { settingsFile } ));
