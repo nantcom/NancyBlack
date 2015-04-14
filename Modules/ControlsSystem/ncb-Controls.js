@@ -482,13 +482,19 @@
                 element.find("input").attr("placeholder", element.attr("placeholder"));
             }
 
-            // if parent is form-horizontal, do things differently
-            if (element.closest("form").hasClass("form-horizontal"))
-            {
-                element.find("label").addClass("col-xs-3");
-                element.find("p.input-group").addClass("col-xs-7");
-            }
+            if (element.is("[inline]")) {
 
+                // inline mode - remove some property to make it compatible
+                element.removeClass("form-group");
+
+            } else {
+
+                // if parent is form-horizontal, do things differently
+                if (element.closest("form").hasClass("form-horizontal")) {
+                    element.find("label").addClass("col-xs-3");
+                    element.find("p.input-group").addClass("col-xs-7");
+                }
+            }
             scope.isopen = false;
             scope.opendatepicker = function ($event) {
 

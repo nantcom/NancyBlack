@@ -185,6 +185,8 @@ namespace NantCom.NancyBlack.Modules
             };
         }
 
+        private CustomJsonSerializer _Serializer = new CustomJsonSerializer();
+
         /// <summary>
         /// Handles the request.
         /// </summary>
@@ -205,7 +207,7 @@ namespace NantCom.NancyBlack.Modules
                             {
                                 using (var jr = new JsonTextReader(sr))
                                 {
-                                    arg.body = JsonSerializer.Create().Deserialize(jr);
+                                    arg.body = _Serializer.Deserialize(jr);
                                 }
                             }
                         }
