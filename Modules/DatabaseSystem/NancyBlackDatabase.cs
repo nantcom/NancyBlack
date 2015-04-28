@@ -51,7 +51,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
         {
             var parser = new ParameterParser<T>();
-            var queryable = _db.BeginSession().Query<T>();
+            var queryable = _db.UseOnceTo().Query<T>();
 
             var modelFilter = parser.Parse(odataFilter);
 
