@@ -29,19 +29,12 @@
         }
     };
 
-    function processFormElement(element)
-    {
+    function processFormElement(element) {
         // Bootstrap Setup
         element.addClass("form-control");
 
         // if parent is form-horizontal, do things differently
         if (element.closest("form").hasClass("form-horizontal")) {
-
-            var group = $('<div class="form-group"></div>');
-
-            if (element.is("[ncb-lg]")) {
-                group.addClass("form-group-lg");
-            }
 
             var labelCol = 3;
             if (element.is("[labelcol]")) {
@@ -50,30 +43,31 @@
             }
 
             var inputCol = 12 - labelCol;
+            var inputColumn = $();
 
-            // Label            
-            if (element.is("[title]")) {
+            // no title, put offset
+            if (element.is("[title]") == false) {
+
+                element.wrap('<div class="col-xs-offset-' + inputCol + '"></div>');
+                element.parent().wrap('<div class="form-group"></div>');
+
+
+            } else {
+
+                element.wrap('<div class="col-xs-' + inputCol + '"></div>');
 
                 var label = $('<label class="control-label col-xs-' + labelCol + '"></label>');
                 label.attr("for", element.attr("name"));
                 label.text(element.attr("title"));
 
-                group.append(label);
+                element.parent().wrap('<div class="form-group"></div>');
+                element.parent().parent().prepend(label);
+
             }
 
-            var inputColumn = $('<div class="col-xs-' + inputCol + '"></div>')
-            group.append(inputColumn);
-
-            // no title, put offset
-            if (element.is("[title]") == false) {
-
-                inputColumn.addClass("col-xs-offset-" + labelCol);
+            if (element.is("[ncb-lg]")) {
+                element.parent().parent().addClass("form-group-lg");
             }
-
-            element.before(group); // add group at the element's position
-            element.remove(); // detach element from DOM
-
-            inputColumn.append(element); // add it into input column instead
 
 
         } else {
@@ -217,7 +211,7 @@
     module.directive('ncbSelect', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
-            
+
             processFormElement(element);
         }
 
@@ -226,14 +220,14 @@
             link: link
         };
     });
-    
+
     // A Shorter, leaner Input boxes
     module.directive('ncbTextbox', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
 
             processFormElement(element);
-            
+
             // Final touch ups
             if (element.is("[placeholder]") == false) {
                 element.attr("placeholder", element.attr("title"));
@@ -245,7 +239,7 @@
             link: link
         };
     });
-    
+
     // A Shorter, leaner checkbox
     module.directive('ncbCheckbox', function ($document, $compile) {
 
@@ -297,7 +291,7 @@
             element.remove();
 
             label.append(element);
-            
+
             if (element.is("[text]")) {
 
                 var text = $('<span>' + element.attr("text") + '</span>');
@@ -305,13 +299,40 @@
 
                 compiled(scope);
 
-                element.after( text );
+                element.after(text);
             }
 
             if (inputColumn != null) {
-                
+
                 inputColumn.append(parent);
             }
+        }
+
+        return {
+            restrict: 'A',
+            link: link
+        };
+    });
+
+    // A Shorter, leaner radiobutton
+    module.directive('ncbRadio', function ($document, $compile) {
+
+        function link(scope, element, attrs) {
+
+            var inputColumn = null;
+            var label = $("<div class='radio'><label></label></div>")
+
+            element.wrap(label);
+
+            var text = element.attr("value");
+            if (element.is("[text]") == true) {
+                text = element.attr("text");
+            }
+
+            var span = $("<span></span>");
+            span.text(text);
+
+            element.after(span);
         }
 
         return {
@@ -328,7 +349,7 @@
             // Bootstrap Setup
             var inputGroup = $('<div class="input-group"></div>');
             var inputBtn = $('<span class="input-group-btn"></span>');
-            element.wrap( inputGroup );
+            element.wrap(inputGroup);
 
             var button = $('<button class="btn btn-default" type="button"></button>');
             inputBtn.append(button);
@@ -442,12 +463,12 @@
             link: link
         };
     });
-    
+
     // Add Button
     module.directive('ncbTab', function () {
 
         function link(scope, element, attrs) {
-            
+
             var child = element.children().first();
             child.unwrap();
 
@@ -463,12 +484,12 @@
             template: '<div class="tab-pane fade" ng-transclude></div>'
         };
     });
-    
+
     // Date Picker Control
     module.directive('ncbDatepicker', function ($compile) {
 
         function link(scope, element, attrs) {
-            
+
             if (element.is("[title]")) {
 
                 element.find(".control-label").text(element.attr("title"));
@@ -495,6 +516,7 @@
                     element.find("p.input-group").addClass("col-xs-7");
                 }
             }
+
             scope.isopen = false;
             scope.opendatepicker = function ($event) {
 
@@ -583,12 +605,12 @@
             templateUrl: '/Modules/ControlsSystem/Templates/ncbSimpleDatePicker.html',
         };
     });
-    
+
     // Modal Dialog
     module.directive('ncbModal', ['$compile', function ($compile) {
 
         function link(scope, element, attrs) {
-            
+
             if (element.is("[closebutton]") == false) {
                 element.find("button.close").remove();
             }
@@ -632,11 +654,11 @@
     module.directive('ncbListedit', ['$compile', function ($compile) {
 
         function link(scope, element, attrs) {
-            
+
             scope.list = [{ name: 'a' }];
 
             // alter ncb-repeat into ng-repeat
-            element.find(".ncb-listarea").find("[ncb-repeat]").each(function ( i, item ) {
+            element.find(".ncb-listarea").find("[ncb-repeat]").each(function (i, item) {
 
                 $(item).attr("ng-repeat", $(item).attr("ncb-repeat"));
                 $(item).removeAttr("ncb-repeat");
@@ -667,12 +689,12 @@
             link: link
         };
     }]);
-    
+
     // Pictures List
-    module.directive('ncbPicturelist', ['$http', function ( $http ) {
-        
+    module.directive('ncbPicturelist', ['$http', function ($http) {
+
         function link(scope, element, attrs) {
-            
+
             var myScope = scope;
 
             scope.remove = function (item) {
@@ -693,7 +715,7 @@
                       myScope.object.Pictures.splice(index, 1);
                   }).
                   error(function (data, status, headers, config) {
-                      
+
                       myScope.$parent.error = { message: status };
                   });
 
