@@ -21,8 +21,6 @@ namespace NantCom.NancyBlack.Modules
 
     public class DataModule : BaseModule
     {
-        private string _RootPath;
-
         public DataModule()
         {
             // the interface of data mobile is compatible with Azure Mobile Service
@@ -48,7 +46,7 @@ namespace NantCom.NancyBlack.Modules
 
         protected string GetAttachmentFolder(string tableName, string id)
         {
-            var path = Path.Combine(_RootPath, "Site", "attachments", tableName, id);
+            var path = Path.Combine(this.RootPath, "Site", "attachments", tableName, id);
             Directory.CreateDirectory(path);
 
             return path;

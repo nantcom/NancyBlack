@@ -169,29 +169,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             var actualType = type.GetCompiledType();
 
-            // inputObject is now copied into internal object format
-            // ('coerced') which contains additional system properties
-            dynamic coercedObject = JsonConvert.DeserializeObject(inputJson, actualType);
-            coercedObject.__updatedAt = DateTime.Now;
-            coercedObject.__version = DateTime.Now.Ticks.ToString();
-
-            if (coercedObject.__createdAt == DateTime.MinValue)
-            {
-                coercedObject.__createdAt = DateTime.Now;
-            }
-
-            if (id == null || id == 0)
-            {
-                _db.UseOnceTo().Insert(actualType, (object)coercedObject);
-                NancyBlackDatabase.ObjectCreated(this, entityName, coercedObject);
-            }
-            else
-            {
-                _db.UseOnceTo().Update(actualType, (object)coercedObject);
-                NancyBlackDatabase.ObjectUpdated(this, entityName, coercedObject);
-            }
-
-            return coercedObject;
+            return this.UpsertRecord(entityName, actualType, id ?? 0, inputJson);
         }
 
         /// <summary>
@@ -206,11 +184,36 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var type = _dataType.FromJson(entityName, inputJson);
             var actualType = type.GetCompiledType();
 
+            return this.UpsertRecord(entityName, actualType, id, inputJson);
+        }
+
+        private dynamic UpsertRecord( string entityName, Type actualType, int id, string inputJson )
+        {
             // inputObject is now copied into internal object format
             // ('coerced') which contains additional system properties
             dynamic coercedObject = JsonConvert.DeserializeObject(inputJson, actualType);
             coercedObject.__updatedAt = DateTime.Now;
             coercedObject.__version = DateTime.Now.Ticks.ToString();
+
+            // using reflection to detect date time properties which will cause trouble when inserting data
+            foreach (var prop in actualType.GetProperties())
+            {
+                if (prop.PropertyType == typeof(DateTime) ) 
+                {
+                    if (prop.GetSetMethod(false) == null)
+                    {
+                        continue; //Non-public
+                    }
+
+                    var value = (DateTime)prop.GetValue((object)coercedObject);
+                    if (value == default(DateTime))
+                    {
+                        // the value was not set, it cannot be saved to database
+                        // set to arbitary minimum value
+                        prop.SetValue((object)coercedObject, new DateTime( 1900, 1, 1 ));
+                    }
+                }
+            }
 
             if (coercedObject.__createdAt == DateTime.MinValue)
             {

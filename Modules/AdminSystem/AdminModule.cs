@@ -17,8 +17,6 @@ namespace NantCom.NancyBlack.Modules
 {
     public class AdminModule : BaseModule
     {
-        protected string _RootPath;
-
         public AdminModule()
         {
             this.RequiresAuthentication();
@@ -185,7 +183,7 @@ namespace NantCom.NancyBlack.Modules
                 throw new InvalidOperationException("Entity:" + table_name + " does not exists, Insert some sample data before running this page.");
             }
 
-            var template = File.ReadAllText(Path.Combine(_RootPath, "Modules", "AdminSystem", "Views", "_backendtemplate.cshtml"));
+            var template = File.ReadAllText(Path.Combine(this.RootPath, "Modules", "AdminSystem", "Views", "_backendtemplate.cshtml"));
             var code = Razor.Parse(template, new
             {
                 DataType = type,
@@ -204,7 +202,7 @@ namespace NantCom.NancyBlack.Modules
         /// <exception cref="System.InvalidOperationException">Entity: + table_name +  does not exists, Insert some sample data before running this page.</exception>
         protected void GenerateAdminView(string table_name, bool replace = false)
         {
-            var templatePath = Path.Combine( _RootPath, "Site", "Views");
+            var templatePath = Path.Combine( this.RootPath, "Site", "Views");
 
             this.GenerateView(this.SiteDatabase, templatePath, table_name, "_admin.cshtml", replace, "admin-" + table_name);
         }
