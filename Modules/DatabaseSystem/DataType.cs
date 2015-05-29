@@ -74,27 +74,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </value>
         public List<DataProperty> Properties { get; set; }
 
-        private int _PropertiesHashCode;
-
         /// <summary>
         /// Gets the hash code which can be used to detect whether the properties of this DataType is similar.
         /// </summary>
         /// <value>
         /// The hash code.
         /// </value>
-        [JsonIgnore]
-        [Ignore]
-        private int PropertiesHashCode
+        private int GetPropertiesHashCode()
         {
-            get
-            {
-                if (_PropertiesHashCode == 0)
-                {
-                    _PropertiesHashCode = JsonConvert.SerializeObject(this.Properties.OrderBy( p => p.Name ), RawJson.Instance ).GetHashCode();
-                }
-
-                return _PropertiesHashCode;
-            }
+            return JsonConvert.SerializeObject(this.Properties.OrderBy(p => p.Name), RawJson.Instance).GetHashCode();
         }
 
         private static string _GeneratorTemplate = @"
@@ -254,7 +242,7 @@ public class @Model.OriginalName
             }
 
             var sameName = other.NormalizedName == this.NormalizedName;
-            var sameProperty = other.PropertiesHashCode == this.PropertiesHashCode;
+            var sameProperty = other.GetPropertiesHashCode() == this.GetPropertiesHashCode();
 
             return sameName && sameProperty;
         }
@@ -267,7 +255,7 @@ public class @Model.OriginalName
         /// </returns>
         public override int GetHashCode()
         {
-            return this.NormalizedName.GetHashCode() + this.PropertiesHashCode;
+            return (this.NormalizedName + this.GetPropertiesHashCode()).GetHashCode();
         }
 
     }

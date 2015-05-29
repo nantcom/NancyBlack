@@ -128,7 +128,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public JObject GetById(string entityName, int id)
         {
             var type = _dataType.FromName(entityName);
-            var obj = _db.Find( id, _db.GetMapping( type.GetCompiledType(), CreateFlags.AllImplicit ));
+            var obj = _db.Find( id, _db.GetMapping( type.GetCompiledType() ));
 
             if (obj == null)
             {

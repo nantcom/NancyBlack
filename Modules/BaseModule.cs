@@ -228,7 +228,7 @@ namespace NantCom.NancyBlack.Modules
                             }
                             catch (Exception)
                             {
-                                error = true;
+                                throw new InvalidOperationException("JSON is malformed.");
                             }
                         }
                     }

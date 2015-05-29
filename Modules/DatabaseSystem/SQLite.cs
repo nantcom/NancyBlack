@@ -291,14 +291,14 @@ namespace SQLite
 		/// The mapping represents the schema of the columns of the database and contains 
 		/// methods to set and get properties of objects.
 		/// </returns>
-        public TableMapping GetMapping(Type type, CreateFlags createFlags = CreateFlags.None)
+        public TableMapping GetMapping(Type type)
 		{
 			if (_mappings == null) {
 				_mappings = new Dictionary<string, TableMapping> ();
 			}
 			TableMapping map;
 			if (!_mappings.TryGetValue (type.FullName, out map)) {
-				map = new TableMapping (type, createFlags);
+				map = new TableMapping (type);
 				_mappings [type.FullName] = map;
             }
             else
@@ -308,7 +308,7 @@ namespace SQLite
                 if (map.MappedType.GUID != type.GUID)
                 {
                     // refresh the mapping
-                    map = new TableMapping(type, createFlags);
+                    map = new TableMapping(type);
                     _mappings[type.FullName] = map;
                 }
             }
@@ -393,14 +393,12 @@ namespace SQLite
 		/// </returns>
         public int CreateTable(Type ty)
 		{
-            CreateFlags createFlags = CreateFlags.AllImplicit | CreateFlags.AutoIncPK;
-
 			if (_tables == null) {
 				_tables = new Dictionary<string, TableMapping> ();
 			}
 			TableMapping map;
 			if (!_tables.TryGetValue (ty.FullName, out map)) {
-				map = GetMapping (ty, createFlags);
+				map = GetMapping (ty);
 				_tables.Add (ty.FullName, map);
             }
             else
@@ -410,8 +408,11 @@ namespace SQLite
                 if (map.MappedType.GUID != ty.GUID)
                 {
                     // refresh the mapping
-                    map = GetMapping(ty, createFlags);
+                    map = GetMapping(ty);
                     _tables[ty.FullName] = map;
+
+                    // ensure that we have all fields
+                    MigrateTable(map);
                 }
             }
 
@@ -1676,7 +1677,7 @@ namespace SQLite
 		Column[] _insertColumns;
 		Column[] _insertOrReplaceColumns;
 
-        public TableMapping(Type type, CreateFlags createFlags = CreateFlags.None)
+        public TableMapping(Type type)
 		{
 			MappedType = type;
 
@@ -1704,7 +1705,7 @@ namespace SQLite
 				var ignore = p.GetCustomAttributes (typeof(IgnoreAttribute), true).Count() > 0;
 #endif
 				if (p.CanWrite && !ignore) {
-					cols.Add (new Column (p, createFlags));
+					cols.Add (new Column (p));
 				}
 			}
 			Columns = cols.ToArray ();
@@ -1844,8 +1845,9 @@ namespace SQLite
 
 			public int? MaxStringLength { get; private set; }
 
-            public Column(PropertyInfo prop, CreateFlags createFlags = CreateFlags.None)
+            public Column(PropertyInfo prop)
             {
+                CreateFlags createFlags = CreateFlags.AllImplicit | CreateFlags.AutoIncPK;
                 var colAttr = (ColumnAttribute)prop.GetCustomAttributes(typeof(ColumnAttribute), true).FirstOrDefault();
 
                 _prop = prop;

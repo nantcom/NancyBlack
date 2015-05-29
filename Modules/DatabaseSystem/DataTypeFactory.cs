@@ -183,17 +183,31 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     clientDataType.Id = existingDataType.Id;
                     clientDataType.OriginalName = existingDataType.OriginalName;
 
-                    // sometimes when client is sending data, some fields will be missing
+                    // when client is sending data, some fields can be omitted by JSON standards
                     // only allow fields to be added automatically but not removed
                     clientDataType.CombineProperties(existingDataType);
 
-                    // remaps the table
-                    _db.CreateTable(clientDataType.GetCompiledType());
+                    // since it will be costly operation - try to ensure that client
+                    // really have new property before attempting to update
+                    if (clientDataType.Equals( existingDataType ) == false)
+                    {
+                        _db.InsertOrReplace(clientDataType); // update our mappings
+
+                        // remaps the table
+                        _db.CreateTable(clientDataType.GetCompiledType());
+
+                        // update the cached type
+                        this.Types[clientDataType.NormalizedName] = clientDataType;
+                    }
+
                 }
             }
+            else
+            {
+                // this is a new data type
+                this.Register(clientDataType);
+            }
 
-            this.Types[clientDataType.NormalizedName] = clientDataType;
-            _db.InsertOrReplace(clientDataType);
 
             return clientDataType;
         }
