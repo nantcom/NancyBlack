@@ -1,7 +1,6 @@
 ﻿using Nancy;
 using Nancy.Security;
 using Nancy.Authentication.Forms;
-using Nancy.ModelBinding;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using RazorEngine;
 using System;
@@ -51,6 +50,9 @@ namespace NantCom.NancyBlack.Modules
                 return input;
             });
 
+            Post["/Admin/api/testemail"] = this.HandleRequest(this.TestSendEmail);
+
+
             Get["/tables/DataType"] = this.HandleListDataTypeRequest(()=> this.SiteDatabase);
             Post["/tables/DataType/Scaffold"] = this.HandleScaffoldRequest(()=> this.SiteDatabase);
             Post["/tables/DataType"] = this.HandleRegisterDataTypeRequest(()=> this.SiteDatabase);
@@ -83,7 +85,7 @@ namespace NantCom.NancyBlack.Modules
             return this.HandleRequest((arg) =>
             {
                 return from type in dbGetter().DataType.RegisteredTypes
-                       where type.Name.StartsWith("__") == false
+                       where type.NormalizedName.StartsWith("__") == false
                        select type;
             });
         }
@@ -98,8 +100,8 @@ namespace NantCom.NancyBlack.Modules
                     throw new InvalidOperationException("Id supplied is not valid");
                 }
 
-                var dataType = this.Bind<DataType>();
-                return dbGetter().DataType.Register(dataType);
+                var dataType = (JObject)arg.body;
+                return dbGetter().DataType.Register(dataType.ToObject<DataType>());
             });
         }
 
@@ -118,12 +120,35 @@ namespace NantCom.NancyBlack.Modules
         {
             return this.HandleRequest((arg) =>
             {
-                var dataType = this.Bind<DataType>();
-                return dbGetter().DataType.Register(dataType);
+                var dataType = (JObject)arg.body;
+                return dbGetter().DataType.Register(dataType.ToObject<DataType>());
             });
         }
 
+
         #endregion
+
+
+        private dynamic TestSendEmail(dynamic arg)
+        {
+            var target = (string)arg.body.Value.to;
+            var settings = arg.body.Value.settings;
+            var template = arg.body.Value.template;
+
+            if (template != null)
+            {
+                MailSenderModule.SendEmail(settings, target, (string)template.Subject,
+                    (string)template.Body);
+            }
+            else
+            {
+                MailSenderModule.SendEmail(settings, target, "Test Email From NancyBlack",
+                    "Email was sent successfully from <a href=\"" + this.Request.Url + "\">NancyBlack</a>");
+
+            }
+
+            return 200;
+        }
 
         protected dynamic HandleTableRequests(dynamic arg)
         {
@@ -145,6 +170,13 @@ namespace NantCom.NancyBlack.Modules
             }
 
             return View["admin-" + arg.table_name, this.GetModel( type )];
+        }
+
+        public class ViewModel
+        {
+            public DataType DataType { get; set; }
+
+            public string Layout { get; set; }
         }
 
         /// <summary>
@@ -184,7 +216,7 @@ namespace NantCom.NancyBlack.Modules
             }
 
             var template = File.ReadAllText(Path.Combine(this.RootPath, "Modules", "AdminSystem", "Views", "_backendtemplate.cshtml"));
-            var code = Razor.Parse(template, new
+            var code = Razor.Parse<ViewModel>(template, new ViewModel()
             {
                 DataType = type,
                 Layout = layout

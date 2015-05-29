@@ -63,7 +63,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 case JTokenType.Integer:
                     return "int";
                 case JTokenType.Null:
-                    return "string";
+                    return "String";
                 default:
                     throw new NotImplementedException("support for " + jt + " is not implemented.");
             }

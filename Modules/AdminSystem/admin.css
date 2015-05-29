@@ -123,10 +123,16 @@ body {
     display: none;
   }
 }
+h1.page-header {
+  color: darkblue;
+}
 h1.page-header > span {
   font-size: 50%;
   display: block;
   margin-top: 10px;
+}
+h2 {
+  color: cornflowerblue;
 }
 .tab-content {
   margin-top: 15px;

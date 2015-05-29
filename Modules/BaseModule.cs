@@ -7,8 +7,6 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SisoDb;
-using SisoDb.SqlCe4;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -116,7 +114,7 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                return BootStrapper.GetSiteDatabase();
+                return NancyBlackDatabase.GetSiteDatabase( this.RootPath );
             }
         }
 

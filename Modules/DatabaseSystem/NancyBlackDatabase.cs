@@ -2,13 +2,15 @@
 using Linq2Rest.Parser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SisoDb;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Web;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
@@ -19,7 +21,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectUpdated = delegate { };
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectCreated = delegate { };      
 
-        private ISisoDatabase _db;
+        private SQLiteConnection _db;
         private DataTypeFactory _dataType;
 
         /// <summary>
@@ -36,51 +38,36 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
         }
 
-        public NancyBlackDatabase(ISisoDatabase db)
+        public NancyBlackDatabase(SQLiteConnection db)
         {
             _db = db;
             _dataType = DataTypeFactory.GetForDatabase(db);
         }
 
         /// <summary>
-        /// Queries the specified database.
+        /// Queries the specified database
         /// </summary>
         /// <param name="db">The database.</param>
         /// <param name="odataFilter">The odata filter.</param>
         /// <returns></returns>
-        private IList<string> PerformQuery<T>(NameValueCollection odataFilter) where T : class
+        private IList<object> PerformQuery<T>(NameValueCollection odataFilter) where T : class, new()
         {
-            var parser = new ParameterParser<T>();
-            var queryable = _db.UseOnceTo().Query<T>();
-
+            var parser = new ParameterParser<T>();            
             var modelFilter = parser.Parse(odataFilter);
 
-            if (odataFilter["$filter"] != null)
-            {
-                queryable = queryable.Where(modelFilter.FilterExpression);
+            var result = modelFilter.Filter(_db.Table<T>());
 
+            if (modelFilter.SkipCount > 0 )
+            {
+                result = result.Skip(modelFilter.SkipCount);
             }
 
-            var sortExpressions = (from sort in modelFilter.SortDescriptions
-                                   where sort != null
-                                   select sort.KeySelector).ToArray();
-
-            foreach (var item in sortExpressions)
+            if (modelFilter.TakeCount > 0)
             {
-                //queryable = queryable.OrderBy(item);
+                result = result.Take(modelFilter.TakeCount);
             }
 
-            if (modelFilter.SkipCount > 0 && modelFilter.TakeCount == 0)
-            {
-                queryable = queryable.Page(1, modelFilter.SkipCount);
-            }
-
-            if (modelFilter.SkipCount > 0 && modelFilter.TakeCount > 0)
-            {
-                queryable = queryable.Page(modelFilter.SkipCount / modelFilter.TakeCount, modelFilter.TakeCount);
-            }
-
-            return queryable.ToListOfJson();
+            return result.ToList();
         }
 
         /// <summary>
@@ -90,12 +77,25 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="oDatafilter">The o datafilter.</param>
         /// <param name="oDataSort">The o data sort.</param>
         /// <returns></returns>
-        public IList<string> QueryAsJsonString(string entityName, string oDatafilter = null, string oDataSort = null)
+        public IEnumerable<string> QueryAsJsonString(string entityName, string oDatafilter = null, string oDataSort = null)
+        {
+            return from item in this.Query(entityName, oDatafilter, oDataSort)
+                   select item.ToString();
+        }
+
+        /// <summary>
+        /// Queries the database for specified entity type. If type does not exists, the query returns without result.
+        /// </summary>
+        /// <param name="entityName">Name of the entity.</param>
+        /// <param name="oDatafilter">The o datafilter.</param>
+        /// <param name="oDataSort">The o data sort.</param>
+        /// <returns></returns>
+        public IEnumerable<JObject> Query(string entityName, string oDatafilter = null, string oDataSort = null)
         {
             var type = _dataType.FromName(entityName);
             if (type == null)
             {
-                return new List<string>();
+                return new JObject[0];
             }
 
             NameValueCollection nv = new NameValueCollection();
@@ -113,22 +113,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                             .GetMethod("PerformQuery", BindingFlags.NonPublic | BindingFlags.Instance)
                             .MakeGenericMethod(type.GetCompiledType());
 
-            return (IList<string>)method.Invoke(this, new object[] { nv });
-        }
+            var result = (IList<object>)method.Invoke(this, new object[] { nv });
 
-        /// <summary>
-        /// Queries the database for specified entity type. If type does not exists, the query returns without result.
-        /// </summary>
-        /// <param name="entityName">Name of the entity.</param>
-        /// <param name="oDatafilter">The o datafilter.</param>
-        /// <param name="oDataSort">The o data sort.</param>
-        /// <returns></returns>
-        public IEnumerable<JObject> Query(string entityName, string oDatafilter = null, string oDataSort = null)
-        {
-            foreach (var row in this.QueryAsJsonString( entityName, oDatafilter, oDataSort ))
-            {
-                yield return JObject.Parse(row);
-            }
+            return from item in result
+                   select JObject.FromObject(item); // this will help with dynamic
         }
 
         /// <summary>
@@ -140,13 +128,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public JObject GetById(string entityName, int id)
         {
             var type = _dataType.FromName(entityName);
-            var json = _db.UseOnceTo().GetByIdAsJson(type.GetCompiledType(), id);
+            var obj = _db.Find( id, _db.GetMapping( type.GetCompiledType(), CreateFlags.AllImplicit ));
 
-            if (json == null)
+            if (obj == null)
             {
                 return null;
             }
-            return JObject.Parse( json );
+            return JObject.FromObject( obj );
         }
 
         /// <summary>
@@ -195,26 +183,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             coercedObject.__updatedAt = DateTime.Now;
             coercedObject.__version = DateTime.Now.Ticks.ToString();
 
-            // using reflection to detect date time properties which will cause trouble when inserting data
-            foreach (var prop in actualType.GetProperties())
-            {
-                if (prop.PropertyType == typeof(DateTime) ) 
-                {
-                    if (prop.GetSetMethod(false) == null)
-                    {
-                        continue; //Non-public
-                    }
-
-                    var value = (DateTime)prop.GetValue((object)coercedObject);
-                    if (value == default(DateTime))
-                    {
-                        // the value was not set, it cannot be saved to database
-                        // set to arbitary minimum value
-                        prop.SetValue((object)coercedObject, new DateTime( 1900, 1, 1 ));
-                    }
-                }
-            }
-
             if (coercedObject.__createdAt == DateTime.MinValue)
             {
                 coercedObject.__createdAt = DateTime.Now;
@@ -222,13 +190,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             if (id == 0)
             {
-                coercedObject.__createdAt = DateTime.Now;
-                _db.UseOnceTo().Insert(actualType, (object)coercedObject);
+                coercedObject.__createdAt = DateTime.Now;                
+                _db.Insert((object)coercedObject, actualType);
                 NancyBlackDatabase.ObjectCreated(this, entityName, coercedObject);
             }
             else
             {
-                _db.UseOnceTo().Update(actualType, (object)coercedObject);
+                _db.Update((object)coercedObject, actualType);
                 NancyBlackDatabase.ObjectUpdated(this, entityName, coercedObject);
             }
 
@@ -260,10 +228,73 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var deleting = this.GetById(entityName, id.Value); // get the object out before delete
-            _db.UseOnceTo().DeleteById(type.GetCompiledType(), id);
+            _db.Delete( deleting );
 
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
+
+        /// <summary>
+        /// Gets site database from given Context
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <returns></returns>
+        public static NancyBlackDatabase GetSiteDatabase( string rootPath )
+        {
+            var key = "SiteDatabase";
+            lock (key)
+            {
+                var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
+                if (cached != null)
+                {
+                    return cached;
+                }
+
+                var path = Path.Combine(rootPath, "App_Data");
+                Directory.CreateDirectory(path);
+
+                var fileName = Path.Combine(path, "data.sqlite");
+
+                if (File.Exists(path))
+                {
+                    // create hourly backup
+                    var backupFile = Path.Combine(path, string.Format("hourlybackup-{0:HH}.bak.sqlite", DateTime.Now));
+                    File.Copy(fileName, backupFile, true);
+
+                    // create daily backup
+                    var dailybackupFile = Path.Combine(path, string.Format("dailybackup-{0:dd-MM-yyyy}.bak.sqlite", DateTime.Now));
+                    if (File.Exists(backupFile) == false)
+                    {
+                        File.Copy(fileName, backupFile);
+                    }
+
+                    var backupFiles = Directory.GetFiles(path, "dailybackup-*.bak.sqlite");
+                    var now = DateTime.Now;
+                    foreach (var file in backupFiles)
+                    {
+                        if (now.Subtract(File.GetCreationTime(file)).TotalDays > 15)
+                        {
+                            try
+                            {
+                                File.Delete(file); // delete backup older than 15 days
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+                    }
+                }
+
+                var db = new SQLiteConnection(fileName, true);
+                cached = new NancyBlackDatabase(db);
+
+                // cache in memory for 1 hour
+                MemoryCache.Default.Add(key, cached, DateTimeOffset.Now.AddHours(1));
+
+
+                return cached;
+            }
+        }
+
 
     }
 

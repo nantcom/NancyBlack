@@ -6,11 +6,9 @@ using NantCom.NancyBlack.Modules;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 using System;
-using System.Data.SqlServerCe;
 using System.IO;
 using System.Runtime.Caching;
 using System.Text.RegularExpressions;
-using SisoDb.SqlCe4;
 using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using System.Collections.Generic;
@@ -121,7 +119,7 @@ namespace NantCom.NancyBlack.Configuration
 
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
-                ctx.Items["SiteDatabase"] = BootStrapper.GetSiteDatabase();
+                ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
                 ctx.Items["CurrentSite"] = BootStrapper.GetSiteSettings();
 
                 if (ctx.CurrentUser == null)
@@ -135,8 +133,6 @@ namespace NantCom.NancyBlack.Configuration
 
                 return null;
             });
-
-            pipelines.AfterRequest.AddItemToEndOfPipeline(this.CleanupRequest);
 
             if (container.CanResolve<IPipelineHook>())
             {
@@ -152,78 +148,6 @@ namespace NantCom.NancyBlack.Configuration
         {
             get;
             private set;
-        }
-
-        /// <summary>
-        /// Gets site database from given Context
-        /// </summary>
-        /// <param name="hostName"></param>
-        /// <returns></returns>
-        public static NancyBlackDatabase GetSiteDatabase()
-        {
-            var key = "SiteDatabase";
-            lock (key)
-            {
-                var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
-                if (cached != null)
-                {
-                    return cached;
-                }
-
-                var path = Path.Combine(BootStrapper.RootPath, "App_Data");
-                Directory.CreateDirectory(path);
-                
-                var fileName = Path.Combine(path, "Data.sdf");
-
-                // create hourly backup
-                var backupFile = Path.Combine(path, "hourlybackup-{0:HH}.bak.sdf");
-                File.Copy(fileName, backupFile, true);
-
-                // create daily backup
-                var dailybackupFile = Path.Combine(path, "dailybackup-{0:dd-MM-yyyy}.bak.sdf");
-                if (File.Exists(backupFile) == false)
-                {
-                    File.Copy(fileName, backupFile);
-                }
-
-                var backupFiles = Directory.GetFiles(path, "dailybackup-*.bak.sdf");
-                var now = DateTime.Now;
-                foreach (var file in backupFiles)
-                {
-                    if ( now.Subtract( File.GetCreationTime( file ) ).TotalDays > 15 )
-                    {
-                        try
-                        {
-                            File.Delete(file); // delete backup older than 15 days
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-                }
-
-                var connectionString = "Data Source=" + fileName + ";Persist Security Info=False";
-
-                try
-                {
-                    SqlCeEngine engine = new SqlCeEngine(connectionString);
-
-                    engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
-                    engine.Compact(connectionString);
-                }
-                catch (Exception)
-                {
-                }
-
-                var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
-                cached = new NancyBlackDatabase(sisodb);
-
-                // cache in memory for 1 hour
-                MemoryCache.Default.Add(key, cached, DateTimeOffset.Now.AddHours(1));
-
-
-                return cached;
-            }
         }
 
         /// <summary>
@@ -251,26 +175,6 @@ namespace NantCom.NancyBlack.Configuration
             }
         }
         
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ctx"></param>
-        /// <returns></returns>
-        private void CleanupRequest(NancyContext ctx)
-        {
-            if (ctx.Items.ContainsKey("Exception"))
-            {
-                var ex = ctx.Items["Exception"] as SqlCeException;
-                if (ex != null)
-                {
-                    // has exception related to sql ce - database is maybe already in faulted state
-                    // remove the cached nancyblack database
-                    // to force database to restart
-                    MemoryCache.Default.Remove("SiteDatabase");
-                }
-
-            }
-        }
 
     }
 }

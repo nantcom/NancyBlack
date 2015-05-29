@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SisoDb;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,15 +16,16 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
     /// </summary>
     public class DataTypeFactory
     {
-        private ISisoDatabase _db;
+        SQLiteConnection _db;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataTypeFactory"/> class.
         /// </summary>
         /// <param name="db">The database.</param>
-        public DataTypeFactory(ISisoDatabase db)
+        public DataTypeFactory(SQLiteConnection db)
         {
             _db = db;
+            _db.CreateTable<DataType>();
         }
 
         private Dictionary<string, DataType> _CachedDataType;
@@ -40,9 +41,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             get
             {
                 if (_CachedDataType == null)
-                {
-                    var types = _db.UseOnceTo().Query<DataType>().ToList();
-                    _CachedDataType = types.ToDictionary(t => t.Name);
+                {   
+                    _CachedDataType = _db.Table<DataType>().ToDictionary(k => k.NormalizedName);
+
+                    // remaps all table to ensure the database
+                    // get reference to latest type that was created on-the-fly
+                    foreach (var table in _CachedDataType.Values )
+                    {
+                        _db.CreateTable(table.GetCompiledType());
+                    }
                 }
 
                 return _CachedDataType;
@@ -78,8 +85,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 throw new InvalidOperationException("Specified Id does not represents a valid type");
             }
 
-            _db.DropStructureSet(type.GetCompiledType());
-            _db.UseOnceTo().DeleteById<DataType>(type.Id);
+            _db.DropTable(type.GetCompiledType());
+            _db.Delete(type);
 
             type.Id = 0;
 
@@ -93,30 +100,20 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public DataType Register(DataType toRegister)
         {
-            if (this.RegisteredTypes.Where( t => t.Name == toRegister.Name ).FirstOrDefault() != null)
+            if (this.RegisteredTypes.Where( t => t.NormalizedName == toRegister.NormalizedName ).FirstOrDefault() != null)
             {
-                if (toRegister.Id == default(int))
-                {
-                    throw new InvalidOperationException("Duplicate Structure Name");
-                }
+                throw new InvalidOperationException("Duplicate Structure Name");
             }
 
             toRegister.EnsureHasNeccessaryProperties();
 
-            if (toRegister.Id != default(int))
-            {
-                _db.UseOnceTo().Update(toRegister);
-            }
-            else
-            {
-                _db.UseOnceTo().Insert(toRegister);
-            }
-
-            _db.UpsertStructureSet(toRegister.GetCompiledType());
-
+            _db.Insert(toRegister);
+            _db.CreateTable(toRegister.GetCompiledType());
             _CachedDataType = null;
 
-            return toRegister;
+            var finalType = this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault();
+
+            return finalType;
         }
 
         /// <summary>
@@ -152,9 +149,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var clientDataType = new DataType();
             clientDataType.OriginalName = "Scaffoled";
 
-            clientDataType.Properties = new ReadOnlyCollection<DataProperty>(
-                                         (from KeyValuePair<string, JToken> property in sourceObject
-                                         select new DataProperty(property.Key, property.Value.Type)).ToList());
+            clientDataType.Properties = (from KeyValuePair<string, JToken> property in sourceObject
+                                         select new DataProperty(property.Key, property.Value.Type)).ToList();
 
             clientDataType.EnsureHasNeccessaryProperties();
 
@@ -169,10 +165,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public DataType FromJson(string typeName, string inputJson)
         {
             var clientDataType = this.Scaffold(inputJson);
-            clientDataType.OriginalName = typeName.Trim().ToLowerInvariant();
+            clientDataType.OriginalName = typeName;
 
             // type with same name must exists only once
-            var existingDataType = this.FromName(clientDataType.Name);
+            var existingDataType = this.FromName(clientDataType.NormalizedName);
             if (existingDataType != null)
             {
                 // if structure does not change, use it
@@ -183,25 +179,21 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 }
                 else
                 {
+                    // otherwise - update
                     clientDataType.Id = existingDataType.Id;
+                    clientDataType.OriginalName = existingDataType.OriginalName;
 
                     // sometimes when client is sending data, some fields will be missing
                     // only allow fields to be added automatically but not removed
                     clientDataType.CombineProperties(existingDataType);
 
+                    // remaps the table
+                    _db.CreateTable(clientDataType.GetCompiledType());
                 }
             }
 
-            this.Types[clientDataType.Name] = clientDataType;
-
-            if (clientDataType.Id != default(int))
-            {
-                _db.UseOnceTo().Update(clientDataType);
-            }
-            else
-            {
-                _db.UseOnceTo().Insert(clientDataType);
-            }
+            this.Types[clientDataType.NormalizedName] = clientDataType;
+            _db.InsertOrReplace(clientDataType);
 
             return clientDataType;
         }
@@ -232,11 +224,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="db">The database.</param>
         /// <returns></returns>
-        public static DataTypeFactory GetForDatabase(ISisoDatabase db)
+        public static DataTypeFactory GetForDatabase(SQLiteConnection db)
         {
-            var key = "DataTypeFactory-" +
-                      db.ConnectionInfo.ClientConnectionString +
-                      db.ConnectionInfo.ServerConnectionString;
+            var key = "DataTypeFactory-" + db.DatabasePath;
 
             var cached = MemoryCache.Default.Get(key);
             if (cached != null)
@@ -245,10 +235,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var created = new DataTypeFactory(db);
-            MemoryCache.Default.Add(key, created, new CacheItemPolicy()
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(30)
-            });
+            MemoryCache.Default.Add(key, created, DateTimeOffset.MaxValue );
 
             return created;
         }

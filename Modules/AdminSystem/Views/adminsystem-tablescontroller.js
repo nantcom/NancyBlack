@@ -21,7 +21,7 @@
             }
         );
 
-        $scope.dataTypes = ["int", "double", "Boolean", "string", "String", "DateTime"];
+        $scope.dataTypes = ["int", "double", "Boolean", "String", "DateTime", "Guid"];
 
 
         this.view = function (object) {

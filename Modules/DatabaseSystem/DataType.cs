@@ -9,13 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
-using SisoDb;
 using System.Collections.Specialized;
 using Linq2Rest.Parser;
 using System.Linq.Expressions;
 
 using System.Collections.ObjectModel;
 using NantCom.NancyBlack.Modules;
+using SQLite;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -25,6 +25,16 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
     /// </summary>
     public class DataType
     {
+        private class RawJson : JsonSerializerSettings
+        {
+            public RawJson()
+            {
+                this.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.None;
+            }
+
+            public static readonly RawJson Instance = new RawJson();
+        }
+
         /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
@@ -39,8 +49,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <value>
         /// The name.
         /// </value>
-        [JsonIgnore]
-        public string Name
+        [Ignore]
+        public string NormalizedName
         {
             get
             {
@@ -62,7 +72,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <value>
         /// The properties.
         /// </value>
-        public ReadOnlyCollection<DataProperty> Properties { get; set; }
+        public List<DataProperty> Properties { get; set; }
 
         private int _PropertiesHashCode;
 
@@ -73,13 +83,14 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// The hash code.
         /// </value>
         [JsonIgnore]
-        public int PropertiesHashCode
+        [Ignore]
+        private int PropertiesHashCode
         {
             get
             {
                 if (_PropertiesHashCode == 0)
                 {
-                    _PropertiesHashCode = JsonConvert.SerializeObject(this.Properties).GetHashCode();
+                    _PropertiesHashCode = JsonConvert.SerializeObject(this.Properties.OrderBy( p => p.Name ), RawJson.Instance ).GetHashCode();
                 }
 
                 return _PropertiesHashCode;
@@ -87,10 +98,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         private static string _GeneratorTemplate = @"
-
 using System;
 
-public class @Model.Name
+public class @Model.OriginalName
 {   
     @foreach( var property in Model.Properties )
     {
@@ -130,7 +140,7 @@ public class @Model.Name
 
             properties.RemoveAll(p => p.Name == "AttachmentBase64" || p.Name == "AttachmentExtension");
 
-            this.Properties = new ReadOnlyCollection<DataProperty>(properties);
+            this.Properties = properties.ToList();
         }
 
         /// <summary>
@@ -145,7 +155,7 @@ public class @Model.Name
             }
             else
             {
-                properties = this.Properties.ToList();
+                properties = this.Properties;
             }
 
             Action<string, string> addOrReplaceProperties = (name, type) =>
@@ -170,7 +180,7 @@ public class @Model.Name
             addOrReplaceProperties("__updatedAt", "DateTime");
             addOrReplaceProperties("__version", "string");
 
-            this.Properties = new ReadOnlyCollection<DataProperty>(properties);
+            this.Properties = properties.ToList();
         }
         
         private Assembly _Compiled;
@@ -216,7 +226,7 @@ public class @Model.Name
         /// <returns></returns>
         public object GetInstanceOfCompiledType()
         {
-            return this.GetAssembly().CreateInstance(this.Name);
+            return this.GetAssembly().CreateInstance(this.OriginalName);
         }
 
         /// <summary>
@@ -225,7 +235,7 @@ public class @Model.Name
         /// <returns></returns>
         public Type GetCompiledType()
         {
-            return this.GetAssembly().GetType(this.Name);
+            return this.GetAssembly().GetType(this.OriginalName);
         }
 
         /// <summary>
@@ -243,8 +253,10 @@ public class @Model.Name
                 return false;
             }
 
-            return other.Name.Equals(this.Name, StringComparison.InvariantCulture) &&
-                other.PropertiesHashCode == this.PropertiesHashCode;
+            var sameName = other.NormalizedName == this.NormalizedName;
+            var sameProperty = other.PropertiesHashCode == this.PropertiesHashCode;
+
+            return sameName && sameProperty;
         }
 
         /// <summary>
@@ -255,7 +267,7 @@ public class @Model.Name
         /// </returns>
         public override int GetHashCode()
         {
-            return (this.Name + this.PropertiesHashCode.ToString()).GetHashCode();
+            return this.NormalizedName.GetHashCode() + this.PropertiesHashCode;
         }
 
     }

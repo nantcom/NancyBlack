@@ -1,1 +1,8 @@
-﻿{ }
+﻿{ 
+  "SMTPFromEmail": "nancyblack@nant.co",
+  "SMTPServer": "smtp.sendgrid.net",
+  "SMTPServerPort": "25",
+  "SMTPUsername": "azure_af6ff7a51aa3f5c560b308d02e2c2816@azure.com",
+  "SMTPPassword": "ejRrplaC45LGM7O",
+  "SMTPUseSSL": false
+}

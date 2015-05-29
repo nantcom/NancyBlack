@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
-using SisoDb.SqlCe4;
-using SisoDb;
 using System.Collections.Specialized;
 using Linq2Rest.Parser;
 using System.Linq.Expressions;
@@ -288,32 +286,10 @@ namespace NantCom.NancyBlack.Modules
         protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
-            IList<string> rowsAsJson = db.QueryAsJsonString(entityName,
+            var rows = db.Query(entityName,
                                 this.Request.Query["$filter"],
                                 this.Request.Query["$orderby"]);
-
-            // Write output row as RAW json
-            var output = new Response();
-            output.ContentType = "application/json";
-            output.Contents = (s) =>
-            {
-                var sw = new StreamWriter(s);
-                sw.Write("[");
-                foreach (var row in rowsAsJson.Take(rowsAsJson.Count - 1))
-                {
-                    sw.WriteLine(row + ",");
-                }
-
-                if (rowsAsJson.Count > 0)
-                {
-                    sw.WriteLine(rowsAsJson.Last());
-                }
-                sw.Write("]");
-                sw.Close();
-                sw.Dispose();
-            };
-
-            return output;
+            return rows;
         }
 
         protected dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
