@@ -90,18 +90,18 @@
         }
     }
 
-    @RenderSection("Scripts", false)
-    @RenderSection("Script", false)
-
-    @if (this.CurrentUser != null && this.CurrentUser.Info != null)
+    @if (this.CurrentUser != null)
     {
         <script>
 
             // automatically set current user info into window variable
-            window.currentUser =  @this.Html.Raw( this.CurrentUser.Info.ToString() );
+            window.currentUser =  @this.Html.Raw( this.GetJson( this.CurrentUser ) );
 
         </script>
     }
+
+    @RenderSection("Scripts", false)
+    @RenderSection("Script", false)
 
     <script>
         // Querystring extraction function

@@ -78,10 +78,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public bool HasClaim( string claim )
         {
             // admin has all claim
-            //if (this.Claims.Contains("admin"))
-            //{
-            //    return true;
-            //}
+            if (this.Claims.Contains("admin"))
+            {
+                return true;
+            }
             return this.Claims.Contains(claim);
         }
         

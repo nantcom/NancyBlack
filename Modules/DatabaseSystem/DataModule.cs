@@ -21,6 +21,7 @@ namespace NantCom.NancyBlack.Modules
 
     public class DataModule : BaseModule
     {
+
         public DataModule()
         {
             // the interface of data mobile is compatible with Azure Mobile Service
@@ -63,7 +64,8 @@ namespace NantCom.NancyBlack.Modules
             var id = (string)args.item_id;
             var path = this.GetAttachmentFolder(tableName, id);
 
-            return Directory.GetFiles(path);
+            return from file in Directory.GetFiles(path)
+                   select "/" + file.Replace(this.RootPath, "").Replace('\\', '/' );
         }
 
         /// <summary>

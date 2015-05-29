@@ -11,7 +11,7 @@ namespace NantCom.NancyBlack.Modules
         public static void SendEmail( dynamic site, string to, string subject, string body)
         {
             MailMessage mail = new MailMessage();
-            SmtpClient SmtpServer = new SmtpClient((string)site.SMTPServer);
+            SmtpClient client = new SmtpClient((string)site.SMTPServer);
 
             mail.From = new MailAddress((string)site.SMTPFromEmail);
             mail.To.Add(to);
@@ -19,11 +19,12 @@ namespace NantCom.NancyBlack.Modules
             mail.Body = body;
             mail.IsBodyHtml = true;
 
-            SmtpServer.Port = site.SMTPServerPort;
-            SmtpServer.Credentials = new System.Net.NetworkCredential((string)site.SMTPUsername, (string)site.SMTPPassword);
-            SmtpServer.EnableSsl = (bool)site.SMTPUseSSL;
+            client.Port = site.SMTPServerPort;
+            client.Credentials = new System.Net.NetworkCredential((string)site.SMTPUsername, (string)site.SMTPPassword);
+            client.EnableSsl = (bool)site.SMTPUseSSL;
+            client.Timeout = 10000;
 
-            SmtpServer.Send(mail);
+            client.Send(mail);
         }
     }
 }

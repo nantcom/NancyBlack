@@ -20,43 +20,70 @@ input.ng-untouched, textarea.ng-untouched {
 
 ul.nav-tabs > li.active > a, ul.nav-tabs > li.active > a:focus, ul.nav-tabs > li.active > a:hover {
     border-top: 3px solid #ff4e00;
-} 
+}
 
 ncb-picturelist {
+
+    &.selectable {
+
+        li {
+
+            cursor: pointer;
+        }
+    }
+
     > ul {
-        height: 300px;
         overflow-x: hidden;
         overflow-y: scroll;
         margin: 0;
         padding: 0;
         list-style: none;
 
+        > li:first-child {
+
+            >div {
+                height: auto;
+            }
+        }
+
         > li {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+
             margin: 0;
             padding: 5px;
             display: inline-block;
-            max-height: 100px;
+            height: 100px;
             overflow: hidden;
 
-            img {
-                max-width: 80px;
-                height: 80px;
-            }
-
-            > div:first-child {
+            > .img {
+                background-color: whitesmoke;
                 text-align: center;
-                width: 80px;
+                width: 100px;
+                height: 90px;
                 overflow: hidden;
+                line-height: 90px;
+                margin: 0;
+                
+                img {
+                    width: 100px;
+                    display: inline-block;
+                    vertical-align: middle;
+                }
+
             }
 
             > div {
                 display: inline-block;
                 vertical-align: top;
                 margin: 5px;
-                width: 100px;
+                width: 45px;
+                height: 90px;
 
                 button {
                     margin-top: 5px;
+                    width: 45px;
                 }
             }
         }
@@ -66,6 +93,36 @@ ncb-picturelist {
         }
     }
 }
+
+
+/* Image Upload Control */
+.ncb-uploader {
+    position: relative;
+    display: inline-block;
+
+    width: 100px;
+    text-align: center;
+
+    > .btn {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 10px;
+    }
+
+    > input[type='file'] {
+        opacity: 0;
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        z-index: 999;
+    }
+
+    > .progress {
+        width: 100px;
+        margin-top: 5px;
+    }
+}
+
 
 
 .login-dialog {

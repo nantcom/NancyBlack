@@ -207,29 +207,6 @@ table.busy {
     position: fixed;
   }
 }
-/* Image Upload Control */
-.ncb-uploader {
-  position: relative;
-  display: inline-block;
-}
-.ncb-uploader > button {
-  display: inline-block;
-  vertical-align: top;
-}
-.ncb-uploader > input[type='file'] {
-  opacity: 0;
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  z-index: 999;
-}
-.ncb-uploader > .progress {
-  position: relative;
-  top: 5px;
-  display: inline-block;
-  width: 200px;
-  margin-left: 20px;
-}
 .tool {
   margin-bottom: 30px;
 }

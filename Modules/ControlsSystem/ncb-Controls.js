@@ -29,7 +29,8 @@
         }
     };
 
-    function processFormElement(element) {
+    function processFormElement(element)
+    {
         // Bootstrap Setup
         element.addClass("form-control");
 
@@ -59,7 +60,7 @@
                 var label = $('<label class="control-label col-xs-' + labelCol + '"></label>');
                 label.attr("for", element.attr("name"));
                 label.text(element.attr("title"));
-
+                
                 element.parent().wrap('<div class="form-group"></div>');
                 element.parent().parent().prepend(label);
 
@@ -95,7 +96,7 @@
 
     }
 
-    var module = angular.module('ncb-controls', []);
+    var module = angular.module('ncb-controls', ['ncb-database']);
 
     // Take Picture and upload
     module.directive('ncbCameraOpen', function ($document, $timeout) {
@@ -211,7 +212,7 @@
     module.directive('ncbSelect', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
-
+            
             processFormElement(element);
         }
 
@@ -220,14 +221,14 @@
             link: link
         };
     });
-
+    
     // A Shorter, leaner Input boxes
     module.directive('ncbTextbox', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
 
             processFormElement(element);
-
+            
             // Final touch ups
             if (element.is("[placeholder]") == false) {
                 element.attr("placeholder", element.attr("title"));
@@ -239,7 +240,7 @@
             link: link
         };
     });
-
+    
     // A Shorter, leaner checkbox
     module.directive('ncbCheckbox', function ($document, $compile) {
 
@@ -291,7 +292,7 @@
             element.remove();
 
             label.append(element);
-
+            
             if (element.is("[text]")) {
 
                 var text = $('<span>' + element.attr("text") + '</span>');
@@ -299,11 +300,11 @@
 
                 compiled(scope);
 
-                element.after(text);
+                element.after( text );
             }
 
             if (inputColumn != null) {
-
+                
                 inputColumn.append(parent);
             }
         }
@@ -349,7 +350,7 @@
             // Bootstrap Setup
             var inputGroup = $('<div class="input-group"></div>');
             var inputBtn = $('<span class="input-group-btn"></span>');
-            element.wrap(inputGroup);
+            element.wrap( inputGroup );
 
             var button = $('<button class="btn btn-default" type="button"></button>');
             inputBtn.append(button);
@@ -463,12 +464,12 @@
             link: link
         };
     });
-
+    
     // Add Button
     module.directive('ncbTab', function () {
 
         function link(scope, element, attrs) {
-
+            
             var child = element.children().first();
             child.unwrap();
 
@@ -484,12 +485,12 @@
             template: '<div class="tab-pane fade" ng-transclude></div>'
         };
     });
-
+    
     // Date Picker Control
     module.directive('ncbDatepicker', function ($compile) {
 
         function link(scope, element, attrs) {
-
+            
             if (element.is("[title]")) {
 
                 element.find(".control-label").text(element.attr("title"));
@@ -605,14 +606,18 @@
             templateUrl: '/Modules/ControlsSystem/Templates/ncbSimpleDatePicker.html',
         };
     });
-
+    
     // Modal Dialog
     module.directive('ncbModal', ['$compile', function ($compile) {
 
         function link(scope, element, attrs) {
-
+            
             if (element.is("[closebutton]") == false) {
                 element.find("button.close").remove();
+            }
+
+            if (element.is("[lg]")) {
+                element.find(".modal-dialog").addClass("modal-lg");
             }
 
             if (element.is("[deletebutton]") == false) {
@@ -654,11 +659,11 @@
     module.directive('ncbListedit', ['$compile', function ($compile) {
 
         function link(scope, element, attrs) {
-
+            
             scope.list = [{ name: 'a' }];
 
             // alter ncb-repeat into ng-repeat
-            element.find(".ncb-listarea").find("[ncb-repeat]").each(function (i, item) {
+            element.find(".ncb-listarea").find("[ncb-repeat]").each(function ( i, item ) {
 
                 $(item).attr("ng-repeat", $(item).attr("ncb-repeat"));
                 $(item).removeAttr("ncb-repeat");
@@ -689,13 +694,32 @@
             link: link
         };
     }]);
-
+    
     // Pictures List
-    module.directive('ncbPicturelist', ['$http', function ($http) {
-
+    module.directive('ncbPicturelist', ['$http', 'ncbDatabaseClient', function ($http, ncbDatabaseClient) {
+        
         function link(scope, element, attrs) {
 
+            var me = this;
+            me.client = new ncbDatabaseClient(me, scope, scope.table);
+
             var myScope = scope;
+
+            if (element.is("[selectable]")) {
+
+                element.addClass('selectable');
+            }
+
+            scope.select = function (item) {
+
+                if (element.hasClass('selectable')) {
+
+                    if (scope.onselected != null) {
+
+                        scope.onselected(item);
+                    }
+                }
+            };
 
             scope.remove = function (item) {
 
@@ -705,7 +729,7 @@
                 }
 
                 var filename = item.Url.substring(item.Url.lastIndexOf('/') + 1);
-                var targetUrl = '/tables/' + myScope.$parent.tableName +
+                var targetUrl = '/tables/' + myScope.table +
                                     "/" + myScope.object.id + "/files/" + filename;
 
                 $http.delete(targetUrl).
@@ -713,9 +737,12 @@
 
                       var index = myScope.object.Pictures.indexOf(item);
                       myScope.object.Pictures.splice(index, 1);
+
+                      me.client.save(scope.object);
+
                   }).
                   error(function (data, status, headers, config) {
-
+                      
                       myScope.$parent.error = { message: status };
                   });
 
@@ -725,7 +752,9 @@
         return {
             restrict: 'E',
             scope: {
-                object: '=ngModel',
+                object: '=model',
+                table: '=table',
+                onselected: '=onselected'
             },
             templateUrl: '/Modules/ControlsSystem/Templates/ncbPictureList.html',
             link: link
@@ -733,12 +762,13 @@
     }]);
 
     // Uploader
-    module.directive('ncbUploader', ['$document', '$timeout', function ($document, $timeout) {
-        return function (scope, element, attr) {
+    module.directive('ncbUploader', ['$document', '$timeout', 'ncbDatabaseClient', function ($document, $timeout, ncbDatabaseClient) {
+        function link (scope, element, attr) {
 
             var me = this;
             me.initialized = false;
             me.targetUrl = null;
+            me.client = new ncbDatabaseClient(me, scope, scope.table);
 
             scope.$watch("object", function () {
 
@@ -747,22 +777,19 @@
                     return;
                 }
 
-                me.targetUrl = '/tables/' + scope.tableName +
-                                    "/" + scope.object.id + "/files";
+                var id = scope.object.id;
+                if (id == null) {
+
+                    id = scope.object.Id;
+                }
+
+                me.targetUrl = '/tables/' + scope.table +
+                                    "/" + id + "/files";
             });
 
-            var input = $('<input type="file" />');
-            var div = element.wrap("<div class='ncb-uploader'></div>");
-            element.before(input);
+            var input =element.find("input");
 
-            var progress = $('<div class="progress">' +
-                              '<div class="progress-bar progress-bar-striped">' +
-                              '</div>' +
-                            '</div>');
-
-            element.after(progress);
-
-            me.progressValue = element.parent().find(".progress-bar");
+            me.progressValue = element.find(".progress-bar");
 
             var uploadFile = function (files) {
 
@@ -830,6 +857,9 @@
                             });
                         });
 
+                        // also save the object
+                        me.client.save( scope.object );
+
                     }, 1000);
 
                 });
@@ -861,6 +891,18 @@
             });
 
 
+        };
+
+        
+        return {
+            restrict: 'E',
+            scope: {
+                object: '=model',
+                table: '=table'
+            },
+            replace: true,
+            templateUrl: '/Modules/ControlsSystem/Templates/ncbUploader.html',
+            link: link
         };
     }]);
 

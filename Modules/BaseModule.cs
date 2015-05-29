@@ -201,19 +201,37 @@ namespace NantCom.NancyBlack.Modules
                 {
                     if (this.Request.Headers.ContentType.Contains( "application/json" ))
                     {
+                        bool error = false;
                         try
                         {
                             using (var sr = new StreamReader(this.Request.Body))
+                            using (var jr = new JsonTextReader(sr))
                             {
-                                using (var jr = new JsonTextReader(sr))
-                                {
-                                    arg.body = _Serializer.Deserialize(jr);
-                                }
+                                arg.body = _Serializer.Deserialize(jr);
                             }
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Failed to read JSON from body");
+                            error = true;
+                        }
+
+                        if (error) // cannot read normally
+                        {
+                            // try reading without type handling
+                            this.Request.Body.Position = 0;
+                            try
+                            {
+                                using (var sr = new StreamReader(this.Request.Body))
+                                using (var jr = new JsonTextReader(sr))
+                                {
+                                    var ser = JsonSerializer.Create(new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.None });
+                                    arg.body = ser.Deserialize(jr);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                error = true;
+                            }
                         }
                     }
 

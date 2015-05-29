@@ -172,8 +172,36 @@ namespace NantCom.NancyBlack.Configuration
 
                 var path = Path.Combine(BootStrapper.RootPath, "App_Data");
                 Directory.CreateDirectory(path);
-
+                
                 var fileName = Path.Combine(path, "Data.sdf");
+
+                // create hourly backup
+                var backupFile = Path.Combine(path, "hourlybackup-{0:HH}.bak.sdf");
+                File.Copy(fileName, backupFile, true);
+
+                // create daily backup
+                var dailybackupFile = Path.Combine(path, "dailybackup-{0:dd-MM-yyyy}.bak.sdf");
+                if (File.Exists(backupFile) == false)
+                {
+                    File.Copy(fileName, backupFile);
+                }
+
+                var backupFiles = Directory.GetFiles(path, "dailybackup-*.bak.sdf");
+                var now = DateTime.Now;
+                foreach (var file in backupFiles)
+                {
+                    if ( now.Subtract( File.GetCreationTime( file ) ).TotalDays > 15 )
+                    {
+                        try
+                        {
+                            File.Delete(file); // delete backup older than 15 days
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+
                 var connectionString = "Data Source=" + fileName + ";Persist Security Info=False";
 
                 try
@@ -190,8 +218,8 @@ namespace NantCom.NancyBlack.Configuration
                 var sisodb = connectionString.CreateSqlCe4Db().CreateIfNotExists();
                 cached = new NancyBlackDatabase(sisodb);
 
-                // cache in memory and in current request
-                MemoryCache.Default.Add(key, cached, DateTimeOffset.MaxValue);
+                // cache in memory for 1 hour
+                MemoryCache.Default.Add(key, cached, DateTimeOffset.Now.AddHours(1));
 
 
                 return cached;

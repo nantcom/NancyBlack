@@ -99,8 +99,14 @@
                     // text is added to designate that SiSoDB should use ntext type
                     if (key.indexOf("JSONText") > 0) {
 
-                        var value = JSON.parse(item[key]);
-                        item[key.replace("JSONText", "")] = value;
+                        try {
+
+                            var value = JSON.parse(item[key]);
+                            item[key.replace("JSONText", "")] = value;
+
+                        } catch (e) {
+
+                        }
 
                     }
                 }
@@ -239,6 +245,9 @@
                     toSave.id = toSave.Id;
                     delete toSave.Id;
                 }
+
+                // delete $type info
+                delete toSave.$type;
 
                 // find the properties where type is Object or Array
                 // and JSON stringify it
