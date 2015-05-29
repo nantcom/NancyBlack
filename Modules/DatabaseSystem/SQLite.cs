@@ -1106,9 +1106,9 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int InsertAll (System.Collections.IEnumerable objects)
+        public long InsertAll(System.Collections.IEnumerable objects)
 		{
-			var c = 0;
+            long c = 0;
 			RunInTransaction(() => {
 				foreach (var r in objects) {
 					c += Insert (r);
@@ -1129,9 +1129,9 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int InsertAll (System.Collections.IEnumerable objects, string extra)
+        public long InsertAll(System.Collections.IEnumerable objects, string extra)
 		{
-			var c = 0;
+            long c = 0;
 			RunInTransaction (() => {
 				foreach (var r in objects) {
 					c += Insert (r, extra);
@@ -1152,9 +1152,9 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int InsertAll (System.Collections.IEnumerable objects, Type objType)
+        public long InsertAll(System.Collections.IEnumerable objects, Type objType)
 		{
-			var c = 0;
+            long c = 0;
 			RunInTransaction (() => {
 				foreach (var r in objects) {
 					c += Insert (r, objType);
@@ -1173,7 +1173,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int Insert (object obj)
+        public long Insert(object obj)
 		{
 			if (obj == null) {
 				return 0;
@@ -1194,7 +1194,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows modified.
 		/// </returns>
-		public int InsertOrReplace (object obj)
+        public long InsertOrReplace(object obj)
 		{
 			if (obj == null) {
 				return 0;
@@ -1215,7 +1215,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int Insert (object obj, Type objType)
+        public long Insert(object obj, Type objType)
 		{
 			return Insert (obj, "", objType);
 		}
@@ -1236,7 +1236,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows modified.
 		/// </returns>
-		public int InsertOrReplace (object obj, Type objType)
+        public long InsertOrReplace(object obj, Type objType)
 		{
 			return Insert (obj, "OR REPLACE", objType);
 		}
@@ -1254,7 +1254,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int Insert (object obj, string extra)
+        public long Insert(object obj, string extra)
 		{
 			if (obj == null) {
 				return 0;
@@ -1278,7 +1278,7 @@ namespace SQLite
 	    /// <returns>
 	    /// The number of rows added to the table.
 	    /// </returns>
-	    public int Insert (object obj, string extra, Type objType)
+	    public long Insert (object obj, string extra, Type objType)
 		{
 			if (obj == null || objType == null) {
 				return 0;
@@ -1346,6 +1346,8 @@ namespace SQLite
             {
 				var id = SQLite3.LastInsertRowid (Handle);
 				map.SetAutoIncPK (obj, id);
+
+                return id;
 			}
 			
 			return count;

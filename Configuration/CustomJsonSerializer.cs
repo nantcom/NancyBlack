@@ -15,5 +15,6 @@ namespace NantCom.NancyBlack.Configuration
             this.Formatting = Formatting.None;
             this.TypeNameHandling = TypeNameHandling.Objects;
         }
+
     }
 }

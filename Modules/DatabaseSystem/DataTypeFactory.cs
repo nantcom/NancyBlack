@@ -158,15 +158,30 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         /// <summary>
-        /// Generate DataType from json.
+        /// Scaffolds the specified input JObject
         /// </summary>
         /// <param name="inputJson">The input json.</param>
         /// <returns></returns>
-        public DataType FromJson(string typeName, string inputJson)
+        public DataType Scaffold(JObject sourceObject)
         {
-            var clientDataType = this.Scaffold(inputJson);
-            clientDataType.OriginalName = typeName;
+            var clientDataType = new DataType();
+            clientDataType.OriginalName = "Scaffoled";
 
+            clientDataType.Properties = (from KeyValuePair<string, JToken> property in sourceObject
+                                         select new DataProperty(property.Key, property.Value.Type)).ToList();
+
+            clientDataType.EnsureHasNeccessaryProperties();
+
+            return clientDataType;
+        }
+
+        /// <summary>
+        /// Finds the matching data type and update
+        /// </summary>
+        /// <param name="clientDataType"></param>
+        /// <returns></returns>
+        private DataType FindMatchingDataTypeAndUpdate(DataType clientDataType)
+        {
             // type with same name must exists only once
             var existingDataType = this.FromName(clientDataType.NormalizedName);
             if (existingDataType != null)
@@ -189,7 +204,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
                     // since it will be costly operation - try to ensure that client
                     // really have new property before attempting to update
-                    if (clientDataType.Equals( existingDataType ) == false)
+                    if (clientDataType.Equals(existingDataType) == false)
                     {
                         _db.InsertOrReplace(clientDataType); // update our mappings
 
@@ -208,28 +223,34 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 this.Register(clientDataType);
             }
 
-
             return clientDataType;
         }
 
         /// <summary>
-        /// Create Instance of DataType froms the json stream.
+        /// Get DataType from give JObject
         /// </summary>
-        /// <param name="typeName">Name of the type.</param>
-        /// <param name="inputJsonStream">The input json stream.</param>
+        /// <param name="typeName"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public DataType FromJsonStream(string typeName, Stream inputJsonStream)
+        public DataType FromJObject(string typeName, JObject input )
         {
-            var streamReader = new StreamReader(inputJsonStream);
-            var json = streamReader.ReadToEnd();
+            var clientDataType = this.Scaffold(input);
+            clientDataType.OriginalName = typeName;
 
-            if (inputJsonStream.CanSeek)
-            {
-                inputJsonStream.Position = 0;
-            }
+            return this.FindMatchingDataTypeAndUpdate( clientDataType );
+        }
 
-            return this.FromJson(typeName, json);
-
+        /// <summary>
+        /// Generate DataType from json.
+        /// </summary>
+        /// <param name="inputJson">The input json.</param>
+        /// <returns></returns>
+        public DataType FromJson(string typeName, string inputJson)
+        {
+            var clientDataType = this.Scaffold(inputJson);
+            clientDataType.OriginalName = typeName;
+            
+            return this.FindMatchingDataTypeAndUpdate(clientDataType);
         }
 
         /// <summary>

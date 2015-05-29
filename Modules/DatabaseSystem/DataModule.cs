@@ -288,7 +288,9 @@ namespace NantCom.NancyBlack.Modules
             var entityName = (string)arg.table_name;
             var rows = db.Query(entityName,
                                 this.Request.Query["$filter"],
-                                this.Request.Query["$orderby"]);
+                                this.Request.Query["$orderby"],
+                                this.Request.Query["$skip"],
+                                this.Request.Query["$top"]);
             return rows;
         }
 

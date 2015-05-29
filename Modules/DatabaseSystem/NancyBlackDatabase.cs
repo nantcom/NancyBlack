@@ -50,24 +50,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="db">The database.</param>
         /// <param name="odataFilter">The odata filter.</param>
         /// <returns></returns>
-        private IList<object> PerformQuery<T>(NameValueCollection odataFilter) where T : class, new()
+        private IEnumerable<object> PerformQuery<T>(NameValueCollection odataFilter) where T : class, new()
         {
             var parser = new ParameterParser<T>();            
             var modelFilter = parser.Parse(odataFilter);
 
-            var result = modelFilter.Filter(_db.Table<T>());
-
-            if (modelFilter.SkipCount > 0 )
-            {
-                result = result.Skip(modelFilter.SkipCount);
-            }
-
-            if (modelFilter.TakeCount > 0)
-            {
-                result = result.Take(modelFilter.TakeCount);
-            }
-
-            return result.ToList();
+            return modelFilter.Filter(_db.Table<T>());
         }
 
         /// <summary>
@@ -80,7 +68,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public IEnumerable<string> QueryAsJsonString(string entityName, string oDatafilter = null, string oDataSort = null)
         {
             return from item in this.Query(entityName, oDatafilter, oDataSort)
-                   select item.ToString();
+                   select JObject.FromObject(item).ToString();
         }
 
         /// <summary>
@@ -90,7 +78,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="oDatafilter">The o datafilter.</param>
         /// <param name="oDataSort">The o data sort.</param>
         /// <returns></returns>
-        public IEnumerable<JObject> Query(string entityName, string oDatafilter = null, string oDataSort = null)
+        public IEnumerable<object> Query(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
         {
             var type = _dataType.FromName(entityName);
             if (type == null)
@@ -109,14 +97,65 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 nv.Add("$orderby", oDataSort);
             }
 
+            if (skip != null)
+            {
+                nv.Add("$skip", skip);
+            }
+
+            if (take != null)
+            {
+                nv.Add("$top", take);
+            }
+
             var method = typeof(NancyBlackDatabase)
                             .GetMethod("PerformQuery", BindingFlags.NonPublic | BindingFlags.Instance)
                             .MakeGenericMethod(type.GetCompiledType());
 
-            var result = (IList<object>)method.Invoke(this, new object[] { nv });
+            var result = (IEnumerable<object>)method.Invoke(this, new object[] { nv });
 
-            return from item in result
-                   select JObject.FromObject(item); // this will help with dynamic
+            if (this.NeedsToPostProcess(type) == true)
+            {
+                // this type has some property that is complex type
+                // needs special treatment
+                return from item in result
+                       select this.PostProcess(type, item);
+            }
+            else
+            {
+                return result;
+            }
+        }
+        
+        /// <summary>
+        /// Whether we need to post-process the object
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private bool NeedsToPostProcess( DataType type )
+        {
+            return type.Properties.Any( p => p.Name.StartsWith( "js_" ));
+        }
+
+        /// <summary>
+        /// Post-process the object (deserializes js_ fields)
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private JObject PostProcess( DataType type, object input )
+        {
+            JObject jo = JObject.FromObject(input);
+
+            foreach (var prop in jo.Properties().ToList()) // to-list to allow us to add property
+            {
+                if (prop.Name.StartsWith("js_"))
+                {
+                    jo[prop.Name.Substring(3)] = JToken.Parse((string)prop.Value);
+                    jo.Remove(prop.Name);
+                }
+            }
+
+            return jo;
         }
 
         /// <summary>
@@ -142,66 +181,81 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="entityName">Name of the entity.</param>
         /// <param name="input">Data to be saved, can be anything including anonymous type. But Anonymous Type must include Id parameter</param>
-        public dynamic UpsertRecord(string entityName, dynamic inputObject)
+        public JObject UpsertRecord(string entityName, object inputObject)
         {
-            int? id = inputObject.Id == null ? null : new int?(inputObject.Id);
-
-            // there is a possibility of casing error of Id from Angular
-            if (id == null)
+            JObject jObject = inputObject as JObject;
+            if (jObject == null)
             {
-                id = inputObject.id == null ? null : new int?(inputObject.id);
+                JObject.FromObject(inputObject);
             }
 
-            var inputJson = JsonConvert.SerializeObject(inputObject);
-            var type = _dataType.FromJson(entityName, inputJson);
+            List<JProperty> removed = new List<JProperty>();
 
-            var actualType = type.GetCompiledType();
-
-            return this.UpsertRecord(entityName, actualType, id ?? 0, inputJson);
-        }
-
-        /// <summary>
-        /// Upserts the record.
-        /// </summary>
-        /// <param name="entityName">Name of the entity.</param>
-        /// <param name="id">The identifier.</param>
-        /// <param name="json">The json.</param>
-        /// <returns></returns>
-        public dynamic UpsertRecord(string entityName, int id, string inputJson)
-        {
-            var type = _dataType.FromJson(entityName, inputJson);
-            var actualType = type.GetCompiledType();
-
-            return this.UpsertRecord(entityName, actualType, id, inputJson);
-        }
-
-        private dynamic UpsertRecord( string entityName, Type actualType, int id, string inputJson )
-        {
-            // inputObject is now copied into internal object format
-            // ('coerced') which contains additional system properties
-            dynamic coercedObject = JsonConvert.DeserializeObject(inputJson, actualType);
-            coercedObject.__updatedAt = DateTime.Now;
-            coercedObject.__version = DateTime.Now.Ticks.ToString();
-
-            if (coercedObject.__createdAt == DateTime.MinValue)
+            // converts complex properties to Json
+            foreach (var prop in jObject.Properties().ToList()) // to-list to allow us to add property
             {
-                coercedObject.__createdAt = DateTime.Now;
+                if (prop.Value.Type == JTokenType.Array || prop.Value.Type == JTokenType.Object )
+                {
+                    // array or objects are converted to JSON when stored in table
+                    jObject["js_" + prop.Name] = prop.Value.ToString(Formatting.None);
+
+                    prop.Remove();
+                    removed.Add(prop);
+                }
+            }
+
+            var type = _dataType.FromJObject(entityName, jObject);
+            var actualType = type.GetCompiledType();
+
+            jObject["__updatedAt"] = DateTime.Now;
+            jObject["__version"] = DateTime.Now.Ticks.ToString();
+
+
+            int id = 0;
+            if (jObject.Property("id") != null) // try to get Id
+            {
+                id = (int)jObject["id"];
+
+                jObject["Id"] = id;
+                jObject.Remove("id");
+            }
+
+            if (jObject.Property("Id") != null)
+            {
+                id = (int)jObject["Id"];
             }
 
             if (id == 0)
             {
-                coercedObject.__createdAt = DateTime.Now;                
-                _db.Insert((object)coercedObject, actualType);
-                NancyBlackDatabase.ObjectCreated(this, entityName, coercedObject);
+                jObject["__createdAt"] = DateTime.Now;
+                jObject["Id"] = _db.Insert(jObject.ToObject(actualType), actualType);
+
+                NancyBlackDatabase.ObjectCreated(this, entityName, jObject);
             }
             else
             {
-                _db.Update((object)coercedObject, actualType);
-                NancyBlackDatabase.ObjectUpdated(this, entityName, coercedObject);
+                _db.Update(jObject.ToObject(actualType), actualType);
+                NancyBlackDatabase.ObjectUpdated(this, entityName, jObject);
             }
 
-            return coercedObject;
+            // remove "js_" properties
+            foreach (var prop in jObject.Properties().ToList()) // to-list to allow us to add/remove property
+            {
+                if (prop.Name.StartsWith("js_"))
+                {
+                    prop.Remove();
+                }
+            }
+
+            // add removed complex properties back
+            foreach (var prop in removed)
+            {
+                jObject.Add(prop.Name, prop.Value);
+            }
+
+            return jObject;
         }
+        
 
         /// <summary>
         /// Deletes the specified entity name.
