@@ -150,7 +150,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 if (prop.Name.StartsWith("js_"))
                 {
-                    jo[prop.Name.Substring(3)] = JToken.Parse((string)prop.Value);
+                    if (prop.Value.Type == JTokenType.Null)
+                    {
+                        jo[prop.Name.Substring(3)] = JToken.Parse("null");                    
+                    }
+                    else
+                    {
+                        jo[prop.Name.Substring(3)] = JToken.Parse((string)prop.Value);
+                    
+                    }
                     jo.Remove(prop.Name);
                 }
             }

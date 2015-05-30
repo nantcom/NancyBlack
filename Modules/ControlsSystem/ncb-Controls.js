@@ -169,21 +169,7 @@
             link: link
         };
     });
-
-    module.factory("ncbForm", function () {
-
-        return function (controller, $scope) {
-
-            $scope.datepickeropen = {};
-            controller.opendatepicker = function ($event, target) {
-                $event.preventDefault();
-                $event.stopPropagation();
-
-                $scope.datepickeropen[target] = !$scope.datepickeropen[target];
-            }
-        };
-    });
-
+    
     // add 'active' class to A tags
     module.directive('ncbActive', function ($document) {
 
@@ -624,10 +610,14 @@
                 element.find("button.ncb-modal-delete").remove();
             }
 
+            var title = element.find("h2.modal-title");
             if (element.is("[title]") == false) {
-                element.find("h2.modal-title").remove();
+                title.remove();
             } else {
-                element.find("h2.modal-title").text(element.attr("title"));
+                title.text(element.attr("title"));
+
+                var titleTpl = $compile(title);
+                titleTpl(scope);
             }
 
             if (element.find(".modal-header").children().length == 0) {
@@ -905,6 +895,58 @@
             link: link
         };
     }]);
+
+    // JSON Editor
+    module.directive('ncbJsonedit', function () {
+
+        function link(scope, element, attrs) {
+
+            var included = $("script[src*='jsoneditor.min.js']").length > 0;
+            if (included == false) {
+
+                throw "jsoneditor.min.js was not included";
+            }
+
+            var $me = this;
+            $me.editor = new JSONEditor(element[0], {
+                change: function () {
+
+                    scope.$apply(function () {
+
+                        scope.$eval($me.expression + "=" + $me.editor.getText());
+                    });
+                }
+            });
+            $me.expression = attrs.model;
+
+            $me.refreshData = function () {
+
+                var value = scope.$eval($me.expression);
+                console.log("watch refresh, value:" + value);
+                if (value == null) {
+
+                    value = {};
+                }
+                $me.editor.set(value);
+            };
+
+            if (attrs.watch == null) {
+
+                scope.$watch($me.expression, $me.refreshData);
+            } else {
+
+                scope.$watch(attrs.watch, $me.refreshData);
+            }
+
+            scope.$watch($me.expression, $me.refreshData);
+            $me.refreshData();
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
 
 })();
 

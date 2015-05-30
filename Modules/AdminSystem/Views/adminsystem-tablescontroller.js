@@ -63,7 +63,7 @@
                 Properties: [
                     {
                         Name: "Property1",
-                        Type: "string"
+                        Type: "String"
                     }
                 ],
 

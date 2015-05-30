@@ -1,4 +1,5 @@
-﻿<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+﻿<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"
+     data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -15,11 +16,15 @@
                 <h2 class="modal-title"></h2>
             </div>
             <div class="modal-body">
-                
+
                 <div ng-transclude></div>
 
                 <div style="margin-top: 10px">
-                    <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
+                    <alert ng-repeat="alert in alerts"
+                           type="{{alert.type}}"
+                           close="closeAlert($index)">
+                        {{alert.msg}}
+                    </alert>
                 </div>
 
             </div>
