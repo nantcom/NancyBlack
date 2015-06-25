@@ -15,6 +15,17 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
+    public interface IStaticType
+    {
+        int Id { get; set; }
+
+        DateTime __createdAt { get; set; }
+
+        DateTime __updatedAt { get; set; }
+
+        string __version { get; set; }
+    }
+
     public class NancyBlackDatabase
     {
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
@@ -43,6 +54,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             _db = db;
             _dataType = DataTypeFactory.GetForDatabase(db);
         }
+
+        #region Dynamic Types
 
         /// <summary>
         /// Queries the specified database
@@ -194,7 +207,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             JObject jObject = inputObject as JObject;
             if (jObject == null)
             {
-                JObject.FromObject(inputObject);
+                jObject = JObject.FromObject(inputObject);
             }
 
             List<JProperty> removed = new List<JProperty>();
@@ -264,7 +277,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             return jObject;
         }
         
-
         /// <summary>
         /// Deletes the specified entity name.
         /// </summary>
@@ -294,6 +306,88 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
+
+        #endregion
+
+        #region Static Types
+
+        /// <summary>
+        /// Gets Static Type From its table by Id
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public T GetById<T>( int id ) where T : IStaticType, new()
+        {
+            return _db.Get<T>(id);
+        }
+
+        /// <summary>
+        /// Gets Query Interface for given static type
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public TableQuery<T> Query<T>() where T : IStaticType, new()
+        {
+            return _db.Table<T>();
+        }
+
+        private HashSet<Type> _UsedTypes = new HashSet<Type>();
+
+        /// <summary>
+        /// Update/Insert the given input object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public T UpsertRecord<T>( T input ) where T : IStaticType, new()
+        {
+            var actualType = input.GetType();
+            var entityName = actualType.Name;
+
+            input.__updatedAt = DateTime.Now;
+            input.__version = DateTime.Now.Ticks.ToString();
+
+            // since we are doing static types, create/migrate table only once
+            if (_UsedTypes.Contains( actualType ) == false)
+            {
+                _db.CreateTable<T>();
+                _UsedTypes.Add(actualType);
+            }
+
+            if (input.Id == 0)
+            {
+                input.__createdAt = DateTime.Now;
+
+                 _db.Insert( input, actualType );
+                NancyBlackDatabase.ObjectCreated(this, entityName, input);
+            }
+            else
+            {
+                _db.Update( input, actualType);
+                NancyBlackDatabase.ObjectUpdated(this, entityName, input);
+            }
+
+            return input;
+        }
+
+        /// <summary>
+        /// Deletes the record
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        public void DeleteRecord<T>( T input) where T : IStaticType, new()
+        {
+            var actualType = input.GetType();
+            var entityName = actualType.Name;
+
+            var deleting = this.GetById<T>(input.Id); // get the object out before delete
+            _db.Delete(deleting);
+
+            NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
+        }
+        
+        #endregion
 
         /// <summary>
         /// Gets site database from given Context

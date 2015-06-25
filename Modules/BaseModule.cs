@@ -241,6 +241,7 @@ namespace NantCom.NancyBlack.Modules
 
                     return this.Negotiate
                         .WithStatusCode(400)
+                        .WithView("Codes/500")
                         .WithModel(new
                         {
                             Code = 400,
@@ -254,6 +255,7 @@ namespace NantCom.NancyBlack.Modules
 
                     return this.Negotiate
                         .WithStatusCode(500)
+                        .WithView("Codes/500")
                         .WithModel(new
                         {
                             Code = 500,

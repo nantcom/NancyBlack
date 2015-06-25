@@ -10,12 +10,13 @@
         We have got error while processing your request.<br/>
     </p>
 </div>
-<pre>
-    @if (this.RenderContext.Context.Items.ContainsKey("ERROR_TRACE"))
-    {
-        @this.RenderContext.Context.Items["ERROR_TRACE"]
-    }    
-</pre>
+
+@if (this.RenderContext.Context.Items.ContainsKey("ERROR_TRACE"))
+{
+    <pre>
+            @this.RenderContext.Context.Items["ERROR_TRACE"]
+    </pre>
+}    
 
 @if (this.RenderContext.Context.Items.ContainsKey("ERROR_EXCEPTION"))
 {
@@ -37,8 +38,6 @@
 
 }
 
-
-
 @if (this.RenderContext.Context.Items.ContainsKey("Exception"))
 {
     var ex = this.RenderContext.Context.Items["Exception"] as Exception;
@@ -49,8 +48,23 @@
     </p>
     <p>
         <b>Stack Trace:</b>
-        <pre style="overflow-y:scroll; max-height: 300px">
-                @(ex.StackTrace)
-            </pre>
+        <pre style="overflow-y:scroll; max-height: 300px">@(ex.StackTrace)</pre>
     </p>
+
+    var json = Newtonsoft.Json.JsonConvert.SerializeObject(this.RenderContext.Context.Items["Exception"]);
+
+    <div id="jsoneditor" style="width: 100%; height: 500px;"></div>
+    <script type="text/javascript">
+        // create the editor
+        var container = document.getElementById("jsoneditor");
+        var editor = new JSONEditor(container);
+
+        // set json
+        var json = @(this.Html.Raw(json));
+        editor.set(json);
+
+        // get json
+        var json = editor.get();
+    </script>
+
 }
