@@ -18,7 +18,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
 
         private dynamic CreateIcon(dynamic arg)
         {
-            var sourceFile = Path.Combine(this.RootPath, "Content", "favicon.png");
+            var sourceFile = Path.Combine(this.RootPath, "Site", "favicon.png");
 
             if (File.Exists(sourceFile) == false)
             {

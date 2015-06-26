@@ -6,10 +6,11 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Configuration
 {
-    public class RazorConfig //: IRazorConfiguration
+    public class RazorConfig : IRazorConfiguration
     {
         public IEnumerable<string> GetAssemblyNames()
         {
+            yield return "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
             yield return "Newtonsoft.Json";
         }
 

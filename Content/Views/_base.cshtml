@@ -7,19 +7,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
 
-    <link rel="apple-touch-icon" sizes="57x57"   href="/__favicon/57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60"   href="/__favicon/60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72"   href="/__favicon/72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76"   href="/__favicon/76x76.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/__favicon/57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/__favicon/60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/__favicon/72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/__favicon/76x76.png">
     <link rel="apple-touch-icon" sizes="114x114" href="/__favicon/114x114.png">
     <link rel="apple-touch-icon" sizes="120x120" href="/__favicon/120x120.png">
     <link rel="apple-touch-icon" sizes="144x144" href="/__favicon/144x144.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/__favicon/152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/__favicon/180x180.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/__favicon/192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32"   href="/__favicon/32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96"   href="/__favicon/96x96.png">
-    <link rel="icon" type="image/png" sizes="16x16"   href="/__favicon/16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/__favicon/32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/__favicon/96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/__favicon/16x16.png">
     <link rel="icon" type="image/png" href="/__favicon/16x16.png">
     <link rel="shortcut icon" href="/__favicon/16x16.ico" />
     <link rel="manifest" href="/__favicon/manifest.json">
@@ -34,10 +34,16 @@
     <link href="/Content/font-awesome.min.css" rel="stylesheet" />
     <link href="/Content/Scripts/angular-ui-select/select.min.css" rel="stylesheet" />
 
+    <!--Adding Media Queries Support for IE8-->
+    <!--[if lt IE 9]>
+       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+       <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
     @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
 
     @if (this.RenderContext.Context.Request.Url.Path.Contains("/Admin") == false &&
-        this.RenderContext.Context.Request.Url.Path.Contains("/SuperAdmin") == false)
+                this.RenderContext.Context.Request.Url.Path.Contains("/SuperAdmin") == false)
     {
         <link rel="stylesheet" href="@this.SitePath("/style.min.css")">
     }
@@ -100,7 +106,7 @@
     <script>
         // Querystring extraction function
         (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
-        
+
         // combine all ng-module into one attribute on top of the page
         // too allow all modules to function
         var modules = [];
@@ -144,7 +150,7 @@
             }(document, 'script', 'facebook-jssdk'));
         </script>
     }
-    
+
     @if (this.Site.GoogleAnalyticsId != null)
     {
         <script>

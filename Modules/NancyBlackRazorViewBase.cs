@@ -107,22 +107,17 @@ namespace NantCom.NancyBlack
 
         #region Content Editing
 
-        /// <summary>
-        /// Output an Editable Area of Content
-        /// </summary>
-        /// <param name="propertyName">Name of the property.</param>
-        /// <param name="tag">The tag.</param>
-        /// <param name="tagClass">The tag class.</param>
-        /// <param name="tagId">The tag identifier.</param>
-        /// <returns></returns>
-        public NonEncodedHtmlString EditAttributes(string propertyName, bool html = true, bool global = false)
-        {
-            var htmlString = string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"{1}\" data-global=\"{2}\"",
-                    propertyName,
-                    html,
-                    global);
+        private string _LastPropertyName;
 
-            return htmlString;
+        /// <summary>
+        /// Get Edit Attributes for given property name
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString MakeEditable(string propertyName)
+        {
+            _LastPropertyName = propertyName;
+            return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\"", propertyName));
         }
 
         /// <summary>
@@ -130,26 +125,55 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns></returns>
-        public NonEncodedHtmlString GetContent(string propertyName)
+        public NonEncodedHtmlString GetContent(string propertyName, Func<object, object> defaultContent)
         {
+            _LastPropertyName = null;
+
             var value = (string)this.Content[propertyName];
+            if (value == null)
+            {
+                return new NonEncodedHtmlString( defaultContent(null).ToString() );
+            }
 
             return value;
         }
-        
+
         /// <summary>
-        /// Determines whether the specified property name has content.
+        /// Get Contents of the specified property name.
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns></returns>
-        public bool HasContent( string propertyName )
+        public NonEncodedHtmlString GetContent(Func<object, object> defaultContent)
         {
-            if (this.Content is JObject)
+            if (_LastPropertyName == null)
             {
-                return this.Content[propertyName] != null;
+                throw new InvalidOperationException("GetEditAttribute was not used prior to calling this method.");
             }
 
-            return false;
+            var value = (string)this.Content[_LastPropertyName];
+            if (value == null)
+            {
+                return new NonEncodedHtmlString(defaultContent(null).ToString());
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Get Content with editable area
+        /// </summary>
+        /// <returns></returns>
+        public void GetEditableContent(string propertyName, Func<object, object> defaultContent, string enclosingTag = "div", string classes = "" )
+        {
+            var content = (string)this.Content[propertyName];
+            if (content == null)
+            {
+                content = defaultContent(null).ToString();
+            }
+            
+            this.WriteLiteral(string.Format("<{0} class=\"{1}\" data-editable=\"true\" data-propertyName=\"{2}\">", enclosingTag, classes, propertyName));
+            this.WriteLiteral(content);
+            this.WriteLiteral(string.Format("</{0}>", enclosingTag));
         }
 
         #endregion
@@ -188,5 +212,7 @@ namespace NantCom.NancyBlack
         {
             return JsonConvert.SerializeObject(input);
         }
+        
+
     }
 }
