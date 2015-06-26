@@ -59,6 +59,8 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
+            url = url.ToLowerInvariant();
+
             dynamic requestedContent = this.SiteDatabase.Query("Content",
                                     string.Format("Url eq '{0}'", url)).FirstOrDefault();
 
@@ -78,11 +80,17 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 // if Site contains layout with the same name as path, use it
-                var layout = "Content";
+                var layout = "content";
                 var layoutFile = Path.Combine(this.RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
                 if (File.Exists( layoutFile ))
                 {
                     layout = url;
+                }
+
+                // if URL is "/" generate home instead
+                if (url == "/")
+                {
+                    layout = "home";
                 }
 
                 requestedContent = this.SiteDatabase.UpsertRecord("Content", new
@@ -114,8 +122,7 @@ namespace NantCom.NancyBlack.Modules
 
             return View[(string)requestedContent.Layout, this.GetModel(requestedContent)];
         }
-
-
+        
     }
 
 }

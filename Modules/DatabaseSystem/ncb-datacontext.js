@@ -165,7 +165,7 @@
         }
 
         // Insert is, unlike save, always create new object in the backend
-        $scope.data.insert = function (object) {
+        $scope.data.insert = function (object, callback) {
             
             delete object.id;
             delete object.Id;
@@ -175,6 +175,11 @@
                 // clears the object after inserted
                 for (var k in object) {
                     object[k] = null;
+                }
+
+                if (callback != null) {
+
+                    callback();
                 }
 
             });
@@ -249,6 +254,11 @@
 
         };
 
+        $scope.data.query = function (queryFn, callback) {
+
+
+        };
+
         $scope.data.delete = function (object) {
 
             if ($scope.object != null) {
@@ -304,6 +314,17 @@
             restrict: 'A',
             link: dataContext,
             scope: true
+        };
+    }]);
+    
+    // DataContext which integrated into current scope instead of creating new
+    // child sopce
+    ncb.directive('ncbDatacontextIntegrated', ['$http', function ($http) {
+
+        return {
+            restrict: 'A',
+            link: dataContext,
+            scope: false // integrate into current scope
         };
     }]);
 

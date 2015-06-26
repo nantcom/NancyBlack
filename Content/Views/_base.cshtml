@@ -77,7 +77,7 @@
 
 
 </head>
-<body>
+<body @(this.IsInEditMode ? "editmode" : "" ) >
 
     @RenderBody()
 

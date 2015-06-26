@@ -1,0 +1,12 @@
+﻿[
+  {
+    "outputFile": "Modules/EditorSystem/editor.css",
+    "inputFile": "Modules/EditorSystem/editor.less",
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMap": false,
+    "options": {}
+  }
+]

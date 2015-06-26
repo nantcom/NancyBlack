@@ -104,80 +104,7 @@ namespace NantCom.NancyBlack
                 return this.Model.Database;
             }
         }
-
-        #region Content Editing
-
-        private string _LastPropertyName;
-
-        /// <summary>
-        /// Get Edit Attributes for given property name
-        /// </summary>
-        /// <param name="propertyName"></param>
-        /// <returns></returns>
-        public NonEncodedHtmlString MakeEditable(string propertyName)
-        {
-            _LastPropertyName = propertyName;
-            return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\"", propertyName));
-        }
-
-        /// <summary>
-        /// Get Contents of the specified property name.
-        /// </summary>
-        /// <param name="propertyName">Name of the property.</param>
-        /// <returns></returns>
-        public NonEncodedHtmlString GetContent(string propertyName, Func<object, object> defaultContent)
-        {
-            _LastPropertyName = null;
-
-            var value = (string)this.Content[propertyName];
-            if (value == null)
-            {
-                return new NonEncodedHtmlString( defaultContent(null).ToString() );
-            }
-
-            return value;
-        }
-
-        /// <summary>
-        /// Get Contents of the specified property name.
-        /// </summary>
-        /// <param name="propertyName">Name of the property.</param>
-        /// <returns></returns>
-        public NonEncodedHtmlString GetContent(Func<object, object> defaultContent)
-        {
-            if (_LastPropertyName == null)
-            {
-                throw new InvalidOperationException("GetEditAttribute was not used prior to calling this method.");
-            }
-
-            var value = (string)this.Content[_LastPropertyName];
-            if (value == null)
-            {
-                return new NonEncodedHtmlString(defaultContent(null).ToString());
-            }
-
-            return value;
-        }
-
-        /// <summary>
-        /// Get Content with editable area
-        /// </summary>
-        /// <returns></returns>
-        public void GetEditableContent(string propertyName, Func<object, object> defaultContent, string enclosingTag = "div", string classes = "" )
-        {
-            var content = (string)this.Content[propertyName];
-            if (content == null)
-            {
-                content = defaultContent(null).ToString();
-            }
-            
-            this.WriteLiteral(string.Format("<{0} class=\"{1}\" data-editable=\"true\" data-propertyName=\"{2}\">", enclosingTag, classes, propertyName));
-            this.WriteLiteral(content);
-            this.WriteLiteral(string.Format("</{0}>", enclosingTag));
-        }
-
-        #endregion
-
+        
         /// <summary>
         /// Gets the absolute site path from given path
         /// </summary>
@@ -213,6 +140,115 @@ namespace NantCom.NancyBlack
             return JsonConvert.SerializeObject(input);
         }
         
+        #region Content Editing
 
+        private string _LastPropertyName;
+
+        /// <summary>
+        /// Get Edit Attributes for given property name
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString MakeEditable(string propertyName)
+        {
+            _LastPropertyName = propertyName;
+            return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\"", propertyName));
+        }
+
+        /// <summary>
+        /// Get Contents of the specified property name.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetContent(string propertyName, Func<object, object> defaultContent)
+        {
+            _LastPropertyName = null;
+
+            var value = (string)this.Content[propertyName];
+            if (value == null)
+            {
+                return new NonEncodedHtmlString(defaultContent(null).ToString());
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Get Contents of the specified property name.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetContent(Func<dynamic, object> defaultContent)
+        {
+            if (_LastPropertyName == null)
+            {
+                throw new InvalidOperationException("GetEditAttribute was not used prior to calling this method.");
+            }
+
+            var value = (string)this.Content[_LastPropertyName];
+            if (value == null)
+            {
+                return new NonEncodedHtmlString(defaultContent(null).ToString());
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Get Content with editable area
+        /// </summary>
+        /// <returns></returns>
+        public void GetEditableContent(string propertyName, Func<dynamic, object> defaultContent, string enclosingTag = "div", string classes = "")
+        {
+            var content = (string)this.Content[propertyName];
+            if (content == null)
+            {
+                content = defaultContent(null).ToString();
+            }
+
+            this.WriteLiteral(string.Format("<{0} class=\"{1}\" data-editable=\"true\" data-propertyName=\"{2}\">", enclosingTag, classes, propertyName));
+            this.WriteLiteral(content);
+            this.WriteLiteral(string.Format("</{0}>", enclosingTag));
+        }
+
+        #endregion
+
+        #region Content Hierachy
+
+        /// <summary>
+        /// Find the Content under current url
+        /// </summary>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListChildContents(Func<dynamic, object> contentTemplate)
+        {
+            return this.ListChildContents(this.Request.Url.Path, contentTemplate);
+        }
+
+        /// <summary>
+        /// Find the content under given url
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListChildContents(string url, Func<dynamic, object> contentTemplate)
+        {
+#if DEBUG
+            if (url == null)
+            {
+                throw new ArgumentNullException("url");
+            }
+#endif
+
+            var list = this.Database.Query("Content", string.Format("startswith(Url, '{0}')", url));
+
+            foreach (var item in list)
+            {
+                var output = contentTemplate(JObject.FromObject(item));
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
+
+        #endregion
     }
 }
