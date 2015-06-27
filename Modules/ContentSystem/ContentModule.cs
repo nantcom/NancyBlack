@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,11 +12,15 @@ namespace NantCom.NancyBlack.Modules
 {
     public class ContentModule : BaseModule
     {
+        private static string _RootPath;
+
         public ContentModule()
         {
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
 
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
+
+            _RootPath = this.RootPath;
         }
 
         /// <summary>
@@ -44,7 +49,7 @@ namespace NantCom.NancyBlack.Modules
             }
             File.Copy(sourceFile, layoutFilename);
         }
-        
+
         protected dynamic HandleContentRequest(dynamic arg)
         {
             var url = (string)arg.path;
@@ -59,10 +64,7 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
-            url = url.ToLowerInvariant();
-
-            dynamic requestedContent = this.SiteDatabase.Query("Content",
-                                    string.Format("Url eq '{0}'", url)).FirstOrDefault();
+            dynamic requestedContent = ContentModule.GetContent(this.SiteDatabase, url);
 
             if (requestedContent == null)
             {
@@ -79,34 +81,14 @@ namespace NantCom.NancyBlack.Modules
                     return 404;
                 }
 
-                // if Site contains layout with the same name as path, use it
-                var layout = "content";
-                var layoutFile = Path.Combine(this.RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
-                if (File.Exists( layoutFile ))
-                {
-                    layout = url;
-                }
-
-                // if URL is "/" generate home instead
-                if (url == "/")
-                {
-                    layout = "home";
-                }
-
-                requestedContent = this.SiteDatabase.UpsertRecord("Content", new
-                {
-                    Id = 0,
-                    Url = url,
-                    Layout = layout,
-                    RequiredClaims = string.Empty
-                });
+                requestedContent = ContentModule.CreateContent(this.SiteDatabase, url);
             }
 
-            if (string.IsNullOrEmpty( (string)requestedContent.RequiredClaims ) == false)
+            if (string.IsNullOrEmpty((string)requestedContent.RequiredClaims) == false)
             {
                 var required = ((string)requestedContent.RequiredClaims).Split(',');
                 var user = this.Context.CurrentUser as NancyBlackUser;
-                if ( required.Any( c => user.HasClaim(c) ) == false)
+                if (required.Any(c => user.HasClaim(c)) == false)
                 {
                     // user does not have any required claims
                     if (this.Context.CurrentUser == NancyBlackUser.Anonymous)
@@ -122,7 +104,84 @@ namespace NantCom.NancyBlack.Modules
 
             return View[(string)requestedContent.Layout, this.GetModel(requestedContent)];
         }
+
+        #region All Logic Related to Content
+
+        /// <summary>
+        /// Default Content Classs, contains properties that the engine requires
+        /// </summary>
+        private class DefaultContent
+        {
+            public int Id { get; set; }
+
+            public string Url { get; set; }
+
+            public string Layout { get; set; }
+
+            public string RequiredClaims { get; set; }
+
+            public int DisplayOrder { get; set; }
+        }
+
+        /// <summary>
+        /// Get child content of given url
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public static IEnumerable<dynamic> GetChildContent(NancyBlackDatabase db, string url)
+        {
+            return db.QueryAsDynamic("Content", string.Format("startswith(Url, '{0}')", url.ToLowerInvariant()), "DisplayOrder");
+        }
+
+        /// <summary>
+        /// Get child content of given url
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public static dynamic GetContent(NancyBlackDatabase db, string url)
+        {
+            return db.Query("Content", string.Format("Url eq '{0}'", url.ToLowerInvariant())).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Creates a content
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="layout"></param>
+        /// <returns></returns>
+        public static dynamic CreateContent(NancyBlackDatabase db, string url, string layout = "", string requiredClaims = "", int displayOrder = 0)
+        {
+            // try to find matching view that has same name as url
+            var layoutFile = Path.Combine(_RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
+            if (File.Exists(layoutFile))
+            {
+                layout = url;
+            }
+
+            if (layout == "")
+            {
+                layout = "content";
+            }
+
+            // if URL is "/" generate home instead
+            if (url == "/")
+            {
+                layout = "home";
+            }
+
+            var createdContent = db.UpsertRecord("Content", new DefaultContent()
+            {
+                Id = 0,
+                Url = url,
+                Layout = layout,
+                RequiredClaims = requiredClaims,
+                DisplayOrder = displayOrder
+            });
+
+            return createdContent;
+        }
         
+        #endregion
     }
 
 }

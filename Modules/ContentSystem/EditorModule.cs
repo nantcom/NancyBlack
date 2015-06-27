@@ -10,10 +10,10 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 {
     public class EditorModule : BaseModule
     {
-        public EditorModule(IRootPathProvider r)
-            : base(r)
+        public EditorModule()
         {
             this.RequiresAuthentication();
+
             Post["/__editor/enable"] = _ =>
             {
                 var redirect = this.Request.Query.returnUrl;
@@ -66,6 +66,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
                 return userViews.Distinct();
 
             });
+            
         }
     }
 }

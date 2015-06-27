@@ -78,10 +78,36 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="oDatafilter">The o datafilter.</param>
         /// <param name="oDataSort">The o data sort.</param>
         /// <returns></returns>
-        public IEnumerable<string> QueryAsJsonString(string entityName, string oDatafilter = null, string oDataSort = null)
+        public IEnumerable<string> QueryAsJsonString(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
         {
-            return from item in this.Query(entityName, oDatafilter, oDataSort)
+            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take)
                    select JObject.FromObject(item).ToString();
+        }
+        
+        /// <summary>
+        /// Queries the entity, result is in JObject to support dynamic operations
+        /// </summary>
+        /// <param name="entityName">Name of the entity.</param>
+        /// <param name="oDatafilter">The o datafilter.</param>
+        /// <param name="oDataSort">The o data sort.</param>
+        /// <returns></returns>
+        public IEnumerable<JObject> QueryAsJObject(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
+        {
+            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take)
+                   select JObject.FromObject(item);
+        }
+
+        /// <summary>
+        /// Queries the entity, result is converted to JObject and casted to dynamic
+        /// </summary>
+        /// <param name="entityName">Name of the entity.</param>
+        /// <param name="oDatafilter">The o datafilter.</param>
+        /// <param name="oDataSort">The o data sort.</param>
+        /// <returns></returns>
+        public IEnumerable<dynamic> QueryAsDynamic(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
+        {
+            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take)
+                   select (dynamic)JObject.FromObject(item);
         }
 
         /// <summary>
@@ -197,6 +223,36 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             return JObject.FromObject( obj );
         }
 
+        /// <summary>
+        /// Update Record FAST, this will directly update the record to database
+        /// </summary>
+        /// <param name="entityName"></param>
+        /// <param name="inputObject"></param>
+        /// <returns></returns>
+        public dynamic UpsertStaticRecord( string entityName, dynamic inputObject )
+        {
+            var type = _dataType.FromName(entityName);
+            if (type == null)
+            {
+                throw new ArgumentException("Given entityName does not exists.");
+            }
+
+            var actualType = type.GetCompiledType();
+
+            if (inputObject.Id == 0)
+            {
+                inputObject.Id = _db.Insert((object)inputObject, actualType);
+                NancyBlackDatabase.ObjectCreated(this, entityName, inputObject);
+            }
+            else
+            {
+                _db.Update((object)inputObject, actualType);
+                NancyBlackDatabase.ObjectUpdated(this, entityName, inputObject);
+            }
+            
+            return inputObject;
+        }
+        
         /// <summary>
         /// Upserts the specified entity name.
         /// </summary>

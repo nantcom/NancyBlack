@@ -1,4 +1,5 @@
 ﻿using Nancy.ViewEngines.Razor;
+using NantCom.NancyBlack.Modules;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
@@ -231,15 +232,15 @@ namespace NantCom.NancyBlack
         /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
         public object ListChildContents(string url, Func<dynamic, object> contentTemplate)
         {
+
 #if DEBUG
             if (url == null)
             {
                 throw new ArgumentNullException("url");
             }
 #endif
-
-            var list = this.Database.Query("Content", string.Format("startswith(Url, '{0}')", url));
-
+            var list = ContentModule.GetChildContent(this.Database, url);
+                
             foreach (var item in list)
             {
                 var output = contentTemplate(JObject.FromObject(item));

@@ -28,7 +28,7 @@
                     '-');
 
     var ncb = angular.module("ncb-datacontext", []);
-    
+
     var dataContext = function link($scope, element, attrs) {
 
         if (attrs.table == null) {
@@ -166,12 +166,12 @@
 
         // Insert is, unlike save, always create new object in the backend
         $scope.data.insert = function (object, callback) {
-            
+
             delete object.id;
             delete object.Id;
-                
+
             $scope.data.save(object, function () {
-                
+
                 // clears the object after inserted
                 for (var k in object) {
                     object[k] = null;
@@ -254,9 +254,26 @@
 
         };
 
-        $scope.data.query = function (queryFn, callback) {
+        // query the database using odata
+        $scope.data.query = function (oDataQuery, callback) {
 
+            $scope.isBusy = true;
 
+            $scope.table.read(oDataQuery).done(function (results) {
+
+                $scope.$apply(function () {
+
+                    $scope.isBusy = false;
+
+                    results.forEach($me.processServerObject);
+                    
+                    if (callback != null) {
+                        
+                        callback(results);
+                    }
+                });
+
+            }, $me.handleError);
         };
 
         $scope.data.delete = function (object) {
@@ -316,7 +333,7 @@
             scope: true
         };
     }]);
-    
+
     // DataContext which integrated into current scope instead of creating new
     // child sopce
     ncb.directive('ncbDatacontextIntegrated', ['$http', function ($http) {
@@ -371,7 +388,7 @@
             element.attr("ng-disabled", "isBusy");
             element.attr("ng-click", "data.save(object)");
 
-            element.prepend( '<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy"></i>')
+            element.prepend('<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy"></i>')
             element.removeAttr("ncb-savebutton"); // prevent infinite loop
 
             var template = $compile(element);
