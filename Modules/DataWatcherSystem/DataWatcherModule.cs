@@ -1,6 +1,8 @@
 ﻿using Nancy;
 using Nancy.Bootstrapper;
+using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -10,94 +12,73 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules
 {
-    public static class DataWatcherModule
+    public class DataWatcherModule : BaseModule, IPipelineHook
     {
-        private class WatchTask
-        {
-            /// <summary>
-            /// Entities to watch
-            /// </summary>
-            public string Entities { get; set; }
-            
-            /// <summary>
-            /// Site for this task
-            /// </summary>
-            public dynamic Site { get; set; }
-        }
-
-
         static DataWatcherModule()
         {
             NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
+            NancyBlackDatabase.ObjectDeleted += NancyBlackDatabase_ObjectDeleted;
+            NancyBlackDatabase.ObjectUpdated += NancyBlackDatabase_ObjectUpdated;
         }
 
-        private static Dictionary<NancyBlackDatabase, WatchTask> _WatchTasks = new Dictionary<NancyBlackDatabase, WatchTask>();
-
-        static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string entityName, dynamic value)
+        public DataWatcherModule()
         {
-            WatchTask task;
-            if (_WatchTasks.TryGetValue( db, out task ) == true)
+            Get["/Admin/DataWatcher"] = this.HandleStaticRequest("admin-datawatcher", null);
+        }
+        
+        private void SendEmail( string entityName, string email)
+        {
+            try
             {
-                if (task.Entities.IndexOf( entityName + ",", StringComparison.InvariantCultureIgnoreCase ) >= 0)
-                {
-                    try
-                    {
-                        MailSenderModule.SendEmail(task.Site,
-                            (string)task.Site.DataWatcher_WatchEmail,
-                            "Object was Created in table: " + entityName,
-                            "There was a new object created in table: " + entityName);
-
-                        db.UpsertRecord("DataWatcherLog", new
-                        {
-                            Id = 0,
-                            Title = "Mail Sent for Entity:" + entityName,
-                            Message = "Success."
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        db.UpsertRecord("DataWatcherLog", new
-                        {
-                            Id = 0,
-                            Title = "Mail Failed to Send",
-                            Message = "Failed." + ex.Message
-                        });
-                    }
-                }
+                MailSenderModule.SendEmail( this.CurrentSite,
+                    email,
+                    "Object was Created in table: " + entityName,
+                    "There was a new object created in table: " + entityName);
+            }
+            catch (Exception ex)
+            {
             }
         }
 
-        public static void Initialize(IPipelines pipelines )
+        private static void NancyBlackDatabase_ObjectUpdated(NancyBlackDatabase arg1, string arg2, dynamic arg3)
         {
+        }
 
-            pipelines.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+        private static void NancyBlackDatabase_ObjectDeleted(NancyBlackDatabase arg1, string arg2, dynamic arg3)
+        {
+        }
+        
+        private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string entityName, dynamic value)
+        {
+        }
+        
+        /// <summary>
+        /// Logs the action on database
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="inputObject"></param>
+        private static void Log( string entityName, string action, int id, object inputObject, int byUserId)
+        {
+            //_db.Insert(new RowVersion()
+            //{
+            //    UserId = byUserId,
+            //    Action = action,
+            //    js_Row = JsonConvert.SerializeObject(inputObject),
+            //    RowId = id,
+            //    DataType = dt.NormalizedName,
+            //    __createdAt = DateTime.Now,
+            //    __updatedAt = DateTime.Now,
+            //    __version = DateTime.Now.Ticks.ToString(),
+            //});
+        }
+
+        public void Hook(IPipelines p)
+        {
+            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
-                if (ctx.Items.ContainsKey("CurrentSite") == false)
-                {
-                    return;
-                }
-
-                dynamic site = ctx.Items["CurrentSite"];
-                var siteDb = ctx.Items["SiteDatabase"] as NancyBlackDatabase;
-
-                if (site.DataWatcher_Tables != null)
-                {
-                    if (_WatchTasks.ContainsKey( siteDb ) == false)
-                    {
-                        // create watch tasks                        
-                        _WatchTasks.Add(siteDb, new WatchTask());
-
-                        // register our type
-                        siteDb.DataType.Register(siteDb.DataType.FromJson("DataWatcherLog", "{ \"Title\" : \"\", \"Message\" : \"\"}"));
-                    }
-
-                    // Make sure we use latest settings
-                    _WatchTasks[siteDb].Site = site;
-                    _WatchTasks[siteDb].Entities = site.DataWatcher_Tables + ",";
-                }
-
+                // process log
+                string s = "";
             });
-
         }
     }
 }

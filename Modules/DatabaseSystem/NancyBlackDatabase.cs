@@ -1,5 +1,6 @@
 ﻿using Linq2Rest;
 using Linq2Rest.Parser;
+using NantCom.NancyBlack.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SQLite;
@@ -12,6 +13,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Caching;
 using System.Web;
+using Nancy.Bootstrapper;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -228,14 +230,23 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var actualType = type.GetCompiledType();
+            if (inputObject is JObject)
+            {
+                inputObject = ((JObject)inputObject).ToObject(actualType);
+            }
 
             if (inputObject.Id == 0)
             {
-                inputObject.Id = _db.Insert((object)inputObject, actualType);
+                inputObject.__createdAt = DateTime.Now;
+                inputObject.__updatedAt = DateTime.Now;
+
+                _db.Insert((object)inputObject, actualType);
                 NancyBlackDatabase.ObjectCreated(this, entityName, inputObject);
             }
             else
             {
+                inputObject.__updatedAt = DateTime.Now;
+
                 _db.Update((object)inputObject, actualType);
                 NancyBlackDatabase.ObjectUpdated(this, entityName, inputObject);
             }
@@ -250,6 +261,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="input">Data to be saved, can be anything including anonymous type. But Anonymous Type must include Id parameter</param>
         public JObject UpsertRecord(string entityName, object inputObject)
         {
+            var type = _dataType.FromName(entityName);
+            if (type is StaticDataType)
+            {
+                return JObject.FromObject( this.UpsertStaticRecord(entityName, inputObject) );
+            }
+
             JObject jObject = inputObject as JObject;
             if (jObject == null)
             {
@@ -271,7 +288,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 }
             }
 
-            var type = _dataType.FromJObject(entityName, jObject);
+            type = _dataType.FromJObject(entityName, jObject);
             var actualType = type.GetCompiledType();
 
             jObject["__updatedAt"] = DateTime.Now;
@@ -295,13 +312,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             if (id == 0)
             {
                 jObject["__createdAt"] = DateTime.Now;
-                jObject["Id"] = _db.Insert(jObject.ToObject(actualType), actualType);
 
-                NancyBlackDatabase.ObjectCreated(this, entityName, jObject);
+                // needs to convert to object to get Id later
+                dynamic toInsert = jObject.ToObject(actualType);
+                _db.Insert(toInsert, actualType);
+                
+                NancyBlackDatabase.ObjectCreated(this, entityName, toInsert);
             }
             else
             {
                 _db.Update(jObject.ToObject(actualType), actualType);
+                
                 NancyBlackDatabase.ObjectUpdated(this, entityName, jObject);
             }
 
@@ -349,7 +370,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             var deleting = this.GetById(entityName, id.Value); // get the object out before delete
             _db.Delete( deleting );
-
+            
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
 
@@ -422,17 +443,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
-        public void DeleteRecord<T>( T input) where T : IStaticType, new()
+        public void DeleteRecord<T>( T input ) where T : IStaticType, new()
         {
             var actualType = input.GetType();
             var entityName = actualType.Name;
 
             var deleting = this.GetById<T>(input.Id); // get the object out before delete
             _db.Delete(deleting);
-
+            
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
-        
+
         #endregion
 
         /// <summary>
@@ -496,8 +517,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return cached;
             }
         }
-
-
+        
     }
 
 }

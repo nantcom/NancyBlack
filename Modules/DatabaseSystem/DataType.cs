@@ -42,7 +42,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// The identifier.
         /// </value>
         public int Id { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the name of the type.
         /// </summary>
@@ -73,7 +73,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// The properties.
         /// </value>
         public List<DataProperty> Properties { get; set; }
-
+        
         /// <summary>
         /// Gets the hash code which can be used to detect whether the properties of this DataType is similar.
         /// </summary>
@@ -100,7 +100,7 @@ public class @Model.OriginalName
         /// Combine new fields from other data type
         /// </summary>
         /// <param name="other"></param>
-        public void CombineProperties( DataType other )
+        public virtual void CombineProperties( DataType other )
         {
             var properties = this.Properties.ToList();
 
@@ -134,7 +134,7 @@ public class @Model.OriginalName
         /// <summary>
         /// Ensures that this data type contains all neccessary properties
         /// </summary>
-        public void EnsureHasNeccessaryProperties()
+        public virtual void EnsureHasNeccessaryProperties()
         {
             List<DataProperty> properties;
             if (this.Properties == null)
@@ -178,7 +178,7 @@ public class @Model.OriginalName
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Compile Error</exception>
-        public Assembly GetAssembly()
+        public virtual Assembly GetAssembly()
         {
             if (_Compiled != null)
             {
@@ -212,7 +212,7 @@ public class @Model.OriginalName
         /// Gets the instance of compiled type
         /// </summary>
         /// <returns></returns>
-        public object GetInstanceOfCompiledType()
+        public virtual object GetInstanceOfCompiledType()
         {
             return this.GetAssembly().CreateInstance(this.OriginalName);
         }
@@ -221,7 +221,7 @@ public class @Model.OriginalName
         /// Gets the compiled Type
         /// </summary>
         /// <returns></returns>
-        public Type GetCompiledType()
+        public virtual Type GetCompiledType()
         {
             return this.GetAssembly().GetType(this.OriginalName);
         }

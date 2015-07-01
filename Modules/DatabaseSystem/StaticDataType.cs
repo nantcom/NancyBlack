@@ -9,43 +9,29 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
     public class StaticDataType : DataType
     {
         private Type _InnerType;
-
-        /// <summary>
-        /// Id of this Data Type, always -1
-        /// </summary>
-        public new int Id
-        {
-            get
-            {
-                return -1;
-            }
-            set
-            {
-
-            }
-        }
+        
         
         /// <summary>
         /// Not permitted
         /// </summary>
-        public new void CombineProperties(DataType other)
+        public override void CombineProperties(DataType other)
         {
-            throw new InvalidOperationException("Not Permitted with Static Data Type");
+            return;
         }
 
         /// <summary>
         /// Not permitted
         /// </summary>
-        public new void EnsureHasNeccessaryProperties()
+        public override void EnsureHasNeccessaryProperties()
         {
-            throw new InvalidOperationException("Not Permitted with Static Data Type");
+            return;
         }
 
         /// <summary>
         /// Gets assembly that defines the type
         /// </summary>
         /// <returns></returns>
-        public new Assembly GetAssembly()
+        public override Assembly GetAssembly()
         {
             return _InnerType.Assembly;
         }
@@ -54,7 +40,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Gets the static type
         /// </summary>
         /// <returns></returns>
-        public new Type GetCompiledType()
+        public override Type GetCompiledType()
         {
             return _InnerType;
         }
@@ -63,7 +49,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Create new instance of this data type
         /// </summary>
         /// <returns></returns>
-        public new object GetInstanceOfCompiledType()
+        public override object GetInstanceOfCompiledType()
         {
             return Activator.CreateInstance(_InnerType);
         }
@@ -79,8 +65,14 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 throw new InvalidOperationException("Type must implement IStaticType");
             }
 
+            if (typeof(IStaticType) == type)
+            {
+                throw new InvalidOperationException("Type must implement IStaticType and Not IStaticType itself");
+            }
+
             _InnerType = type;
 
+            this.Id = int.MaxValue;
             this.OriginalName = type.Name;
             this.Properties = (from p in _InnerType.GetProperties()
                                where p.CanRead && p.CanWrite

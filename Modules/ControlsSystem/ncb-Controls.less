@@ -27,7 +27,6 @@ ncb-picturelist {
     &.selectable {
 
         li {
-
             cursor: pointer;
         }
     }
@@ -41,7 +40,7 @@ ncb-picturelist {
 
         > li:first-child {
 
-            >div {
+            > div {
                 height: auto;
             }
         }
@@ -50,7 +49,6 @@ ncb-picturelist {
             -moz-box-sizing: border-box;
             -webkit-box-sizing: border-box;
             box-sizing: border-box;
-
             margin: 0;
             padding: 5px;
             display: inline-block;
@@ -65,13 +63,12 @@ ncb-picturelist {
                 overflow: hidden;
                 line-height: 90px;
                 margin: 0;
-                
+
                 img {
                     width: 100px;
                     display: inline-block;
                     vertical-align: middle;
                 }
-
             }
 
             > div {
@@ -99,7 +96,6 @@ ncb-picturelist {
 .ncb-uploader {
     position: relative;
     display: inline-block;
-
     width: 100px;
     text-align: center;
 
@@ -160,4 +156,86 @@ ncb-picturelist {
             }
         }
     }
+}
+
+.toggle-switch {
+    border: 1px solid #888;
+    cursor: pointer;
+    display: inline-block;
+    text-align: left;
+    overflow: hidden;
+    line-height: 8px;
+    min-width: 80px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.toggle-switch.disabled > div > span.knob {
+    background: #AAA;
+}
+
+.toggle-switch span {
+    cursor: pointer;
+    display: inline-block;
+    float: left;
+    height: 100%;
+    line-height: 25px;
+    padding: 4px;
+    text-align: center;
+    width: 33%;
+    white-space: nowrap;
+    font-size: 10px;
+    box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.toggle-switch > div {
+    position: relative;
+    width: 150%;
+}
+
+.toggle-switch .knob {
+    background: red;
+    border-left: 1px solid #aaa;
+    border-right: 2px solid #ddd;
+    background-color: #f5f5f5;
+    width: 34%;
+    z-index: 100;
+}
+
+.toggle-switch .switch-on {
+    left: 0%;
+}
+
+.toggle-switch .switch-off {
+    left: -50%;
+}
+
+.toggle-switch .switch-left, .toggle-switch .switch-right {
+    z-index: 1;
+}
+
+.toggle-switch .switch-left {
+    background: rgba(102, 187, 102, 1);
+    color: white;
+    text-shadow: 0 0 5px white;
+}
+
+.toggle-switch .switch-right {
+    
+    background: rgb(191, 56, 37);
+    color: white;
+}
+
+.toggle-switch-animate {
+    transition: left 0.2s ease-out;
+    -o-transition: left 0.2s ease-out;
+    -moz-transition: left 0.2s ease-out;
+    -webkit-transition: left 0.2s ease-out;
 }

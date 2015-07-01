@@ -1,7 +1,17 @@
 ﻿[
   {
-    "outputFile": "Modules/EditorSystem/editor.css",
-    "inputFile": "Modules/EditorSystem/editor.less",
+    "outputFile": "Modules/ControlsSystem/ncb-Controls.css",
+    "inputFile": "Modules/ControlsSystem/ncb-Controls.less",
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMap": false,
+    "options": {}
+  },
+  {
+    "outputFile": "Modules/ContentSystem/ncb-editor.css",
+    "inputFile": "Modules/ContentSystem/ncb-editor.less",
     "minify": {
       "enabled": true
     },

@@ -26,10 +26,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             _db = db;
             _db.CreateTable<DataType>();
-
-
         }
-
+        
         private Dictionary<string, DataType> _CachedDataType;
 
         /// <summary>
@@ -43,20 +41,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             get
             {
                 if (_CachedDataType == null)
-                {   
+                {
                     var dynamicTypes = _db.Table<DataType>().ToList();
                     var staticTypes = StaticDataType.GetStaticDataTypes();
+                    _CachedDataType = dynamicTypes.Concat( staticTypes ).ToDictionary(k => k.NormalizedName);
 
-                    _CachedDataType = dynamicTypes.Concat(staticTypes).ToDictionary(k => k.NormalizedName);
-                    
                     // remaps all table to ensure the database
-                    // get reference to latest type that was created on-the-fly
+                    // get updated to latest type that was created on-the-fly
                     foreach (var table in _CachedDataType.Values )
                     {
                         _db.CreateTable(table.GetCompiledType());
                     }
-
-
                 }
 
                 return _CachedDataType;
@@ -107,22 +102,33 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public DataType Register(DataType toRegister)
         {
-            if (this.RegisteredTypes.Where( t => t.NormalizedName == toRegister.NormalizedName ).FirstOrDefault() != null)
+            if (toRegister.Id == int.MaxValue)
             {
-                throw new InvalidOperationException("Duplicate Structure Name");
+                throw new InvalidOperationException("Cannot Update StaticType");
             }
 
-            toRegister.EnsureHasNeccessaryProperties();
+            if (toRegister.Id == 0)
+            {
+                if (this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault() != null)
+                {
+                    throw new InvalidOperationException("Duplicate Structure Name");
+                }
 
-            _db.Insert(toRegister);
-            _db.CreateTable(toRegister.GetCompiledType());
+                toRegister.EnsureHasNeccessaryProperties();
+                _db.Insert(toRegister);
+            }
+            else
+            {
+                toRegister.EnsureHasNeccessaryProperties();
+                _db.Update(toRegister);
+            }
+            
             _CachedDataType = null;
 
             var finalType = this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault();
-
             return finalType;
         }
-
+        
         /// <summary>
         /// Get DataType from Name
         /// </summary>
@@ -139,6 +145,22 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             if (generateEmpty)
             {
                 return this.FromJson(typeName, "{}");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get DataType from Type
+        /// </summary>
+        /// <param name="typeName">Name of the type.</param>
+        /// <returns></returns>
+        public DataType FromType(Type t)
+        {
+            DataType dt;
+            if (this.Types.TryGetValue(t.Name.ToLowerInvariant(), out dt))
+            {
+                return dt;
             }
 
             return null;

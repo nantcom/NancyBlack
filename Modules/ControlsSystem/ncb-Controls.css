@@ -10,7 +10,7 @@ textarea.ng-invalid:focus {
 }
 input.ng-untouched,
 textarea.ng-untouched {
-  border-color: #ccc;
+  border-color: #cccccc;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 input.ng-untouched:focus,
@@ -75,6 +75,7 @@ ncb-picturelist > ul > li:hover {
   background-color: #c2e2ed;
 }
 /* Image Upload Control */
+
 .ncb-uploader {
   position: relative;
   display: inline-block;
@@ -118,4 +119,74 @@ ncb-picturelist > ul > li:hover {
 .login-dialog > .modal-dialog .btn > i {
   margin-right: 5px;
 }
-/*# sourceMappingURL=ncb-Controls.css.map */
+.toggle-switch {
+  border: 1px solid #888888;
+  cursor: pointer;
+  display: inline-block;
+  text-align: left;
+  overflow: hidden;
+  line-height: 8px;
+  min-width: 80px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.toggle-switch.disabled > div > span.knob {
+  background: #aaaaaa;
+}
+.toggle-switch span {
+  cursor: pointer;
+  display: inline-block;
+  float: left;
+  height: 100%;
+  line-height: 25px;
+  padding: 4px;
+  text-align: center;
+  width: 33%;
+  white-space: nowrap;
+  font-size: 10px;
+  box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+.toggle-switch > div {
+  position: relative;
+  width: 150%;
+}
+.toggle-switch .knob {
+  background: red;
+  border-left: 1px solid #aaaaaa;
+  border-right: 2px solid #dddddd;
+  background-color: whitesmoke;
+  width: 34%;
+  z-index: 100;
+}
+.toggle-switch .switch-on {
+  left: 0%;
+}
+.toggle-switch .switch-off {
+  left: -50%;
+}
+.toggle-switch .switch-left,
+.toggle-switch .switch-right {
+  z-index: 1;
+}
+.toggle-switch .switch-left {
+  background: #66bb66;
+  color: white;
+  text-shadow: 0 0 5px white;
+}
+.toggle-switch .switch-right {
+  background: #bf3825;
+  color: white;
+}
+.toggle-switch-animate {
+  transition: left 0.2s ease-out;
+  -o-transition: left 0.2s ease-out;
+  -moz-transition: left 0.2s ease-out;
+  -webkit-transition: left 0.2s ease-out;
+}

@@ -1,0 +1,162 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = (string)this.Model.Content.Layout;
+}
+@section Title
+{
+    Administration - Tables
+}
+
+<div ng-module="TablesModule"
+     ncb-datacontext-integrated table="DataType"
+     ng-controller="TablesController as ctrl">
+
+    <h1 class="page-header">
+        Manage Entities
+    </h1>
+    <p>
+        This page allows you to manage structure of all tables in the system.
+    </p>
+
+
+    <ncb-modal id="DataTypeModal"
+               title="{{object.OriginalName}}"
+               deletebutton closebutton>
+
+
+        <div class="form-group"
+             ng-show="object.id == null">
+            <label class="control-label">Name</label>
+            <input type="text"
+                   class="form-control"
+                   ng-model="object.OriginalName"
+                   placeholder="Name of this Entity" />
+        </div>
+
+        <div class="form-group">        
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40%">Name</th>
+                        <th>Type</th>
+                        <th width="16px"></th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="property in object.Properties"
+                    ng-hide="property.Name == 'Id' || property.Name.indexOf('__') == 0">
+                    <td>
+                        <input class="form-control"
+                               placeholder="Property Name"
+                               ng-model="property.Name"
+                               ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0" />
+                    </td>
+                    <td>
+                        <select class="form-control" ng-model="property.Type" ng-disabled="property.Name == 'Id' || property.Name.indexOf('__') == 0">
+                            <option ng-repeat="item in dataTypes">{{item}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger"
+                                ng-click="ctrl.removeProperty(property)"
+                                ng-hide="property.Name == 'Id' || property.Name.indexOf('__') == 0">
+                            <i class="glyphicon glyphicon-remove"></i>
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            
+            <label>Create new Attribute</label>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40%">Name</th>
+                        <th>Type</th>
+                        <th width="16px"></th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        <input class="form-control"
+                               placeholder="Property Name"
+                               ng-model="newProperty.Name" />
+                    </td>
+                    <td>
+                        <select class="form-control" ng-model="newProperty.Type">
+                            <option ng-repeat="item in dataTypes">{{item}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-success" ng-click="ctrl.appendProperty(newProperty)">
+                            <i class="glyphicon glyphicon-plus"></i>
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
+
+
+        <ncb-footer>
+
+            <button type="button"
+                    class="btn btn-success btn-lg"
+                    ncb-savebutton>
+                Save
+            </button>
+        </ncb-footer>
+
+    </ncb-modal>
+
+
+    <table class="table table-striped"
+           ncb-datatable
+           ng-cloak>
+        <thead>
+            <tr>
+                <th width="20%">Entity Name</th>
+                <th>Structure</th>
+                <th width="10%"></th>
+            </tr>
+        </thead>
+        <tr ng-repeat="item in list">
+            <td>
+                {{item.OriginalName}}
+                <p class="text-muted"
+                   ng-show="item.$type.indexOf('StaticDataType') > 0">
+                    (static type)
+                </p>
+            </td>
+            <td>
+                <ul>
+                    <li ng-repeat="property in item.Properties">
+                        <b>{{ property.Name }} :</b> {{ property.Type }}
+                    </li>
+                </ul>
+            </td>
+            <td style="white-space: nowrap">
+
+                <button class="btn btn-primary"
+                        ng-disabled="item.$type.indexOf('StaticDataType') > 0"
+                        ng-click="ctrl.view(item)">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </button>
+            </td>
+        </tr>
+    </table>
+
+    <div>
+        <button class="btn btn-success"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>Create Entity</span>
+        </button>
+    </div>
+
+</div>
+@section Scripts
+{
+
+<script src="~/Modules/DatabaseSystem/Views/databasesystem-tablescontroller.js"></script>
+
+}

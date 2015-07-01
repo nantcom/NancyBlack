@@ -5,24 +5,8 @@
 
     module.controller("TablesController", function ($scope, $rootScope, $http, ncbDatabaseClient) {
 
-        var editorSample = new JSONEditor(document.getElementById('sampledata'));
         var $me = this;
-
-        var ncbClient = new ncbDatabaseClient($me, $scope, "DataType", true );
-        ncbClient.list();
-
-        $scope.$watch('object.OriginalName',
-            function () {
-
-                if ($scope.object == null) {
-                    return;
-                }
-                editorSample.setName($scope.object.OriginalName);
-            }
-        );
-
         $scope.dataTypes = ["int", "double", "Boolean", "String", "DateTime", "Guid"];
-
 
         this.view = function (object) {
 
@@ -41,19 +25,6 @@
             $scope.sampleData = {};
             editorSample.set($scope.sampleData);
             editorSample.setName($scope.object.OriginalName);
-        }
-
-        this.scaffold = function () {
-
-            $scope.isBusy = true;
-            $scope.sampleData = editorSample.get();
-            $http.post('/tables/DataType/Scaffold', $scope.sampleData).success(function (value) {
-
-                $scope.object.Properties = value.Properties;
-                $scope.isBusy = false;
-
-                $('#TablesFormTabs a:first').tab('show');
-            });
         }
 
         this.create = function () {

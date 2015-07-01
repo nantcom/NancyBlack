@@ -115,8 +115,6 @@ namespace NantCom.NancyBlack.Configuration
             };
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
 
-            DataWatcherModule.Initialize(pipelines);
-
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
                 ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
