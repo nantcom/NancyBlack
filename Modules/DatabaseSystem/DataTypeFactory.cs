@@ -26,6 +26,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             _db = db;
             _db.CreateTable<DataType>();
+
+
         }
 
         private Dictionary<string, DataType> _CachedDataType;
@@ -42,14 +44,19 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 if (_CachedDataType == null)
                 {   
-                    _CachedDataType = _db.Table<DataType>().ToDictionary(k => k.NormalizedName);
+                    var dynamicTypes = _db.Table<DataType>().ToList();
+                    var staticTypes = StaticDataType.GetStaticDataTypes();
 
+                    _CachedDataType = dynamicTypes.Concat(staticTypes).ToDictionary(k => k.NormalizedName);
+                    
                     // remaps all table to ensure the database
                     // get reference to latest type that was created on-the-fly
                     foreach (var table in _CachedDataType.Values )
                     {
                         _db.CreateTable(table.GetCompiledType());
                     }
+
+
                 }
 
                 return _CachedDataType;
