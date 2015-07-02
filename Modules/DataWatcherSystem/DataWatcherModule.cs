@@ -5,6 +5,7 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RazorEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace NantCom.NancyBlack.Modules
 {
     public class DataWatcherModule : BaseModule, IPipelineHook
     {
-        private class DatabaseEvent
+        public class DatabaseEvent
         {
             public string Action { get; set; }
 
@@ -28,107 +29,163 @@ namespace NantCom.NancyBlack.Modules
             public dynamic AffectedRow { get; set; }
         }
 
-        private static ConcurrentBag<DatabaseEvent> _Events = new ConcurrentBag<DatabaseEvent>();
+        public class WatcherConfig
+        {
+            public class WatcherEmailNotifyConfig
+            {
+                public bool enable { get; set; }
+
+                public string emailSubject { get; set; }
+
+                public string emailTemplate { get; set; }
+
+                public string sendTo { get; set; }
+            }
+
+            /// <summary>
+            /// Normalized name of the table
+            /// </summary>
+            public string name { get; set; }
+
+            /// <summary>
+            /// Versioning enabled
+            /// </summary>
+            public bool version { get; set; }
+
+            /// <summary>
+            /// Email Notify configuration for create events
+            /// </summary>
+            public WatcherEmailNotifyConfig create { get; set; }
+
+            /// <summary>
+            /// Email Notify configuration for update events
+            /// </summary>
+            public WatcherEmailNotifyConfig update { get; set; }
+
+            /// <summary>
+            /// Email Notify configuration for deleted events
+            /// </summary>
+            public WatcherEmailNotifyConfig deleted { get; set; }
+
+            /// <summary>
+            /// Gets Email notify configuration for given action
+            /// </summary>
+            /// <param name="action"></param>
+            /// <returns></returns>
+            public WatcherEmailNotifyConfig this[string action]
+            {
+                get
+                {
+                    if (action == "create")
+                    {
+                        return this.create;
+                    }
+
+                    if (action == "update")
+                    {
+                        return this.update;
+                    }
+
+                    if (action == "delete")
+                    {
+                        return this.deleted;
+                    }
+
+                    throw new NotImplementedException(action + " was not implemented.");
+                }
+            }
+        }
+
+        private static ConcurrentBag<DatabaseEvent> _Events;
 
         static DataWatcherModule()
         {
-            NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
-            NancyBlackDatabase.ObjectDeleted += NancyBlackDatabase_ObjectDeleted;
-            NancyBlackDatabase.ObjectUpdated += NancyBlackDatabase_ObjectUpdated;
+            var ignore = new string[] { "rowversion", "mailsenderlog", "sitesettings" };
+            Action<string, NancyBlackDatabase, string, dynamic> genericHandler = (action, arg1, arg2, arg3) =>
+            {
+                if (ignore.Contains( arg2 ))
+                {
+                    return;
+                }
+
+                if (_Events == null)
+                {
+                    _Events = new ConcurrentBag<DatabaseEvent>();
+                }
+
+                _Events.Add(new DatabaseEvent()
+                {
+                    Action = action,
+                    AffectedRow = (object)arg3,
+                    Database = arg1,
+                    DataTypeName = arg2
+                });
+            };
+
+            NancyBlackDatabase.ObjectCreated += (a, b, c) => genericHandler("create", a, b, c);
+            NancyBlackDatabase.ObjectUpdated += (a, b, c) => genericHandler("update", a, b, c);
+            NancyBlackDatabase.ObjectDeleted += (a, b, c) => genericHandler("deleted", a, b, c);
         }
-
-        private static void NancyBlackDatabase_ObjectUpdated(NancyBlackDatabase arg1, string arg2, dynamic arg3)
-        {
-            if (arg2 == "rowversion")
-            {
-                return;
-            }
-
-            _Events.Add(new DatabaseEvent()
-            {
-                Action = "update",
-                AffectedRow = (object)arg3,
-                Database = arg1,
-                DataTypeName = arg2
-            });
-        }
-
-        private static void NancyBlackDatabase_ObjectDeleted(NancyBlackDatabase arg1, string arg2, dynamic arg3)
-        {
-            if (arg2 == "rowversion")
-            {
-                return;
-            }
-
-            _Events.Add(new DatabaseEvent()
-            {
-                Action = "delete",
-                AffectedRow = (object)arg3,
-                Database = arg1,
-                DataTypeName = arg2
-            });
-        }
-
-        private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase arg1, string arg2, dynamic arg3)
-        {
-            if (arg2 == "rowversion")
-            {
-                return;
-            }
-
-            _Events.Add(new DatabaseEvent()
-            {
-                Action = "created",
-                AffectedRow = (object)arg3,
-                Database = arg1,
-                DataTypeName = arg2
-            });
-        }
-        
+                
         public DataWatcherModule()
         {
             Get["/Admin/DataWatcher"] = this.HandleStaticRequest("admin-datawatcher", null);
         }
-        
-        private void SendEmail( string entityName, string email)
-        {
-            try
-            {
-                MailSenderModule.SendEmail( this.CurrentSite,
-                    email,
-                    "Object was Created in table: " + entityName,
-                    "There was a new object created in table: " + entityName);
-            }
-            catch (Exception ex)
-            {
-            }
-        }
-        
+                
         public void Hook(IPipelines p)
         {
-            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            p.AfterRequest.AddItemToStartOfPipeline((ctx) =>
             {
-                var db = ctx.Items["SiteDatabase"];
-                var events = _Events.ToList();
+                if (_Events == null)
+                {
+                    return;
+                }
+
+                var siteconfig = ctx.Items["CurrentSite"] as JObject;
                 var user = ctx.CurrentUser as NancyBlackUser;
 
-                _Events = new ConcurrentBag<DatabaseEvent>();
+                var events = _Events.ToList();
+                _Events = null;
+                
+                if (siteconfig.Property("watcher") == null)
+                {
+                    return; // not configured
+                }
+
+                var watcher = siteconfig.Property("watcher").Value as JObject;
 
                 Task.Run(() =>
                 {
                     foreach (var item in events)
                     {
-                        item.Database.UpsertStaticRecord("rowversion", new RowVersion()
+                        var datatype = watcher.Property( item.DataTypeName.ToLowerInvariant() );
+                        if (datatype == null)
                         {
-                            Action = item.Action,
-                            js_Row = JsonConvert.SerializeObject( item.AffectedRow ),
-                            UserId = user.Id,
-                            __createdAt = DateTime.Now,
-                            RowId = (int)item.AffectedRow.Id,
-                            DataType = item.DataTypeName
-                        });
+                            continue;
+                        }
 
-                        // send email
+                        var config = datatype.Value.ToObject<WatcherConfig>();
+                        if (config.version == true)
+                        {
+                            item.Database.UpsertRecord(new RowVersion()
+                            {
+                                Action = item.Action,
+                                js_Row = JsonConvert.SerializeObject(item.AffectedRow),
+                                UserId = user.Id,
+                                __createdAt = DateTime.Now,
+                                RowId = (int)item.AffectedRow.Id,
+                                DataType = item.DataTypeName
+                            });
+                        }
+
+                        var emailConfig = config[item.Action];
+                        if (emailConfig.enable)
+                        {
+                            var subject = Razor.Parse<DatabaseEvent>(emailConfig.emailSubject, item);
+                            var body = Razor.Parse<DatabaseEvent>(emailConfig.emailTemplate, item);
+
+                            MailSenderModule.SendEmail(emailConfig.sendTo, subject, body);
+                        }
                     }
                 });
 

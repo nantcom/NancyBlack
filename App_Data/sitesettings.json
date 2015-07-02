@@ -1,8 +1,51 @@
-﻿{ 
-  "SMTPFromEmail": "nancyblack@nant.co",
-  "SMTPServer": "smtp.sendgrid.net",
-  "SMTPServerPort": "25",
-  "SMTPUsername": "azure_af6ff7a51aa3f5c560b308d02e2c2816@azure.com",
-  "SMTPPassword": "ejRrplaC45LGM7O",
-  "SMTPUseSSL": false
+{
+  "smtp": {
+    "fromEmail": "nancyblack@nant.co",
+    "server": "smtp.sendgrid.net",
+    "port": 25,
+    "username": "azure_af6ff7a51aa3f5c560b308d02e2c2816@azure.com",
+    "password": "ejRrplaC45LGM7O",
+    "useSSL": false
+  },
+  "watcher": {
+    "content": {
+      "name": "Content",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was created.",
+        "emailTemplate": "@Model.AffectedRow"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was updated.",
+        "emailTemplate": "@Model.AffectedRow"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was deleted.",
+        "emailTemplate": "@Model.AffectedRow"
+      }
+    },
+    "testclass": {
+      "name": "TestClass",
+      "version": true,
+      "create": {
+        "enable": true,
+        "emailSubject": "@Model.DataTypeName was created.",
+        "emailTemplate": "@Model.AffectedRow",
+        "sendTo": "me@nant.co"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was updated.",
+        "emailTemplate": "@Model.AffectedRow"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was deleted.",
+        "emailTemplate": "@Model.AffectedRow"
+      }
+    }
+  }
 }

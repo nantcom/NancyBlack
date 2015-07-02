@@ -13,8 +13,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         DateTime __createdAt { get; set; }
 
         DateTime __updatedAt { get; set; }
-
-        string __version { get; set; }
     }
 
 }

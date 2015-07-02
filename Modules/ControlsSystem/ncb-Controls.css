@@ -125,7 +125,6 @@ ncb-picturelist > ul > li:hover {
   display: inline-block;
   text-align: left;
   overflow: hidden;
-  line-height: 8px;
   min-width: 80px;
   border-radius: 4px;
   text-transform: uppercase;
@@ -179,10 +178,21 @@ ncb-picturelist > ul > li:hover {
   background: #66bb66;
   color: white;
   text-shadow: 0 0 5px white;
+  font-weight: bold;
 }
 .toggle-switch .switch-right {
   background: #bf3825;
-  color: white;
+  box-shadow: inset 0 0 10px #6b0e01;
+  color: #6b0e01;
+}
+.input-group-addon .toggle-switch,
+.input-group-btn .toggle-switch {
+  margin-left: -3px;
+}
+.input-group-addon .toggle-switch span,
+.input-group-btn .toggle-switch span {
+  line-height: 24px;
+  min-width: 10px;
 }
 .toggle-switch-animate {
   transition: left 0.2s ease-out;

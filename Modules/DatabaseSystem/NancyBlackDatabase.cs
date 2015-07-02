@@ -292,8 +292,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var actualType = type.GetCompiledType();
 
             jObject["__updatedAt"] = DateTime.Now;
-            jObject["__version"] = DateTime.Now.Ticks.ToString();
-
 
             int id = 0;
             if (jObject.Property("id") != null) // try to get Id
@@ -398,9 +396,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             return _db.Table<T>();
         }
-
-        private HashSet<Type> _UsedTypes = new HashSet<Type>();
-
+        
         /// <summary>
         /// Update/Insert the given input object
         /// </summary>
@@ -413,15 +409,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var entityName = actualType.Name;
 
             input.__updatedAt = DateTime.Now;
-            input.__version = DateTime.Now.Ticks.ToString();
-
-            // since we are doing static types, create/migrate table only once
-            if (_UsedTypes.Contains( actualType ) == false)
-            {
-                _db.CreateTable<T>();
-                _UsedTypes.Add(actualType);
-            }
-
+            
             if (input.Id == 0)
             {
                 input.__createdAt = DateTime.Now;

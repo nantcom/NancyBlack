@@ -119,6 +119,7 @@ namespace NantCom.NancyBlack.Configuration
             {
                 ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
                 ctx.Items["CurrentSite"] = BootStrapper.GetSiteSettings();
+                ctx.Items["SiteSettings"] = BootStrapper.GetSiteSettings();
 
                 if (ctx.CurrentUser == null)
                 {
@@ -132,11 +133,10 @@ namespace NantCom.NancyBlack.Configuration
                 return null;
             });
 
-            if (container.CanResolve<IPipelineHook>())
+            foreach (var item in container.ResolveAll<IPipelineHook>())
             {
-                container.Resolve<IPipelineHook>().Hook(pipelines);
+                item.Hook(pipelines);
             }
-
         }
 
         /// <summary>

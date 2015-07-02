@@ -67,19 +67,19 @@
             <h2>Email Sender</h2>
 
             <input type="text" title="Send From Email"
-                   ncb-textbox ng-model="object.SMTPFromEmail" />
+                   ncb-textbox ng-model="object.smtp.fromEmail" />
 
             <input type="text" title="SMTP Server"
-                   ncb-textbox ng-model="object.SMTPServer" />
+                   ncb-textbox ng-model="object.smtp.server" />
 
             <input type="text" title="SMTP Server Port"
-                   ncb-textbox ng-model="object.SMTPServerPort" />
+                   ncb-textbox ng-model="object.smtp.port" />
 
             <input type="text" title="SMTP Username"
-                   ncb-textbox ng-model="object.SMTPUsername" />
+                   ncb-textbox ng-model="object.smtp.username" />
 
             <input type="password" title="SMTP Password"
-                   ncb-textbox ng-model="object.SMTPPassword" />
+                   ncb-textbox ng-model="object.smtp.password" />
 
             <div class="form-group">
                 <label>SMTP SSL Settings</label><br />
@@ -101,24 +101,6 @@
             </div>
         </div>
     </div>
-    <div class="row">
-
-
-        <div class="col-md-4">
-
-            <h2>Data Notify</h2>
-            <p>
-                Allows system to send email to the specified email when data in the watched tables
-                has been created.
-            </p>
-
-            <input type="text" title="Send Email To"
-                   ncb-textbox ng-model="object.DataWatcher.NotifyEmail" />
-
-            <textarea type="text" title="Tables to Watch"
-                      ncb-textbox ng-model="object.DataWatcher.Tables"></textarea>
-        </div>
-    </div>
 </div>
 
 @section Script
@@ -132,6 +114,11 @@
             module.controller("SiteSettingsController", function ($scope, $rootScope, $http ) {
 
                 $scope.object = @this.Html.Raw(this.GetJson(this.Site));
+
+                if ($scope.object.smtp == null) {
+    
+                    $scope.object.smtp = {};
+                }
 
                 this.save = function() {
 

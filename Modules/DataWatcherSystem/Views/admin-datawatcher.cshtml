@@ -6,3 +6,177 @@
 {
     Administration
 }
+
+
+<div ng-module="PageModule"
+     ng-controller="PageController as ctrl">
+
+    <h1 class="page-header">
+        Change Tracking
+
+        <button class="btn btn-lg btn-primary pull-right"
+                ncb-savebutton>
+            Save Changes
+        </button>
+    </h1>
+    <ul>
+        <li>
+            Enabla Notifications to get email when row in data type was created, updated or deleted.
+        </li>
+        <li>
+            Enable <b>Versioning</b> to let NancyBlack keep records of changes made to each data types.
+        </li>
+    </ul>
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>
+                    Data Types
+                </th>
+                <th width="20%">
+                    Create Notify
+                </th>
+                <th width="20%">
+                    Update Notify
+                </th>
+                <th width="20%">
+                    Delete Notify
+                </th>
+                <th width="20%">
+                    Versioning
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="(key, item) in object.watcher">
+                <td>
+                    <p class="form-control-static">
+                        {{item.name}}
+                    </p>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" placeholder="email address"
+                               ng-model="item.create.sendTo"
+                               ng-disabled="item.create.enable == false"
+                               class="form-control" />
+                        <span class="input-group-btn">
+
+                            <ncb-onoff ng-model="item.create.enable"></ncb-onoff>
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" placeholder="email address"
+                               ng-model="item.update.sendTo"
+                               ng-disabled="item.update.enable == false"
+                               class="form-control" />
+                        <span class="input-group-btn">
+
+                            <ncb-onoff ng-model="item.update.enable"></ncb-onoff>
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" placeholder="email address"
+                               ng-model="item.deleted.sendTo"
+                               ng-disabled="item.deleted.enable == false"
+                               class="form-control" />
+                        <span class="input-group-btn">
+
+                            <ncb-onoff ng-model="item.deleted.enable"></ncb-onoff>
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <ncb-onoff ng-model="item.version"></ncb-onoff>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        (function () {
+
+
+            var page = angular.module("PageModule", []);
+            page.controller("PageController", function ($scope, $http) {
+
+                $scope.data = {};
+                $scope.data.save = function() {
+
+                    $http.post( '/Admin/sitesettings/current', $scope.object ).
+                      success(function(data, status, headers, config) {
+
+                          $scope.isBusy = false;
+                      }).
+                      error(function(data, status, headers, config) {
+
+                          $scope.isBusy = false;
+                      });
+                };
+
+                $scope.datatypes = @Html.Raw( this.GetJson(this.Database.DataType.RegisteredTypes) );
+                $scope.object = @Html.Raw(this.GetJson(this.Site));
+
+                if ($scope.object.watcher == null) {
+    
+                    $scope.object.watcher = {};
+                }
+
+                $scope.datatypes.forEach( function( item ){
+
+                    if (item.NormalizedName == "rowversion") {
+                        return;
+                    }
+                    
+                    if (item.NormalizedName == "sitesettings") {
+                        return;
+                    }
+
+                    if (item.NormalizedName == "mailsenderlog") {
+                        return;
+                    }
+                    
+                    if ( $scope.object.watcher[ item.NormalizedName ] == null )
+                    {
+                        $scope.object.watcher[ item.NormalizedName ] = {
+
+                            name: item.OriginalName,
+                            version: false,
+
+                            create: {
+                                enable: false,
+                                emailSubject: '@@Model.OriginalName was created.',
+                                emailTemplate: '@@Model',
+                            },
+                            
+                            update: {
+                                enable: false,
+                                emailSubject: '@@Model.OriginalName was updated.',
+                                emailTemplate: '@@Model',
+                            },
+                            
+                            deleted: {
+                                enable: false,
+                                emailSubject: '@@Model.OriginalName was deleted.',
+                                emailTemplate: '@@Model',
+                            }
+                        };
+                    }
+                });
+
+            });
+
+
+        })();
+
+    </script>
+}
