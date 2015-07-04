@@ -32,14 +32,20 @@
         </alert>
 
         <div>
+            <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">
+                {{alert.msg}}
+            </alert>
+        </div>
+
+        <div>
             <button class="btn btn-success pull-right"
                     data-toggle="modal" data-target="#@(entityName)Modal"
                     ng-click="object = {}">
                 <span class="glyphicon glyphicon-plus-sign"></span>
                 <span>
                     @(entityName)
-            </span>
-        </button>
+                </span>
+            </button>
         </div>
 
         <ncb-modal id="@(entityName)Modal"
@@ -113,6 +119,52 @@
                             }
                         }
                     </tab>
+                    @foreach (var item in entity.Properties)
+                    {
+                        if (item.Type.EndsWith("[]"))
+                        {
+                            <tab heading="@item.Name">
+                                <table class="table table-hover"
+                                       ncb-listeditor
+                                       target="object.@item.Name">
+                                    <thead>
+                                        <tr>
+                                            <th>@item.Name</th>
+                                            <th width="16px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="element in target">
+                                        <td>
+                                            <input class="form-control"
+                                                   placeholder="@(item.Name)"
+                                                   ng-model="element"/>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger"
+                                                    ng-click="remove(element)">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input class="form-control"
+                                                   placeholder="@(item.Name)"
+                                                   ng-model="newItem" />
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success"
+                                                    ng-click="add()">
+                                                <i class="glyphicon glyphicon-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </tab>
+                        }
+                    }
+
                 </tabset>
 
             </form>
@@ -125,8 +177,6 @@
                 </button>
             </ncb-footer>
         </ncb-modal>
-        
-        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.message}}</alert>
 
         <table id="@(entityName)Table"
                ncb-datatable
@@ -167,6 +217,15 @@
                         // Lookup
                         var tableName = property.Name.Substring(0, property.Name.Length - 2);
                         <td>{{ (lookup.@(tableName) | filter: { Id : item.@(property.Name) })[0].Title }}</td>
+                    }
+                    else if (property.Type.EndsWith("[]"))
+                    {
+                        // array
+                        <td>
+                            <ul ng-repeat="subitem in item.@(property.Name)">
+                                <li>{{subitem}}</li>
+                            </ul>
+                        </td>
                     }
                     else if (property.Type == "int")
                     {

@@ -92,7 +92,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var IStaticType = typeof(IStaticType);
 
             return from t in Assembly.GetExecutingAssembly().GetTypes()
-                        where IStaticType.IsAssignableFrom(t) && IStaticType != t
+                        where IStaticType.IsAssignableFrom(t) && IStaticType != t && t.IsClass
                         select new StaticDataType(t);
         }
     }

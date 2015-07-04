@@ -142,7 +142,7 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 var siteconfig = ctx.Items["CurrentSite"] as JObject;
-                var user = ctx.CurrentUser as NancyBlackUser;
+                var user = ctx.CurrentUser as NcbUser;
 
                 var events = _Events.ToList();
                 _Events = null;

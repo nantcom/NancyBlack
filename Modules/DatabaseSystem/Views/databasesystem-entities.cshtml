@@ -33,7 +33,7 @@
                    placeholder="Name of this Entity" />
         </div>
 
-        <div class="form-group">        
+        <div class="form-group">
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -64,7 +64,7 @@
                     </td>
                 </tr>
             </table>
-            
+
             <label>Create new Attribute</label>
             <table class="table table-hover">
                 <thead>
@@ -94,7 +94,9 @@
             </table>
         </div>
 
-        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
+        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">
+            {{alert.msg}}
+        </alert>
 
 
         <ncb-footer>
@@ -157,6 +159,6 @@
 @section Scripts
 {
 
-<script src="~/Modules/DatabaseSystem/Views/databasesystem-tablescontroller.js"></script>
+    <script src="~/Modules/DatabaseSystem/Views/databasesystem-tablescontroller.js"></script>
 
 }

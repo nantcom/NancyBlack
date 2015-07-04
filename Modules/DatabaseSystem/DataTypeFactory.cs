@@ -44,6 +44,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 {
                     var dynamicTypes = _db.Table<DataType>().ToList();
                     var staticTypes = StaticDataType.GetStaticDataTypes();
+
                     _CachedDataType = dynamicTypes.Concat( staticTypes ).ToDictionary(k => k.NormalizedName);
 
                     // remaps all table to ensure the database

@@ -36,7 +36,7 @@ namespace NantCom.NancyBlack.Modules.AdminSystem
 
                 if (code == _FailSafeCode)
                 {
-                    var user = this.Context.CurrentUser as NancyBlackUser;
+                    var user = this.Context.CurrentUser as NcbUser;
                     UserManager.Current.EnrollUser(user.Guid, this.Context, code, true);
                 }
 

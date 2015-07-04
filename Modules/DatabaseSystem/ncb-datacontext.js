@@ -59,8 +59,11 @@
         $me.handleError = function (err) {
 
             $scope.$apply(function () {
-                err.type = "danger";
-                $scope.alerts.push(err);
+
+                var detail = JSON.parse(err.request.response);
+                detail.type = "danger";
+                detail.msg = detail.Message;
+                $scope.alerts.push(detail);
 
                 $scope.isBusy = false;
             });
@@ -225,6 +228,12 @@
                             if (callback != null) {
                                 callback();
                             }
+
+                            $scope.alerts.push({
+
+                                type: 'success',
+                                msg: 'Item was saved.'
+                            });
                         });
 
                     }, $me.handleError
@@ -245,6 +254,12 @@
                             if (callback != null) {
                                 callback();
                             }
+
+                            $scope.alerts.push({
+
+                                type: 'success',
+                                msg: 'Item was created.'
+                            });
                         });
 
                     }, $me.handleError
@@ -311,6 +326,12 @@
 
                             $scope.isModelDeleted = true;
                         }
+
+                        $scope.alerts.push({
+
+                            type: 'success',
+                            msg: 'Delete Successful.'
+                        });
                     });
 
 
@@ -426,5 +447,74 @@
             priority: 9999, // make sure we got compiled first
         };
     }]);
+
+    ncb.directive('ncbListeditor', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+
+            var $me = this;
+
+            $scope.newItem = null;
+            $scope.target = $scope.$parent.$eval(attrs.target);
+
+            $scope.$watch(attrs.target, function () {
+
+                $scope.target = $scope.$parent.$eval(attrs.target);
+            });
+
+            $scope.remove = function (item) {
+
+                var target = $scope.$parent.$eval(attrs.target);
+
+                if (target == null) {
+
+                    return;
+                }
+
+                var index = target.indexOf(item);
+                if (index == 0) {
+
+                    $scope.$parent.alerts.push({
+                        msg: "Item not found: " + item
+                    });
+                    return;
+                }
+
+                target.splice(index, 1);
+                $scope.newItem = item;
+            };
+
+            $scope.add = function () {
+
+                var target = $scope.$parent.$eval(attrs.target);
+
+                if (target == null) {
+
+                    $scope.$parent.$eval(attrs.target + "=[]");
+                    target = $scope.$parent.$eval(attrs.target);
+                }
+
+                if (target.indexOf( $scope.newItem ) >= 0 ) {
+
+                    $scope.$parent.alerts.push({
+                        msg: "Duplicate Item: " + $scope.newItem
+                    });
+                    return;
+                }
+
+                target.push($scope.newItem);
+                $scope.target = target;
+
+                $scope.newItem = null;
+            };
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: true
+        };
+    }]);
+
 
 })();

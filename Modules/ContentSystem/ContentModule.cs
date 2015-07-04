@@ -87,11 +87,11 @@ namespace NantCom.NancyBlack.Modules
             if (string.IsNullOrEmpty((string)requestedContent.RequiredClaims) == false)
             {
                 var required = ((string)requestedContent.RequiredClaims).Split(',');
-                var user = this.Context.CurrentUser as NancyBlackUser;
+                var user = this.Context.CurrentUser as NcbUser;
                 if (required.Any(c => user.HasClaim(c)) == false)
                 {
                     // user does not have any required claims
-                    if (this.Context.CurrentUser == NancyBlackUser.Anonymous)
+                    if (this.Context.CurrentUser == NcbUser.Anonymous)
                     {
                         return 401;
                     }

@@ -123,10 +123,10 @@ namespace NantCom.NancyBlack.Configuration
 
                 if (ctx.CurrentUser == null)
                 {
-                    ctx.CurrentUser = NancyBlackUser.Anonymous;
+                    ctx.CurrentUser = NcbUser.Anonymous;
                     if (ctx.Request.Url.HostName == "localhost")
                     {
-                        ctx.CurrentUser = NancyBlackUser.LocalHostAdmin;
+                        ctx.CurrentUser = NcbUser.LocalHostAdmin;
                     }
                 }
 

@@ -47,16 +47,16 @@ namespace NantCom.NancyBlack
         /// <summary>
         /// Currently accessing user
         /// </summary>
-        protected NancyBlackUser CurrentUser
+        protected NcbUser CurrentUser
         {
             get
             {
                 if (this.RenderContext.Context.CurrentUser == null)
                 {
-                    return NancyBlackUser.Anonymous;
+                    return NcbUser.Anonymous;
                 }
 
-                return this.RenderContext.Context.CurrentUser as NancyBlackUser;
+                return this.RenderContext.Context.CurrentUser as NcbUser;
             }
         }
 

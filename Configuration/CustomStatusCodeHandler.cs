@@ -30,17 +30,14 @@ namespace NantCom.NancyBlack.Configuration
                 return;
             }
 
-            try
+            if (context.Request.Method == "GET")
             {
                 var response = _renderer.RenderView(context, "Codes/" + (int)statusCode);
                 response.StatusCode = statusCode;
                 response.ContentType = "text/html; charset=utf-8";
                 context.Response = response;
             }
-            catch (Exception)
-            {
-            }
-
+            
         }
 
         public bool HandlesStatusCode(Nancy.HttpStatusCode statusCode, Nancy.NancyContext context)

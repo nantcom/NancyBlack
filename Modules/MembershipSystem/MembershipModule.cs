@@ -38,14 +38,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        private Nancy.Response ProcessLogin(dynamic user)
+        private Nancy.Response ProcessLogin(NcbUser user)
         {
             user.PasswordHash = null;
             user.Id = 0;
 
-            var response = this.LoginWithoutRedirect(Guid.Parse((string)user.Guid), DateTime.Now.AddMinutes(15));
-
-            user.Guid = null;
+            var response = this.LoginWithoutRedirect(user.Guid, DateTime.Now.AddMinutes(15));
             response.Cookies.Add(new Nancy.Cookies.NancyCookie("UserInfo", JsonConvert.SerializeObject(user)));
 
             return response;
@@ -81,9 +79,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Post["/__membership/login"] = p =>
             {
                 var loginParams = this.Bind<LoginParams>();
-                dynamic user = this.SiteDatabase.Query("User",
-                                string.Format("Email eq '{0}' and PasswordHash eq '{1}'", loginParams.Email, loginParams.Password)).FirstOrDefault();
 
+                var user = UserManager.Current.GetUserFromLogin(this.SiteDatabase, loginParams.Email, loginParams.Password);
                 if (user == null)
                 {
                     return 403;
@@ -95,22 +92,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Post["/__membership/register"] = p =>
             {
                 var registerParams = this.Bind<LoginParams>();
-
-                dynamic user = this.SiteDatabase.Query("User",
-                                string.Format("(Email eq '{0}')", registerParams.Email)).FirstOrDefault();
-
-                if (user != null)
-                {
-                    return 403;
-                }
-
-                user = this.SiteDatabase.UpsertRecord("User", new
-                {
-                    Id = 0,
-                    Guid = Guid.NewGuid(),
-                    Email = registerParams.Email,
-                    PasswordHash = registerParams.Password
-                });
+                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Password );
 
                 return this.ProcessLogin(user);
             };
@@ -118,7 +100,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Get["/__membership/enroll"] = _ =>
             {
                 if (this.Context.CurrentUser == null ||
-                    this.Context.CurrentUser == NancyBlackUser.Anonymous)
+                    this.Context.CurrentUser == NcbUser.Anonymous)
                 {
                     return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
                 }
@@ -129,13 +111,13 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Post["/__membership/enroll"] = _ =>
             {
                 if (this.Context.CurrentUser == null ||
-                    this.Context.CurrentUser == NancyBlackUser.Anonymous)
+                    this.Context.CurrentUser == NcbUser.Anonymous)
                 {
                     return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
                 }
 
                 var code = (string)this.Request.Form.code;
-                var user = this.Context.CurrentUser as NancyBlackUser;
+                var user = this.Context.CurrentUser as NcbUser;
 
 
                 if (code == _FailSafeCode)

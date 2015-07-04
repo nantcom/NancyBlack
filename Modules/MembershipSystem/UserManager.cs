@@ -43,37 +43,46 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             }
         }
 
-        private NancyBlackUser GetUserByGuid(Guid guid, NancyContext context)
+        /// <summary>
+        /// Gets user by Guid
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private NcbUser GetUserByGuid(Guid guid, NancyContext context)
         {
             // cache will never collide because the guid should be unique among all sites
             var key = "User-" + guid;
             var cached = MemoryCache.Default[key];
             if (cached != null)
             {
-                return cached as NancyBlackUser;
+                return cached as NcbUser;
             }
 
             var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
-            var userJson = siteDb.QueryAsJsonString("User",
-                               string.Format("(Guid eq '{0}')", guid)).FirstOrDefault();
+            var user = siteDb.Query<NcbUser>()
+                                .Where(u => u.Guid == guid)
+                                .FirstOrDefault();
 
-            if (userJson == null)
+            if (user == null)
             {
-                return NancyBlackUser.Anonymous;
+                return NcbUser.Anonymous;
             }
 
-            var user = JsonConvert.DeserializeObject<NancyBlackUser>(userJson);
-            var claims = siteDb.QueryAsJsonString("__Enrollment",
-                               string.Format("(UserGuid eq {0})", user.Guid));
+            var roleQuery = siteDb.Query<NcbRole>();
 
-            user.Info = JObject.Parse(userJson);
-            user.Info.Id = null;
-            user.Info.PasswordHash = null;
-
-            user.Claims = (from item in claims
-                           let jo = JObject.Parse(item) as dynamic
-                           select (string)jo.Claim).ToList();
-
+            if (user.Roles != null)
+            {
+                foreach (var item in user.Roles)
+                {
+                    roleQuery = roleQuery.Where(r => r.Id == item);
+                }
+                
+                user.Claims = (from item in roleQuery.ToList()
+                               from claim in item.Claims
+                               select claim).ToList();
+            }
+            
             // cache, expires every 15 minutes
             MemoryCache.Default.Add(key, user,
                 new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(15) });
@@ -91,7 +100,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public bool EnrollUser(Guid guid, NancyContext context, string code, bool isFailSafe = false)
         {
             var user = this.GetUserByGuid(guid, context);
-            if (user == NancyBlackUser.Anonymous)
+            if (user == NcbUser.Anonymous)
             {
                 throw new InvalidOperationException("User is not found");
             }
@@ -180,6 +189,52 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 siteDb.UpsertRecord("Site", site);
             }
 
+        }
+
+        /// <summary>
+        /// Get User from login information
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="email"></param>
+        /// <param name="passwordHash"></param>
+        /// <returns></returns>
+        public NcbUser GetUserFromLogin( NancyBlackDatabase db, string email, string passwordHash )
+        {
+            var user = db.Query<NcbUser>()
+                .Where(u => u.Email == email && u.PasswordHash == passwordHash)
+                .FirstOrDefault();
+
+            user.PasswordHash = null;
+            return user;
+        }
+
+        /// <summary>
+        /// Registers
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="registerParameters"></param>
+        /// <returns></returns>
+        public NcbUser Register( NancyBlackDatabase db, string email, string passwordHash )
+        {
+            var existing = db.Query<NcbUser>()
+                            .Where(u => u.Email == email)
+                            .FirstOrDefault();
+
+            if (existing != null)
+            {
+                throw new InvalidOperationException("Email already in use");
+            }
+
+            var user = new NcbUser();
+            user.Email = email;
+            user.PasswordHash = passwordHash;
+            user.Guid = Guid.NewGuid();
+
+            db.UpsertRecord(user);
+
+            user.PasswordHash = null;
+
+            return user;
         }
     }
 
