@@ -67,12 +67,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// Password, Hashed
         /// </summary>
         public string PasswordHash { get; set; }
-
-        /// <summary>
-        /// Roles that user has joined
-        /// </summary>
-        public int[] Roles { get; set; }
-
+        
         /// <summary>
         /// Whether this is an anonymous user
         /// </summary>
@@ -91,6 +86,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <returns></returns>
         public bool HasClaim( string claim )
         {
+            if (this.Claims == null)
+            {
+                return false;
+            }
+
             // admin has all claim
             if (this.Claims.Contains("admin"))
             {

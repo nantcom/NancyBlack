@@ -30,7 +30,11 @@ namespace NantCom.NancyBlack.Configuration
                 return;
             }
 
-            if (context.Request.Method == "GET")
+            if (context.Request.Method == "GET" ||
+                context.Request.Method == "POST" ||
+                context.Request.Headers.UserAgent.Contains("Mozilla") ||
+                context.Request.Headers.UserAgent.Contains("WebKit") ||
+                context.Request.Headers.UserAgent.Contains("Trident") )
             {
                 var response = _renderer.RenderView(context, "Codes/" + (int)statusCode);
                 response.StatusCode = statusCode;

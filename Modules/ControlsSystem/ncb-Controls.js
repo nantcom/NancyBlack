@@ -606,8 +606,41 @@
                 element.find(".modal-dialog").addClass("modal-lg");
             }
 
-            if (element.is("[deletebutton]") == false) {
+            if (element.is("[deletebutton]") == false)
+            {
                 element.find("button.ncb-modal-delete").remove();
+            } else {
+
+                if (attrs.ondelete != null) {
+
+                    $("button.ncb-modal-delete").on("click", function () {
+
+                        scope.$apply(function () {
+
+                            scope.$eval(attrs.ondelete);
+                        });
+                    });
+
+                } else {
+
+                    if (element.parents("[ncb-datacontext]").length > 0) {
+
+                        $("button.ncb-modal-delete").on("click", function () {
+
+                            scope.$apply(function () {
+
+                                scope.data.delete(scope.object, function () {
+
+                                    $(element).modal('hide');
+                                });
+                            });
+                        });
+                    } else {
+
+                        element.find("button.ncb-modal-delete").remove(); // button is not bound
+                    }
+                }
+
             }
 
             var title = element.find("h2.modal-title");
@@ -640,6 +673,7 @@
             restrict: 'E',
             transclude: true,
             replace: true,
+            scope: false, // integrates into scope
             templateUrl: '/Modules/ControlsSystem/Templates/ncbModal.html',
             link: link
         };

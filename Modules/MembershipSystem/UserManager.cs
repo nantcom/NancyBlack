@@ -42,6 +42,100 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 MemoryCache.Default.Remove("User-" + item.UserGuid);
             }
         }
+        
+        /// <summary>
+        /// Find the role by Name, roles are cached for 5 minutes
+        /// </summary>
+        /// <param name="siteDb"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private NcbRole GetRoleByName(NancyBlackDatabase siteDb, string name)
+        {
+            var roles = MemoryCache.Default["Membership-RolesByName"] as Dictionary<string, NcbRole>;
+            if (roles == null)
+            {
+                roles = siteDb.Query<NcbRole>().ToDictionary(r => r.Name.ToLowerInvariant());
+                MemoryCache.Default.Add("Membership-RolesByName", roles, DateTimeOffset.Now.AddMinutes(5));
+            }
+
+            name = name.ToLowerInvariant();
+
+            NcbRole role;
+            if (roles.TryGetValue(name, out role))
+            {
+                return role;
+            }
+
+            // Make sure admin is available
+            if (name == "admin")
+            {
+                role = new NcbRole()
+                {
+                    Claims = new string[] { "admin" },
+                    Name = "admin"
+                };
+
+                siteDb.UpsertRecord( role );
+                MemoryCache.Default.Remove("Membership-RolesByName");
+                MemoryCache.Default.Remove("Membership-Roles");
+
+                return role;
+            }
+
+            throw new InvalidOperationException("Invalid Role Name: " + name );
+        }
+
+        /// <summary>
+        /// Find the role by ID, roles are cached for 5 minutes
+        /// </summary>
+        /// <param name="siteDb"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private NcbRole GetRoleById(NancyBlackDatabase siteDb, int id )
+        {
+            var roles = MemoryCache.Default["Membership-Roles"] as Dictionary<int, NcbRole>;
+            if (roles == null)
+            {
+                roles = siteDb.Query<NcbRole>().ToDictionary(r => r.Id);
+                MemoryCache.Default.Add("Membership-Roles", roles, DateTimeOffset.Now.AddMinutes(5));
+            }
+
+            NcbRole role;
+            if (roles.TryGetValue( id, out role))
+            {
+                return role;
+            }
+
+            throw new InvalidOperationException("Invalid Role Id:" + id);
+        }
+
+        /// <summary>
+        /// Find User's Claim
+        /// </summary>
+        /// <param name="siteDb"></param>
+        /// <param name="user"></param>
+        private void AssignClaims(NancyBlackDatabase siteDb, NcbUser user )
+        {
+            var enroll = siteDb.Query<NcbEnroll>()
+                            .Where(e => e.IsActive && e.NcbUserId == user.Id)
+                            .ToList();
+
+            if (enroll.Count > 0)
+            {
+                var claims = new List<string>();
+                foreach (var item in enroll)
+                {
+                    claims.AddRange(from c in this.GetRoleById(siteDb, item.NcbRoleId).Claims
+                                    select c);
+                }
+
+                user.Claims = claims;
+            }
+            else
+            {
+                user.Claims = new string[0];
+            }
+        }
 
         /// <summary>
         /// Gets user by Guid
@@ -69,20 +163,9 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return NcbUser.Anonymous;
             }
 
-            var roleQuery = siteDb.Query<NcbRole>();
+            user.PasswordHash = null;
+            this.AssignClaims(siteDb, user);
 
-            if (user.Roles != null)
-            {
-                foreach (var item in user.Roles)
-                {
-                    roleQuery = roleQuery.Where(r => r.Id == item);
-                }
-                
-                user.Claims = (from item in roleQuery.ToList()
-                               from claim in item.Claims
-                               select claim).ToList();
-            }
-            
             // cache, expires every 15 minutes
             MemoryCache.Default.Add(key, user,
                 new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(15) });
@@ -97,54 +180,58 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="context"></param>
         /// <param name="code"></param>
         /// <param name="isFailSafe">Whether this enroll is fail safe enroll which will automatically create code</param>
-        public bool EnrollUser(Guid guid, NancyContext context, string code, bool isFailSafe = false)
+        public bool EnrollUser(Guid guid, NancyContext context, Guid code, bool isFailSafe = false)
         {
             var user = this.GetUserByGuid(guid, context);
             if (user == NcbUser.Anonymous)
             {
                 throw new InvalidOperationException("User is not found");
             }
-
+            
             var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
-            dynamic existing = siteDb.Query("__Enrollment",
-                               string.Format("(Code eq '{0}')", code)).FirstOrDefault();
-
+            
+            var existing = siteDb.Query<NcbEnroll>()
+                                    .Where(e => e.EnrollCode == code)
+                                    .FirstOrDefault();
+            
+            // code was not found, so it was not used
             if (existing == null)
             {
-                if (isFailSafe == false)
+                if (isFailSafe == true) // only allow in faile safe mode
                 {
-                    return false;
-                }
+                    // enroll user as admin
+                    siteDb.UpsertRecord<NcbEnroll>(new NcbEnroll()
+                    {
+                        EnrollCode = code,
+                        NcbRoleId = this.GetRoleByName(siteDb, "admin").Id,
+                        NcbUserId = user.Id,
+                        IsActive = true
+                    });
 
-                // create new enrollment record in fail safe mode
-                existing = JObject.FromObject( new
-                {
-                    Id = 0,
-                    Claim = "admin",
-                    Code = code,
-                });
-            }
-            else
-            {
-                if (existing.UserGuid != null &&
-                    existing.UserGuid != user.Guid)
-                { 
-                    //someone already claimed this code
-                    return false;
-                }
-
-                if (existing.UserGuid == user.Guid)
-                {
-                    // this user already claimed the code, just let him pass
+                    MemoryCache.Default.Remove("User-" + guid);
                     return true;
                 }
+
+                // code was not found
+                return false;
+            }
+            
+            // code was used, and it is this user - nothing to do
+            if (existing.NcbUserId == user.Id)
+            {
+                return true;
             }
 
-            existing.UserId = user.Id;
-            existing.UserGuid = user.Guid;
-            existing.UserJSONText = JsonConvert.SerializeObject(user);
+            // someone has claimed the code
+            if (existing.NcbUserId != 0)
+            {
+                return false;
+            }
 
-            siteDb.UpsertRecord("__Enrollment", existing);
+            existing.NcbUserId = user.Id;
+            existing.IsActive = true;
+            siteDb.UpsertRecord<NcbEnroll>(existing);
+
             MemoryCache.Default.Remove("User-" + guid);
 
             return true;
@@ -204,7 +291,15 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 .Where(u => u.Email == email && u.PasswordHash == passwordHash)
                 .FirstOrDefault();
 
+            if (user == null)
+            {
+                return null;
+
+            }
+
             user.PasswordHash = null;
+            this.AssignClaims(db, user);
+
             return user;
         }
 

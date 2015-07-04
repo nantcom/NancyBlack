@@ -58,7 +58,7 @@
 
                         @foreach (var property in entity.Properties)
                         {
-                            if (property.Name == "Id" || property.Name.StartsWith("__"))
+                            if (property.Name == "Id" || property.Name.StartsWith("__") || property.Type.EndsWith("[]"))
                             {
                                 continue;
                             }
@@ -71,16 +71,23 @@
                                 // Lookup
                                 var tableName = property.Name.Substring(0, property.Name.Length - 2);
 
-                                <div class="form-group">
-                                    <label class="control-label" for="@(property.Name)">@(property.Name)</label>
+                                <div class="form-group"
+                                     ncb-lookupscope
+                                     table="@(tableName)" labelpath="Name" filter="$filter=startswith(name, $key)">
 
-                                    <ui-select ng-model="object.@(property.Name)"
-                                               theme="bootstrap"
-                                               reset-search-input="true">
-                                        <ui-select-match placeholder="@(property.Name)...">{{$select.selected.Title}}</ui-select-match>
-                                        <ui-select-choices refresh="ctrl.refreshLookup('@(tableName)', $select.search)"
-                                                           repeat="item.Id as item in lookup.@(tableName) | filter: { Title: $select.search }">
-                                            <span>{{item.Title}}</span>
+                                    <label class="control-label" for="@(property.Name)">
+                                        @(property.Name)
+                                        <i class="fa fa-spin fa-circle-o-notch"
+                                           ng-show="isBusy"></i>
+                                    </label>
+
+                                    <ui-select theme="bootstrap" ng-model="object.@(property.Name)"
+                                               reset-search-input="false">
+                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                           refresh="refreshLookup($select.search)"
+                                                           refresh-delay="0">
+                                            <span>{{item.label}}</span>
                                         </ui-select-choices>
                                     </ui-select>
                                 </div>
@@ -136,8 +143,8 @@
                                     <tr ng-repeat="element in target">
                                         <td>
                                             <input class="form-control"
-                                                   placeholder="@(item.Name)"
-                                                   ng-model="element"/>
+                                                   placeholder="@(item.Name)" disabled
+                                                   ng-model="element" />
                                         </td>
                                         <td>
                                             <button class="btn btn-danger"

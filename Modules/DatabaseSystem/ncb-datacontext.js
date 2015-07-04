@@ -291,7 +291,7 @@
             }, $me.handleError);
         };
 
-        $scope.data.delete = function (object) {
+        $scope.data.delete = function (object, callback) {
 
             if ($scope.object != null) {
 
@@ -316,7 +316,7 @@
 
                         if ($scope.list != null) {
 
-                            var index = $scope.list.indexOf(toDelete);
+                            var index = $scope.list.indexOf(object);
                             $scope.list.splice(index, 1);
                         }
 
@@ -325,6 +325,12 @@
                         if ($scope.object != null) {
 
                             $scope.isModelDeleted = true;
+                            $scope.object = null;
+                        }
+
+                        if (callback != null) {
+
+                            callback(object);
                         }
 
                         $scope.alerts.push({
@@ -472,7 +478,7 @@
                 }
 
                 var index = target.indexOf(item);
-                if (index == 0) {
+                if (index < 0) {
 
                     $scope.$parent.alerts.push({
                         msg: "Item not found: " + item
@@ -516,5 +522,65 @@
         };
     }]);
 
+    ncb.directive('ncbLookupscope', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+
+            var $me = this;
+            $me.handleError = function (err) {
+
+                $scope.$apply(function () {
+
+                    $scope.isBusy = false;
+                });
+            };
+
+            $scope.table = client.getTable(attrs.table);
+            $scope.lookup = [];
+            $scope.isBusy = false;
+
+            $scope.refreshLookup = function (key) {
+
+                var oDataQuery = attrs.filter.replace("$key", key);
+
+                if (key == null || key == '') {
+
+                    oDataQuery = "";
+                } else {
+
+                    oDataQuery += "&";
+                }
+
+                oDataQuery += "$top=10";
+
+                $scope.isBusy = true;
+                $scope.table.read(oDataQuery).done(function (results) {
+
+                    $scope.$apply(function () {
+
+                        $scope.isBusy = false;
+
+                        if (attrs.labelpath != null) {
+
+                            results.forEach(function (item) {
+                                item.label = item[attrs.labelpath];
+                            });
+                        }
+
+                        $scope.lookup = results;
+                    });
+
+                }, $me.handleError);
+
+            };
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: true,
+        };
+    }]);
 
 })();

@@ -203,7 +203,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="entityName"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public JObject GetById(string entityName, int id)
+        public object GetById(string entityName, int id)
         {
             var type = _dataType.FromName(entityName);
             var obj = _db.Find( id, _db.GetMapping( type.GetCompiledType() ));
@@ -212,7 +212,25 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 return null;
             }
-            return JObject.FromObject( obj );
+            return obj;
+        }
+
+        /// <summary>
+        /// Gets an object from database given table name and id
+        /// </summary>
+        /// <param name="entityName"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public object GetByIdAsJObject(string entityName, int id)
+        {
+            var type = _dataType.FromName(entityName);
+            var obj = _db.Find(id, _db.GetMapping(type.GetCompiledType()));
+
+            if (obj == null)
+            {
+                return null;
+            }
+            return JObject.FromObject(obj);
         }
 
         /// <summary>
@@ -365,7 +383,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 throw new InvalidOperationException("Id of inputObject is not set or has default value");
             }
-
+            
             var deleting = this.GetById(entityName, id.Value); // get the object out before delete
             _db.Delete( deleting );
             

@@ -10,7 +10,7 @@
         You are not authorized to access this resource.
     </p>
     <p>
-        Your roles:
+        Your Claims:
         <ul>
             @foreach (var item in this.RenderContext.Context.CurrentUser.Claims)
             {
@@ -20,7 +20,7 @@
     </p>
 
     @if (this.RenderContext.Context.CurrentUser != null &&
-          this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NancyBlackUser.Anonymous)
+          this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NcbUser.Anonymous)
     {
 
         <a class="btn btn-lg btn-success" href="/__membership/enroll">

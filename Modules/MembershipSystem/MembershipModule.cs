@@ -54,18 +54,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
         public MembershipModule()
         {
-            // Generate fail-safe key for enroll anyone to be admin
-            // to any site
-            if (_FailSafeCode == null)
-            {
-                _FailSafeCode = Guid.NewGuid().ToString();
-
-                File.WriteAllText(Path.Combine(this.RootPath, "App_Data", "failsafe.key"),
-                    _FailSafeCode);
-            }
-
-            Get["/Admin/Membership/Roles"] = this.HandleStaticRequest("membership-roles", null);
-
+            this.GenerateFailSafeKey();
+            
             Get["/__membership/login"] = p =>
             {
                 return View["membership-login"];
@@ -97,6 +87,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.ProcessLogin(user);
             };
 
+            Get["/__membership/myclaims"] = _ =>
+            {
+                return View["membership-myclaims"];
+            };
+
             Get["/__membership/enroll"] = _ =>
             {
                 if (this.Context.CurrentUser == null ||
@@ -108,34 +103,50 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return View["membership-enroll"];
             };
 
-            Post["/__membership/enroll"] = _ =>
+            Post["/__membership/enroll"] = this.HandleRequest(this.HandleEnroll);
+
+        }
+
+        /// <summary>
+        /// Generate Fail Safe Key
+        /// </summary>
+        private void GenerateFailSafeKey()
+        {
+            if (_FailSafeCode == null)
             {
-                if (this.Context.CurrentUser == null ||
-                    this.Context.CurrentUser == NcbUser.Anonymous)
-                {
-                    return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
-                }
+                _FailSafeCode = Guid.NewGuid().ToString();
 
-                var code = (string)this.Request.Form.code;
-                var user = this.Context.CurrentUser as NcbUser;
+                File.WriteAllText(Path.Combine(this.RootPath, "App_Data", "failsafe.key"),
+                    _FailSafeCode);
+            }
+        }
 
+        /// <summary>
+        /// Process Enroll Request
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic HandleEnroll(dynamic arg)
+        {
+            if (this.Context.CurrentUser == null ||
+                       this.Context.CurrentUser == NcbUser.Anonymous)
+            {
+                return 401;
+            }
 
-                if (code == _FailSafeCode)
-                {
-                    UserManager.Current.EnrollUser(user.Guid, this.Context, code, true);
-                }
-                else
-                {
-                    var ok = UserManager.Current.EnrollUser(user.Guid, this.Context, code);
-                    if (ok == false)
-                    {
-                        return this.Response.AsRedirect("/__membership/enroll?failed=true");
-                    }
-                }
+            var code = (string)this.Request.Form.code;
+            var user = this.Context.CurrentUser as NcbUser;
 
+            var ok = UserManager.Current.EnrollUser(user.Guid, this.Context, Guid.Parse(code), code == _FailSafeCode);
+            if (ok == false)
+            {
+                return this.Response.AsRedirect("/__membership/enroll?failed=true");
+            }
+            else
+            {
+                this.GenerateFailSafeKey(); // reset the code
                 return this.Response.AsRedirect("/__membership/enroll?success=true");
-            };
-
+            }
         }
     }
 
