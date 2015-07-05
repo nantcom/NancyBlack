@@ -37,7 +37,14 @@
             </alert>
         </div>
 
-        <div>
+        <div class="pull-right">
+            <a class="btn btn-primary" href="/tables/@(entityName).xlsx" target="_blank">
+                <i class="fa fa-download"></i>
+                <span>
+                    Excel
+                </span>
+            </a>
+            
             <button class="btn btn-success pull-right"
                     data-toggle="modal" data-target="#@(entityName)Modal"
                     ng-click="object = {}">

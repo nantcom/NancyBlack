@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.MailingListSystem
 {
-    public class MailingListSubscription : IStaticType
+    public class NcbMailingListSubscription : IStaticType
     {
         public int Id
         {

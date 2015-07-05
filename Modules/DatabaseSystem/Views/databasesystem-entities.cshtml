@@ -18,6 +18,14 @@
         This page allows you to manage structure of all tables in the system.
     </p>
 
+    <div class="pull-right">
+        <button class="btn btn-success"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>Create Entity</span>
+        </button>
+    </div>
+
 
     <ncb-modal id="DataTypeModal"
                title="{{object.OriginalName}}"
@@ -146,14 +154,6 @@
             </td>
         </tr>
     </table>
-
-    <div>
-        <button class="btn btn-success"
-                ng-click="ctrl.create()">
-            <span class="glyphicon glyphicon-plus-sign"></span>
-            <span>Create Entity</span>
-        </button>
-    </div>
 
 </div>
 @section Scripts

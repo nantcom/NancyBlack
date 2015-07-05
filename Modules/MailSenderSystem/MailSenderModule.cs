@@ -9,64 +9,13 @@ using System.Collections.Concurrent;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using NantCom.NancyBlack.Modules.MailSenderSystem;
 
 namespace NantCom.NancyBlack.Modules
 {
     public class MailSenderModule : IPipelineHook
     {
         private static ConcurrentBag<MailMessage> _Outbox = new ConcurrentBag<MailMessage>();
-
-        public class SmtpSettings
-        {
-            public string fromEmail { get; set; }
-
-            public string server { get; set; }
-
-            public int port { get; set; }
-
-            public string username { get; set; }
-
-            public string password { get; set; }
-
-            public bool useSSL { get; set; }
-        }
-
-        public class MailSenderLog : IStaticType
-        {
-            public int Id
-            {
-                get;
-                set;
-            }
-
-            public DateTime __createdAt
-            {
-                get;
-                set;
-            }
-
-            public DateTime __updatedAt
-            {
-                get;
-                set;
-            }
-            
-            public string To { get; set; }
-
-            public string Subject { get; set; }
-
-            public string Body { get; set; }
-
-            /// <summary>
-            /// Settings used to send email
-            /// </summary>
-            public SmtpSettings Settings { get; set; }
-
-            /// <summary>
-            /// Exception occured, if any
-            /// </summary>
-            public Exception Exception { get; set; }
-        }
 
         /// <summary>
         /// Old method signature for compatibility
@@ -132,7 +81,7 @@ namespace NantCom.NancyBlack.Modules
                     {
                         mail.From = new MailAddress(settings.fromEmail);
 
-                        var log = new MailSenderLog();
+                        var log = new NcbMailSenderLog();
                         log.Body = mail.Body;
                         log.To = string.Join(",", from m in mail.To select m.Address);
                         log.Subject = mail.Subject;
