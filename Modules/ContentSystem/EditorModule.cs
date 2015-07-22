@@ -52,6 +52,11 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
             };
 
+            Get["/__editor"] = this.HandleRequest((arg) =>
+            {
+                return View["editor-editframe"];
+            });
+
             Get["/__editor/data/availablelayouts"] = this.HandleRequest((args) =>
             {
                 dynamic site = this.Context.Items["CurrentSite"];

@@ -10,8 +10,18 @@
     "options": {}
   },
   {
-    "outputFile": "Modules/ContentSystem/ncb-editor.css",
-    "inputFile": "Modules/ContentSystem/ncb-editor.less",
+    "outputFile": "Modules/ContentSystem/Views/editor-editframe.css",
+    "inputFile": "Modules/ContentSystem/Views/editor-editframe.less",
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMap": false,
+    "options": {}
+  },
+  {
+    "outputFile": "Modules/ContentSystem/Views/editor-editarea.css",
+    "inputFile": "Modules/ContentSystem/Views/editor-editarea.less",
     "minify": {
       "enabled": true
     },

@@ -269,6 +269,23 @@
 
         };
 
+        $scope.data.copy = function (object, callback) {
+            
+            if (confirm("Copy?") == false) {
+
+                return;
+            }
+
+            // create a copy of object and remove key properties
+            var toSave = JSON.parse(JSON.stringify(object));
+            delete toSave.Id;
+            delete toSave.id;
+            delete toSave.__createdAt;
+            delete toSave.__updatedAt;
+
+            $scope.data.save(toSave, callback);
+        };
+
         // query the database using odata
         $scope.data.query = function (oDataQuery, callback) {
 
@@ -413,23 +430,59 @@
             var $me = this;
 
             element.attr("ng-disabled", "isBusy");
-            element.attr("ng-click", "data.save(object)");
+
+            var parentForm = element.parents("form");
+            if (parentForm.length == 0) {
+
+                // not in a form, find a form in data context
+                var ctx = element.parents("[ncb-datacontext]");
+                parentForm = ctx.find("form");
+            }
+
+            if (parentForm.length == 0) {
+                console.log("save button: No form found, cannot bind to validation.");
+            }
+
+            if (parentForm.length > 1) {
+                console.log("save button: Multiple form found, cannot bind to validation.");
+            }
+
+            if (parentForm.length == 1) {
+
+                element.attr("ng-disabled", parentForm.attr("name") + ".$valid == false || isBusy");
+            }
 
             element.prepend('<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy"></i>')
             element.removeAttr("ncb-savebutton"); // prevent infinite loop
 
             var template = $compile(element);
             template($scope);
+
+            // element.on('click' does not work
+            element[0].onclick = function () {
+
+                if (attrs.beforesave != null) {
+
+                    var result = $scope.$eval(attrs.beforesave);
+                    if (result == false) {
+
+                        return;
+                    }
+                }
+
+                $scope.$eval("data.save(object)");
+            };
         }
 
         return {
             restrict: 'A',
             link: link,
+            scope: true,
             terminal: true, // we will use $compile - so we want to stop all other directives
             priority: 9999, // make sure we got compiled first
         };
     }]);
-
+    
     ncb.directive('ncbInsertbutton', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
@@ -460,7 +513,7 @@
 
             var $me = this;
 
-            $scope.newItem = null;
+            $scope.newItem = {};
             $scope.target = $scope.$parent.$eval(attrs.target);
 
             $scope.$watch(attrs.target, function () {
@@ -511,7 +564,7 @@
                 target.push($scope.newItem);
                 $scope.target = target;
 
-                $scope.newItem = null;
+                $scope.newItem = {};
             };
         }
 
@@ -541,7 +594,7 @@
 
             $scope.refreshLookup = function (key) {
 
-                var oDataQuery = attrs.filter.replace("$key", key);
+                var oDataQuery = attrs.filter.replace(/\$key/g, key);
 
                 if (key == null || key == '') {
 
@@ -580,6 +633,21 @@
             restrict: 'A',
             link: link,
             scope: true,
+        };
+    }]);
+
+    ncb.directive('ncbLookup', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+
+            var $me = this;
+        }
+
+        return {
+            restrict: 'E',
+            replace: true,
+            link: link,
+            templateUrl: '/Modules/DatabaseSystem/template/ncbLookupbox.html'
         };
     }]);
 

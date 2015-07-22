@@ -1,0 +1,78 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_base";
+}
+@section Title
+{
+    NancyWhite
+}
+
+@section Head
+{
+    <link href="/Modules/ContentSystem/Views/editor-editframe.min.css" rel="stylesheet" />
+}
+
+@section Script
+{
+    <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
+    <script src="/Modules/ContentSystem/Views/editor-editframe.js"></script>
+}
+
+
+<div id="editframe"
+     ng-module="editor-frame"
+     ng-controller="NcbEditor as ctrl">
+    <div id="menu">
+        <a class="backbutton">
+            <i class="ion-ios-arrow-thin-left"></i>
+            BACK
+        </a>
+
+        <div class="editableList">
+            <h1>Page Contents</h1>
+            <ul>
+                <li ng-repeat="item in editableAreas"
+                    ng-mouseenter="ctr.hoverarea(item)"
+                    ng-click="ctrl.beginedit( item )">
+
+                    <i class="ion-ios-paper-outline"></i>
+                    {{item.name}}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="siteContent">
+        <div>
+            <div id="toolbarcontainer">
+                <div id="toolbar1">
+
+                </div>
+                <div id="toolbar2">
+
+                </div>
+            </div>
+            <div>
+                <iframe id="siteview" src="/customer"></iframe>
+            </div>
+            <div id="toggleview">
+                <a href="#" ng-click="ctrl.view(375)">
+                    <i class="ion-iphone"></i>
+                </a>
+                <a href="#" ng-click="ctrl.view(768)">
+                    <i class="ion-ipad"></i>
+                </a>
+                <a href="#" ng-click="ctrl.view(1200)">
+                    <i class="ion-laptop"></i>
+                </a>
+                <a href="#" ng-click="ctrl.view('none')">
+                    <i class="ion-monitor"></i>
+                </a>
+                <span class="pull-right">
+                    {{width}}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+</div>

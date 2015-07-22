@@ -15,7 +15,7 @@ namespace NantCom.NancyBlack.Modules
 {
     public class MailSenderModule : IPipelineHook
     {
-        private static ConcurrentBag<MailMessage> _Outbox = new ConcurrentBag<MailMessage>();
+        private static ConcurrentBag<MailMessage> _Outbox;
 
         /// <summary>
         /// Old method signature for compatibility
@@ -58,6 +58,11 @@ namespace NantCom.NancyBlack.Modules
             p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
                 if (_Outbox == null)
+                {
+                    return;
+                }
+
+                if (ctx.Items.ContainsKey("SiteSettings") == false)
                 {
                     return;
                 }

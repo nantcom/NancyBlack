@@ -83,7 +83,8 @@ namespace NantCom.NancyBlack.Configuration
                          select js.Replace(rootPath, "").Replace('\\', '/');
 
             var allCss = from css in Directory.GetFiles(modules, "*.min.css", SearchOption.AllDirectories)
-                          select css.Replace(rootPath, "").Replace('\\', '/');
+                         where css.Contains("\\Views\\") == false
+                         select css.Replace(rootPath, "").Replace('\\', '/');
 
             _Includes = (from inc in Directory.GetFiles(modules, "_include.cshtml", SearchOption.AllDirectories)
                         select inc.Replace(rootPath, "").Replace('\\', '/').Replace(".cshtml", "")).ToArray();

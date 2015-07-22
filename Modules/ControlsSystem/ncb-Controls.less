@@ -1,4 +1,6 @@
-﻿input.ng-invalid, textarea.ng-invalid {
+﻿@import url('/Modules/ControlsSystem/select2.css');
+
+input.ng-invalid, textarea.ng-invalid {
     border-color: rgba(242, 148, 148, 0.60);
     box-shadow: 0 0 8px rgba(242, 148, 148, 0.60);
 
@@ -159,7 +161,6 @@ ncb-picturelist {
 }
 
 .toggle-switch {
-
     border: 1px solid #888;
     cursor: pointer;
     display: inline-block;
@@ -237,7 +238,6 @@ ncb-picturelist {
 .input-group-addon, .input-group-btn {
 
     .toggle-switch {
-
         margin-left: -3px;
 
         span {
@@ -247,9 +247,34 @@ ncb-picturelist {
     }
 }
 
-    .toggle-switch-animate {
-        transition: left 0.2s ease-out;
-        -o-transition: left 0.2s ease-out;
-        -moz-transition: left 0.2s ease-out;
-        -webkit-transition: left 0.2s ease-out;
+.toggle-switch-animate {
+    transition: left 0.2s ease-out;
+    -o-transition: left 0.2s ease-out;
+    -moz-transition: left 0.2s ease-out;
+    -webkit-transition: left 0.2s ease-out;
+}
+
+fieldset {
+    border: 1px solid #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+
+    legend {
+        border: 0 !important;
+        width: auto;
+        padding: 0 10px;
+
+        font-size: 18px;
+        font-weight: bold;
+
+        color: gray;
     }
+}
+
+.gap-right {
+    margin-right: 15px;
+}
+
+.gap-left {
+    margin-left: 15px;
+}

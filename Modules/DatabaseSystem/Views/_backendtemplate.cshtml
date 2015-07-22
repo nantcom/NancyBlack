@@ -58,7 +58,7 @@
         <ncb-modal id="@(entityName)Modal"
                    title="{{object.id == null ? 'Create @(entityName)' : 'Edit @(entityName)'}}"
                    closebutton deletebutton>
-            <form role="form">
+            <form role="form" name="@(entityName)Form">
 
                 <tabset>
                     <tab heading="General">
@@ -260,10 +260,15 @@
                 }
                 <td style="white-space: nowrap">
 
-                    <button class="btn btn-primary"
+                    <button class="btn btn-default"
+                            ng-click="data.copy(item)">
+                        <i class="fa fa-copy"></i>
+                    </button>
+
+                    <button class="btn btn-info"
                             data-toggle="modal" data-target="#@(entityName)Modal"
                             ng-click="data.view(item)">
-                        <span class="glyphicon glyphicon-pencil"></span>
+                        <i class="fa fa-edit"></i>
                     </button>
                 </td>
             </tr>
