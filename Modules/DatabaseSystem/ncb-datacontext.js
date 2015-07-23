@@ -60,9 +60,19 @@
 
             $scope.$apply(function () {
 
-                var detail = JSON.parse(err.request.response);
-                detail.type = "danger";
-                detail.msg = detail.Message;
+                var detail;
+                try {
+                    detail = JSON.parse(err.request.response);
+                    detail.type = "danger";
+                    detail.msg = detail.Message;
+                } catch (e) {
+
+                    detail = {
+                        type: 'danger',
+                        msg: err
+                    };
+                }
+
                 $scope.alerts.push(detail);
 
                 $scope.isBusy = false;
@@ -215,7 +225,12 @@
                         $scope.$emit(emittedEvents.updated, { sender: $scope, args: object });
 
                         if (callback != null) {
-                            callback();
+
+                            try {
+                                callback();
+                            } catch (e) {
+
+                            }
                         }
 
                         $scope.$apply(function () {
@@ -236,17 +251,22 @@
                 $scope.table.insert(toSave).done(
                     function (result) {
 
+                        object = $me.processServerObject(result);
+
+                        if (callback != null) {
+
+                            try {
+                                callback();
+                            } catch (e) {
+
+                            }
+                        }
+
+                        $scope.$emit(emittedEvents.inserted, { sender: $scope, args: object });
+
                         $scope.$apply(function () {
 
-                            object = $me.processServerObject(result);
                             $scope.data.refresh();
-
-                            $scope.$emit(emittedEvents.inserted, { sender: $scope, args: object });
-
-                            if (callback != null) {
-                                callback();
-                            }
-
                             $scope.alerts.push({
 
                                 type: 'success',

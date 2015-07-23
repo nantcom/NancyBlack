@@ -216,6 +216,11 @@ a.success:hover {
 
         li {
             
+            &.disabled {
+                pointer-events: none;
+                opacity: 0.2;
+            }
+
             > a {
                 padding: 5px;
                 display: block;
@@ -229,7 +234,11 @@ a.success:hover {
                 > i {
                     margin-left: 2px;
                     margin-right: 10px;
-                    font-size: 150%;
+                    font-size: 180%;
+                    vertical-align: middle;
+                }
+
+                > span {
                     vertical-align: middle;
                 }
                 

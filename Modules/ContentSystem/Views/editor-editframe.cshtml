@@ -26,21 +26,29 @@
         <h1>
             Nancy<span>White</span>
         </h1>
+
         <ul>
             <li>
                 <h2>Page</h2>
             </li>
-            <li>
+            <li ng-class="{ 'disabled' : siteView.areas.length == 0}">
                 <a href="#/contents">Content</a>
             </li>
             <li>
-                <a href="#/collection">Collection</a>
+                <a href="#">Layout</a>
             </li>
             <li>
                 <a>Permission</a>
             </li>
             <li>
                 <a>SEO &amp; META TAGs</a>
+            </li>
+            <li ng-class="{ 'disabled' : siteView.collections.length == 0}">
+                <h2>Collections</h2>
+            </li>
+            <li ng-repeat="col in siteView.collections">
+                <a href="#"
+                   ng-click="globals.activecollection=col;switchMenu( $event, 'editframe-collections.html')">{{col.name}}</a>
             </li>
         </ul>
         <ul>
@@ -93,8 +101,8 @@
 
 <script type="text/ng-template" id="editframe-collections.html">
 
-    <div ncb-datacontext-integrated table="content"
-         class="editableList">
+    <div ncb-datacontext-integrated table="{{collection.table}}"
+         ng-controller="NcbCollection as ctrl">
         <h1>
             {{currentUrl}}
 
@@ -104,54 +112,56 @@
                 <i class="ion-ios-plus-outline"></i>
             </a>
         </h1>
-        <ul>
-            <li ng-repeat="item in data.list">
 
-                <a href="{{item.Url}}"
-                   ng-click="ctrl.edit($event,item)">
-                    <i class="ion-ios-paper-outline"></i>
-                    {{ ctrl.getTitle( item )}}
-                    {{item}}
+        <ul>
+            <li ng-repeat="item in collection.list">
+
+                <a  ng-click="ctrl.view($event, item)"
+                    ng-mouseenter="ctrl.hoverarea(item)"
+                    ng-mouseleave="ctrl.hoverarea(item)">
+                    <i class="ion-ios-book-outline"></i>
+                    <span>
+                        {{item.Title}}
+                    </span>
                 </a>
             </li>
             <li ng-show="collections.list.length == 0">
                 (collection is empty)
             </li>
         </ul>
+
+        <ncb-modal id="newitemmodal" closebutton
+                   title="Create item in Collection">
+
+            <input type="text" title="Item Title"
+                   ng-model="newItem.Title"
+                   ncb-textbox />
+
+            <div>
+                <p>
+                    <b>The URL for this item will be:</b><br />
+                    {{ currentUrl + '/' + ctrl.convertToSlug( newItem.Title )}}
+                </p>
+                <p>
+                    In order to make your search rank better, make sure you have a readable url.
+                </p>
+                <p ng-show="isBusy">
+                    <i class="fa fa-spin fa-circle-o-notch"></i>
+                    checking for duplicates...
+                </p>
+            </div>
+
+            <ncb-footer>
+                <button class="btn btn-success"
+                        ng-disabled="isBusy || newItem.Title == null || newItem.Title == ''"
+                        ng-click="ctrl.commitAdd()">
+                    Create
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+
     </div>
-
-    <ncb-modal id="newitemmodal" closebutton
-               title="Create item in Collection">
-
-        <input type="text" title="URL" placeholder="URL of new item, such as 'This is a new day'"
-               ng-model="newItem.Url"
-               ncb-textbox />
-
-        <div>
-            <p>
-                <b>What Search Engine Sees:</b><br />
-                {{ currentUrl + '/' + ctrl.getUrlPreview( newItem )}}
-            </p>
-            <p>
-                In order to make your rank better, make sure you have a readable url.
-            </p>
-            <p ng-show="isBusy">
-                <i class="fa fa-spin fa-circle-o-notch"></i>
-                checking for duplicates...
-            </p>
-        </div>
-
-        <alert ng-repeat="a in alerts">{{a.msg}}</alert>
-
-        <ncb-footer>
-            <button class="btn btn-success"
-                    ng-disabled="isBusy || newItem.Url == null || newItem.Url == ''"
-                    ng-click="ctrl.commitAdd()">
-                Create
-            </button>
-        </ncb-footer>
-
-    </ncb-modal>
 
 </script>
 
@@ -164,7 +174,7 @@
             <a class="backbutton" href="#"
                ng-click="ctrl.goback($event)"
                ng-cloak
-               ng-show="menu.backbuttonText != null">
+               ng-show="menu.stack.length > 1">
                 <i class="ion-ios-arrow-thin-left"></i>
                 {{menu.backbuttonText}}
             </a>
@@ -175,7 +185,7 @@
                 {{menu.altbuttonText}}
             </a>
         </div>
-        <div id="menucontent" ng-view>
+        <div id="menucontent" ng-include="menu.content">
         </div>
     </div>
 
@@ -190,7 +200,7 @@
                 </div>
             </div>
             <div>
-                <iframe id="siteview" src="/services"></iframe>
+                <iframe id="siteview" name="siteview" src="/services"></iframe>
             </div>
             <div id="toggleview">
                 <a href="#" ng-click="ctrl.view(375, $event)">

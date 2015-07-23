@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using NantCom.NancyBlack.Modules.ContentSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json.Linq;
@@ -31,7 +32,7 @@ namespace NantCom.NancyBlack.Modules
         protected void GenerateLayoutPage(dynamic site, dynamic content)
         {
             var layout = (string)content.Layout;
-
+            
             string layoutPath = Path.Combine(this.RootPath, "Site", "Views", Path.GetDirectoryName(layout));
             string layoutFilename = Path.Combine(layoutPath, Path.GetFileName(layout) + ".cshtml");
 
@@ -58,13 +59,33 @@ namespace NantCom.NancyBlack.Modules
                 url = "/";
             }
 
+            if (url.StartsWith("/") == false)
+            {
+                url = "/" + url;
+            }
+
             // invalid admin links
             if (url.StartsWith("/Admin", StringComparison.InvariantCultureIgnoreCase))
             {
                 return 404;
             }
 
-            dynamic requestedContent = ContentModule.GetContent(this.SiteDatabase, url);
+            dynamic requestedContent = null;
+
+            // see if the url is collection request or content request
+            var parts = url.Split('/');
+            if (parts.Length > 2 && parts[1].EndsWith("s"))
+            {
+                // seems to be a collection
+                var typeName = parts[1].Substring(0, parts[1].Length - 1);
+                requestedContent = this.SiteDatabase.QueryAsDynamic(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault();
+            }
+
+            // if failed to get from table, use content table instead
+            if (requestedContent == null)
+            {
+                requestedContent = ContentModule.GetContent(this.SiteDatabase, url);
+            }
 
             if (requestedContent == null)
             {
@@ -100,6 +121,11 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
+            if (requestedContent.Layout == null)
+            {
+                requestedContent.Layout = "Content";
+            }
+
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
 
             return View[(string)requestedContent.Layout, this.GetModel(requestedContent)];
@@ -130,7 +156,12 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         public static IEnumerable<dynamic> GetChildContent(NancyBlackDatabase db, string url)
         {
-            return db.QueryAsDynamic("Content", string.Format("startswith(Url, '{0}')", url.ToLowerInvariant()), "DisplayOrder");
+            if (url.StartsWith("/") == false)
+            {
+                url = "/" + url;
+            }
+
+            return db.QueryAsDynamic("Content", string.Format("startswith(Url, '{0}/')", url.ToLowerInvariant()), "DisplayOrder");
         }
 
         /// <summary>
@@ -140,6 +171,11 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         public static dynamic GetContent(NancyBlackDatabase db, string url)
         {
+            if (url.StartsWith("/") == false)
+            {
+                url = "/" + url;
+            }
+
             return db.Query("Content", string.Format("Url eq '{0}'", url.ToLowerInvariant())).FirstOrDefault();
         }
 

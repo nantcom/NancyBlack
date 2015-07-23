@@ -213,6 +213,31 @@ namespace NantCom.NancyBlack
         }
 
         #endregion
+        
+        /// <summary>
+        /// Querys
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListCollection(string entityName, Func<dynamic, object> contentTemplate)
+        {
+
+#if DEBUG
+            if (entityName == null)
+            {
+                throw new ArgumentNullException("collectionName");
+            }
+#endif
+            var list = Database.Query(entityName, oDataSort: "DisplayOrder");
+
+            foreach (var item in list)
+            {
+                var output = contentTemplate(JObject.FromObject(item));
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
 
         #region Content Hierachy
 
