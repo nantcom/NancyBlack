@@ -32,7 +32,7 @@
                 <h2>Page</h2>
             </li>
             <li ng-class="{ 'disabled' : siteView.areas.length == 0}">
-                <a href="#/contents">Content</a>
+                <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
             </li>
             <li>
                 <a href="#">Layout</a>
@@ -73,15 +73,15 @@
 
 <script type="text/ng-template" id="editframe-pagecontents.html">
 
-    <div class="editableList">
+    <div class="editableList"
+         ng-controller="NcbPageContent as ctrl">
         <h1>{{currentUrl}}</h1>
         <ul>
-            <li ng-repeat="item in pagecontent.areas"
-                ng-mouseenter="ctrl.hoverarea(item)"
-                ng-mouseleave="ctrl.hoverarea(item)">
+            <li ng-repeat="item in siteView.areas">
 
-                <a href="#/editcontent/{{item.name}}"
-                   ng-click="ctrl.edit($event,item)">
+                <a ng-click="ctrl.edit($event,item)"
+                   ng-mouseenter="ctrl.hoverarea(item)"
+                    ng-mouseleave="ctrl.hoverarea(item)">
                     <i class="ion-ios-paper-outline"></i>
                     {{item.name}}
                 </a>
@@ -94,6 +94,7 @@
 <script type="text/ng-template" id="editframe-editcontent.html">
 
     <div ncb-datacontext-integrated
+         ng-controller="NcbContentEditor as ctrl"
          table="content">
         <h1>Edit: {{editing.name}}</h1>
     </div>
@@ -200,7 +201,7 @@
                 </div>
             </div>
             <div>
-                <iframe id="siteview" name="siteview" src="/services"></iframe>
+                <iframe id="siteview" name="siteview" src="/location"></iframe>
             </div>
             <div id="toggleview">
                 <a href="#" ng-click="ctrl.view(375, $event)">
