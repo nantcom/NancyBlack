@@ -85,17 +85,10 @@
         if ($scope.model == null) {
 
             // no model
-            $scope.data.refresh = function (filter) {
+            $scope.data.refresh = function () {
 
                 var source = $scope.table;
-
-                if (filter != null) {
-
-                    source = source.filter(source);
-                } else {
-
-                    source = source.orderByDescending("Id")
-                }
+                source = source.orderByDescending("Id")
 
                 if ($scope.paging.page > 0) {
 

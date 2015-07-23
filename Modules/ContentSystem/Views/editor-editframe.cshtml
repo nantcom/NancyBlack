@@ -20,10 +20,53 @@
     <script src="/Modules/ContentSystem/Views/editor-editframe.js"></script>
 }
 
+<script type="text/ng-template" id="editframe-homemenu.html">
+
+    <div id="mainmenu">
+        <h1>
+            Nancy<span>White</span>
+        </h1>
+        <ul>
+            <li>
+                <h2>Page</h2>
+            </li>
+            <li>
+                <a href="#/contents">Content</a>
+            </li>
+            <li>
+                <a href="#/collection">Collection</a>
+            </li>
+            <li>
+                <a>Permission</a>
+            </li>
+            <li>
+                <a>SEO &amp; META TAGs</a>
+            </li>
+        </ul>
+        <ul>
+            <li>
+                <h2>Site</h2>
+            </li>
+            <li>
+                <a>Collection</a>
+            </li>
+            <li>
+                <a>SEO &amp; META TAGs</a>
+            </li>
+            <li>
+                <a>API Keys</a>
+            </li>
+            <li>
+                <a>Settings</a>
+            </li>
+        </ul>
+    </div>
+</script>
+
 <script type="text/ng-template" id="editframe-pagecontents.html">
 
     <div class="editableList">
-        <h1>Page Contents</h1>
+        <h1>{{currentUrl}}</h1>
         <ul>
             <li ng-repeat="item in pagecontent.areas"
                 ng-mouseenter="ctrl.hoverarea(item)"
@@ -38,9 +81,6 @@
         </ul>
     </div>
 
-    <ncb-modal id="conflict" title="Change Conflicts">
-
-    </ncb-modal>
 </script>
 
 <script type="text/ng-template" id="editframe-editcontent.html">
@@ -49,6 +89,70 @@
          table="content">
         <h1>Edit: {{editing.name}}</h1>
     </div>
+</script>
+
+<script type="text/ng-template" id="editframe-collections.html">
+
+    <div ncb-datacontext-integrated table="content"
+         class="editableList">
+        <h1>
+            {{currentUrl}}
+
+            <a class="pull-right"
+               href="#"
+               ng-click="ctrl.add($event)">
+                <i class="ion-ios-plus-outline"></i>
+            </a>
+        </h1>
+        <ul>
+            <li ng-repeat="item in data.list">
+
+                <a href="{{item.Url}}"
+                   ng-click="ctrl.edit($event,item)">
+                    <i class="ion-ios-paper-outline"></i>
+                    {{ ctrl.getTitle( item )}}
+                    {{item}}
+                </a>
+            </li>
+            <li ng-show="collections.list.length == 0">
+                (collection is empty)
+            </li>
+        </ul>
+    </div>
+
+    <ncb-modal id="newitemmodal" closebutton
+               title="Create item in Collection">
+
+        <input type="text" title="URL" placeholder="URL of new item, such as 'This is a new day'"
+               ng-model="newItem.Url"
+               ncb-textbox />
+
+        <div>
+            <p>
+                <b>What Search Engine Sees:</b><br />
+                {{ currentUrl + '/' + ctrl.getUrlPreview( newItem )}}
+            </p>
+            <p>
+                In order to make your rank better, make sure you have a readable url.
+            </p>
+            <p ng-show="isBusy">
+                <i class="fa fa-spin fa-circle-o-notch"></i>
+                checking for duplicates...
+            </p>
+        </div>
+
+        <alert ng-repeat="a in alerts">{{a.msg}}</alert>
+
+        <ncb-footer>
+            <button class="btn btn-success"
+                    ng-disabled="isBusy || newItem.Url == null || newItem.Url == ''"
+                    ng-click="ctrl.commitAdd()">
+                Create
+            </button>
+        </ncb-footer>
+
+    </ncb-modal>
+
 </script>
 
 <div id="editframe"
@@ -86,7 +190,7 @@
                 </div>
             </div>
             <div>
-                <iframe id="siteview" src="/customer"></iframe>
+                <iframe id="siteview" src="/services"></iframe>
             </div>
             <div id="toggleview">
                 <a href="#" ng-click="ctrl.view(375, $event)">
@@ -107,12 +211,12 @@
             </div>
         </div>
     </div>
-    
+
     <div id="working">
         <div>
             <i class="fa fa-spin fa-circle-o-notch fa-3x"></i>
             <div>working on it...</div>
-            
+
         </div>
     </div>
 </div>

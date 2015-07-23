@@ -86,7 +86,7 @@ namespace NantCom.NancyBlack.Modules
                         return this.update;
                     }
 
-                    if (action == "delete")
+                    if (action == "deleted")
                     {
                         return this.deleted;
                     }

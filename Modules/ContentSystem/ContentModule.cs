@@ -169,6 +169,11 @@ namespace NantCom.NancyBlack.Modules
                 layout = "home";
             }
 
+            if (url.StartsWith("/") == false)
+            {
+                url = "/" + url;
+            }
+
             var createdContent = db.UpsertRecord("Content", new DefaultContent()
             {
                 Id = 0,
