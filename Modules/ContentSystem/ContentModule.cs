@@ -79,6 +79,11 @@ namespace NantCom.NancyBlack.Modules
                 // seems to be a collection
                 var typeName = parts[1].Substring(0, parts[1].Length - 1);
                 requestedContent = this.SiteDatabase.QueryAsDynamic(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault();
+
+                if (requestedContent != null)
+                {
+                    requestedContent.typeName = typeName;
+                }
             }
 
             // if failed to get from table, use content table instead

@@ -65,8 +65,11 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
                 var userViews = from view in views
                        let viewName = view.Replace(viewPath + "\\", "").Replace("\\", "/").Replace(".cshtml", "")
-                       where viewName.StartsWith("admin-") == false && viewName.StartsWith("_") == false
-                       select viewName;
+                       where 
+                            viewName.StartsWith("Admin/") == false &&
+                            viewName.StartsWith("_") == false &&
+                            viewName.StartsWith("admin-") == false
+                        select viewName;
 
                 return userViews.Distinct();
 

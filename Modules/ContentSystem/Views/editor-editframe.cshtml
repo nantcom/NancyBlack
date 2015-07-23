@@ -35,7 +35,8 @@
                 <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
             </li>
             <li>
-                <a href="#">Layout</a>
+                <a href="#"
+                   ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
             </li>
             <li>
                 <a>Permission</a>
@@ -84,6 +85,24 @@
                     ng-mouseleave="ctrl.hoverarea(item)">
                     <i class="ion-ios-paper-outline"></i>
                     {{item.name}}
+                </a>
+            </li>
+        </ul>
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-pagelayout.html">
+
+    <div ncb-datacontext-integrated table="{{currentTable}}"
+         ng-controller="NcbPagePropertyEdit as ctrl">
+        <h1>{{currentUrl}}</h1>
+        <ul>
+            <li ng-repeat="item in layouts">
+
+                <a ng-click="ctrl.changelayout($event,item)">
+                    <i class="ion-ios-grid-view-outline"></i>
+                    {{item}}
                 </a>
             </li>
         </ul>

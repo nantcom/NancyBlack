@@ -99,6 +99,16 @@
         </script>
     }
 
+    @if (this.IsInEditMode == true)
+    {
+        <script>
+
+            // automatically set current model into window variable
+            window.model =  @this.Html.Raw( this.GetJson( this.Model ) );
+
+        </script>
+    }
+
     @RenderSection("Scripts", false)
     @RenderSection("Script", false)
 
