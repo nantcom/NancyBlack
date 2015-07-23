@@ -54,14 +54,15 @@ a {
 
             > div:nth-child(2) {
                 height: auto;
+                text-align: center;
             }
         }
 
         #toolbarcontainer {
-            -moz-transition: all ease-out 0.5s;
-            -o-transition: all ease-out 0.5s;
-            -webkit-transition: all ease-out 0.5s;
-            transition: all ease-out 0.5s;
+            -moz-transition: all ease-out 0.2s;
+            -o-transition: all ease-out 0.2s;
+            -webkit-transition: all ease-out 0.2s;
+            transition: all ease-out 0.2s;
 
             * {
                 font-family: Leelawadee, 'Segoe UI', Tahoma !important;
@@ -92,18 +93,58 @@ a {
             }
         }
 
-        iframe {
-            background-color: silver;
+        iframe {background-color: silver;
             -moz-box-sizing: border-box;
-            -webkit-box-sizing: border-box;
+
+                        -webkit-box-sizing: border-box;
             box-sizing: border-box;
             width: 100%;
             height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: scroll hidden;
             border: 0;
-            box-shadow: 5px 5px 10px rgba( 0, 0, 0, 0.25);
+            box-shadow: 5px 5px 20px rgba( 0, 0, 0, 0.25);
             margin: auto auto;
+
+            transition: all ease-out 0.2s;
+        }
+    }
+
+    #working {
+
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+
+        background-color: rgba(255,255,255,0.7);
+        box-shadow: 0 0 50px  black inset;
+        display: table;
+
+        opacity: 0;
+        pointer-events: none;
+
+        transition: opacity linear 0.5s;
+
+        > div {
+            display: table-cell;
+            vertical-align:middle;
+            text-align: center;
+            padding-bottom: 20px;
+
+            > i {
+                margin-bottom: 10px;
+            }
+
+            > div {
+                padding-left: 10px;
+            }
+        }
+
+        &.working {
+
+            opacity: 1;
         }
     }
 }
@@ -112,17 +153,36 @@ a {
     padding: 10px;
     padding-top: 22px;
 
-    .backbutton {
-        font-size: 120%;
+    > div:first-child {
+        position: relative;
+        top: -10px;
+        text-transform: uppercase;
 
-        i {
-            font-size: 2em;
-            margin-right: 20px;
-            vertical-align: middle;
-            position: relative;
-            top: -4px;
+        .backbutton {
+            font-size: 100%;
+
+            i {
+                font-size: 2em;
+                margin-right: 20px;
+                vertical-align: middle;
+                position: relative;
+                top: -4px;
+            }
+
+            &:hover {
+                i {
+                    left: -4px;
+                }
+            }
+        }
+
+        .pull-right {
+            font-size: 80%;
+            padding-top: 10px;
+            opacity: 0.8;
         }
     }
+
 
     h1 {
         font-size: 12pt;
@@ -136,17 +196,21 @@ a {
 
         li {
             padding: 5px;
-            cursor: pointer;
-            white-space: nowrap;
-            -ms-text-overflow: ellipsis;
-            -o-text-overflow: ellipsis;
-            text-overflow: ellipsis;
 
-            > i {
-                margin-left: 2px;
-                margin-right: 10px;
-                font-size: 150%;
-                vertical-align: middle;
+            > a {
+                cursor: pointer;
+                white-space: nowrap;
+                overflow: hidden;
+                -ms-text-overflow: ellipsis;
+                -o-text-overflow: ellipsis;
+                text-overflow: ellipsis;
+
+                > i {
+                    margin-left: 2px;
+                    margin-right: 10px;
+                    font-size: 150%;
+                    vertical-align: middle;
+                }
             }
 
             &:hover {

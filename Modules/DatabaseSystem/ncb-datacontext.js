@@ -218,17 +218,16 @@
                 $scope.table.update(toSave).done(
                     function (result) {
 
+                        object = $me.processServerObject(result);
+                        $scope.$emit(emittedEvents.updated, { sender: $scope, args: object });
+
+                        if (callback != null) {
+                            callback();
+                        }
+
                         $scope.$apply(function () {
 
                             $scope.isBusy = false;
-                            object = $me.processServerObject(result);
-
-                            $scope.$emit(emittedEvents.updated, { sender: $scope, args: object });
-
-                            if (callback != null) {
-                                callback();
-                            }
-
                             $scope.alerts.push({
 
                                 type: 'success',
@@ -293,16 +292,15 @@
 
             $scope.table.read(oDataQuery).done(function (results) {
 
+                results.forEach($me.processServerObject);
+                if (callback != null) {
+
+                    callback(results);
+                }
+
                 $scope.$apply(function () {
 
                     $scope.isBusy = false;
-
-                    results.forEach($me.processServerObject);
-                    
-                    if (callback != null) {
-                        
-                        callback(results);
-                    }
                 });
 
             }, $me.handleError);
@@ -374,7 +372,8 @@
         return {
             restrict: 'A',
             link: dataContext,
-            scope: true
+            priority: 9999, // make sure we got compiled first
+            scope: true,
         };
     }]);
 
@@ -385,6 +384,7 @@
         return {
             restrict: 'A',
             link: dataContext,
+            priority: 9999, // make sure we got compiled first
             scope: false // integrate into current scope
         };
     }]);

@@ -14,31 +14,64 @@
 
 @section Script
 {
+    <script src="/Content/Scripts/angular-animate.min.js"></script>
+    <script src="/Content/Scripts/angular-route.min.js"></script>
     <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
     <script src="/Modules/ContentSystem/Views/editor-editframe.js"></script>
 }
 
+<script type="text/ng-template" id="editframe-pagecontents.html">
+
+    <div class="editableList">
+        <h1>Page Contents</h1>
+        <ul>
+            <li ng-repeat="item in pagecontent.areas"
+                ng-mouseenter="ctrl.hoverarea(item)"
+                ng-mouseleave="ctrl.hoverarea(item)">
+
+                <a href="#/editcontent/{{item.name}}"
+                   ng-click="ctrl.edit($event,item)">
+                    <i class="ion-ios-paper-outline"></i>
+                    {{item.name}}
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <ncb-modal id="conflict" title="Change Conflicts">
+
+    </ncb-modal>
+</script>
+
+<script type="text/ng-template" id="editframe-editcontent.html">
+
+    <div ncb-datacontext-integrated
+         table="content">
+        <h1>Edit: {{editing.name}}</h1>
+    </div>
+</script>
 
 <div id="editframe"
      ng-module="editor-frame"
-     ng-controller="NcbEditor as ctrl">
+     ng-controller="NancyWhite as ctrl">
+
     <div id="menu">
-        <a class="backbutton">
-            <i class="ion-ios-arrow-thin-left"></i>
-            BACK
-        </a>
-
-        <div class="editableList">
-            <h1>Page Contents</h1>
-            <ul>
-                <li ng-repeat="item in editableAreas"
-                    ng-mouseenter="ctr.hoverarea(item)"
-                    ng-click="ctrl.beginedit( item )">
-
-                    <i class="ion-ios-paper-outline"></i>
-                    {{item.name}}
-                </li>
-            </ul>
+        <div>
+            <a class="backbutton" href="#"
+               ng-click="ctrl.goback($event)"
+               ng-cloak
+               ng-show="menu.backbuttonText != null">
+                <i class="ion-ios-arrow-thin-left"></i>
+                {{menu.backbuttonText}}
+            </a>
+            <a class="pull-right" href="#"
+               ng-click="ctrl.cancel($event)"
+               ng-cloak
+               ng-show="menu.altbuttonText != null">
+                {{menu.altbuttonText}}
+            </a>
+        </div>
+        <div id="menucontent" ng-view>
         </div>
     </div>
 
@@ -56,16 +89,16 @@
                 <iframe id="siteview" src="/customer"></iframe>
             </div>
             <div id="toggleview">
-                <a href="#" ng-click="ctrl.view(375)">
+                <a href="#" ng-click="ctrl.view(375, $event)">
                     <i class="ion-iphone"></i>
                 </a>
-                <a href="#" ng-click="ctrl.view(768)">
+                <a href="#" ng-click="ctrl.view(768, $event)">
                     <i class="ion-ipad"></i>
                 </a>
-                <a href="#" ng-click="ctrl.view(1200)">
+                <a href="#" ng-click="ctrl.view(1200, $event)">
                     <i class="ion-laptop"></i>
                 </a>
-                <a href="#" ng-click="ctrl.view('none')">
+                <a href="#" ng-click="ctrl.view('none', $event)">
                     <i class="ion-monitor"></i>
                 </a>
                 <span class="pull-right">
@@ -75,4 +108,11 @@
         </div>
     </div>
     
+    <div id="working">
+        <div>
+            <i class="fa fa-spin fa-circle-o-notch fa-3x"></i>
+            <div>working on it...</div>
+            
+        </div>
+    </div>
 </div>
