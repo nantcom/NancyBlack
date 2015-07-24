@@ -332,7 +332,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 // needs to convert to object to get Id later
                 dynamic toInsert = jObject.ToObject(actualType);
                 _db.Insert(toInsert, actualType);
-                
+                jObject["Id"] = toInsert.Id;
+
                 NancyBlackDatabase.ObjectCreated(this, entityName, toInsert);
             }
             else

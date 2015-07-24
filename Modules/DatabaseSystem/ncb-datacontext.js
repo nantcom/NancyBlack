@@ -41,7 +41,11 @@
         $scope.emittedEvents = emittedEvents;
 
         $scope.data = {};
-        $scope.object = null;
+
+        if ($scope.object == undefined) {
+            $scope.object = null;
+        }
+
         $scope.isBusy = false;
         $scope.alerts = [];
         $scope.list = [];
@@ -92,83 +96,51 @@
             return item;
         };
 
-        if ($scope.model == null) {
+        $scope.data.refresh = function () {
 
-            // no model
-            $scope.data.refresh = function () {
+            var source = $scope.table;
+            source = source.orderByDescending("Id")
 
-                var source = $scope.table;
-                source = source.orderByDescending("Id")
+            if ($scope.paging.page > 0) {
 
-                if ($scope.paging.page > 0) {
+                source = source.skip(($scope.paging.page - 1) * $scope.paging.size);
+            }
 
-                    source = source.skip(($scope.paging.page - 1) * $scope.paging.size);
-                }
+            if ($scope.paging.size > 0) {
 
-                if ($scope.paging.size > 0) {
+                source = source.take($scope.paging.size);
+            }
 
-                    source = source.take($scope.paging.size);
-                }
+            source.read().done(function (results) {
 
-                source.read().done(function (results) {
+                $scope.$apply(function () {
 
-                    $scope.$apply(function () {
+                    $scope.isBusy = false;
 
-                        $scope.isBusy = false;
+                    $scope.list = results;
+                    $scope.list.forEach($me.processServerObject);
 
-                        $scope.list = results;
-                        $scope.list.forEach($me.processServerObject);
+                    if (results.length < $scope.paging.size) {
 
-                        if (results.length < $scope.paging.size) {
+                        $scope.paging.total = $scope.paging.page * $scope.paging.size;
 
-                            $scope.paging.total = $scope.paging.page * $scope.paging.size;
+                    } else {
 
-                        } else {
+                        $scope.paging.total = ($scope.paging.page * $scope.paging.size) + 1;
+                    }
 
-                            $scope.paging.total = ($scope.paging.page * $scope.paging.size) + 1;
-                        }
-
-                        $scope.$emit(emittedEvents.refreshed, { sender: $scope, args: results });
-                    });
-
-                }, $me.handleError);
-
-            };
-
-            // reload is 
-            $scope.data.reload = function () {
-
-                throw "Reload is not available unless model is specified";
-            };
-
-        } else {
-
-            $scope.object = $me.processServerObject($scope.model);
-
-            $scope.isModelDeleted = false;
-            $scope.originalModel = JSON.stringify($scope.model);
-
-            // refresh with model will refresh the object
-            $scope.data.reload = function () {
-
-                if (object.id == null) {
-                    object.id = object.Id;
-                }
-
-                $scope.table.lookup(object.id).done(function (result) {
-
-                    object = result;
                     $scope.$emit(emittedEvents.refreshed, { sender: $scope, args: results });
+                });
 
-                }, $me.handleError);
-            };
+            }, $me.handleError);
 
-            // restore the model to original value
-            $scope.data.restore = function () {
+        };
 
-                $scope.object = JSON.parse($scope.originalModel);
-            };
-        }
+        // reload is 
+        $scope.data.reload = function () {
+
+            throw "Reload is not available unless model is specified";
+        };
 
         // Insert is, unlike save, always create new object in the backend
         $scope.data.insert = function (object, callback) {
