@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>
+    @*<title>        
         @this.Model.Content.Title
         @RenderSection("Title", false)
     </title>
@@ -15,7 +15,7 @@
     @if (this.Model.Content.MetaDescription != null)
     {
         <meta name="description" content="@(this.Model.Content.MetaDescription)">
-    }
+    }*@
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -123,7 +123,9 @@
     @RenderSection("Script", false)
 
     <script>
-        
+        // Querystring extraction function
+        (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
+
         // combine all ng-module into one attribute on top of the page
         // too allow all modules to function
         var modules = [];

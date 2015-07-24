@@ -58,7 +58,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             
             Get["/__membership/login"] = p =>
             {
-                return View["membership-login"];
+                return View["membership-login", this.GetModel()];
             };
 
             Get["/__membership/logout"] = p =>
@@ -89,7 +89,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             Get["/__membership/myclaims"] = _ =>
             {
-                return View["membership-myclaims"];
+                return View["membership-myclaims", this.GetModel()];
             };
 
             Get["/__membership/enroll"] = _ =>
@@ -100,7 +100,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
                 }
 
-                return View["membership-enroll"];
+                return View["membership-enroll", this.GetModel()];
             };
 
             Post["/__membership/enroll"] = this.HandleRequest(this.HandleEnroll);

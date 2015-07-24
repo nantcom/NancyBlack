@@ -218,7 +218,7 @@ namespace NantCom.NancyBlack.Modules
             var createdContent = db.UpsertRecord("Content", new DefaultContent()
             {
                 Id = 0,
-                Url = url,
+                Url = url.ToLowerInvariant(),
                 Layout = layout,
                 RequiredClaims = requiredClaims,
                 DisplayOrder = displayOrder
