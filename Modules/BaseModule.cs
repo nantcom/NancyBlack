@@ -155,6 +155,11 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         protected StandardModel GetModel(dynamic content = null)
         {
+            if (content == null)
+            {
+                content = new JObject();
+            }
+
             return new StandardModel()
             {
                 Database = this.SiteDatabase,

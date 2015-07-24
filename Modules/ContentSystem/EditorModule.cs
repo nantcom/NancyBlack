@@ -1,5 +1,6 @@
 ﻿using Nancy;
 using Nancy.Security;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,7 +55,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
             Get["/__editor"] = this.HandleRequest((arg) =>
             {
-                return View["editor-editframe"];
+                return View["editor-editframe", this.GetModel()];
             });
 
             Get["/__editor/data/availablelayouts"] = this.HandleRequest((args) =>

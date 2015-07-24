@@ -1,9 +1,9 @@
 ﻿
 (function () {
 
-    var module = angular.module('TablesModule', ['ui.bootstrap', 'ncb-database']);
+    var module = angular.module('TablesModule', ['ui.bootstrap']);
 
-    module.controller("TablesController", function ($scope, $rootScope, $http, ncbDatabaseClient) {
+    module.controller("TablesController", function ($scope, $rootScope, $http) {
 
         var $me = this;
         $scope.dataTypes = ["int", "double", "Boolean", "String", "DateTime", "Guid"];

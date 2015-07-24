@@ -44,6 +44,9 @@
 
         if ($scope.object == undefined) {
             $scope.object = null;
+        } else {
+
+            $scope.originalObject = JSON.parse(JSON.stringify($scope.object));
         }
 
         $scope.isBusy = false;

@@ -45,13 +45,12 @@ a.success:hover {
         width: auto;
         min-width: 250px;
         border-left: 10px solid darken(@background, 20%);
-        padding: 0 20px 0 20px ;
+        padding: 0 20px 0 20px;
     }
 
     #siteContent {
         padding: 15px;
         width: 100%;
-
         /* table layout */
         > div {
             width: 100%;
@@ -110,10 +109,10 @@ a.success:hover {
             }
         }
 
-        iframe {background-color: silver;
+        iframe {
+            background-color: silver;
             -moz-box-sizing: border-box;
-
-                        -webkit-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
             box-sizing: border-box;
             width: 100%;
             height: 100%;
@@ -121,32 +120,27 @@ a.success:hover {
             border: 0;
             box-shadow: 5px 5px 20px rgba( 0, 0, 0, 0.25);
             margin: auto auto;
-
             transition: all ease-out 0.2s;
         }
     }
 
     #working {
-
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
         z-index: 9999;
-
         background-color: rgba(255,255,255,0.7);
-        box-shadow: 0 0 50px  black inset;
+        box-shadow: 0 0 50px black inset;
         display: table;
-
         opacity: 0;
         pointer-events: none;
-
         transition: opacity linear 0.5s;
 
         > div {
             display: table-cell;
-            vertical-align:middle;
+            vertical-align: middle;
             text-align: center;
             padding-bottom: 20px;
 
@@ -160,16 +154,16 @@ a.success:hover {
         }
 
         &.working {
-
             opacity: 1;
         }
     }
 }
 
 #menu {
-    
+
     > div:first-child {
         margin-top: 20px;
+        min-height: 40px;
         text-transform: uppercase;
 
         .backbutton {
@@ -211,12 +205,12 @@ a.success:hover {
         text-transform: uppercase;
     }
 
-    h3{
+    h3 {
         color: lighten(@foreground, 40%);
         font-size: 10pt;
         text-transform: none;
         margin-top: 0;
-        padding-top: 0p;
+        padding-top: 0;
     }
 
     ul {
@@ -225,7 +219,7 @@ a.success:hover {
         margin: 0;
 
         li {
-            
+
             &.disabled {
                 pointer-events: none;
                 opacity: 0.2;
@@ -251,12 +245,11 @@ a.success:hover {
                 > span {
                     vertical-align: middle;
                 }
-                
+
                 &:hover {
                     background-color: @active;
                 }
             }
-
         }
     }
 
@@ -276,16 +269,19 @@ a.success:hover {
         }
 
         .btn {
-            
             border-radius: 2px !important;
         }
+    }
+
+    input, textarea {
+        border-radius: 0px !important;
+        border: none !important;
     }
 }
 
 #mainmenu {
-
     text-align: center;
-    
+
     h1 {
         font-weight: bold;
         font-size: 25px;
@@ -294,27 +290,13 @@ a.success:hover {
             color: white;
             text-shadow: 0 0 5px silver;
         }
-
     }
 
     h2 {
         font-weight: bold;
     }
-    
+
     a {
         text-transform: uppercase;
-    }
-}
-
-#menucontent {
-
-    position: relative;
-    
-    &.ng-enter {
-        color: red;
-    }
-
-    &.ng-leave {
-
     }
 }

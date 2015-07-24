@@ -2,6 +2,21 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>
+        @this.Model.Content.Title
+        @RenderSection("Title", false)
+    </title>
+
+    @if (this.Model.Content.MetaKeywords != null)
+    {
+        <meta name="keywords" content="@(this.Model.Content.MetaKeywords)">
+    }
+
+    @if (this.Model.Content.MetaDescription != null)
+    {
+        <meta name="description" content="@(this.Model.Content.MetaDescription)">
+    }
+
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -26,8 +41,6 @@
     <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-    <title>@RenderSection("Title", false)</title>
-
     <link href="/Content/bootstrap.min.css" rel="stylesheet" />
     <link href="/Content/bootstrap-theme.min.css" rel="stylesheet" />
     <link href="/Content/font-awesome.min.css" rel="stylesheet" />
@@ -43,7 +56,7 @@
     @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
 
     @if (this.RenderContext.Context.Request.Url.Path.Contains("/Admin") == false &&
-                this.RenderContext.Context.Request.Url.Path.Contains("/SuperAdmin") == false)
+                        this.RenderContext.Context.Request.Url.Path.Contains("/SuperAdmin") == false)
     {
         <link rel="stylesheet" href="@this.SitePath("/style.min.css")">
     }
@@ -56,38 +69,10 @@
         }
     </style>
 
-    <!-- String Format -->
-    <script src="/Content/Scripts/stringformat/stringformat-1.09.min.js"></script>
-
-    <script src="/Content/Scripts/jquery-2.1.1.js"></script>
-    <script src="/Content/Scripts/bootstrap.js"></script>
-    <script src="/Content/Scripts/angular.js"></script>
-    <script src="/Content/Scripts/angular-animate.js"></script>
-    <script src="/Content/Scripts/angular-sanitize.js"></script>
-    <script src="/Content/Scripts/angular-cookies.min.js"></script>
-    <script src="/Content/Scripts/angular-ui/ui-bootstrap-tpls.js"></script>
-    <script src="/Content/Scripts/MobileServices.Web-1.2.5.min.js"></script>
-
-    <!-- Angular UI Modules -->
-    <script src="/Content/Scripts/angular-ui-select/select.min.js"></script>
-    <script src="/Content/Scripts/angular-ui/ui-validate.js"></script>
-
-    <!-- Thai Province List -->
-    <script src="/Content/Scripts/thaiprovinces/angular-thaiprovinces.js"></script>
-    
 </head>
-<body @(this.IsInEditMode ? "editmode" : "" ) >
+<body @(this.IsInEditMode ? "editmode" : "" )>
 
     @RenderBody()
-
-    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
-
-    @{
-        foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
-        {
-            @this.Html.Partial(item, this.Model);
-        }
-    }
 
     @if (this.CurrentUser != null)
     {
@@ -109,13 +94,36 @@
         </script>
     }
 
+    <!-- String Format -->
+    <script src="/Content/Scripts/stringformat/stringformat-1.09.min.js"></script>
+
+    <script src="/Content/Scripts/jquery-2.1.1.js"></script>
+    <script src="/Content/Scripts/bootstrap.js"></script>
+    <script src="/Content/Scripts/angular.js"></script>
+    <script src="/Content/Scripts/angular-animate.js"></script>
+    <script src="/Content/Scripts/angular-sanitize.js"></script>
+    <script src="/Content/Scripts/angular-cookies.min.js"></script>
+    <script src="/Content/Scripts/angular-ui/ui-bootstrap-tpls.js"></script>
+    <script src="/Content/Scripts/MobileServices.Web-1.2.5.min.js"></script>
+
+    <!-- Angular UI Modules -->
+    <script src="/Content/Scripts/angular-ui-select/select.min.js"></script>
+    <script src="/Content/Scripts/angular-ui/ui-validate.js"></script>
+
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+
+    @{
+        foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
+        {
+            @this.Html.Partial(item, this.Model);
+        }
+    }
+
     @RenderSection("Scripts", false)
     @RenderSection("Script", false)
 
     <script>
-        // Querystring extraction function
-        (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
-
+        
         // combine all ng-module into one attribute on top of the page
         // too allow all modules to function
         var modules = [];

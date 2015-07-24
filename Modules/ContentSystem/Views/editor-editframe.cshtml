@@ -35,11 +35,10 @@
                 <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
             </li>
             <li>
-                <a href="#"
-                   ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
+                <a ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
             </li>
             <li>
-                <a>SEO</a>
+                <a ng-click="switchMenu( $event, 'editframe-pageseo.html')">SEO</a>
             </li>
             <li ng-class="{ 'disabled' : siteView.collections.length == 0}">
                 <h2>Collections</h2>
@@ -93,7 +92,7 @@
 <script type="text/ng-template" id="editframe-pagelayout.html">
 
     <div ncb-datacontext-integrated table="{{currentTable}}"
-         ng-controller="NcbPagePropertyEdit as ctrl">
+         ng-controller="NcbPageLayoutEdit as ctrl">
         <h1>{{currentUrl}}</h1>
         <h2>Layout:</h2>
         <h3>choose the available layouts for this content.</h3>
@@ -101,7 +100,7 @@
             <li ng-repeat="item in layouts">
 
                 <a ng-click="ctrl.changelayout($event,item)">
-                    <i class="ion-ios-grid-view-outline"></i>
+                    <i class="ion-grid"></i>
                     {{item}}
                 </a>
             </li>
@@ -116,15 +115,23 @@
          ng-controller="NcbPagePropertyEdit as ctrl">
         <h1>{{currentUrl}}</h1>
         <h2>SEO:</h2>
-        <ul>
-            <li ng-repeat="item in layouts">
+        <h3>
+            edit meta tags, which were beleived to help you with search engine ranking -
+            although it is still a myth on its effectiveness.
+            [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
+        </h3>
 
-                <a ng-click="ctrl.changelayout($event,item)">
-                    <i class="ion-ios-grid-view-outline"></i>
-                    {{item}}
-                </a>
-            </li>
-        </ul>
+        <input type="text" ncb-textbox title="Title"
+               placeholder="Shows in tab title"
+               ng-model="object.Title" />
+
+        <input type="text" ncb-textbox title="Meta Keywords"
+               placeholder="keywords to describe this page"
+               ng-model="object.MetaKeywords"/>
+
+        <textarea type="text" ncb-textbox title="Meta Description"                  
+                  placeholder="description about this page"
+                  rows="5" ng-model="object.MetaDescription"></textarea>
     </div>
 
 </script>
@@ -144,14 +151,16 @@
          ng-controller="NcbCollection as ctrl">
         <h1>
             {{currentUrl}}
+        </h1>
+        <h2>
+            Collection
 
             <a class="pull-right"
                href="#"
                ng-click="ctrl.add($event)">
                 <i class="ion-ios-plus-outline"></i>
             </a>
-        </h1>
-
+        </h2>
         <ul>
             <li ng-repeat="item in collection.list">
 
@@ -224,7 +233,9 @@
                 {{menu.altbuttonText}}
             </a>
         </div>
-        <div id="menucontent" ng-include="menu.content">
+        <div id="menucontent">
+            <div ng-include="menu.content">
+            </div>
         </div>
     </div>
 
