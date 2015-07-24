@@ -36,5 +36,15 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         /// Required Claims
         /// </summary>
         string RequiredClaims { get; set; }
+
+        /// <summary>
+        /// Meta Keywords
+        /// </summary>
+        string MetaKeywords { get; set; }
+
+        /// <summary>
+        /// Meta Description
+        /// </summary>
+        string MetaDescription { get; set; }
     }
 }

@@ -198,15 +198,25 @@ a.success:hover {
     }
 
     h1 {
+        color: darken(@foreground, 20%);
         font-size: 14pt;
         font-weight: bold;
         text-transform: uppercase;
     }
 
     h2 {
-        color: @foreground;
+        color: darken(@foreground, 5%);
         font-size: 12pt;
+        font-weight: bold;
         text-transform: uppercase;
+    }
+
+    h3{
+        color: lighten(@foreground, 40%);
+        font-size: 10pt;
+        text-transform: none;
+        margin-top: 0;
+        padding-top: 0p;
     }
 
     ul {

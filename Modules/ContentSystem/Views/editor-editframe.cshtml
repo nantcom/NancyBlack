@@ -39,10 +39,7 @@
                    ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
             </li>
             <li>
-                <a>Permission</a>
-            </li>
-            <li>
-                <a>SEO &amp; META TAGs</a>
+                <a>SEO</a>
             </li>
             <li ng-class="{ 'disabled' : siteView.collections.length == 0}">
                 <h2>Collections</h2>
@@ -77,6 +74,7 @@
     <div class="editableList"
          ng-controller="NcbPageContent as ctrl">
         <h1>{{currentUrl}}</h1>
+        <h2>Content Blocks:</h2>
         <ul>
             <li ng-repeat="item in siteView.areas">
 
@@ -97,6 +95,27 @@
     <div ncb-datacontext-integrated table="{{currentTable}}"
          ng-controller="NcbPagePropertyEdit as ctrl">
         <h1>{{currentUrl}}</h1>
+        <h2>Layout:</h2>
+        <h3>choose the available layouts for this content.</h3>
+        <ul>
+            <li ng-repeat="item in layouts">
+
+                <a ng-click="ctrl.changelayout($event,item)">
+                    <i class="ion-ios-grid-view-outline"></i>
+                    {{item}}
+                </a>
+            </li>
+        </ul>
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-pageseo.html">
+
+    <div ncb-datacontext-integrated table="{{currentTable}}"
+         ng-controller="NcbPagePropertyEdit as ctrl">
+        <h1>{{currentUrl}}</h1>
+        <h2>SEO:</h2>
         <ul>
             <li ng-repeat="item in layouts">
 
