@@ -397,177 +397,171 @@
 
     var membership = angular.module('ncb-membership', []);
 
-    //// module scoped variables;
-    //var $module = {};
+    // module scoped variables;
+    var $module = {};
     
-    //$module.currentUser = $.cookie("UserInfo");
-    //$module.currentProfileController = null;
-    //$module.currentLoginController = null;
+    $module.currentUser = $.cookie("UserInfo");
+    $module.currentProfileController = null;
+    $module.currentLoginController = null;
 
-    //membership.controller('MemberShip-LoginController', ['$scope', '$http', function ($scope, $http ) {
+    membership.controller('MemberShip-LoginController', ['$scope', '$http', function ($scope, $http ) {
 
-    //    if ($module.currentLoginController != null) {
-    //        throw "Only One Login Controller is permitted";
-    //    }
+        if ($module.currentLoginController != null) {
+            throw "Only One Login Controller is permitted";
+        }
 
-    //    $module.currentLoginController = this;
+        $module.currentLoginController = this;
 
-    //    $scope.alerts = [];
-    //    $scope.login = {};
-    //    $scope.user = $module.currentUser;
+        $scope.alerts = [];
+        $scope.login = {};
+        $scope.user = $module.currentUser;
 
-    //    this.closeAlert = function (index) {
-    //        $scope.alerts.splice(index, 1);
-    //    };
+        this.closeAlert = function (index) {
+            $scope.alerts.splice(index, 1);
+        };
 
-    //    var loginUser = function () {
+        var loginUser = function () {
 
-    //        $("#loginDialog").modal('hide');
+            $("#loginDialog").modal('hide');
 
-    //        // show profile dialog if not from login page
-    //        if (window.location.href.indexOf("__membership/login") < 0) {
-    //            $("#profileDialog").modal('show');
-    //        }
+            // show profile dialog if not from login page
+            if (window.location.href.indexOf("__membership/login") < 0) {
+                $("#profileDialog").modal('show');
+            }
 
-    //        var userInfo = JSON.parse($.cookie("UserInfo"));
-    //        $module.currentUser = userInfo;
+            var userInfo = JSON.parse($.cookie("UserInfo"));
+            $module.currentUser = userInfo;
 
-    //        /* Broadcast event */
-    //        $.event.trigger({
-    //            type: "LoginController-UserLogin",
-    //            user: userInfo
-    //        });
-    //    };
+            /* Broadcast event */
+            $.event.trigger({
+                type: "LoginController-UserLogin",
+                user: userInfo
+            });
+        };
 
-    //    this.login = function () {
+        this.login = function () {
 
-    //        if ($scope.login.email == null || $scope.login.password == null) {
+            if ($scope.login.email == null || $scope.login.password == null) {
 
-    //            return;
-    //        }
+                return;
+            }
 
-    //        $http.post('/__membership/login', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
-    //        success(function (data, status, headers, config) {
+            $http.post('/__membership/login', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
+            success(function (data, status, headers, config) {
 
-    //            $scope.login = {}
-    //            loginUser();
+                $scope.login = {}
+                loginUser();
 
-    //        }).
-    //        error(function (data, status, headers, config) {
+            }).
+            error(function (data, status, headers, config) {
                 
-    //            $scope.login.password = null;
-    //            $scope.alerts.push({ type: 'danger', msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+                $scope.login.password = null;
+                $scope.alerts.push({ type: 'danger', msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
 
-    //        });
+            });
 
-    //    };
+        };
 
-    //    this.register = function () {
+        this.register = function () {
 
-    //        if ($scope.newuser.email == null ||
-    //            $scope.newuser.password == null ||
-    //            ($scope.newuser.password != $scope.newuser.passwordConfirm)) {
+            if ($scope.newuser.email == null ||
+                $scope.newuser.password == null ||
+                ($scope.newuser.password != $scope.newuser.passwordConfirm)) {
 
-    //            return;
-    //        }
+                return;
+            }
 
-    //        $http.post('/__membership/register', { Email: $scope.newuser.email, Password: window.md5($scope.newuser.password) }).
-    //        success(function (data, status, headers, config) {
+            $http.post('/__membership/register', { Email: $scope.newuser.email, Password: window.md5($scope.newuser.password) }).
+            success(function (data, status, headers, config) {
 
-    //            $scope.newuser = {}
-    //            $scope.alerts.push({ type: 'success', msg: 'ลงทะเบียนเรียบร้อยแล้ว' });
+                $scope.newuser = {}
+                $scope.alerts.push({ type: 'success', msg: 'ลงทะเบียนเรียบร้อยแล้ว' });
 
-    //            loginUser();
+                loginUser();
 
-    //        }).
-    //        error(function (data, status, headers, config) {
+            }).
+            error(function (data, status, headers, config) {
 
-    //            $scope.newuser.password = null;
-    //            $scope.newuser.passwordConfirm = null;
-    //            $scope.alerts.push({ type: 'danger', msg: 'อีเมลล์นี้มีผู้ใช้งานแล้ว' });
+                $scope.newuser.password = null;
+                $scope.newuser.passwordConfirm = null;
+                $scope.alerts.push({ type: 'danger', msg: 'อีเมลล์นี้มีผู้ใช้งานแล้ว' });
 
-    //        });
+            });
 
-    //    };
+        };
 
-    //    this.view = function () {
-    //        $('#loginDialog').modal('show');
-    //    };
-    //}]);
+        this.view = function () {
+            $('#loginDialog').modal('show');
+        };
+    }]);
         
-    //membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient, thaiprovinces) {
+    membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient) {
 
-    //    if ($module.currentProfileController != null) {
-    //        throw "Only One Profile Controller is permitted";
-    //    }
+        if ($module.currentProfileController != null) {
+            throw "Only One Profile Controller is permitted";
+        }
 
-    //    $module.currentProfileController = this;
+        $module.currentProfileController = this;
 
-    //    var me = this;
-    //    var ncbClient = new ncbDatabaseClient(me, $scope, "User");
+        var me = this;
+        var ncbClient = new ncbDatabaseClient(me, $scope, "User");
 
-    //    me.object = { name: "test" };
-    //    me.thaiprovinces = new thaiprovinces();
+        me.object = { name: "test" };        
 
-    //    this.test = function () {
-    //        alert("test");
-    //    };
+        this.test = function () {
+            alert("test");
+        };
 
-    //    this.view = function () {
+        this.view = function () {
 
-    //        if ($module.currentUser == null || $module.currentUser == "") {
-    //            return;
-    //        }
+            if ($module.currentUser == null || $module.currentUser == "") {
+                return;
+            }            
 
-    //        $scope.$apply(function () {
+            if ($('#profileDialog').length == 0) {
+                throw "Profile Dialog not found";
+            }
 
-    //            me.thaiprovinces.initialize($scope);
-    //        });
+            $scope.object = JSON.parse(JSON.stringify($module.currentUser)); // create a copy of profile
+            $('#profileDialog').modal('show');
+        };
 
-    //        if ($('#profileDialog').length == 0) {
-    //            throw "Profile Dialog not found";
-    //        }
+    });
 
-    //        $scope.object = JSON.parse(JSON.stringify($module.currentUser)); // create a copy of profile
-    //        $('#profileDialog').modal('show');
-    //    };
+    membership.directive('ncbLoginbutton', ['$http', '$compile', function ($http, $compile) {
 
-    //});
+        function link(scope, element, attrs) {
 
-    //membership.directive('ncbLoginbutton', ['$http', '$compile', function ($http, $compile) {
+            var myScope = scope;
 
-    //    function link(scope, element, attrs) {
+            if ($("ncb-logindialog").length == 0) {
 
-    //        var myScope = scope;
-
-    //        if ($("ncb-logindialog").length == 0) {
-
-    //            // Add login dialog if not already there
-    //            var loginDialog = $('<div class="container"><ncb-logindialog></ncb-logindialog></div>');
-    //            $("body").append(loginDialog);
-    //            $compile(loginDialog)(scope);
-    //        }
+                // Add login dialog if not already there
+                var loginDialog = $('<div class="container"><ncb-logindialog></ncb-logindialog></div>');
+                $("body").append(loginDialog);
+                $compile(loginDialog)(scope);
+            }
 
 
-    //        element.on("click", function () {
+            element.on("click", function () {
 
-    //            if ($module.currentUser != null) {
+                if ($module.currentUser != null) {
 
-    //                $module.currentProfileController.view();
+                    $module.currentProfileController.view();
 
-    //            } else {
+                } else {
 
-    //                $module.currentLoginController.view();
-    //            }
+                    $module.currentLoginController.view();
+                }
 
-    //        });
-    //    }
+            });
+        }
 
-    //    return {
-    //        restrict: 'A',
-    //        link: link
-    //    };
-    //}]);
+        return {
+            restrict: 'A',
+            link: link
+        };
+    }]);
 
 
 })();
