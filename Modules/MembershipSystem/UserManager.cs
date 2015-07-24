@@ -125,6 +125,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 var claims = new List<string>();
                 foreach (var item in enroll)
                 {
+                    var _claims = this.GetRoleById(siteDb, item.NcbRoleId).Claims;
+                    if(_claims == null )
+                    {
+                        continue;
+                    }
+
                     claims.AddRange(from c in this.GetRoleById(siteDb, item.NcbRoleId).Claims
                                     select c);
                 }
