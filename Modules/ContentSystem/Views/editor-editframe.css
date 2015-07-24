@@ -166,6 +166,10 @@ a.success:hover {
   font-weight: bold;
   text-transform: uppercase;
 }
+#menu h2 > a {
+  font-weight: normal;
+  text-transform: lowercase;
+}
 #menu h3 {
   color: #a4a4a4;
   font-size: 10pt;

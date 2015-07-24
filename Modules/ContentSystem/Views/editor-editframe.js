@@ -453,6 +453,7 @@
                 var toSave = JSON.parse(JSON.stringify($scope.newItem));
                 toSave.Url = finalUrl;
                 toSave.Layout = $scope.globals.activecollection.layout;
+                toSave.DisplayOrder = 0;
 
                 $scope.newItem = {};
                 $scope.data.save(toSave, function (item) {
@@ -500,7 +501,7 @@
 
         var $me = this;
         var siteView = $("#siteview");
-        var model = siteView.contents()[0].parentWindow.model;
+        var model = document.getElementById("siteview").contentWindow.model;
 
         if (model == null || model.Content.Id == null) {
 
@@ -549,7 +550,7 @@
 
         var $me = this;
         var siteView = $("#siteview");
-        var model = siteView.contents()[0].parentWindow.model;
+        var model = document.getElementById("siteview").contentWindow.model;
 
         if (model == null || model.Content.Id == null) {
 

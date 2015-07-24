@@ -159,8 +159,13 @@
                href="#"
                ng-click="ctrl.add($event)">
                 <i class="ion-ios-plus-outline"></i>
+                {{collection.table}}
             </a>
         </h2>
+        <h3>
+            Collections are content which linked to item in the backend.
+            This collection loads data from <b>{{collection.table}}</b> Table.
+        </h3>
         <ul>
             <li ng-repeat="item in collection.list">
 
@@ -250,7 +255,7 @@
                 </div>
             </div>
             <div>
-                <iframe id="siteview" name="siteview" src="/location"></iframe>
+                <iframe id="siteview" name="siteview" src="/services"></iframe>
             </div>
             <div id="toggleview">
                 <a href="#" ng-click="ctrl.view(375, $event)">
