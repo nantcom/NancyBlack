@@ -29,7 +29,7 @@
 
         <ul>
             <li>
-                <h2>Page</h2>
+                <h2>{{currentUrl}}</h2>
             </li>
             <li ng-class="{ 'disabled' : siteView.areas.length == 0}">
                 <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
@@ -85,6 +85,8 @@
                 </a>
             </li>
         </ul>
+
+        <div ng-include="'editframe-attachments.html'"></div>
     </div>
 
 </script>
@@ -141,7 +143,60 @@
     <div ncb-datacontext-integrated
          ng-controller="NcbContentEditor as ctrl"
          table="content">
-        <h1>Edit: {{editing.name}}</h1>
+        <h1>{{currentUrl}}</h1>
+        <h2 style="text-transform: none">
+            <i class="ion-ios-paper-outline"></i>
+            {{editing.name}}
+        </h2>
+        <h3>
+            edit the content hilighted, click save when done.
+        </h3>
+
+        <div ng-include="'editframe-attachments.html'"></div>
+    </div>
+</script>
+
+<script type="text/ng-template" id="editframe-attachments.html">
+
+    <div ncb-datacontext-integrated
+         ng-controller="NcbAttachments as ctrl"
+         table="content">
+        
+        <h2>
+            Attachments
+        </h2>
+        <h3>
+            files, pictures related with {{currentUrl}}.
+            drop file into the following are to save it to server.
+        </h3>
+        <div class="uploader">
+            <div class="uploadprogress"
+                 ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
+            <i class="ion-ios-plus-outline"></i>
+        </div>
+        <ul class="filelist">
+            <li ng-repeat="item in object.Attachments"
+                ng-click="ctrl.view(item)">
+                <i class="ion-document">
+                </i>
+
+                <img ng-src="{{item.Url}}" />
+            </li>
+        </ul>
+        <ncb-modal id="attachmentView" closebutton deletebutton
+                   ondelete="ctrl.delete(item)"
+                   title="Attachment">
+
+            <img ng-src="{{viewing.Url}}" />
+
+            <ncb-footer>
+                <button ng-show="globals.editing != null"
+                        ng-click="ctrl.addToContentBlock(viewing)"
+                        class="btn btn-default">
+                    Insert to editing area
+                </button>
+            </ncb-footer>
+        </ncb-modal>
     </div>
 </script>
 
@@ -255,7 +310,7 @@
                 </div>
             </div>
             <div>
-                <iframe id="siteview" name="siteview" src="/services"></iframe>
+                <iframe id="siteview" name="siteview" src="/location"></iframe>
             </div>
             <div id="toggleview">
                 <a href="#" ng-click="ctrl.view(375, $event)">

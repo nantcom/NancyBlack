@@ -175,6 +175,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         private JObject PostProcess( DataType type, object input )
         {
+            if (this.NeedsToPostProcess(type) == false)
+            {
+                return JObject.FromObject(input);
+            }
+
             JObject jo = JObject.FromObject(input);
 
             foreach (var prop in jo.Properties().ToList()) // to-list to allow us to add property
@@ -212,6 +217,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 return null;
             }
+            
             return obj;
         }
 
@@ -230,7 +236,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 return null;
             }
-            return JObject.FromObject(obj);
+
+            return this.PostProcess( type, obj );
         }
 
         /// <summary>

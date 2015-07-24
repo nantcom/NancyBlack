@@ -129,7 +129,9 @@ namespace NantCom.NancyBlack.Modules
             var id = (string)args.item_id;
             var path = this.GetAttachmentFolder(tableName, id);
 
-            List<string> urls = new List<string>();
+            dynamic contentItem = this.SiteDatabase.GetByIdAsJObject(tableName, int.Parse(id));
+            
+            List<dynamic> newFiles = new List<dynamic>();
 
             foreach (var item in this.Request.Files)
             {
@@ -147,17 +149,36 @@ namespace NantCom.NancyBlack.Modules
                 using (var fs = File.Create(filePath))
                 {
                     item.Value.CopyTo(fs);
-                    urls.Add(
-                        Path.Combine(
-                            "/Site",
-                            "attachments",
-                            tableName,
-                            id,
-                            fileName).Replace('\\', '/'));
+                    newFiles.Add(new
+                    {
+                        DisplayOrder = 0,
+                        Caption = string.Empty,
+                        Url =
+                            Path.Combine(
+                                "/Site",
+                                "attachments",
+                                tableName,
+                                id,
+                                fileName).Replace('\\', '/')
+                    });
                 }
             }
 
-            return urls;
+            if (contentItem.Attachments == null)
+            {
+                contentItem.Attachments = JArray.FromObject( newFiles );
+            }
+            else
+            {
+                foreach (var item in newFiles)
+                {
+                    contentItem.Attachments.Add( JObject.FromObject(item) );
+                }
+            }
+
+            this.SiteDatabase.UpsertRecord(tableName, contentItem);
+
+            return contentItem;
         }
 
         protected dynamic HandleFileDeleteRequest(dynamic args)

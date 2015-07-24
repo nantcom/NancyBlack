@@ -351,6 +351,86 @@
             $scope.alerts.splice(index, 1);
         };
 
+        // file upload
+        $scope.data.uploadProgress = 0;
+        $scope.data.uploading = false;
+        $scope.data.upload = function (file, callback) {
+
+            var id = $scope.object.id;
+            if (id == null) {
+    
+                id = $scope.object.Id;
+            }
+
+            var targetUrl = String.format("/tables/{0}/{1}/files", attrs.table, id);
+
+            var fd = new FormData();
+            fd.append("fileToUpload", file);
+
+            $scope.data.uploadProgress = 0;
+            $scope.data.uploadStatus = "uploading";
+
+            var req = $.ajax({
+                url: targetUrl,
+                type: "POST",
+                data: fd,
+                processData: false,
+                contentType: false,
+                xhr: function () {
+                    var req = $.ajaxSettings.xhr();
+                    if (req) {
+                        req.upload.addEventListener('progress', function (event) {
+                            if (event.lengthComputable) {
+                                var percent = event.loaded / event.total * 100;
+                                if (percent % 10 > 5) {
+
+                                    $scope.$apply(function () {
+                                        $scope.data.uploadProgress = percent;
+                                        $scope.data.uploading = true;
+                                    });
+                                }
+                            }
+                        }, false);
+                    }
+                    return req;
+                },
+            });
+
+            req.done(function (result) {
+
+                if (callback != null) {
+
+                    callback();
+                }
+
+                $scope.$apply(function () {
+
+                    $scope.object = result;
+                    $scope.data.uploadProgress = 100;
+                    $scope.data.uploadStatus = "success";
+                });
+            });
+
+            req.fail(function (jqXHR, jqXHR, textStatus) {
+
+                if (callback != null) {
+
+                    callback();
+                }
+
+                $scope.$apply(function () {
+                    $scope.data.uploadProgress = 0;
+                    $scope.data.uploadStatus = "fail";
+                    $scope.alerts.push({
+
+                        type: 'danger',
+                        msg: 'Upload failed:' + textStatus
+
+                    });
+                });
+            });
+        };
+
     };
 
     // Data Context provides neccessary functions  to access nancyblack database
@@ -638,5 +718,5 @@
             templateUrl: '/Modules/DatabaseSystem/template/ncbLookupbox.html'
         };
     }]);
-
+    
 })();

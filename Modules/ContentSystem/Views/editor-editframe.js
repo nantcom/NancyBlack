@@ -200,7 +200,7 @@
 
             $scope.$apply(function () {
 
-                $scope.currentUrl = siteView.contents()[0].location.pathname;
+                $scope.currentUrl = document.getElementById("siteview").contentWindow.location.pathname;
 
                 $scope.siteView.areas = util.listeditable(siteView);
                 $scope.siteView.collections = util.listcollections(siteView);
@@ -238,10 +238,8 @@
         $scope.editing = {};
 
         $me.getContent = function (callback) {
-
-            var url = siteView.attr("src");
-
-            var query = String.format("$filter=Url eq '{0}'", url);
+            
+            var query = String.format("$filter=Url eq '{0}'", $scope.currentUrl);
             $scope.data.query(query,
             function (results) {
 
@@ -589,5 +587,78 @@
         };
     });
 
+    ncbEditor.controller("NcbAttachments", function ($scope, $rootScope, $timeout, $http) {
+
+        var $me = this;
+        var siteView = $("#siteview");
+        var model = document.getElementById("siteview").contentWindow.model;
+
+        if (model == null || model.Content.Id == null) {
+
+            alert("Cannot get information about page's model");
+            return;
+        }
+
+        $scope.currentTable = "content";
+        if (model.Content.typeName != null) {
+            $scope.currentTable = model.Content.typeName;
+        }
+
+        $scope.object = JSON.parse(JSON.stringify(model.Content));
+
+        //#region Upload
+
+        var uploader = $(".uploader");
+        var handleEnter = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            uploader.addClass("hintdrop");
+        };
+        var cancel = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        };
+
+        uploader.on('dragenter', handleEnter);
+        uploader.on('dragover', cancel);
+        $(document).on('dragenter', cancel);
+        $(document).on('dragover', handleEnter);
+        $(document).on('drop', cancel);
+
+        uploader.on('drop', function (e) {
+
+            e.preventDefault();
+            var files = e.originalEvent.dataTransfer.files;
+
+            $scope.data.upload(files[0]);
+        });
+        uploader.on('dragleave', function (e) {
+
+            cancel(e);
+            uploader.removeClass("hintdrop");
+
+        });
+
+        $scope.$watch("data.uploadProgress", function () {
+
+            uploader.find(".uploadprogress").css("width", $scope.data.uploadProgress + "%");
+        });
+
+        //#endregion
+
+        $scope.viewing = null;
+        $me.view = function (item) {
+
+            $scope.viewing = item;
+            $("#attachmentView").modal("show");
+        };
+
+        $me.addToContentBlock = function (item) {
+
+            var img = $("<img />");
+            img.attr("src", item.Url);
+            $scope.globals.editing.element.append(img);
+        };
+    });
 
 })();

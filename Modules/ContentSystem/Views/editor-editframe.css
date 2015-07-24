@@ -110,7 +110,7 @@ a.success:hover {
   height: 100%;
   z-index: 9999;
   background-color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 50px black inset;
+  box-shadow: 0 0 50px white inset;
   display: table;
   opacity: 0;
   pointer-events: none;
@@ -226,8 +226,7 @@ a.success:hover {
 }
 #menu input,
 #menu textarea {
-  border-radius: 0px !important;
-  border: none !important;
+  border-radius: 2px !important;
 }
 #mainmenu {
   text-align: center;
@@ -245,4 +244,70 @@ a.success:hover {
 }
 #mainmenu a {
   text-transform: uppercase;
+}
+.uploader {
+  cursor: default;
+  overflow: hidden;
+  position: relative;
+  text-align: center;
+  height: 30px;
+  border-radius: 4px;
+  background-color: #b1beda;
+}
+.uploader > i {
+  font-size: 150%;
+  line-height: 30px;
+  pointer-events: none;
+  position: relative;
+  z-index: 7999;
+}
+.uploader > .uploadprogress {
+  position: absolute;
+  z-index: 7998;
+  height: 100%;
+  background-color: #6b84ba;
+  transition: width ease-out 0.4s;
+}
+.uploader.hintdrop,
+.uploader:hover {
+  background-color: #8ea1ca;
+}
+.uploader.success {
+  background-color: darkseagreen;
+}
+.uploader.success > .uploadprogress {
+  background-color: darkseagreen;
+}
+.filelist li {
+  cursor: pointer;
+  display: inline-block;
+  width: 50px;
+  height: 60px;
+  margin: 5px;
+  position: relative;
+  text-align: center;
+}
+.filelist li i {
+  font-size: 60px;
+  color: #a4a4a4;
+}
+.filelist li img {
+  width: 30px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: all ease 0.5s;
+}
+.filelist li:hover img {
+  opacity: 1;
+  transform: scale(3);
+  z-index: 9999;
+}
+.filelist li:hover i {
+  color: #717171;
+}
+#attachmentView img {
+  width: 100%;
 }
