@@ -28,5 +28,15 @@
     "includeInProject": true,
     "sourceMap": false,
     "options": {}
+  },
+  {
+    "outputFile": "Modules/DatabaseSystem/ncb-datacontext.css",
+    "inputFile": "Modules/DatabaseSystem/ncb-datacontext.less",
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMap": false,
+    "options": {}
   }
 ]

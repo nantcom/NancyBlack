@@ -778,4 +778,125 @@
         };
     }]);
     
+    ncb.directive('ncbAttachmentmanager', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+
+            if ($scope.attachmentManager == null) {
+                $scope.attachmentManager = {};
+            } else {
+
+                throw "there is already attachment manager in this scope";
+            }
+
+            var $me = $scope.attachmentManager;
+
+            if (element.find(".uploader").length == 0) {
+
+                var uploader = $("<div class='uploader'>Drop Files Here</div>");
+                element.append()
+            }
+
+            //#region Drag Upload
+
+            var uploader = element.find(".uploader");
+            var handleEnter = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                uploader.addClass("hintdrop");
+            };
+            var cancel = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            };
+
+            uploader.on('dragenter', handleEnter);
+            uploader.on('dragover', cancel);
+            $(document).on('dragenter', cancel);
+            $(document).on('dragover', handleEnter);
+            $(document).on('drop', cancel);
+
+            uploader.on('drop', function (e) {
+
+                e.preventDefault();
+                var files = e.originalEvent.dataTransfer.files;
+
+                $scope.data.upload(files[0]);
+            });
+            uploader.on('dragleave', function (e) {
+
+                cancel(e);
+                uploader.removeClass("hintdrop");
+
+            });
+
+            $scope.$watch("data.uploadProgress", function () {
+
+                uploader.find(".uploadprogress").css("width", $scope.data.uploadProgress + "%");
+            });
+
+            //#endregion
+
+            //#region Click Upload
+
+            uploader.click(function () {
+
+                if (uploader.input == null) {
+
+                    uploader.input = $(document.createElement('input'));
+                    uploader.input.attr("type", "file");
+                    uploader.input.on("change", function (e) {
+
+                        var files = uploader.input[0].files;
+                        $scope.data.upload(files[0]);
+                    });
+                }
+
+                uploader.input.trigger('click');
+                return false;
+            });
+
+            //#endregion
+
+            $scope.viewing = null;
+            $me.view = function (item) {
+
+                $scope.viewing = item;
+                element.find(".attachmentView").modal("show");
+            };
+
+            $me.delete = function (item) {
+
+                if (confirm("Are you sure to delete? This cannot be undone and your file is gone forever.") == false) {
+
+                    return;
+                }
+
+                $scope.data.removefile(item, function (result) {
+
+                    if (result == true) {
+
+                        element.find(".attachmentView").modal("hide");
+                    }
+                });
+            };
+
+            $me.select = function (item) {
+
+                if ($scope.onselected != null) {
+
+                    $scope.onselected( item );
+                }
+            };
+        }
+
+        return {
+            restrict: 'E',
+            replace: true,
+            link: link,
+            scope : false,
+            templateUrl: '/Modules/DatabaseSystem/template/ncbAttachmentManager.html'
+        };
+    }]);
+
 })();

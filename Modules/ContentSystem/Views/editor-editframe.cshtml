@@ -169,34 +169,8 @@
             files, pictures related with {{currentUrl}}.
             drop file into the following are to save it to server.
         </h3>
-        <div class="uploader">
-            <div class="uploadprogress"
-                 ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
-            <i class="ion-ios-plus-outline"></i>
-        </div>
-        <ul class="filelist">
-            <li ng-repeat="item in object.Attachments"
-                ng-click="ctrl.view(item)">
-                <i class="ion-document">
-                </i>
-
-                <img ng-src="{{item.Url}}" />
-            </li>
-        </ul>
-        <ncb-modal id="attachmentView" closebutton deletebutton
-                   ondelete="ctrl.delete(viewing)"
-                   title="Attachment">
-
-            <img ng-src="{{viewing.Url}}" />
-
-            <ncb-footer>
-                <button ng-show="globals.editing != null"
-                        ng-click="ctrl.addToContentBlock(viewing)"
-                        class="btn btn-default">
-                    Insert to editing area
-                </button>
-            </ncb-footer>
-        </ncb-modal>
+        <ncb-attachmentmanager onselect="" selecttext>
+        </ncb-attachmentmanager>
     </div>
 </script>
 

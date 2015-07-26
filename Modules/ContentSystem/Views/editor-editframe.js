@@ -606,53 +606,6 @@
 
         $scope.object = JSON.parse(JSON.stringify(model.Content));
 
-        //#region Drag Upload
-
-        var uploader = $(".uploader");
-        var handleEnter = function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            uploader.addClass("hintdrop");
-        };
-        var cancel = function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-        };
-
-        uploader.on('dragenter', handleEnter);
-        uploader.on('dragover', cancel);
-        $(document).on('dragenter', cancel);
-        $(document).on('dragover', handleEnter);
-        $(document).on('drop', cancel);
-
-        uploader.on('drop', function (e) {
-
-            e.preventDefault();
-            var files = e.originalEvent.dataTransfer.files;
-
-            $scope.data.upload(files[0]);
-        });
-        uploader.on('dragleave', function (e) {
-
-            cancel(e);
-            uploader.removeClass("hintdrop");
-
-        });
-
-        $scope.$watch("data.uploadProgress", function () {
-
-            uploader.find(".uploadprogress").css("width", $scope.data.uploadProgress + "%");
-        });
-
-        //#endregion
-
-        $scope.viewing = null;
-        $me.view = function (item) {
-
-            $scope.viewing = item;
-            $("#attachmentView").modal("show");
-        };
-
         $me.addToContentBlock = function (item) {
 
             var img = $("<img />");
@@ -660,21 +613,6 @@
             $scope.globals.editing.element.append(img);
         };
 
-        $me.delete = function (item) {
-
-            if (confirm("Are you sure to delete? This cannot be undone and your file is gone forever.") == false) {
-
-                return;
-            }
-
-            $scope.data.removefile(item, function (result) {
-                
-                if (result == true) {
-
-                    $("#attachmentView").modal("hide");
-                }
-            });
-        };
     });
 
 })();

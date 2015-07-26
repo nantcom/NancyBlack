@@ -1,0 +1,30 @@
+﻿<div>
+    <div class="uploader">
+        <div class="uploadprogress"
+             ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
+        <i class="ion-ios-plus-outline"></i>
+    </div>
+    <ul class="filelist">
+        <li ng-repeat="item in object.Attachments"
+            ng-click="attachmentManager.view(item)">
+            <i class="ion-document">
+            </i>
+
+            <img ng-src="{{item.Url}}" />
+        </li>
+    </ul>
+    <ncb-modal class="attachmentView" closebutton deletebutton
+               ondelete="attachmentManager.delete(viewing)"
+               title="Attachment">
+
+        <img ng-src="{{viewing.Url}}" />
+
+        <ncb-footer>
+            <button ng-show="onselected != null && selecttext != null" 
+                    ng-click="attachmentManager.select(viewing)"
+                    class="btn btn-default">
+                {{selecttext}}
+            </button>
+        </ncb-footer>
+    </ncb-modal>
+</div>

@@ -1,0 +1,90 @@
+﻿
+@foreground: #3e3e3e;
+@accent: rgb(142, 161, 202);
+
+.uploader {
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
+    height: 30px;
+    border-radius: 4px;
+    background-color: lighten( @accent, 10%);
+
+    > i {
+        font-size: 150%;
+        line-height: 30px;
+        pointer-events: none;
+        position: relative;
+        z-index: 7999;
+    }
+
+    > .uploadprogress {
+        position: absolute;
+        z-index: 7998;
+        height: 100%;
+        background-color: darken( @accent, 10%);
+        transition: width ease-out 0.1s;
+    }
+
+    &.hintdrop, &:hover {
+        background-color: @accent;
+    }
+
+    &.success {
+        background-color: darkseagreen;
+
+        > .uploadprogress {
+            background-color: darkseagreen;
+        }
+    }
+}
+
+.filelist {
+
+    li {
+        cursor: pointer;
+        display: inline-block;
+        width: 50px;
+        height: 60px;
+        margin: 5px;
+        position: relative;
+        text-align: center;
+
+        i {
+            font-size: 60px;
+            color: lighten( @foreground, 40% );
+        }
+
+        img {
+            width: 30px;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.5;
+
+            transition: all ease 0.5s;
+        }
+
+
+        &:hover {
+            img {
+                opacity: 1;
+                transform: scale(3);
+
+                z-index: 9999;
+            }
+            i {
+                color: lighten( @foreground, 20% );
+            }
+        }
+    }
+}
+
+.attachmentView {
+
+    img {
+        width: 100% !important;
+    }
+}
