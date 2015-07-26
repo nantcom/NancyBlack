@@ -606,7 +606,7 @@
 
         $scope.object = JSON.parse(JSON.stringify(model.Content));
 
-        //#region Upload
+        //#region Drag Upload
 
         var uploader = $(".uploader");
         var handleEnter = function (e) {
@@ -658,6 +658,22 @@
             var img = $("<img />");
             img.attr("src", item.Url);
             $scope.globals.editing.element.append(img);
+        };
+
+        $me.delete = function (item) {
+
+            if (confirm("Are you sure to delete? This cannot be undone and your file is gone forever.") == false) {
+
+                return;
+            }
+
+            $scope.data.removefile(item, function (result) {
+                
+                if (result == true) {
+
+                    $("#attachmentView").modal("hide");
+                }
+            });
         };
     });
 

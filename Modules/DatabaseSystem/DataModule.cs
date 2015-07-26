@@ -192,17 +192,29 @@ namespace NantCom.NancyBlack.Modules
 
             if (File.Exists(path))
             {
-                try
-                {
-                    File.Delete(path);
-                }
-                catch (Exception)
-                {
-                    return 500;
-                }
+                File.Delete(path);
             }
 
-            return 204;
+            dynamic contentItem = this.SiteDatabase.GetByIdAsJObject(tableName, int.Parse(id));
+
+            if (contentItem.Attachments != null)
+            {
+                var array = contentItem.Attachments as JArray;
+                for (int i = 0; i < array.Count; i++)
+                {
+                    var url = (string)array[i]["Url"];
+                    if (url.EndsWith("/" + fileName))
+                    {
+                        array.RemoveAt(i);
+                        
+                        this.SiteDatabase.UpsertRecord(tableName, contentItem);
+                        break;
+                    }
+                }
+            }
+            
+
+            return contentItem;
         }
         
         protected dynamic HandleRequestForSiteDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)

@@ -29,7 +29,7 @@
 
     var ncb = angular.module("ncb-datacontext", []);
 
-    var dataContext = function link($scope, element, attrs) {
+    var dataContext = function link($scope, element, attrs, $http) {
 
         if (attrs.table == null) {
 
@@ -431,15 +431,70 @@
             });
         };
 
+        $scope.data.removefile = function (attachment, callback) {
+
+            if ($scope.object == null) {
+
+                throw "Object cannot be null";
+            }
+
+            $me.processServerObject($scope.object);
+
+            var targetUrl = String.format("/tables/{0}/{1}/files/{2}",
+                attrs.table,
+                $scope.object.id,
+                attachment.Url.substring( attachment.Url.lastIndexOf("/") + 1 ));
+
+            var req = $.ajax({
+                url: targetUrl,
+                type: "DELETE",
+                data: attachment,
+            });
+
+            req.done(function (result) {
+
+                if (callback != null) {
+
+                    callback(true);
+                }
+
+                $scope.$apply(function () {
+
+                    $scope.object = result;
+                });
+            });
+
+            req.fail(function (jqXHR, jqXHR, textStatus) {
+
+                if (callback != null) {
+
+                    callback(false);
+                }
+
+                $scope.$apply(function () {
+                    $scope.alerts.push({
+
+                        type: 'danger',
+                        msg: 'Delete Failed:' + textStatus
+
+                    });
+                });
+            });
+        };
     };
 
     // Data Context provides neccessary functions  to access nancyblack database
     // by leveraging azure mobile service api
     ncb.directive('ncbDatacontext', ['$http', function ($http) {
 
+        function link( $scope, element, attrs )
+        {
+            return new dataContext($scope, element, attrs, $http);
+        }
+
         return {
             restrict: 'A',
-            link: dataContext,
+            link: link,
             priority: 9999, // make sure we got compiled first
             scope: true,
         };
@@ -449,9 +504,13 @@
     // child sopce
     ncb.directive('ncbDatacontextIntegrated', ['$http', function ($http) {
 
+        function link($scope, element, attrs) {
+            return new dataContext($scope, element, attrs, $http);
+        }
+
         return {
             restrict: 'A',
-            link: dataContext,
+            link: link,
             priority: 9999, // make sure we got compiled first
             scope: false // integrate into current scope
         };
