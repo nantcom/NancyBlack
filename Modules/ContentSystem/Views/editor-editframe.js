@@ -46,8 +46,19 @@
                 name: collection.attr("table"),
                 table: collection.attr("table"),
                 layout: collection.attr("layout"),
-                url: "/" + collection.attr("table") + "s"
             };
+
+            if (collectionItem.table == null) {
+
+                collectionItem.url = collection.attr("rooturl");
+                collectionItem.name = collectionItem.url.substring(1);
+                collectionItem.table = "content";
+
+            } else {
+
+                collectionItem.url = "/" + collection.attr("table") + "s"
+            }
+
             collections.push(collectionItem);
             collections[collectionItem.name] = collectionItem;
         });
