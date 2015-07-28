@@ -163,6 +163,8 @@
                     callback();
                 }
 
+                object.inserted = true;
+
             });
 
         };
@@ -550,55 +552,71 @@
         };
     }]);
 
+    var saveinsertButton = function ($scope, element, attrs, $compile) {
+
+        var $me = this;
+
+        element.attr("ng-disabled", "isBusy");
+
+        var parentForm = element.parents("form");
+        if (parentForm.length == 0) {
+
+            // not in a form, find a form in data context
+            var ctx = element.parents("[ncb-datacontext]");
+            parentForm = ctx.find("form");
+        }
+
+        if (parentForm.length == 0) {
+            console.log("save button: No form found, cannot bind to validation.");
+        }
+
+        if (parentForm.length > 1) {
+            console.log("save button: Multiple form found, cannot bind to validation.");
+        }
+
+        if (parentForm.length == 1) {
+
+            element.attr("ng-disabled", parentForm.attr("name") + ".$valid == false || isBusy");
+        }
+
+        element.prepend('<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy == true"></i>')
+
+        if (element.is("[ncb-insertbutton]")) {
+
+            element.attr("mode", "insert");
+        }
+
+        element.removeAttr("ncb-savebutton"); // prevent infinite loop
+        element.removeAttr("ncb-insertbutton"); // prevent infinite loop
+        var template = $compile(element);
+        template($scope);
+
+        element[0].onclick = function (e) {
+
+            e.preventDefault();
+
+            if (attrs.beforesave != null) {
+
+                var result = $scope.$eval(attrs.beforesave);
+                if (result == false) {
+
+                    return;
+                }
+            }
+
+            if (element.attr("mode") == "insert") {
+
+                $scope.$eval("data.insert(object, aftersave)");
+            } else {
+
+                $scope.$eval("data.save(object, aftersave)");
+            }
+        };
+    };
     ncb.directive('ncbSavebutton', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
-
-            var $me = this;
-
-            element.attr("ng-disabled", "isBusy");
-
-            var parentForm = element.parents("form");
-            if (parentForm.length == 0) {
-
-                // not in a form, find a form in data context
-                var ctx = element.parents("[ncb-datacontext]");
-                parentForm = ctx.find("form");
-            }
-
-            if (parentForm.length == 0) {
-                console.log("save button: No form found, cannot bind to validation.");
-            }
-
-            if (parentForm.length > 1) {
-                console.log("save button: Multiple form found, cannot bind to validation.");
-            }
-
-            if (parentForm.length == 1) {
-
-                element.attr("ng-disabled", parentForm.attr("name") + ".$valid == false || isBusy");
-            }
-
-            element.prepend('<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy"></i>')
-            element.removeAttr("ncb-savebutton"); // prevent infinite loop
-
-            var template = $compile(element);
-            template($scope);
-
-            // element.on('click' does not work
-            element[0].onclick = function () {
-
-                if (attrs.beforesave != null) {
-
-                    var result = $scope.$eval(attrs.beforesave);
-                    if (result == false) {
-
-                        return;
-                    }
-                }
-
-                $scope.$eval("data.save(object)");
-            };
+            return new saveinsertButton($scope, element, attrs, $compile);
         }
 
         return {
@@ -613,17 +631,7 @@
     ncb.directive('ncbInsertbutton', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
-
-            var $me = this;
-
-            element.attr("ng-disabled", "isBusy");
-            element.attr("ng-click", "data.insert(object)");
-
-            element.prepend('<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy"></i>')
-            element.removeAttr("ncb-insertbutton"); // prevent infinite loop
-
-            var template = $compile(element);
-            template($scope);
+            return new saveinsertButton($scope, element, attrs, $compile);
         }
 
         return {
