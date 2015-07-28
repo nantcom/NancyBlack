@@ -10,10 +10,10 @@ namespace NantCom.NancyBlack.Configuration
     {
         private static string _JsOutput;
         private static string _CssOuput;
-        private static string _AngularModules;
 
         private static string[] _Systems;
         private static string[] _Includes;
+        private static string[] _AngularModules;
 
         /// <summary>
         /// HTML Code for JavaScript Resources
@@ -40,7 +40,7 @@ namespace NantCom.NancyBlack.Configuration
         /// <summary>
         /// List of Angular Modules to Load
         /// </summary>
-        public static string AngularModules
+        public static string[] AngularModules
         {
             get
             {
@@ -98,8 +98,8 @@ namespace NantCom.NancyBlack.Configuration
             _CssOuput = string.Join("", from css in allCss
                                         select string.Format("<link href=\"/{0}\" rel=\"stylesheet\" />", css));
 
-            _AngularModules = string.Join(",", from js in alljs
-                                        select Path.GetFileNameWithoutExtension(js).ToLowerInvariant());
+            _AngularModules = (from js in alljs
+                               select Path.GetFileNameWithoutExtension(js).ToLowerInvariant()).ToArray();
 
         }
     }

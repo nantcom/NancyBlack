@@ -231,8 +231,7 @@ a.success:hover {
                 opacity: 0.2;
             }
 
-            > a {
-                padding: 5px;
+            > a, > div {
                 display: block;
                 cursor: pointer;
                 white-space: nowrap;
@@ -240,8 +239,9 @@ a.success:hover {
                 -ms-text-overflow: ellipsis;
                 -o-text-overflow: ellipsis;
                 text-overflow: ellipsis;
+                line-height: 40px;
 
-                > i {
+                i {
                     margin-left: 2px;
                     margin-right: 10px;
                     font-size: 180%;
@@ -303,5 +303,49 @@ a.success:hover {
 
     a {
         text-transform: uppercase;
+    }
+}
+
+.pages {
+
+    li {
+        padding: 5px;
+        position: relative;
+        cursor: pointer !important;
+
+        > div > a {
+            position: absolute;
+            opacity: 0;
+            text-align: center;
+            transition: all ease 0.2s;
+        }
+
+        a.leftaction {
+            left: -20px;
+        }
+
+        a.rightaction {
+            right: 10px;
+        }
+
+        &:hover {
+
+            > div > i.hideover {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            a.leftaction {
+
+                left: 10px;
+                opacity: 1;
+                color: red;
+            }
+
+            a.rightaction {
+                opacity: 1;
+
+            }
+        }
     }
 }

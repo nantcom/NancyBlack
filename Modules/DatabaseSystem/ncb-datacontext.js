@@ -29,7 +29,7 @@
 
     var ncb = angular.module("ncb-datacontext", []);
 
-    var dataContext = function link($scope, element, attrs, $http) {
+    var dataContext = function ($scope, element, attrs, $http) {
 
         if (attrs.table == null) {
 
@@ -231,7 +231,7 @@
                         if (callback != null) {
 
                             try {
-                                callback();
+                                callback(object);
                             } catch (e) {
 
                             }

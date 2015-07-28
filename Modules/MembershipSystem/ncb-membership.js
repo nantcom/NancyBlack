@@ -1,5 +1,9 @@
 ﻿(function () {
 
+    // Querystring extraction function
+    (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
+
+
     /*!
      * jQuery Cookie Plugin v1.4.1
      * https://github.com/carhartl/jquery-cookie

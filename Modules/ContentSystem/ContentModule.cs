@@ -141,7 +141,7 @@ namespace NantCom.NancyBlack.Modules
         /// <summary>
         /// Default Content Classs, contains properties that the engine requires
         /// </summary>
-        private class DefaultContent
+        private class DefaultContent : IContent
         {
             public int Id { get; set; }
 
@@ -152,6 +152,12 @@ namespace NantCom.NancyBlack.Modules
             public string RequiredClaims { get; set; }
 
             public int DisplayOrder { get; set; }
+
+            public string Title { get; set; }
+
+            public string MetaKeywords { get; set; }
+
+            public string MetaDescription { get; set; }
         }
 
         /// <summary>
@@ -159,15 +165,26 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static IEnumerable<dynamic> GetChildContent(NancyBlackDatabase db, string url)
+        public static IEnumerable<dynamic> GetChildContents(NancyBlackDatabase db, string url)
         {
             if (url.StartsWith("/") == false)
             {
                 url = "/" + url;
             }
 
-            return db.QueryAsDynamic("Content", string.Format("startswith(Url, '{0}/')", url.ToLowerInvariant()), "DisplayOrder");
+            return db.QueryAsDynamic("Content", string.Format("startswith(Url,'{0}/')", url.ToLowerInvariant()), "DisplayOrder");
         }
+
+        /// <summary>
+        /// Get Root Content
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public static IEnumerable<dynamic> GetRootContents(NancyBlackDatabase db)
+        {
+            return db.QueryAsDynamic("Content", "startswith(Url,'/') and ( indexof(substring(Url, 1),'/') lt 0 )", "DisplayOrder");
+        }
+
 
         /// <summary>
         /// Get child content of given url
@@ -218,6 +235,7 @@ namespace NantCom.NancyBlack.Modules
             var createdContent = db.UpsertRecord("Content", new DefaultContent()
             {
                 Id = 0,
+                Title = Path.GetFileName(url),
                 Url = url.ToLowerInvariant(),
                 Layout = layout,
                 RequiredClaims = requiredClaims,

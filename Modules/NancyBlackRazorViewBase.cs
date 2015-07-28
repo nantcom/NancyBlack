@@ -213,7 +213,9 @@ namespace NantCom.NancyBlack
         }
 
         #endregion
-        
+
+        #region Content Hierachy
+
         /// <summary>
         /// Querys
         /// </summary>
@@ -239,8 +241,6 @@ namespace NantCom.NancyBlack
             return null;
         }
 
-        #region Content Hierachy
-
         /// <summary>
         /// Find the Content under current url
         /// </summary>
@@ -264,11 +264,30 @@ namespace NantCom.NancyBlack
                 throw new ArgumentNullException("url");
             }
 #endif
-            var list = ContentModule.GetChildContent(this.Database, url);
+            var list = ContentModule.GetChildContents(this.Database, url);
                 
             foreach (var item in list)
             {
-                var output = contentTemplate(JObject.FromObject(item));
+                var output = contentTemplate(item);
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Find the content under given url
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListRootContents(Func<dynamic, object> contentTemplate)
+        {
+            
+            var list = ContentModule.GetRootContents(this.Database);
+
+            foreach (var item in list)
+            {
+                var output = contentTemplate(item);
                 this.WriteLiteral(output);
             }
 

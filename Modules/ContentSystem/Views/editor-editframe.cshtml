@@ -14,10 +14,15 @@
 
 @section Script
 {
+    <script>
+        window.sitesettings = @this.Html.Raw( this.GetJson(this.Site) );
+    </script>
     <script src="/Content/Scripts/angular-animate.min.js"></script>
     <script src="/Content/Scripts/angular-route.min.js"></script>
     <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
+    <script src="/Modules/ContentSystem/Scripts/angular-sortable-view.js"></script>
     <script src="/Modules/ContentSystem/Views/editor-editframe.js"></script>
+    
 }
 
 <script type="text/ng-template" id="editframe-homemenu.html">
@@ -45,7 +50,7 @@
             </li>
             <li ng-repeat="col in siteView.collections">
                 <a href="#"
-                   ng-click="globals.activecollection=col;switchMenu( $event, 'editframe-collections.html')">{{col.name}}</a>
+                   ng-click="globals.activecollection=col;switchMenu( $event, 'editframe-pages.html')">{{col.name}}</a>
             </li>
         </ul>
         <ul>
@@ -53,13 +58,13 @@
                 <h2>Site</h2>
             </li>
             <li>
-                <a>Collection</a>
+                <a ng-click="globals.activecollection='/'; switchMenu( $event, 'editframe-pages.html')">Pages</a>
             </li>
             <li>
-                <a>SEO &amp; META TAGs</a>
+                <a ng-click="switchMenu( $event, 'editframe-siteseo.html')">SEO</a>
             </li>
             <li>
-                <a>API Keys</a>
+                <a ng-click="switchMenu( $event, 'editframe-apikeys.html')">API Keys</a>
             </li>
             <li>
                 <a>Settings</a>
@@ -167,7 +172,7 @@
         </h2>
         <h3>
             files, pictures related with {{currentUrl}}.
-            drop file into the following are to save it to server.
+            drop file into the following button to save it to server.
         </h3>
         <ncb-attachmentmanager onselect="" selecttext>
         </ncb-attachmentmanager>
@@ -223,6 +228,133 @@
                 <p>
                     <b>The URL for this item will be:</b><br />
                     {{ currentUrl + '/' + ctrl.convertToSlug( newItem.Title )}}
+                </p>
+                <p>
+                    In order to make your search rank better, make sure you have a readable url.
+                </p>
+                <p ng-show="isBusy">
+                    <i class="fa fa-spin fa-circle-o-notch"></i>
+                    checking for duplicates...
+                </p>
+            </div>
+
+            <ncb-footer>
+                <button class="btn btn-success"
+                        ng-disabled="isBusy || newItem.Title == null || newItem.Title == ''"
+                        ng-click="ctrl.commitAdd()">
+                    Create
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-siteseo.html">
+
+    <div ncb-datacontext-integrated table="sitesettings"
+         ng-controller="NcbSiteSettingsEdit as ctrl">
+        <h1>SITE</h1>
+        <h2>SEO:</h2>
+        <h3>
+            edit meta tags, which were beleived to help you with search engine ranking -
+            although it is still a myth on its effectiveness.
+            [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
+        </h3>
+
+        <input type="text" ncb-textbox title="Meta Keywords"
+               placeholder="keywords to describe this page"
+               ng-model="object.seo.MetaKeywords" />
+
+        <textarea type="text" ncb-textbox title="Meta Description"
+                  placeholder="description about this page"
+                  rows="5" ng-model="object.seo.MetaDescription"></textarea>
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-apikeys.html">
+
+    <div ncb-datacontext-integrated table="sitesettings"
+         ng-controller="NcbSiteSettingsEdit as ctrl">
+        <h1>SITE</h1>
+        <h2>API Keys</h2>
+
+        <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
+               ncb-textbox ng-model="object.Application.GoogleAnalyticsId" />
+        <h3>
+            google analytics tracking code (eg: UA-XXX) is an identifier for tracking
+            page view using google analytics services.
+        </h3>
+
+        <input type="text" title="Facebook Application Id"
+               ncb-textbox ng-model="object.Application.FacebookAppId" />
+        <h3>
+            facebook application id is used by various facebook social plugins.
+        </h3>
+
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-pages.html">
+
+    <div ncb-datacontext-integrated table="content"
+         ng-controller="NcbPageEdit as ctrl">
+        <h1 ng-show="rootUrl != '/'">
+            Pages Under: {{rootUrl}}
+        </h1>
+        <h1 ng-show="rootUrl == '/'">
+            Root Pages
+        </h1>
+
+        <ul class="pages"
+            sv-root sv-part="pages" sv-on-sort="ctrl.update()">
+            <li ng-repeat="item in pages" sv-element="opts">
+                <div>
+                    <a ng-click="ctrl.delete($event, item)"
+                       ng-show="item.Url != '/'"
+                       class="leftaction">
+                        <i class="ion ion-ios-trash-outline"></i>
+                    </a>
+
+                    <i class="ion ion-ios-bookmarks-outline hideover"></i>
+
+                    {{item.Title}}
+
+                    <a ng-click="ctrl.view($event, item)"
+                       class="rightaction">
+                        <i class="ion-android-open"></i>
+                    </a>
+                </div>
+            </li>
+            <li>
+                <a ng-click="ctrl.add($event)">
+                    <i class="ion-ios-plus-outline"></i>
+                    new page
+                </a>
+            </li>
+        </ul>
+
+        <ncb-modal id="newitemmodal" closebutton
+                   title="Create new Page">
+
+            <input type="text" title="Title"
+                   ng-model="newItem.Title"
+                   ncb-textbox />
+
+            <div>
+                <p>
+                    <b>The URL for this page will be:</b><br />
+                    <span ng-show="rootUrl == '/'">
+                        {{ rootUrl + ctrl.convertToSlug( newItem.Title )}}
+                    </span>
+                    <span ng-show="rootUrl != '/'">
+                        {{ rootUrl + '/' + ctrl.convertToSlug( newItem.Title )}}
+                    </span>
+
                 </p>
                 <p>
                     In order to make your search rank better, make sure you have a readable url.

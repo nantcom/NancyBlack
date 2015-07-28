@@ -1,6 +1,6 @@
 ﻿(function () {
 
-    var ncbEditor = angular.module("editor-frame", ['ngRoute', 'ngAnimate']);
+    var ncbEditor = angular.module("editor-frame", ['ngRoute', 'ngAnimate', 'angular-sortable-view']);
 
     var util = {};
     util.listeditable = function (siteView) {
@@ -409,6 +409,11 @@
             $scope.goback();
         };
 
+        $me.delete = function (e, item) {
+
+            $scope.data.delete( item );
+        };
+
         //#region Adding Item
 
         $me.convertToSlug = function (Text) {
@@ -612,6 +617,231 @@
             img.attr("src", item.Url);
             $scope.globals.editing.element.append(img);
         };
+
+    });
+
+    ncbEditor.controller("NcbSiteSettingsEdit", function ($scope, $rootScope, $timeout, $http) {
+
+        var $me = this;
+
+        $scope.currentTable = "content";
+        if (model.Content.typeName != null) {
+            $scope.currentTable = model.Content.typeName;
+        }
+
+        $scope.object = JSON.parse(JSON.stringify(window.sitesettings));
+        $scope.menu.backbuttonText = "save";
+        $scope.menu.altbuttonText = "discard";
+
+        $scope.menu.cancel = function () {
+
+            if (confirm("Are you sure?")) {
+
+                return true;
+            }
+
+            return false;
+
+        };
+
+        $scope.menu.goback = function () {
+
+            $rootScope.$broadcast("working");
+            $scope.data.save($scope.object, function () {
+
+                window.sitesettings = $scope.object;
+                $rootScope.$broadcast("working-done");
+
+                $scope.menu.goback = null;
+                $scope.goback();
+            });
+
+            return false; // handle going back
+        };
+
+    });
+
+    ncbEditor.controller("NcbPageEdit", function ($scope, $rootScope, $http) {
+
+        var $me = this;
+        var siteView = $("#siteview");
+
+        $scope.rootUrl = $scope.currentUrl;
+        if ($scope.globals.activecollection != null) {
+
+
+
+            $scope.rootUrl = $scope.globals.activecollection;
+            $scope.globals.activecollection = null;
+        }
+        
+        $me.hoverarea = function (item) {
+
+            if (item == null) {
+
+                return;
+            }
+
+            var element = $scope.collection.element.find("[data-itemid=" + item.id + "]");
+            element.toggleClass("editable-hover");
+        };
+
+        $me.view = function (e, item) {
+
+            siteView.attr("src", item.Url);
+        };
+
+        $me.update = function () {
+
+            // create id list from the data
+            var id = [];
+            $scope.pages.forEach(function (element) {
+
+                id.push(element.id);
+            });
+
+            $http.post("/__editor/updateorder", id)
+            .success(function () {
+
+                siteView.contents()[0].location.reload();
+            })
+            .error(function (msg) {
+
+                alert("Cannot update order at this time, please try again");
+            });
+        };
+
+        $me.delete = function (e, item) {
+
+            e.preventDefault();
+
+            if (item.Url == "/") {
+
+                alert("You cannot delete home page");
+                return;
+            }
+
+            $scope.data.delete(item, function (result) {
+
+                if (item.Url == $scope.currentUrl) {
+
+                    siteView.contents()[0].location.href = "/";
+                } else {
+
+                    siteView.contents()[0].location.reload();
+                }
+
+                $me.refreshCollection();
+            });
+
+        };
+
+        //#region Adding Item
+
+        $me.convertToSlug = function (Text) {
+
+            if (Text == null) {
+
+                return "";
+            }
+
+            return Text
+                .toLowerCase()
+                .replace(/[^\w ]+/g, '')
+                .replace(/ +/g, '-')
+            ;
+        }
+
+        $scope.newItem = {};
+        $me.add = function (e) {
+
+            $("#newitemmodal").modal("show");
+            e.preventDefault();
+        };
+
+        $me.commitAdd = function () {
+
+            var slug = $me.convertToSlug($scope.newItem.Title);
+            var finalUrl = $scope.rootUrl + "/" + slug;
+
+            if ($scope.rootUrl == "/") {
+
+                finalUrl = "/" + slug;
+            }
+
+            var query = String.format("$filter=Url eq '{0}'", finalUrl);
+            $scope.data.query(query, function (results) {
+
+                if (results.length > 0) {
+
+                    $scope.alerts.push({
+                        msg: finalUrl + " was already used."
+                    });
+                    return;
+                }
+
+                var toSave = JSON.parse(JSON.stringify($scope.newItem));
+                toSave.Url = finalUrl;
+                toSave.DisplayOrder = 0;
+
+                if ( $scope.globals.activecollection != null) {
+
+                    toSave.Layout = $scope.globals.activecollection.layout;
+                }
+
+                $scope.newItem = {};
+                $scope.data.save(toSave, function (item) {
+
+                    $scope.pages.push(item);
+                    $("#newitemmodal").modal("hide");
+
+                    siteView.contents()[0].location.reload();
+                });
+
+            });
+
+        };
+
+        //#endregion
+
+        $me.waitData = null;
+        $me.refreshCollection = function () {
+
+            if ($scope.data == null) {
+
+                $me.waitData = $scope.$watch("data", function () {
+
+                    $me.waitData(); //stops the watch
+                    $me.refreshCollection();
+                });
+
+                return;
+            }
+
+            var query = ""
+            if ($scope.rootUrl == "/") {
+    
+                //special query for root case
+                query = "$filter=startswith(Url,'/') and ( indexof(substring(Url, 1),'/') lt 0 )";
+            } else {
+
+                query = String.format(
+                "$filter=startswith(Url,'/')",
+                $scope.rootUrl);
+            }
+
+            query += "&$orderby=DisplayOrder";
+
+            $scope.data.query(query, function (results) {
+
+                $scope.$apply(function () {
+
+                    $scope.pages = results;
+                });
+            });
+        };
+
+        $me.refreshCollection();
 
     });
 

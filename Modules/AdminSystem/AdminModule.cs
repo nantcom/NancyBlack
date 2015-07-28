@@ -51,9 +51,21 @@ namespace NantCom.NancyBlack.Modules
             Post["/Admin/sitesettings/current"] = this.HandleRequest(this.SaveSiteSettings);
 
             Post["/Admin/api/testemail"] = this.HandleRequest(this.TestSendEmail);
+
+            Get["/tables/sitesettings"] = this.HandleRequest(this.GetSiteSettings);
+            Post["/tables/sitesettings"] = this.HandleRequest(this.SaveSiteSettings);
+        }
+
+        /// <summary>
+        /// Gets current site settings
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic GetSiteSettings(dynamic arg)
+        {
+            return new object[] { this.CurrentSite };
         }
         
-
         private dynamic TestSendEmail(dynamic arg)
         {
             var target = (string)arg.body.Value.to;

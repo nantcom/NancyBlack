@@ -34,9 +34,7 @@ namespace NantCom.NancyBlack.Modules
             Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
 
             // Files
-
-            Get["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileListRequest;
-
+            
             Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
 
             Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
@@ -50,74 +48,7 @@ namespace NantCom.NancyBlack.Modules
 
             return path;
         }
-
-        /// <summary>
-        /// List files from attachments folder of the item
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        protected dynamic HandleFileListRequest(dynamic args)
-        {
-            var tableName = (string)args.table_name;
-            var id = (string)args.item_id;
-            var path = this.GetAttachmentFolder(tableName, id);
-
-            return from file in Directory.GetFiles(path)
-                   select "/" + file.Replace(this.RootPath, "").Replace('\\', '/' );
-        }
-
-        /// <summary>
-        /// Attach file to a record
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="id"></param>
-        protected string AttachFile(string tableName, string id, string fileName, Stream input, bool replace = true)
-        {
-            var path = this.GetAttachmentFolder(tableName, id);
-            var filePath = Path.Combine(path, fileName);
-
-            if (File.Exists(filePath) && replace == false)
-            {
-                fileName = Path.GetFileNameWithoutExtension(fileName) +
-                    Guid.NewGuid() +
-                    Path.GetExtension(fileName);
-
-                filePath = Path.Combine(path, fileName);
-            }
-
-            using (var fs = File.Create(filePath))
-            {
-                input.CopyTo(fs);
-                return (
-                    Path.Combine(
-                        "/Site/",
-                        "attachments",
-                        tableName,
-                        id,
-                        fileName).Replace('\\', '/'));
-            }
-        }
-
-        /// <summary>
-        /// Attach file to a record
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="id"></param>
-        protected string AttachFileFromDataUri(string tableName, string id, string fileName, string dataUri, bool replace = true)
-        {
-            // cut out data-uri
-            if (dataUri.StartsWith("data:") == false)
-            {
-                throw new InvalidOperationException(" must be data uri");
-            }
-
-            var dataStart = dataUri.IndexOf("base64,") + "base64,".Length;
-            dataUri = dataUri.Substring(dataStart);
-
-            var stream = new MemoryStream(Convert.FromBase64String(dataUri));
-            return this.AttachFile(tableName, id.ToString(), fileName, stream);
-        }
-
+        
         /// <summary>
         /// Handles file upload request, currently not consolidated with Attach File function
         /// </summary>
@@ -248,69 +179,9 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
-            dynamic record = null;
             var fromClient = arg.body.Value as JObject;
-            var imageBase64 = fromClient.Value<string>("Image");
-
-            if (imageBase64 != null && imageBase64.StartsWith("data:") == true)
-            {
-                fromClient["Image"] = string.Empty; // remove image data as it will be overflow when save
-            }
-
-            Func<string> saveDataUriImage = () =>
-            {
-                if (imageBase64 != null)
-                {
-                    var fileName = "image.jpg";
-
-                    // cut out data-uri
-                    if (imageBase64.StartsWith("data:"))
-                    {
-                        if (imageBase64.IndexOf("image/png") > 0)
-                        {
-                            fileName = "image.png";
-                        }
-
-                        var dataStart = imageBase64.IndexOf("base64,") + "base64,".Length;
-                        imageBase64 = imageBase64.Substring(dataStart);
-
-                        var stream = new MemoryStream(Convert.FromBase64String(imageBase64));
-                        return this.AttachFile(entityName, id.ToString(), fileName, stream);
-                    }
-                }
-
-                return null;
-            };
-
-            if (id == 0)
-            {
-                //insert, need to insert first to get id
-                record = db.UpsertRecord(entityName, fromClient);
-                id = record.Id;
-
-                // then upload and save
-                var url = saveDataUriImage();
-                if (url != null)
-                {
-                    record.Image = url;
-                    record = db.UpsertRecord(entityName, fromClient);
-                }
-            }
-            else
-            {
-                // update, can save immediately
-                var url = saveDataUriImage();
-                if (url != null)
-                {
-                    fromClient["Image"] = url;
-                }
-
-                record = db.UpsertRecord(entityName, fromClient);
-            }
-
-
-
-
+            dynamic record = db.UpsertRecord(entityName, fromClient);
+            
             return this.Negotiate
                 .WithContentType("application/json")
                 .WithModel((object)record);

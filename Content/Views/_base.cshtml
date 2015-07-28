@@ -123,31 +123,32 @@
     @RenderSection("Script", false)
 
     <script>
-        // Querystring extraction function
-        (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
 
-        // combine all ng-module into one attribute on top of the page
-        // too allow all modules to function
-        var modules = [];
-        $("*[ng-module]").each(function () {
-            var me = $(this);
-            modules.push(me.attr("ng-module"));
-            me.removeAttr("ng-module");
+        $(document).ready( function() {
+            
+            // base modules
+            var modules = [
+                "ui.bootstrap",
+                "ui.select",
+                "ui.validate",
+                "ngAnimate",
+                "ngSanitize",
+                "ngCookies",
+            ];
+
+            // ncb modules
+            var systemModules = @this.Html.Raw( this.GetJson( NantCom.NancyBlack.Configuration.ModuleResource.AngularModules) );
+            modules = modules.concat( systemModules );
+
+            $("*[ng-module]").each(function () {
+                var me = $(this);
+                modules.push(me.attr("ng-module"));
+                me.removeAttr("ng-module");
+            });
+
+            angular.bootstrap($("body"), modules);
         });
-
-        modules.push("ui.bootstrap");
-        modules.push("ui.select");
-        modules.push("ui.validate");
-        modules.push("ngAnimate");
-        modules.push("ngSanitize");
-        modules.push("ngCookies");
-
-        $("body").attr("ng-modules",
-            modules.join(",") +
-            ",@this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.AngularModules)");
-
     </script>
-    <script src="/Content/Scripts/angular.ngmodule.js"></script>
 
     @if (this.Site.FacebookAppId != null)
     {

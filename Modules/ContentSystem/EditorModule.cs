@@ -14,45 +14,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
         public EditorModule()
         {
             this.RequiresAuthentication();
-
-            Post["/__editor/enable"] = _ =>
-            {
-                var redirect = this.Request.Query.returnUrl;
-                if (redirect == null)
-                {
-                    redirect = "/";
-                }
-
-                if (this.CurrentUser.HasClaim("editor") == false)
-                {
-                    return 403;
-                }
-
-                return this.Response
-                    .AsRedirect((string)redirect)
-                    .WithCookie("editmode", "enabled");
-
-            };
-
-            Post["/__editor/disable"] = _ =>
-            {
-                var redirect = this.Request.Query.returnUrl;
-                if (redirect == null)
-                {
-                    redirect = "/";
-                }
-
-                if (this.CurrentUser.HasClaim("editor") == false)
-                {
-                    return 403;
-                }
-
-                return this.Response
-                    .AsRedirect((string)redirect)
-                    .WithCookie("editmode", "disabled");
-
-            };
-
+            
             Get["/__editor"] = this.HandleRequest((arg) =>
             {
                 return View["editor-editframe", this.GetModel()];
@@ -75,7 +37,24 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
                 return userViews.Distinct();
 
             });
-            
+
+            Post["/__editor/updateorder"] = this.HandleRequest(this.UpdateContentOrder); 
+        }
+
+        private dynamic UpdateContentOrder(dynamic arg)
+        {
+            JArray parameter = arg.Body.Value;
+
+            // received is the list of ids to set display order
+            for (int i = 0; i < parameter.Count; i++)
+            {
+                dynamic item = this.SiteDatabase.GetByIdAsJObject("content", (int)parameter[i]);
+                item.DisplayOrder = i;
+
+                this.SiteDatabase.UpsertRecord("content", item);
+            }
+
+            return 200;
         }
     }
 }

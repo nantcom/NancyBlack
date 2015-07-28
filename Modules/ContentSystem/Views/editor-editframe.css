@@ -186,8 +186,8 @@ a.success:hover {
   pointer-events: none;
   opacity: 0.2;
 }
-#menu ul li > a {
-  padding: 5px;
+#menu ul li > a,
+#menu ul li > div {
   display: block;
   cursor: pointer;
   white-space: nowrap;
@@ -195,17 +195,21 @@ a.success:hover {
   -ms-text-overflow: ellipsis;
   -o-text-overflow: ellipsis;
   text-overflow: ellipsis;
+  line-height: 40px;
 }
-#menu ul li > a > i {
+#menu ul li > a i,
+#menu ul li > div i {
   margin-left: 2px;
   margin-right: 10px;
   font-size: 180%;
   vertical-align: middle;
 }
-#menu ul li > a > span {
+#menu ul li > a > span,
+#menu ul li > div > span {
   vertical-align: middle;
 }
-#menu ul li > a:hover {
+#menu ul li > a:hover,
+#menu ul li > div:hover {
   background-color: #e4e4e4;
 }
 #menu .modal {
@@ -244,4 +248,33 @@ a.success:hover {
 }
 #mainmenu a {
   text-transform: uppercase;
+}
+.pages li {
+  padding: 5px;
+  position: relative;
+  cursor: pointer !important;
+}
+.pages li > div > a {
+  position: absolute;
+  opacity: 0;
+  text-align: center;
+  transition: all ease 0.2s;
+}
+.pages li a.leftaction {
+  left: -20px;
+}
+.pages li a.rightaction {
+  right: 10px;
+}
+.pages li:hover > div > i.hideover {
+  opacity: 0;
+  pointer-events: none;
+}
+.pages li:hover a.leftaction {
+  left: 10px;
+  opacity: 1;
+  color: red;
+}
+.pages li:hover a.rightaction {
+  opacity: 1;
 }
