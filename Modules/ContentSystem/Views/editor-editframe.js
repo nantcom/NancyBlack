@@ -491,12 +491,16 @@
 
         $scope.object = JSON.parse(JSON.stringify(model.Content));
 
-        $me.addToContentBlock = function (item) {
+        if ($scope.globals.editing != null) {
 
-            var img = $("<img />");
-            img.attr("src", item.Url);
-            $scope.globals.editing.element.append(img);
-        };
+            $scope.selecttext = "Insert";
+            $scope.onattachmentselect = function (item) {
+
+                var img = $("<img />");
+                img.attr("src", item.Url);
+                $scope.globals.editing.element.append(img);
+            };
+        }
 
     });
 

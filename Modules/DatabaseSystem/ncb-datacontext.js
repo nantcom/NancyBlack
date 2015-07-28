@@ -889,13 +889,6 @@
                 });
             };
 
-            $me.select = function (item) {
-
-                if ($scope.onselected != null) {
-
-                    $scope.onselected( item );
-                }
-            };
         }
 
         return {

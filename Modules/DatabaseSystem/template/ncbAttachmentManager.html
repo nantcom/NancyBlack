@@ -20,8 +20,8 @@
         <img ng-src="{{viewing.Url}}" />
 
         <ncb-footer>
-            <button ng-show="onselected != null && selecttext != null" 
-                    ng-click="attachmentManager.select(viewing)"
+            <button ng-show="selecttext != null" 
+                    ng-click="onattachmentselect(viewing)"
                     class="btn btn-default">
                 {{selecttext}}
             </button>
