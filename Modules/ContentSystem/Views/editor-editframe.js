@@ -346,6 +346,7 @@
                         $scope.menu.goback = null;
                         $scope.goback();
 
+                        $scope.reloadSiteView();
                     });
                 });
 

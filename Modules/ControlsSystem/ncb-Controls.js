@@ -855,5 +855,45 @@
         };
     }]);
 
+    module.directive('ncbMenu', function () {
+
+        function link(scope, element, attrs) {
+
+            var activeClass = attrs.activeclass;
+            if (activeClass == null) {
+
+                activeClass = "active";
+            }
+
+            var currentUrl = window.location.pathname;
+            element.find("a").each(function () {
+
+                var current = $(this);
+                var url = current.attr("href");
+
+                var match = url.indexOf(currentUrl) >= 0;
+                if (currentUrl == "/") {
+
+                    match = (url == currentUrl);
+                }
+
+                // starts with path name
+                if ( match == true ) {
+
+                    if (attrs.applyto != null) {
+
+                        current.parents(attrs.applyto).addClass(activeClass);
+                        current.find(attrs.applyto).addClass(activeClass);
+                    }
+                    current.addClass(activeClass);
+                }
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
 
 })();
