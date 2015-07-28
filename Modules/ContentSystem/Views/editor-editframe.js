@@ -45,7 +45,8 @@
                 element: collection,
                 name: collection.attr("table"),
                 table: collection.attr("table"),
-                layout: collection.attr("layout")
+                layout: collection.attr("layout"),
+                url: "/" + collection.attr("table") + "s"
             };
             collections.push(collectionItem);
             collections[collectionItem.name] = collectionItem;
@@ -377,129 +378,6 @@
 
     });
 
-    ncbEditor.controller("NcbCollection", function ($scope, $rootScope, $timeout, $location) {
-
-        var $me = this;
-        var siteView = $("#siteview");
-
-        if ($scope.siteView.collections == null) {
-
-            return;
-        }
-
-        var loadedUrl = $scope.currentUrl;
-
-        $scope.collection = $scope.globals.activecollection;
-        $scope.collection.list = [];
-
-        $me.hoverarea = function (item) {
-
-            if (item == null) {
-
-                return;
-            }
-
-            var element = $scope.collection.element.find("[data-itemid=" + item.id + "]");
-            element.toggleClass("editable-hover");
-        };
-
-        $me.view = function (e, item) {
-
-            siteView.attr("src", item.Url);
-            $scope.goback();
-        };
-
-        $me.delete = function (e, item) {
-
-            $scope.data.delete( item );
-        };
-
-        //#region Adding Item
-
-        $me.convertToSlug = function (Text) {
-
-            if (Text == null) {
-
-                return "";
-            }
-
-            return Text
-                .toLowerCase()
-                .replace(/[^\w ]+/g, '')
-                .replace(/ +/g, '-')
-            ;
-        }
-
-        $scope.newItem = {};
-        $me.add = function (e) {
-
-            $("#newitemmodal").modal("show");
-            e.preventDefault();
-        };
-
-        $me.commitAdd = function () {
-
-            var slug = $me.convertToSlug($scope.newItem.Title);
-            var finalUrl = $scope.currentUrl + "/" + slug;
-
-            var query = String.format("$filter=Url eq '{0}'", finalUrl);
-            $scope.data.query(query, function (results) {
-
-                if (results.length > 0) {
-
-                    $scope.alerts.push({
-                        msg: finalUrl + " was already used."
-                    });
-                    return;
-                }
-
-                var toSave = JSON.parse(JSON.stringify($scope.newItem));
-                toSave.Url = finalUrl;
-                toSave.Layout = $scope.globals.activecollection.layout;
-                toSave.DisplayOrder = 0;
-
-                $scope.newItem = {};
-                $scope.data.save(toSave, function (item) {
-
-                    $scope.collection.list.push(toSave);
-                    $("#newitemmodal").modal("hide");
-
-                    siteView.contents()[0].location.reload();
-                });
-
-            });
-
-        };
-
-        //#endregion
-
-        $me.waitData = null;
-        $me.refreshCollection = function () {
-
-            if ($scope.data == null) {
-
-                $me.waitData = $scope.$watch("data", function () {
-
-                    $me.waitData(); //stops the watch
-                    $me.refreshCollection();
-                });
-
-                return;
-            }
-
-            $scope.data.query("", function (results) {
-
-                $scope.$apply(function () {
-
-                    $scope.collection.list = results;
-                });
-            });
-        };
-
-        $me.refreshCollection();
-
-    });
-
     ncbEditor.controller("NcbPagePropertyEdit", function ($scope, $rootScope, $timeout, $http) {
 
         var $me = this;
@@ -542,6 +420,8 @@
 
                 $scope.menu.goback = null;
                 $scope.goback();
+
+                $scope.reloadSiteView();
             });
 
             return false; // handle going back
@@ -669,9 +549,8 @@
         $scope.rootUrl = $scope.currentUrl;
         if ($scope.globals.activecollection != null) {
 
-
-
-            $scope.rootUrl = $scope.globals.activecollection;
+            $scope.rootUrl = $scope.globals.activecollection.url;
+            $scope.collection = $scope.globals.activecollection;
             $scope.globals.activecollection = null;
         }
         
@@ -755,6 +634,7 @@
         $scope.newItem = {};
         $me.add = function (e) {
 
+            $scope.alerts = [];
             $("#newitemmodal").modal("show");
             e.preventDefault();
         };
@@ -783,11 +663,7 @@
                 var toSave = JSON.parse(JSON.stringify($scope.newItem));
                 toSave.Url = finalUrl;
                 toSave.DisplayOrder = 0;
-
-                if ( $scope.globals.activecollection != null) {
-
-                    toSave.Layout = $scope.globals.activecollection.layout;
-                }
+                toSave.Layout = $scope.collection.layout;
 
                 $scope.newItem = {};
                 $scope.data.save(toSave, function (item) {
@@ -826,7 +702,7 @@
             } else {
 
                 query = String.format(
-                "$filter=startswith(Url,'/')",
+                "$filter=startswith(Url,'{0}')",
                 $scope.rootUrl);
             }
 

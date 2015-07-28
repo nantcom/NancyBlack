@@ -22,7 +22,7 @@
     <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
     <script src="/Modules/ContentSystem/Scripts/angular-sortable-view.js"></script>
     <script src="/Modules/ContentSystem/Views/editor-editframe.js"></script>
-    
+
 }
 
 <script type="text/ng-template" id="editframe-homemenu.html">
@@ -43,7 +43,9 @@
                 <a ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
             </li>
             <li>
-                <a ng-click="switchMenu( $event, 'editframe-pageseo.html')">SEO</a>
+                <a ng-click="switchMenu( $event, 'editframe-pagesettings.html')">
+                    Settings &amp; SEO
+                </a>
             </li>
             <li ng-class="{ 'disabled' : siteView.collections.length == 0}">
                 <h2>Collections</h2>
@@ -58,16 +60,13 @@
                 <h2>Site</h2>
             </li>
             <li>
-                <a ng-click="globals.activecollection='/'; switchMenu( $event, 'editframe-pages.html')">Pages</a>
+                <a ng-click="globals.activecollection={ url: '/', table: 'content', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">Pages</a>
             </li>
             <li>
                 <a ng-click="switchMenu( $event, 'editframe-siteseo.html')">SEO</a>
             </li>
             <li>
                 <a ng-click="switchMenu( $event, 'editframe-apikeys.html')">API Keys</a>
-            </li>
-            <li>
-                <a>Settings</a>
             </li>
         </ul>
     </div>
@@ -84,7 +83,7 @@
 
                 <a ng-click="ctrl.edit($event,item)"
                    ng-mouseenter="ctrl.hoverarea(item)"
-                    ng-mouseleave="ctrl.hoverarea(item)">
+                   ng-mouseleave="ctrl.hoverarea(item)">
                     <i class="ion-ios-paper-outline"></i>
                     {{item.name}}
                 </a>
@@ -116,29 +115,35 @@
 
 </script>
 
-<script type="text/ng-template" id="editframe-pageseo.html">
+<script type="text/ng-template" id="editframe-pagesettings.html">
 
     <div ncb-datacontext-integrated table="{{currentTable}}"
          ng-controller="NcbPagePropertyEdit as ctrl">
         <h1>{{currentUrl}}</h1>
-        <h2>SEO:</h2>
-        <h3>
-            edit meta tags, which were beleived to help you with search engine ranking -
-            although it is still a myth on its effectiveness.
-            [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
-        </h3>
 
         <input type="text" ncb-textbox title="Title"
                placeholder="Shows in tab title"
                ng-model="object.Title" />
 
+        <h3>
+            Title of the page, usually shows in menu and as page heading.
+        </h3>
+
+        <h2>SEO:</h2>
         <input type="text" ncb-textbox title="Meta Keywords"
                placeholder="keywords to describe this page"
-               ng-model="object.MetaKeywords"/>
+               ng-model="object.MetaKeywords" />
 
-        <textarea type="text" ncb-textbox title="Meta Description"                  
+        <textarea type="text" ncb-textbox title="Meta Description"
                   placeholder="description about this page"
                   rows="5" ng-model="object.MetaDescription"></textarea>
+
+        <h3>
+            meta tags were beleived to help you with search engine ranking -
+            although its effectiveness still a myth.
+            [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
+        </h3>
+
     </div>
 
 </script>
@@ -166,7 +171,7 @@
     <div ncb-datacontext-integrated
          ng-controller="NcbAttachments as ctrl"
          table="content">
-        
+
         <h2>
             Attachments
         </h2>
@@ -177,79 +182,6 @@
         <ncb-attachmentmanager onselect="" selecttext>
         </ncb-attachmentmanager>
     </div>
-</script>
-
-<script type="text/ng-template" id="editframe-collections.html">
-
-    <div ncb-datacontext-integrated table="{{collection.table}}"
-         ng-controller="NcbCollection as ctrl">
-        <h1>
-            {{currentUrl}}
-        </h1>
-        <h2>
-            Collection
-
-            <a class="pull-right"
-               href="#"
-               ng-click="ctrl.add($event)">
-                <i class="ion-ios-plus-outline"></i>
-                {{collection.table}}
-            </a>
-        </h2>
-        <h3>
-            Collections are content which linked to item in the backend.
-            This collection loads data from <b>{{collection.table}}</b> Table.
-        </h3>
-        <ul>
-            <li ng-repeat="item in collection.list">
-
-                <a  ng-click="ctrl.view($event, item)"
-                    ng-mouseenter="ctrl.hoverarea(item)"
-                    ng-mouseleave="ctrl.hoverarea(item)">
-                    <i class="ion-ios-book-outline"></i>
-                    <span>
-                        {{item.Title}}
-                    </span>
-                </a>
-            </li>
-            <li ng-show="collections.list.length == 0">
-                (collection is empty)
-            </li>
-        </ul>
-
-        <ncb-modal id="newitemmodal" closebutton
-                   title="Create item in Collection">
-
-            <input type="text" title="Item Title"
-                   ng-model="newItem.Title"
-                   ncb-textbox />
-
-            <div>
-                <p>
-                    <b>The URL for this item will be:</b><br />
-                    {{ currentUrl + '/' + ctrl.convertToSlug( newItem.Title )}}
-                </p>
-                <p>
-                    In order to make your search rank better, make sure you have a readable url.
-                </p>
-                <p ng-show="isBusy">
-                    <i class="fa fa-spin fa-circle-o-notch"></i>
-                    checking for duplicates...
-                </p>
-            </div>
-
-            <ncb-footer>
-                <button class="btn btn-success"
-                        ng-disabled="isBusy || newItem.Title == null || newItem.Title == ''"
-                        ng-click="ctrl.commitAdd()">
-                    Create
-                </button>
-            </ncb-footer>
-
-        </ncb-modal>
-
-    </div>
-
 </script>
 
 <script type="text/ng-template" id="editframe-siteseo.html">
@@ -301,7 +233,7 @@
 
 <script type="text/ng-template" id="editframe-pages.html">
 
-    <div ncb-datacontext-integrated table="content"
+    <div ncb-datacontext-integrated table="{{collection.table}}"
          ng-controller="NcbPageEdit as ctrl">
         <h1 ng-show="rootUrl != '/'">
             Pages Under: {{rootUrl}}
