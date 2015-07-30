@@ -10,7 +10,10 @@
         refreshed: "refreshed",
         updated: "updated",
         inserted: "inserted",
-        deleted: "deleted"
+        deleted: "deleted",
+        loaded: "ncb-datacontext.loaded",
+        uploaded: "ncb-datacontext.uploaded",
+        deleted: "ncb-datacontext.deleted",
     };
 
     if (window.databasepath) {
@@ -410,6 +413,8 @@
                     $scope.object = result;
                     $scope.data.uploadProgress = 100;
                     $scope.data.uploadStatus = "success";
+
+                    $scope.$emit(emittedEvents.uploaded, { sender: $scope, args: result });
                 });
             });
 
@@ -463,6 +468,7 @@
                 $scope.$apply(function () {
 
                     $scope.object = result;
+                    $scope.$emit(emittedEvents.uploaded, { sender: $scope, args: result });
                 });
             });
 
@@ -483,6 +489,8 @@
                 });
             });
         };
+
+        $scope.$emit(emittedEvents.loaded, { sender: $scope });
     };
 
     // Data Context provides neccessary functions  to access nancyblack database

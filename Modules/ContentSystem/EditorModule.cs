@@ -43,15 +43,18 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
         private dynamic UpdateContentOrder(dynamic arg)
         {
-            JArray parameter = arg.Body.Value;
+            dynamic command = arg.Body.Value;
+
+            JArray ids = command.ids;
+            string table = command.table;
 
             // received is the list of ids to set display order
-            for (int i = 0; i < parameter.Count; i++)
+            for (int i = 0; i < ids.Count; i++)
             {
-                dynamic item = this.SiteDatabase.GetByIdAsJObject("content", (int)parameter[i]);
+                dynamic item = this.SiteDatabase.GetByIdAsJObject(table, (int)ids[i]);
                 item.DisplayOrder = i;
 
-                this.SiteDatabase.UpsertRecord("content", item);
+                this.SiteDatabase.UpsertRecord(table, item);
             }
 
             return 200;

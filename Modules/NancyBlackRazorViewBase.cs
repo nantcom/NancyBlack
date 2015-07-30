@@ -230,11 +230,41 @@ namespace NantCom.NancyBlack
                 throw new ArgumentNullException("collectionName");
             }
 #endif
-            var list = Database.Query(entityName, oDataSort: "DisplayOrder");
+            var list = Database.QueryAsJObject(entityName, oDataSort: "DisplayOrder");
 
             foreach (var item in list)
             {
-                var output = contentTemplate(JObject.FromObject(item));
+                var output = contentTemplate(item);
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// List item in collection under given url
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListCollectionUnderUrl(string entityName, string url, Func<dynamic, object> contentTemplate)
+        {
+
+#if DEBUG
+            if (entityName == null)
+            {
+                throw new ArgumentNullException("entityName");
+            }
+
+            if (url == null)
+            {
+                throw new ArgumentNullException("url");
+            }
+#endif
+            var list = Database.QueryAsJObject(entityName, string.Format("startswith(Url,'{0}')", url), "DisplayOrder");
+
+            foreach (var item in list)
+            {
+                var output = contentTemplate(item);
                 this.WriteLiteral(output);
             }
 
@@ -293,6 +323,35 @@ namespace NantCom.NancyBlack
 
             return null;
         }
+
+        #endregion
+
+        #region Attachments
+
+        /// <summary>
+        /// Get Attachments based on item type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public IEnumerable<dynamic> GetAttachments( string type = null )
+        {
+            var jarray = this.Content.Attachments as JArray;
+            if (jarray == null)
+            {
+                return new dynamic[] { };
+            }
+
+            if (type == null)
+            {
+                return from dynamic item in jarray
+                       select item;
+            }
+
+            return from dynamic item in jarray
+                   where item.Type == type
+                   select item;
+        }
+
 
         #endregion
     }

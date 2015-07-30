@@ -871,8 +871,8 @@
                 var current = $(this);
                 var url = current.attr("href");
 
-                var match = url.indexOf(currentUrl) >= 0;
-                if (currentUrl == "/") {
+                var match = currentUrl.indexOf( url ) >= 0;
+                if (currentUrl == "/" || url == "/") {
 
                     match = (url == currentUrl);
                 }

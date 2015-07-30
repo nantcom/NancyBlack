@@ -38,5 +38,15 @@
     "includeInProject": true,
     "sourceMap": false,
     "options": {}
+  },
+  {
+    "outputFile": "Site/style.css",
+    "inputFile": "Site/style.less",
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMap": false,
+    "options": {}
   }
 ]

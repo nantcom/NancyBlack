@@ -209,11 +209,16 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         public static dynamic CreateContent(NancyBlackDatabase db, string url, string layout = "", string requiredClaims = "", int displayOrder = 0)
         {
+            if (url.StartsWith("/") == false)
+            {
+                url = "/" + url;
+            }
+
             // try to find matching view that has same name as url
-            var layoutFile = Path.Combine(_RootPath, "Site", "Views", url.Replace('/', '\\') + ".cshtml");
+            var layoutFile = Path.Combine(_RootPath, "Site", "Views", url.Substring(1).Replace('/', '\\') + ".cshtml");
             if (File.Exists(layoutFile))
             {
-                layout = url;
+                layout = url.Substring(1);
             }
 
             if (layout == "")

@@ -47,5 +47,12 @@
         "emailTemplate": "@Model.AffectedRow"
       }
     }
+  },
+  "seo": {
+    "MetaKeywords": "test 2",
+    "MetaDescription": "test 3"
+  },
+  "application": {
+    "FacebookAppId": "164276583639792"
   }
 }

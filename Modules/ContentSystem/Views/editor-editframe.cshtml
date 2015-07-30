@@ -40,6 +40,9 @@
                 <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
             </li>
             <li>
+                <a ng-click="switchMenu( $event, 'editframe-attachments.html')">Attachments</a>
+            </li>
+            <li>
                 <a ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
             </li>
             <li>
@@ -90,7 +93,6 @@
             </li>
         </ul>
 
-        <div ng-include="'editframe-attachments.html'"></div>
     </div>
 
 </script>
@@ -152,7 +154,7 @@
 
     <div ncb-datacontext-integrated
          ng-controller="NcbContentEditor as ctrl"
-         table="content">
+         table="{{currentContent.typeName}}">
         <h1>{{currentUrl}}</h1>
         <h2 style="text-transform: none">
             <i class="ion-ios-paper-outline"></i>
@@ -168,9 +170,8 @@
 
 <script type="text/ng-template" id="editframe-attachments.html">
 
-    <div ncb-datacontext-integrated
-         ng-controller="NcbAttachments as ctrl"
-         table="content">
+    <div ncb-datacontext-integrated table="{{currentTable}}"
+         ng-controller="NcbAttachments as ctrl">
 
         <h2>
             Attachments
@@ -215,14 +216,14 @@
         <h2>API Keys</h2>
 
         <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
-               ncb-textbox ng-model="object.Application.GoogleAnalyticsId" />
+               ncb-textbox ng-model="object.application.GoogleAnalyticsId" />
         <h3>
             google analytics tracking code (eg: UA-XXX) is an identifier for tracking
             page view using google analytics services.
         </h3>
 
         <input type="text" title="Facebook Application Id"
-               ncb-textbox ng-model="object.Application.FacebookAppId" />
+               ncb-textbox ng-model="object.application.FacebookAppId" />
         <h3>
             facebook application id is used by various facebook social plugins.
         </h3>
@@ -235,12 +236,24 @@
 
     <div ncb-datacontext-integrated table="{{collection.table}}"
          ng-controller="NcbPageEdit as ctrl">
-        <h1 ng-show="rootUrl != '/'">
-            Pages Under: {{rootUrl}}
+        <h1>
+            {{itemwording}}s
+            <span ng-show="rootUrl != '/'">
+                under:
+            </span>
+            <span ng-show="rootUrl != '/'"
+                  class="text-muted">
+                <br />
+                {{rootUrl}}
+            </span>
         </h1>
-        <h1 ng-show="rootUrl == '/'">
-            Root Pages
-        </h1>
+        <h2 ng-show="collection != null">
+            Type: {{collection.name}}
+        </h2>
+        <h3 ng-show="collection != null">
+            the item is created in {{collection.name}} table.
+            which can be accessed by: <a ng-href="/Admin/tables/{{collection.name}}" target="_blank">Admin Interface</a>
+        </h3>
 
         <ul class="pages"
             sv-root sv-part="pages" sv-on-sort="ctrl.update()">
@@ -265,7 +278,11 @@
             <li>
                 <a ng-click="ctrl.add($event)">
                     <i class="ion-ios-plus-outline"></i>
-                    new page
+                    new {{itemwording}}
+                </a>
+                <a ng-click="ctrl.massadd($event)">
+                    <i class="ion-ios-plus-outline"></i>
+                    lots of new {{itemwording}}s
                 </a>
             </li>
         </ul>
@@ -307,11 +324,32 @@
 
         </ncb-modal>
 
+        <ncb-modal id="massnewitemmodal" closebutton
+                   title="Mass Add">
+
+            <tabset>
+                <tab heading="Using Pictures">
+
+                    Drag and drop pictures in to the area below to quickly add new {{itemwording}}
+                    for each dropped picture. You will be able to change url of each
+                    later.
+
+
+                </tab>
+                <tab heading="Using Excel">
+
+                    You can also quickly add new items using excel. Go to
+                    <a ng-href="/Admin/tables/{{collection.name}}" target="_blank">Admin Interface</a> to do it now.
+                </tab>
+            </tabset>
+
+        </ncb-modal>
+
     </div>
 
 </script>
 
-<div id="editframe"
+<div id="editframe" class="loading"
      ng-module="editor-frame"
      ng-controller="NancyWhite as ctrl">
 

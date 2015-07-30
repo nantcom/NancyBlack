@@ -56,7 +56,14 @@
 
             } else {
 
-                collectionItem.url = "/" + collection.attr("table") + "s"
+                if (collection.attr("rooturl") != null) {
+
+                    collectionItem.url = collection.attr("rooturl");
+
+                } else {
+                    collectionItem.url = "/" + collection.attr("table") + "s";
+                }
+
             }
 
             collections.push(collectionItem);
@@ -202,8 +209,17 @@
         });
 
         var siteView = $("#siteview");
+        var menu = $("#menu");
+
         // list editable areas on page load
         siteView.on("load", function () {
+
+            document.getElementById("siteview").contentWindow.addEventListener("unload", function () {
+
+                menu.addClass("loading");
+            });
+
+            menu.removeClass("loading");
 
             // Link to CSS for edit area
             siteView.contents()
@@ -213,6 +229,7 @@
             $scope.$apply(function () {
 
                 $scope.currentUrl = document.getElementById("siteview").contentWindow.location.pathname;
+                $scope.currentContent = document.getElementById("siteview").contentWindow.model.Content;
 
                 $scope.siteView.areas = util.listeditable(siteView);
                 $scope.siteView.collections = util.listcollections(siteView);
@@ -285,17 +302,14 @@
                     }
                 });
 
-                $me.getContent(function (content) {
+                $scope.editing.content = $scope.currentContent;
+                $scope.editing.original = $scope.currentContent[$scope.editing.name];
 
-                    $scope.editing.content = content;
-                    $scope.editing.original = content[$scope.editing.name];
+                if ($scope.currentContent[$scope.editing.name] == null) {
 
-                    if (content[$scope.editing.name] == null) {
-
-                        // default value from database
-                        $scope.editing.original = $scope.editing.element.html();
-                    }
-                });
+                    // default value from database
+                    $scope.editing.original = $scope.editing.element.html();
+                }
 
             }, 400);
 
@@ -372,22 +386,10 @@
 
         };
 
-        $me.waitData = null;
-        if ($scope.data == null) {
-
-            $me.waitData = $scope.$watch("data", function () {
-
-                $me.waitData(); //stops the watch
-                $me.initializeEditor($scope.globals.editing);
-
-            });
-
-            return;
-        } else {
+        $scope.$on("ncb-datacontext.loaded", function () {
 
             $me.initializeEditor($scope.globals.editing);
-        }
-
+        });
     });
 
     ncbEditor.controller("NcbPagePropertyEdit", function ($scope, $rootScope, $timeout, $http) {
@@ -488,20 +490,24 @@
 
         var $me = this;
         var siteView = $("#siteview");
-        var model = document.getElementById("siteview").contentWindow.model;
 
-        if (model == null || model.Content.Id == null) {
+        $me.initializeScope = function () {
 
-            alert("Cannot get information about page's model");
-            return;
-        }
+            var model = document.getElementById("siteview").contentWindow.model;
 
-        $scope.currentTable = "content";
-        if (model.Content.typeName != null) {
-            $scope.currentTable = model.Content.typeName;
-        }
+            if (model == null || model.Content.Id == null) {
 
-        $scope.object = JSON.parse(JSON.stringify(model.Content));
+                alert("Cannot get information about page's model");
+                return;
+            }
+
+            $scope.currentTable = "content";
+            if (model.Content.typeName != null) {
+                $scope.currentTable = model.Content.typeName;
+            }
+
+            $scope.object = JSON.parse(JSON.stringify(model.Content));
+        };
 
         if ($scope.globals.editing != null) {
 
@@ -514,6 +520,28 @@
             };
         }
 
+        $me.initializeScope();
+
+        $scope.$on("siteView-reloaded", function () {
+
+            $scope.$apply($me.initializeScope);
+        });
+
+        $scope.$on("ncb-datacontext.uploaded", function () {
+
+            if ($scope.globals.editing == null) {
+
+                $scope.$apply($scope.reloadSiteView);
+            }
+        });
+
+        $scope.$on("ncb-datacontext.deleted", function () {
+
+            if ($scope.globals.editing == null) {
+
+                $scope.$apply($scope.reloadSiteView);
+            }
+        });
     });
 
     ncbEditor.controller("NcbSiteSettingsEdit", function ($scope, $rootScope, $timeout, $http) {
@@ -561,15 +589,7 @@
 
         var $me = this;
         var siteView = $("#siteview");
-
-        $scope.rootUrl = $scope.currentUrl;
-        if ($scope.globals.activecollection != null) {
-
-            $scope.rootUrl = $scope.globals.activecollection.url;
-            $scope.collection = $scope.globals.activecollection;
-            $scope.globals.activecollection = null;
-        }
-        
+                
         $me.hoverarea = function (item) {
 
             if (item == null) {
@@ -595,7 +615,7 @@
                 id.push(element.id);
             });
 
-            $http.post("/__editor/updateorder", id)
+            $http.post("/__editor/updateorder", { ids: id, table: $scope.collection.table })
             .success(function () {
 
                 siteView.contents()[0].location.reload();
@@ -631,6 +651,48 @@
 
         };
 
+        var initialize = function () {
+
+            $scope.rootUrl = $scope.currentUrl;
+            if ($scope.globals.activecollection != null) {
+
+                $scope.rootUrl = $scope.globals.activecollection.url;
+                $scope.collection = $scope.globals.activecollection;
+                $scope.globals.activecollection = null;
+            }
+
+            $scope.itemwording = "page";
+            if ($scope.collection != null) {
+
+                $scope.itemwording = "item";
+            }
+        };
+
+        var refreshCollection = function () {
+
+            var query = ""
+            if ($scope.rootUrl == "/") {
+
+                //special query for root case
+                query = "$filter=startswith(Url,'/') and ( indexof(substring(Url, 1),'/') lt 0 )";
+            } else {
+
+                query = String.format(
+                "$filter=startswith(Url,'{0}')",
+                $scope.rootUrl);
+            }
+
+            query += "&$orderby=DisplayOrder";
+
+            $scope.data.query(query, function (results) {
+
+                $scope.$apply(function () {
+
+                    $scope.pages = results;
+                });
+            });
+        };
+
         //#region Adding Item
 
         $me.convertToSlug = function (Text) {
@@ -649,6 +711,14 @@
 
         $scope.newItem = {};
         $me.add = function (e) {
+
+            if ($scope.collection != null) {
+
+                $scope.newItem.Title = "New " + $scope.collection.name + " " + ($scope.pages.length + 1);
+            } else {
+
+                $scope.newItem.Title = "New Page " + ($scope.pages.length + 1);
+            }
 
             $scope.alerts = [];
             $("#newitemmodal").modal("show");
@@ -696,45 +766,46 @@
 
         //#endregion
 
-        $me.waitData = null;
-        $me.refreshCollection = function () {
+        //#region Mass Adding Item
 
-            if ($scope.data == null) {
+        $me.massadd = function (e) {
 
-                $me.waitData = $scope.$watch("data", function () {
+            $scope.alerts = [];
+            $("#massnewitemmodal").modal("show");
+            e.preventDefault();
+        };
 
-                    $me.waitData(); //stops the watch
-                    $me.refreshCollection();
-                });
+        //#endregion
 
-                return;
-            }
+        $scope.$on("ncb-datacontext.loaded", refreshCollection);
+        
+        $scope.$on("siteView-reloaded", function () {
 
-            var query = ""
-            if ($scope.rootUrl == "/") {
-    
-                //special query for root case
-                query = "$filter=startswith(Url,'/') and ( indexof(substring(Url, 1),'/') lt 0 )";
+            // check that this page still contains the same collection
+            var sameCol = null;
+            $scope.siteView.collections.forEach(function (col) {
+
+                if (col.table == $scope.collection.table) {
+
+                    sameCol = col;
+                }
+            });
+
+            if (sameCol == null) {
+
+                $scope.$apply($scope.goback);
             } else {
-
-                query = String.format(
-                "$filter=startswith(Url,'{0}')",
-                $scope.rootUrl);
-            }
-
-            query += "&$orderby=DisplayOrder";
-
-            $scope.data.query(query, function (results) {
 
                 $scope.$apply(function () {
 
-                    $scope.pages = results;
+                    $scope.globals.activecollection = sameCol;
+                    initialize();
+                    refreshCollection();
                 });
-            });
-        };
+            }
+        });
 
-        $me.refreshCollection();
-
+        initialize()
     });
 
 })();
