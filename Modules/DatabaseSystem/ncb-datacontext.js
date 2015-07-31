@@ -250,7 +250,7 @@
                             $scope.alerts.push({
 
                                 type: 'success',
-                                msg: 'Item was created.'
+                                msg: 'Item ID:' + object.id + ' was created.'
                             });
                         });
 
@@ -262,7 +262,7 @@
         };
 
         $scope.data.copy = function (object, callback) {
-            
+
             if (confirm("Copy?") == false) {
 
                 return;
@@ -363,7 +363,7 @@
 
             var id = $scope.object.id;
             if (id == null) {
-    
+
                 id = $scope.object.Id;
             }
 
@@ -403,16 +403,24 @@
 
             req.done(function (result) {
 
+                var object = $me.processServerObject(result);
+
                 if (callback != null) {
 
-                    callback();
+                    callback(object);
                 }
-
+                
                 $scope.$apply(function () {
 
-                    $scope.object = result;
+                    $scope.object = object;
                     $scope.data.uploadProgress = 100;
                     $scope.data.uploadStatus = "success";
+
+                    $scope.alerts.push({
+
+                        type: 'success',
+                        msg: 'File was uploaded for item:' + result.id
+                    });
 
                     $scope.$emit(emittedEvents.uploaded, { sender: $scope, args: result });
                 });
@@ -450,7 +458,7 @@
             var targetUrl = String.format("/tables/{0}/{1}/files/{2}",
                 attrs.table,
                 $scope.object.id,
-                attachment.Url.substring( attachment.Url.lastIndexOf("/") + 1 ));
+                attachment.Url.substring(attachment.Url.lastIndexOf("/") + 1));
 
             var req = $.ajax({
                 url: targetUrl,
@@ -465,10 +473,18 @@
                     callback(true);
                 }
 
+                var object = $me.processServerObject(result);
+
                 $scope.$apply(function () {
 
-                    $scope.object = result;
-                    $scope.$emit(emittedEvents.uploaded, { sender: $scope, args: result });
+                    $scope.object = object;
+
+                    $scope.alerts.push({
+                        type: 'warning',
+                        msg: 'File was deleted for item:' + result.id
+                    });
+
+                    $scope.$emit(emittedEvents.updated, { sender: $scope, args: result });
                 });
             });
 
@@ -497,8 +513,7 @@
     // by leveraging azure mobile service api
     ncb.directive('ncbDatacontext', ['$http', function ($http) {
 
-        function link( $scope, element, attrs )
-        {
+        function link($scope, element, attrs) {
             return new dataContext($scope, element, attrs, $http);
         }
 
@@ -635,7 +650,7 @@
             priority: 9999, // make sure we got compiled first
         };
     }]);
-    
+
     ncb.directive('ncbInsertbutton', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
@@ -696,7 +711,7 @@
                     target = $scope.$parent.$eval(attrs.target);
                 }
 
-                if (target.indexOf( $scope.newItem ) >= 0 ) {
+                if (target.indexOf($scope.newItem) >= 0) {
 
                     $scope.$parent.alerts.push({
                         msg: "Duplicate Item: " + $scope.newItem
@@ -793,7 +808,7 @@
             templateUrl: '/Modules/DatabaseSystem/template/ncbLookupbox.html'
         };
     }]);
-    
+
     ncb.directive('ncbAttachmentmanager', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
@@ -903,7 +918,7 @@
             restrict: 'E',
             replace: true,
             link: link,
-            scope : false,
+            scope: false,
             templateUrl: '/Modules/DatabaseSystem/template/ncbAttachmentManager.html'
         };
     }]);

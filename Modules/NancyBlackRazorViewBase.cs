@@ -333,9 +333,14 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public IEnumerable<dynamic> GetAttachments( string type = null )
+        public IEnumerable<dynamic> GetAttachments( dynamic content = null, string type = null )
         {
-            var jarray = this.Content.Attachments as JArray;
+            if (content == null)
+            {
+                content = this.Content;
+            }
+
+            var jarray = content.Attachments as JArray;
             if (jarray == null)
             {
                 return new dynamic[] { };
@@ -351,7 +356,6 @@ namespace NantCom.NancyBlack
                    where item.Type == type
                    select item;
         }
-
 
         #endregion
     }

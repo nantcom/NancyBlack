@@ -257,6 +257,16 @@
 
         <ul class="pages"
             sv-root sv-part="pages" sv-on-sort="ctrl.update()">
+            <li>
+                <a ng-click="ctrl.add($event)">
+                    <i class="ion-ios-plus-outline"></i>
+                    new {{itemwording}}
+                </a>
+                <a ng-click="ctrl.massadd($event)">
+                    <i class="ion-ios-plus-outline"></i>
+                    lots of new {{itemwording}}s
+                </a>
+            </li>
             <li ng-repeat="item in pages" sv-element="opts">
                 <div>
                     <a ng-click="ctrl.delete($event, item)"
@@ -267,6 +277,8 @@
 
                     <i class="ion ion-ios-bookmarks-outline hideover"></i>
 
+                    <img ng-src="{{item.Attachments[0].Url}}" />
+
                     {{item.Title}}
 
                     <a ng-click="ctrl.view($event, item)"
@@ -274,16 +286,6 @@
                         <i class="ion-android-open"></i>
                     </a>
                 </div>
-            </li>
-            <li>
-                <a ng-click="ctrl.add($event)">
-                    <i class="ion-ios-plus-outline"></i>
-                    new {{itemwording}}
-                </a>
-                <a ng-click="ctrl.massadd($event)">
-                    <i class="ion-ios-plus-outline"></i>
-                    lots of new {{itemwording}}s
-                </a>
             </li>
         </ul>
 
@@ -327,21 +329,13 @@
         <ncb-modal id="massnewitemmodal" closebutton
                    title="Mass Add">
 
-            <tabset>
-                <tab heading="Using Pictures">
+            Drag and drop pictures in to the area below to quickly add new {{itemwording}}
+            for each dropped picture. You will be able to change url of each
+            later.
 
-                    Drag and drop pictures in to the area below to quickly add new {{itemwording}}
-                    for each dropped picture. You will be able to change url of each
-                    later.
-
-
-                </tab>
-                <tab heading="Using Excel">
-
-                    You can also quickly add new items using excel. Go to
-                    <a ng-href="/Admin/tables/{{collection.name}}" target="_blank">Admin Interface</a> to do it now.
-                </tab>
-            </tabset>
+            <div ncb-dropable whendrop="ctrl.massAddUsingFiles">
+                <i class="ion-ios-plus-outline"></i>
+            </div>
 
         </ncb-modal>
 
@@ -356,16 +350,16 @@
     <div id="menu">
         <div>
             <a class="backbutton" href="#"
-               ng-click="ctrl.goback($event)"
-               ng-cloak
-               ng-show="menu.stack.length > 1">
+                ng-click="ctrl.goback($event)"
+                ng-cloak
+                ng-show="menu.stack.length > 1">
                 <i class="ion-ios-arrow-thin-left"></i>
                 {{menu.backbuttonText}}
             </a>
             <a class="pull-right" href="#"
-               ng-click="ctrl.cancel($event)"
-               ng-cloak
-               ng-show="menu.altbuttonText != null">
+                ng-click="ctrl.cancel($event)"
+                ng-cloak
+                ng-show="menu.altbuttonText != null">
                 {{menu.altbuttonText}}
             </a>
         </div>
@@ -373,6 +367,8 @@
             <div ng-include="menu.content">
             </div>
         </div>
+
+        <i id="menuloading" class="fa fa-spin fa-circle-o-notch fa-2x"></i>
     </div>
 
     <div id="siteContent">

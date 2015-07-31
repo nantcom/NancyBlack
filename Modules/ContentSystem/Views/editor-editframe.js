@@ -77,7 +77,7 @@
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     };
 
-    ncbEditor.controller("NancyWhite", function ($scope, $rootScope, $http) {
+    ncbEditor.controller("NancyWhite", function ($scope, $rootScope, $http, $timeout) {
 
         var $me = this;
         var siteView = $("#siteview");
@@ -219,7 +219,11 @@
                 menu.addClass("loading");
             });
 
-            menu.removeClass("loading");
+            $timeout(function () {
+
+                menu.removeClass("loading");
+            }, 1500);
+            
 
             // Link to CSS for edit area
             siteView.contents()
@@ -654,15 +658,17 @@
         var initialize = function () {
 
             $scope.rootUrl = $scope.currentUrl;
-            if ($scope.globals.activecollection != null) {
+            if ($scope.globals.activecollection == null) {
 
-                $scope.rootUrl = $scope.globals.activecollection.url;
-                $scope.collection = $scope.globals.activecollection;
-                $scope.globals.activecollection = null;
+                throw "$scope.globals.activecollection cannot be null";
             }
+            
+            $scope.rootUrl = $scope.globals.activecollection.url;
+            $scope.collection = $scope.globals.activecollection;
+            $scope.globals.activecollection = null;
 
             $scope.itemwording = "page";
-            if ($scope.collection != null) {
+            if ($scope.collection.table != "content") {
 
                 $scope.itemwording = "item";
             }
@@ -725,7 +731,7 @@
             e.preventDefault();
         };
 
-        $me.commitAdd = function () {
+        $me.commitAdd = function (callback) {
 
             var slug = $me.convertToSlug($scope.newItem.Title);
             var finalUrl = $scope.rootUrl + "/" + slug;
@@ -757,7 +763,13 @@
                     $scope.pages.push(item);
                     $("#newitemmodal").modal("hide");
 
-                    siteView.contents()[0].location.reload();
+                    if (callback == null) {
+
+                        siteView.contents()[0].location.reload();
+                    } else {
+
+                        callback(item);
+                    }
                 });
 
             });
@@ -773,6 +785,46 @@
             $scope.alerts = [];
             $("#massnewitemmodal").modal("show");
             e.preventDefault();
+        };
+
+        $me.massAddUsingFiles = function (files) {
+
+            if (files.length == 0) {
+                return;
+            }
+
+            var index = 0;
+            var fileList = files;
+
+            var continueNextFile = function ( updated ) {
+
+                $scope.pages[$scope.pages.length - 1] = updated;
+                
+                index++;
+                if (index >= fileList.length) {
+
+                    $scope.reloadSiteView();
+                    return;
+                }
+
+                createNewItem();
+            };
+
+            var uploadFile = function ( newItem ) {
+
+                $scope.object = newItem;
+                var file = fileList[index];
+
+                $scope.data.upload(file, continueNextFile);
+            };
+
+            var createNewItem = function () {
+
+                $scope.newItem.Title = "" + ($scope.pages.length + 1); //use numerical name
+                $me.commitAdd( uploadFile ); // commit add then upload file
+            };
+
+            createNewItem();
         };
 
         //#endregion

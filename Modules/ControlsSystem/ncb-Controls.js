@@ -788,6 +788,7 @@
         };
     }]);
 
+    // on-off button
     module.directive('ncbOnoff', ['toggleSwitchConfig', function (toggleSwitchConfig) {
         return {
             restrict: 'EA',
@@ -855,6 +856,7 @@
         };
     }]);
 
+    // add 'active' class to menu
     module.directive('ncbMenu', function () {
 
         function link(scope, element, attrs) {
@@ -887,6 +889,117 @@
                     }
                     current.addClass(activeClass);
                 }
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    // make the element support drop event with ease
+    module.directive('ncbDropable', function () {
+
+        function link(scope, element, attrs) {
+
+            if (attrs.whendrop == null) {
+                
+                throw "whendrop attribute is required.";
+            }
+
+            var enterClass = attrs.enterclass;
+            if (enterClass == null) {
+                enterClass = "hintdrop";
+            }
+
+            var handleEnter = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                element.addClass(enterClass);
+            };
+            var cancel = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            };
+
+            element.on('dragenter', handleEnter);
+            element.on('dragover', cancel);
+
+            element.on('drop', function (e) {
+
+                e.preventDefault();
+
+                var fn = scope.$eval(attrs.whendrop);
+                if (fn == null) {
+                    
+                    throw attrs.whendrop + " does not resolve to function";
+                }
+                fn(e.originalEvent.dataTransfer.files);
+
+            });
+            element.on('dragleave', function (e) {
+
+                cancel(e);
+                element.removeClass(enterClass);
+
+            });
+
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    // insert background image with css
+    module.directive('ncbBackground', function () {
+
+        function link(scope, element, attrs) {
+
+            element.css("background-image", "url('" + attrs.ncbBackground + "')");
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    // toggle other element class on click
+    module.directive('ncbToggle', function () {
+
+        function link(scope, element, attrs) {
+
+            if (element.data("on") == null) {
+
+                throw "on attribute is required";
+            }
+
+            if (attrs.ncbToggle == "") {
+
+                throw "ncbToggle value is required";
+            }
+
+            element.on("click", function (e) {
+
+                if (element.attr("href") == "#") {
+                    e.preventDefault();
+                }
+
+                if (element.data("clear") != null) {
+
+                    $(element.data("clear")).removeClass(attrs.ncbToggle);
+                }
+
+                $(element.data("on")).toggleClass(attrs.ncbToggle);
+            });
+
+            element.on("blur", function (e) {
+
+                $(element.data("on")).toggleClass(attrs.ncbToggle);
             });
         }
 

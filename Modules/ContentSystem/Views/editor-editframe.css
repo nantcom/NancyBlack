@@ -142,16 +142,30 @@ a.success:hover {
   -ms-user-select: none;
   -webkit-user-select: none;
   user-select: none;
-  transition: all ease 0.2s;
+  height: 100%;
+  position: relative;
 }
 #menu.loading {
-  opacity: 0.1;
+  opacity: 0.5;
   pointer-events: none;
+}
+#menu.loading #menuloading {
+  opacity: 1;
+  visibility: visible;
+}
+#menu #menuloading {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity linear 0.2s;
 }
 #menu > div:first-child {
   margin-top: 20px;
-  min-height: 40px;
   text-transform: uppercase;
+  height: 40px;
+  position: absolute;
 }
 #menu > div:first-child .backbutton {
   font-size: 100%;
@@ -170,6 +184,13 @@ a.success:hover {
   font-size: 80%;
   padding-top: 10px;
   opacity: 0.8;
+}
+#menu #menucontent {
+  position: absolute;
+  left: 10px;
+  right: 0;
+  top: 50px;
+  overflow-y: auto;
 }
 #menu h1 {
   color: #0b0b0b;
@@ -279,6 +300,14 @@ a.success:hover {
   -o-transition: all ease 0.2s;
   -webkit-transition: all ease 0.2s;
   transition: all ease 0.2s;
+  z-index: 6666;
+}
+.pages li img {
+  height: 30px;
+  max-width: 30px;
+  vertical-align: middle;
+  position: relative;
+  transition: all ease 0.2s;
 }
 .pages li a.leftaction {
   left: -20px;
@@ -290,6 +319,10 @@ a.success:hover {
   opacity: 0;
   pointer-events: none;
 }
+.pages li:hover img {
+  transform: scale(5);
+  z-index: 6665;
+}
 .pages li:hover a.leftaction {
   left: 10px;
   opacity: 1;
@@ -297,4 +330,15 @@ a.success:hover {
 }
 .pages li:hover a.rightaction {
   opacity: 1;
+}
+#massnewitemmodal [ncb-dropable] {
+  text-align: center;
+  line-height: 40px;
+  background-color: #8ea1ca;
+  border-radius: 2px;
+  margin: 20px 0;
+  cursor: copy;
+}
+#massnewitemmodal [ncb-dropable].hintdrop {
+  border: 5px 67.450980392% dashed;
 }
