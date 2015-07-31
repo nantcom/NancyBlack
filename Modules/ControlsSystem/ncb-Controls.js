@@ -606,6 +606,10 @@
                 element.find(".modal-dialog").addClass("modal-lg");
             }
 
+            if (element.is("[sm]")) {
+                element.find(".modal-dialog").addClass("modal-sm");
+            }
+
             if (element.is("[deletebutton]") == false)
             {
                 element.find("button.ncb-modal-delete").remove();

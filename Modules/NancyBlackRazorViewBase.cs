@@ -107,21 +107,6 @@ namespace NantCom.NancyBlack
         }
         
         /// <summary>
-        /// Gets the absolute site path from given path
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <returns></returns>
-        public string SitePath( string path )
-        {
-            if (this.Site == null)
-            {
-                return path;
-            }
-
-            return string.Concat("/Sites/", this.Site.HostName, path);
-        }
-
-        /// <summary>
         /// Create Razor Compatible dynamic from anonymous type
         /// </summary>
         /// <param name="input"></param>

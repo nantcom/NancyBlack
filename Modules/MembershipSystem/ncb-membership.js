@@ -3,126 +3,7 @@
     // Querystring extraction function
     (function (n) { "use strict"; n.QueryStringParser = function (n) { var r = [], t, u, e, i, f; try { for (t = n.split("?")[1].split("#"), n = t[0], t[1] && (r["#"] = decodeURIComponent(t[1])), u = n.split("&"), e = u.length, i = 0; i < e; i++) f = u[i].split("="), r[f[0]] = decodeURIComponent(f[1]) } catch (o) { } return r }; var t = n.QueryStringParser(location.search); n.Querystring = function (n) { if (n === "#") { if (location.hash) return location.hash.substr(1) } else return t[n] } })(jQuery);
 
-
-    /*!
-     * jQuery Cookie Plugin v1.4.1
-     * https://github.com/carhartl/jquery-cookie
-     *
-     * Copyright 2006, 2014 Klaus Hartl
-     * Released under the MIT license
-     */
-    (function (factory) {
-        if (typeof define === 'function' && define.amd) {
-            // AMD
-            define(['jquery'], factory);
-        } else if (typeof exports === 'object') {
-            // CommonJS
-            factory(require('jquery'));
-        } else {
-            // Browser globals
-            factory(jQuery);
-        }
-    }(function ($) {
-
-        var pluses = /\+/g;
-
-        function encode(s) {
-            return config.raw ? s : encodeURIComponent(s);
-        }
-
-        function decode(s) {
-            return config.raw ? s : decodeURIComponent(s);
-        }
-
-        function stringifyCookieValue(value) {
-            return encode(config.json ? JSON.stringify(value) : String(value));
-        }
-
-        function parseCookieValue(s) {
-            if (s.indexOf('"') === 0) {
-                // This is a quoted cookie as according to RFC2068, unescape...
-                s = s.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-            }
-
-            try {
-                // Replace server-side written pluses with spaces.
-                // If we can't decode the cookie, ignore it, it's unusable.
-                // If we can't parse the cookie, ignore it, it's unusable.
-                s = decodeURIComponent(s.replace(pluses, ' '));
-                return config.json ? JSON.parse(s) : s;
-            } catch(e) {}
-        }
-
-        function read(s, converter) {
-            var value = config.raw ? s : parseCookieValue(s);
-            return $.isFunction(converter) ? converter(value) : value;
-        }
-
-        var config = $.cookie = function (key, value, options) {
-
-            // Write
-
-            if (arguments.length > 1 && !$.isFunction(value)) {
-                options = $.extend({}, config.defaults, options);
-
-                if (typeof options.expires === 'number') {
-                    var days = options.expires, t = options.expires = new Date();
-                    t.setTime(+t + days * 864e+5);
-                }
-
-                return (document.cookie = [
-                    encode(key), '=', stringifyCookieValue(value),
-                    options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
-                    options.path    ? '; path=' + options.path : '',
-                    options.domain  ? '; domain=' + options.domain : '',
-                    options.secure  ? '; secure' : ''
-                ].join(''));
-            }
-
-            // Read
-
-            var result = key ? undefined : {};
-
-            // To prevent the for loop in the first place assign an empty array
-            // in case there are no cookies at all. Also prevents odd result when
-            // calling $.cookie().
-            var cookies = document.cookie ? document.cookie.split('; ') : [];
-
-            for (var i = 0, l = cookies.length; i < l; i++) {
-                var parts = cookies[i].split('=');
-                var name = decode(parts.shift());
-                var cookie = parts.join('=');
-
-                if (key && key === name) {
-                    // If second argument (value) is a function it's a converter...
-                    result = read(cookie, value);
-                    break;
-                }
-
-                // Prevent storing a cookie that we couldn't decode.
-                if (!key && (cookie = read(cookie)) !== undefined) {
-                    result[name] = cookie;
-                }
-            }
-
-            return result;
-        };
-
-        config.defaults = {};
-
-        $.removeCookie = function (key, options) {
-            if ($.cookie(key) === undefined) {
-                return false;
-            }
-
-            // Must not alter options, thus extending a fresh object...
-            $.cookie(key, '', $.extend({}, options, { expires: -1 }));
-            return !$.cookie(key);
-        };
-
-    }));
-
-
+    //#region MD5
 
     /*
      * JavaScript MD5 1.0.1
@@ -399,16 +280,19 @@
         }
     }(this));
 
+    //#endregion
+
     var membership = angular.module('ncb-membership', []);
 
     // module scoped variables;
     var $module = {};
     
-    $module.currentUser = $.cookie("UserInfo");
     $module.currentProfileController = null;
     $module.currentLoginController = null;
 
     membership.controller('MemberShip-LoginController', ['$scope', '$http', function ($scope, $http ) {
+
+        var $me = this;
 
         if ($module.currentLoginController != null) {
             throw "Only One Login Controller is permitted";
@@ -418,9 +302,10 @@
 
         $scope.alerts = [];
         $scope.login = {};
+        $scope.mode = 'login';
         $scope.user = $module.currentUser;
 
-        this.closeAlert = function (index) {
+        $scope.closeAlert = function (index) {
             $scope.alerts.splice(index, 1);
         };
 
@@ -468,27 +353,27 @@
 
         this.register = function () {
 
-            if ($scope.newuser.email == null ||
-                $scope.newuser.password == null ||
-                ($scope.newuser.password != $scope.newuser.passwordConfirm)) {
+            if ($scope.login.email == null ||
+                $scope.login.password == null ||
+                ($scope.login.password != $scope.login.passwordConfirm)) {
 
                 return;
             }
 
-            $http.post('/__membership/register', { Email: $scope.newuser.email, Password: window.md5($scope.newuser.password) }).
+            $http.post('/__membership/register', { Email: $scope.login.email, Password: window.md5($scope.login.password) }).
             success(function (data, status, headers, config) {
 
-                $scope.newuser = {}
-                $scope.alerts.push({ type: 'success', msg: 'ลงทะเบียนเรียบร้อยแล้ว' });
+                $scope.login = {}
+                $scope.alerts.push({ type: 'success', msg: 'Registration Completed.' });
 
                 loginUser();
 
             }).
             error(function (data, status, headers, config) {
 
-                $scope.newuser.password = null;
-                $scope.newuser.passwordConfirm = null;
-                $scope.alerts.push({ type: 'danger', msg: 'อีเมลล์นี้มีผู้ใช้งานแล้ว' });
+                $scope.login.password = null;
+                $scope.login.passwordConfirm = null;
+                $scope.alerts.push({ type: 'danger', msg: 'This email was used.' });
 
             });
 

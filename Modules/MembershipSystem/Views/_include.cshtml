@@ -1,4 +1,11 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 
-@this.Html.Partial("ncb-membership-logindialog")
-@this.Html.Partial("ncb-membership-profiledialog")
+
+@if (this.CurrentUser != null)
+{
+    @this.Html.Partial("ncb-membership-profiledialog")
+}
+else
+{
+    @this.Html.Partial("ncb-membership-logindialog")
+}

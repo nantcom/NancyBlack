@@ -390,9 +390,12 @@
 
         };
 
-        $scope.$on("ncb-datacontext.loaded", function () {
+        $scope.$on("ncb-datacontext.loaded", function (e, args) {
 
-            $me.initializeEditor($scope.globals.editing);
+            if (args.sender == $scope) {
+
+                $me.initializeEditor($scope.globals.editing);
+            }
         });
     });
 
@@ -829,7 +832,13 @@
 
         //#endregion
 
-        $scope.$on("ncb-datacontext.loaded", refreshCollection);
+        $scope.$on("ncb-datacontext.loaded", function (e, args) {
+
+            if (args.sender == $scope) {
+
+                refreshCollection();
+            }
+        });
         
         $scope.$on("siteView-reloaded", function () {
 
