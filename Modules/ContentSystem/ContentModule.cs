@@ -110,6 +110,12 @@ namespace NantCom.NancyBlack.Modules
                 requestedContent = ContentModule.CreateContent(this.SiteDatabase, url);
             }
 
+            // set the typeName to content if not set
+            if (requestedContent.typeName == null)
+            {
+                requestedContent.typeName = "content";
+            }
+
             if (string.IsNullOrEmpty((string)requestedContent.RequiredClaims) == false)
             {
                 var required = ((string)requestedContent.RequiredClaims).Split(',');
