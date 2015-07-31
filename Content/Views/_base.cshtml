@@ -2,20 +2,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @*<title>        
-        @this.Model.Content.Title
-        @RenderSection("Title", false)
-    </title>
 
-    @if (this.Model.Content.MetaKeywords != null)
+    @if (this.Model != null && this.Model.Content != null)
     {
-        <meta name="keywords" content="@(this.Model.Content.MetaKeywords)">
+        <title>
+            @if (this.Model.Content.Title != null)
+            {
+                @this.Model.Content.Title
+            }
+            @RenderSection("Title", false)
+        </title>
+
+        @if (this.Model.Content.MetaKeywords != null)
+        {
+            <meta name="keywords" content="@(this.Model.Content.MetaKeywords)">
+        }
+
+        @if (this.Model.Content.MetaDescription != null)
+        {
+            <meta name="description" content="@(this.Model.Content.MetaDescription)">
+        }
     }
-
-    @if (this.Model.Content.MetaDescription != null)
+    else
     {
-        <meta name="description" content="@(this.Model.Content.MetaDescription)">
-    }*@
+        <title>
+            @RenderSection("Title", false)
+        </title>
+    }
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -41,25 +54,10 @@
     <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-    <link href="/Content/bootstrap.min.css" rel="stylesheet" />
-    <link href="/Content/bootstrap-theme.min.css" rel="stylesheet" />
-    <link href="/Content/font-awesome.min.css" rel="stylesheet" />
-    <link href="/Content/ionicons/css/ionicons.min.css" rel="stylesheet" />
-    <link href="/Content/Scripts/angular-ui-select/select.min.css" rel="stylesheet" />
+    <link href="/Content/ncb-dependencies.css" rel="stylesheet" />
 
-    <!--Adding Media Queries Support for IE8-->
-    <!--[if lt IE 9]>
-       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-       <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
-    <![endif]-->
     @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
 
-    @if (this.RenderContext.Context.Request.Url.Path.Contains("/Admin") == false &&
-                        this.RenderContext.Context.Request.Url.Path.Contains("/SuperAdmin") == false)
-    {
-        <link rel="stylesheet" href="@this.SitePath("/style.min.css")">
-    }
     @this.RenderSection("Style", false)
     @this.RenderSection("Head", false)
 
@@ -70,45 +68,26 @@
     </style>
 
 </head>
-<body @(this.IsInEditMode ? "editmode" : "" )>
+<body>
 
     @RenderBody()
 
-    @if (this.CurrentUser != null)
-    {
-        <script>
-
+    <script>
+        @if (this.CurrentUser != null)
+        {
             // automatically set current user info into window variable
-            window.currentUser =  @this.Html.Raw( this.GetJson( this.CurrentUser ) );
+            <text>
+        window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
+        </texT>
+        }
 
-        </script>
-    }
+        // automatically set current model into window variable
+        window.model = { };
+        window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
 
-    @if (this.IsInEditMode == true)
-    {
-        <script>
+    </script>
 
-            // automatically set current model into window variable
-            window.model =  @this.Html.Raw( this.GetJson( this.Model ) );
-
-        </script>
-    }
-
-    <!-- String Format -->
-    <script src="/Content/Scripts/stringformat/stringformat-1.09.min.js"></script>
-
-    <script src="/Content/Scripts/jquery-2.1.1.js"></script>
-    <script src="/Content/Scripts/bootstrap.js"></script>
-    <script src="/Content/Scripts/angular.js"></script>
-    <script src="/Content/Scripts/angular-animate.js"></script>
-    <script src="/Content/Scripts/angular-sanitize.js"></script>
-    <script src="/Content/Scripts/angular-cookies.min.js"></script>
-    <script src="/Content/Scripts/angular-ui/ui-bootstrap-tpls.js"></script>
-    <script src="/Content/Scripts/MobileServices.Web-1.2.5.min.js"></script>
-
-    <!-- Angular UI Modules -->
-    <script src="/Content/Scripts/angular-ui-select/select.min.js"></script>
-    <script src="/Content/Scripts/angular-ui/ui-validate.js"></script>
+    <script src="/Content/Scripts/ncb-dependencies.js"></script>
 
     @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
 
@@ -125,12 +104,12 @@
     <script>
 
         $(document).ready( function() {
-            
+
             // base modules
             var modules = [
                 "ui.bootstrap",
-                "ui.select",
                 "ui.validate",
+                "ui.select",
                 "ngAnimate",
                 "ngSanitize",
                 "ngCookies",
@@ -147,15 +126,32 @@
             });
 
             angular.bootstrap($("body"), modules);
+
+            //#region Helper to support drag and drop and prevent dropping file to document
+
+            var handleEnter = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                $("[dropable]").addClass("hintdrop");
+            };
+            var cancel = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            };
+
+            $(document).on('dragenter', cancel);
+            $(document).on('dragover', handleEnter);
+            $(document).on('drop', cancel);
+
+            //#endregion
         });
     </script>
-
-    @if (this.Site.FacebookAppId != null)
+    @if (this.Site.application.FacebookAppId != null)
     {
         <script>
             window.fbAsyncInit = function () {
                 FB.init({
-                    appId: '@(this.Site.FacebookAppId)',
+                    appId: '@(this.Site.application.FacebookAppId)',
                     xfbml: true,
                     version: 'v2.2'
                 });
@@ -189,5 +185,7 @@
     }
 
 </body>
+
+
 
 </html>
