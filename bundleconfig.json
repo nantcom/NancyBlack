@@ -1,0 +1,39 @@
+[
+  {
+    "outputFileName": "Content/Scripts/ncb-dependencies.js",
+    "inputFiles": [
+      "Content/Scripts/jquery-2.1.1.min.js",
+      "Content/Scripts/bootstrap.min.js",
+      "Content/Scripts/angular.min.js",
+      "Content/Scripts/angular-animate.min.js",
+      "Content/Scripts/angular-sanitize.min.js",
+      "Content/Scripts/angular-cookies.min.js",
+      "Content/Scripts/angular-cookies.min.js",
+      "Content/Scripts/angular-local-storage.min.js",
+      "Content/Scripts/angular-ui/ui-bootstrap-tpls.min.js",
+      "Content/Scripts/angular-ui/ui-validate.min.js",
+      "Content/Scripts/MobileServices.Web-1.2.5.min.js",
+      "Content/scripts/angular-ui-select/select.min.js"
+    ],
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMaps": false
+  },
+  {
+    "outputFileName": "Content/ncb-dependencies.css",
+    "inputFiles": [
+      "Content/bootstrap.min.css",
+      "Content/font-awesome.min.css",
+      "Content/ionicons/css/ionicons.min.css",
+      "Content/Scripts/angular-ui-select/select.min.css"
+    ],
+    "minify": {
+      "enabled": true,
+      "termSemicolons": true
+    },
+    "includeInProject": true,
+    "sourceMaps": false
+  }
+]

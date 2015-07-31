@@ -17,6 +17,11 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
             
             Get["/__editor"] = this.HandleRequest((arg) =>
             {
+                if (this.CurrentUser.HasClaim( "editor" ) == false)
+                {
+                    return 403;
+                }
+
                 return View["editor-editframe", this.GetModel()];
             });
 

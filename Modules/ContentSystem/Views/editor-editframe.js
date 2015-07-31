@@ -1,6 +1,6 @@
 ﻿(function () {
 
-    var ncbEditor = angular.module("editor-frame", ['ngRoute', 'ngAnimate', 'angular-sortable-view']);
+    var ncbEditor = angular.module("editor-frame", ['ngAnimate', 'angular-sortable-view']);
 
     var util = {};
     util.listeditable = function (siteView) {
