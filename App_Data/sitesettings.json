@@ -1,11 +1,6 @@
 {
   "smtp": {
-    "fromEmail": "nancyblack@nant.co",
-    "server": "smtp.sendgrid.net",
-    "port": 25,
-    "username": "azure_af6ff7a51aa3f5c560b308d02e2c2816@azure.com",
-    "password": "ejRrplaC45LGM7O",
-    "useSSL": false
+
   },
   "watcher": {
     "content": {
