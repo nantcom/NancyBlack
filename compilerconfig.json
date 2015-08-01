@@ -48,5 +48,15 @@
     "includeInProject": true,
     "sourceMap": false,
     "options": {}
+  },
+  {
+    "outputFile": "Modules/CommerceSystem/ncb-commerce.css",
+    "inputFile": "Modules/CommerceSystem/ncb-commerce.less",
+    "minify": {
+      "enabled": true
+    },
+    "includeInProject": true,
+    "sourceMap": false,
+    "options": {}
   }
 ]

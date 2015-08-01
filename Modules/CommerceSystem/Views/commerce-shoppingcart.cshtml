@@ -1,2 +1,27 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 
+@{
+    this.Layout = "_base";
+}
+
+@section Head
+{
+    <style>
+        html {
+            height: 100%;
+        }
+        body {
+            box-shadow: 0 0 100px black inset;
+            height: 100%;
+            background-image: url('/Modules/CommerceSystem/images/shopping_blur.jpg');
+            background-size:cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+
+        }
+    </style>
+}
+
+<div ncg-cart
+     ng-include="'/modules/commercesystem/templates/ncg-cartmodal.html'">
+</div>

@@ -27,6 +27,8 @@ namespace NantCom.NancyBlack.Modules
 
             Get["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
 
+            Get["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleSingleItemRequest);
+
             Post["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
             Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
@@ -39,6 +41,14 @@ namespace NantCom.NancyBlack.Modules
 
             Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
 
+        }
+
+        private dynamic HandleSingleItemRequest(NancyBlackDatabase db, dynamic args)
+        {
+            var tableName = (string)args.table_name;
+            var id = (int)args.item_id;
+
+            return this.SiteDatabase.GetByIdAsJObject(tableName, id);
         }
 
         protected string GetAttachmentFolder(string tableName, string id)

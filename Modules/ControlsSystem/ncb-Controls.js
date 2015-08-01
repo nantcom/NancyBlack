@@ -989,7 +989,7 @@
 
             element.on("click", function (e) {
 
-                if (element.attr("href") == "#") {
+                if (element.attr("href") == "#" || attrs.stop != null) {
                     e.preventDefault();
                 }
 

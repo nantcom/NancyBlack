@@ -58,7 +58,7 @@
             cartSystem.add = function (productId) {
 
                 cartSystem.ensureCartAvailable();
-                cartSystem.cart.items.push(productId);
+                cartSystem.cart.items.push(parseInt(productId));
                 cartSystem.saveCart();
             };
 
@@ -67,7 +67,23 @@
 
                 cartSystem.ensureCartAvailable();
 
-                cartSystem.cart.items = _.without(cartSystem.cart.items, productId);
+                productId = parseInt(productId);
+                
+                var partitions = _.partition(cartSystem.cart.items, function (item) { return item == productId; } );
+                
+                var toRemove = partitions[0];
+                var remainder = partitions[1];
+
+                if (toRemove.length == 1) {
+
+                    if (confirm( "Do you want to remove this item?") == false) {
+                        return;
+                    }
+                }
+
+                toRemove.pop();
+                cartSystem.cart.items = toRemove.concat(remainder);
+
                 cartSystem.saveCart();
             };
 
@@ -169,6 +185,130 @@
             link: link,
             scope: true,
         };
+    });
+
+    // shows the link to open shopping cart and also hilight when content of the cart changed
+    ncg.directive('ncgCartbutton', function ($compile, $timeout) {
+
+        function link(scope, element, attrs) {
+
+            scope.modalsource = null;
+            var initialize = function () {
+
+                if (scope.initialized == true) {
+
+                    return;
+                }
+
+                if (cartSystem.cart == null || cartSystem.cart.items == null) {
+                    return;
+                }
+
+                scope.$watchCollection(function () { return cartSystem.cart.items; }, function () {
+
+                    // item was added/removed
+                    element.find("#cartbutton").addClass("notify");
+                });
+
+                scope.showcartmodal = function () {
+
+                    if ($("#cartmodal").length == 0) {
+
+                        $("body").css("cursor", "progress");
+                        $timeout(scope.showcartmodal, 400);
+                        return;
+                    }
+
+                    $("body").css("cursor", "default");
+                    $("#cartmodal").modal("show");
+                };
+
+                scope.viewCart = function (e) {
+
+                    e.preventDefault();
+
+                    if (scope.modalsource == null) {
+                        scope.modalsource = "/modules/commercesystem/templates/ncg-cartmodal.html";
+                    }
+
+                    scope.showcartmodal();
+                };
+
+                scope.initialized = true;
+            };
+
+            initialize();
+            scope.$on("ncg-cart.initialized", initialize);
+
+        }
+
+        return {
+            restrict: 'E',
+            templateUrl: '/Modules/CommerceSystem/templates/ncg-cartbutton.html',
+            link: link,
+            scope: true,
+            replace: true,
+        };
+    });
+
+    ncg.controller("ShoppingCart", function ($scope, $http, $timeout) {
+
+        if ($scope.shoppingcart == null) {
+
+            throw "require ncg-Cart in current scope";
+        }
+
+        var $me = this;
+        $scope.products = {};
+        $scope.cartView = {};
+
+        var getProdcutInfo = function (productid) {
+
+            $scope.data.getById(productid, function (item) {
+
+                $scope.$apply(function () {
+
+                    $scope.products[productid] = item;
+                });
+            });
+        };
+
+        var updateProductInfo = function () {
+
+            for (productid in $scope.cartView) {
+
+                if ($scope.products[productid] == null) {
+
+                    getProdcutInfo(productid);
+                }
+            }
+        };
+
+        var updateView = function () {
+            $scope.cartView = _.groupBy($scope.shoppingcart.cart.items, function (item) { return item; });
+            updateProductInfo();
+        };
+
+        $scope.$watchCollection(function () { return cartSystem.cart.items; }, updateView);
+
+        // view the cart directly
+        if (window.location.pathname == "/__commerce/cart") {
+
+            $scope.showcartmodal = function () {
+
+                if ($("#cartmodal").length == 0) {
+
+                    $("body").css("cursor", "progress");
+                    $timeout($scope.showcartmodal, 400);
+                    return;
+                }
+
+                $("body").css("cursor", "default");
+                $("#cartmodal").modal("show");
+            };
+
+            $scope.showcartmodal();
+        }
     });
 
 })();

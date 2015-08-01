@@ -9,15 +9,26 @@
 
 </div>
 
+@section Head
+{
+<style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        height: 100%;
+        background-image: url('/Modules/MembershipSystem/images/loginbg.jpg');
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+    }
+</style>
+}
+
 @section Scripts
 {
-    <style>
-        body {
-            background-image: url('/Modules/MembershipSystem/images/loginbg.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
-    </style>
+
     <script>
         $(document).ready(function () {
 

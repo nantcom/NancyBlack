@@ -70,6 +70,18 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
+            // invalid system links
+            if (url.StartsWith("/_", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return 404;
+            }
+
+            // invalid table get request
+            if (url.StartsWith("/tables", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return 404;
+            }
+
             dynamic requestedContent = null;
 
             // see if the url is collection request or content request

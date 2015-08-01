@@ -304,6 +304,28 @@
             }, $me.handleError);
         };
 
+        // get specific item using id
+        $scope.data.getById = function (id, callback) {
+
+            $scope.isBusy = true;
+
+            $scope.table.lookup(id).done(function (result) {
+
+                $me.processServerObject( result );
+                if (callback != null) {
+
+                    callback(result);
+                }
+
+                $scope.$apply(function () {
+
+                    $scope.isBusy = false;
+                });
+
+            }, $me.handleError);
+        };
+
+
         $scope.data.delete = function (object, callback) {
 
             if ($scope.object != null) {

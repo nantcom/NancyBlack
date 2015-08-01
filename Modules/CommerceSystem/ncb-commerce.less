@@ -1,0 +1,83 @@
+﻿#cartmodal {
+    font-style: normal;
+    font-family: 'Leelawadee UI', Leelawadee, Tahoma;
+    font-weight: 100;
+
+    .carousel {
+        margin-bottom: 50px;
+
+        h2 {
+            font-size: 150%;
+        }
+
+        .carousel-inner {
+
+            .item {
+                text-align: left !important;
+            }
+        }
+
+        .carousel-control {
+            display: none;
+        }
+
+        .carousel-indicators {
+            bottom: -50px;
+
+            li {
+                border-radius: 0;
+                border-color: transparent;
+                background-color: silver;
+                margin-right: 5px;
+            }
+
+            li.active {
+                background-color: orangered;
+            }
+        }
+    }
+
+    .item > table {
+        margin-top: 20px;
+
+        th {
+            font-weight: bold;
+        }
+
+        th:nth-child(1),
+        td:nth-child(1) {
+            text-align: center;
+            width: 5%;
+        }
+        
+        th:nth-child(2),
+        td:nth-child(2) {
+            text-align: center;
+            width: 100px;
+            
+            img {
+                width: 100%;
+                border: 1px solid silver;
+            }
+        }
+        
+        th:nth-child(4),
+        td:nth-child(4) {
+            text-align: center;
+            width: 15%;
+        }
+        
+        th:nth-child(5),
+        td:nth-child(5) {
+            text-align: center;
+            width: 15%;
+        }
+        
+        th:nth-child(6),
+        td:nth-child(6) {
+            text-align: right;
+            width: 15%;
+        }
+
+    }
+}
