@@ -34,8 +34,6 @@
 
             scope.shoppingcart = cartSystem;
 
-            cartSystem.cart = localStorageService.get('cart');
-
             // ensures that there is an initialized shopping cart
             cartSystem.ensureCartAvailable = function () {
 
@@ -52,6 +50,19 @@
                     };
                 }
 
+                if (cartSystem.cart.customer == null) {
+
+                    cartSystem.cart.customer = {};
+                }
+
+                if (scope.currentUser != null) {
+
+                    // user has logged in - update the cart info
+                    cartSystem.cart.customer.email = scope.currentUser.Email;
+                    cartSystem.cart.owner = scope.currentUser.Id;
+
+                    cartSystem.saveCart();
+                }
             };
 
             // Add item to Cart, itemId
@@ -68,15 +79,15 @@
                 cartSystem.ensureCartAvailable();
 
                 productId = parseInt(productId);
-                
-                var partitions = _.partition(cartSystem.cart.items, function (item) { return item == productId; } );
-                
+
+                var partitions = _.partition(cartSystem.cart.items, function (item) { return item == productId; });
+
                 var toRemove = partitions[0];
                 var remainder = partitions[1];
 
                 if (toRemove.length == 1) {
 
-                    if (confirm( "Do you want to remove this item?") == false) {
+                    if (confirm("Do you want to remove this item?") == false) {
                         return;
                     }
                 }
@@ -93,6 +104,9 @@
                 localStorageService.set('cart', cartSystem.cart);
                 cartSystem.totalitems = cartSystem.cart.items.length;
             };
+
+            cartSystem.cart = localStorageService.get('cart');
+            cartSystem.ensureCartAvailable();
 
             $rootScope.$broadcast("ncg-cart.initialized", { sender: scope });
         }
@@ -251,7 +265,7 @@
         };
     });
 
-    ncg.controller("ShoppingCart", function ($scope, $http, $timeout) {
+    ncg.controller("CheckoutModal", function ($scope, $http, $timeout) {
 
         if ($scope.shoppingcart == null) {
 
@@ -290,6 +304,26 @@
         };
 
         $scope.$watchCollection(function () { return cartSystem.cart.items; }, updateView);
+
+        $me.copytobilling = function () {
+
+
+            cartSystem.cart.billto = JSON.parse(JSON.stringify(cartSystem.cart.shipto));
+        };
+
+        $me.savecart = function (datacontext, next) {
+
+            datacontext.save(cartSystem.cart, next);
+        };
+
+        $me.moneytransfer = function ( datacontext) {
+
+            $me.savecart(datacontext, function ( item ) {
+
+                window.location.href = "/__commerce/saleorder/" + item.uuid + "/notifytransfer";
+
+            });
+        };
 
         // view the cart directly
         if (window.location.pathname == "/__commerce/cart") {

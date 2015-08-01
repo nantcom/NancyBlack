@@ -15,7 +15,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return View["commerce-shoppingcart", this.GetModel()];
 
             });
-
+            
         }
     }
 }

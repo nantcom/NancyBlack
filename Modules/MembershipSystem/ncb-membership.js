@@ -290,7 +290,9 @@
     $module.currentProfileController = null;
     $module.currentLoginController = null;
 
-    membership.controller('MemberShip-LoginController', ['$scope', '$http', function ($scope, $http ) {
+
+
+    membership.controller('MemberShip-LoginController', function ($scope, $http, $cookies) {
 
         var $me = this;
 
@@ -298,33 +300,29 @@
             throw "Only One Login Controller is permitted";
         }
 
-        $module.currentLoginController = this;
-
         $scope.alerts = [];
-        $scope.login = {};
+        $scope.login = {
+            email: null,
+            password: null,
+            passwordConfirm: '',
+        };
         $scope.mode = 'login';
-        $scope.user = $module.currentUser;
-
+       
         $scope.closeAlert = function (index) {
             $scope.alerts.splice(index, 1);
         };
 
-        var loginUser = function () {
+        var loginUser = function (user) {
 
             $("#loginDialog").modal('hide');
 
-            // show profile dialog if not from login page
-            if (window.location.href.indexOf("__membership/login") < 0) {
-                $("#profileDialog").modal('show');
-            }
+            var userInfo = JSON.parse( $cookies.UserInfo );
+            $scope.currentUser = userInfo;
+            window.currentUser = userInfo;
 
-            var userInfo = JSON.parse($.cookie("UserInfo"));
-            $module.currentUser = userInfo;
-
-            /* Broadcast event */
-            $.event.trigger({
-                type: "LoginController-UserLogin",
-                user: userInfo
+            $scope.$emit("ncb-membership.login", {
+                sender: $scope,
+                user: userInfo,
             });
         };
 
@@ -382,7 +380,7 @@
         this.view = function () {
             $('#loginDialog').modal('show');
         };
-    }]);
+    });
         
     membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient) {
 
@@ -451,6 +449,26 @@
             link: link
         };
     }]);
+
+    membership.directive('ncbMembership', function ($http, $compile) {
+
+        function link($scope, element, attrs) {
+
+            $scope.currentUser = window.currentUser;
+
+            $scope.membership = {};
+            $scope.membership.logout = function () {
+
+                $scope.currentUser = null;
+            };
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false
+        };
+    });
 
 
 })();

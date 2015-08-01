@@ -4,9 +4,11 @@
     font-weight: 100;
 
     .carousel {
-        margin-bottom: 50px;
+        min-height: 300px;
+        margin-bottom: 60px;
 
         h2 {
+            margin-top: 0;
             font-size: 150%;
         }
 
@@ -18,7 +20,19 @@
         }
 
         .carousel-control {
-            display: none;
+            background-image: none !important;
+            height: 50px !important;
+            color: orangered;
+            opacity: 0.5;
+            top: auto;
+            bottom: -55px;
+            width: auto;
+            padding: 20px;
+            cursor: pointer;
+
+            &:hover {
+                opacity: 1;
+            }
         }
 
         .carousel-indicators {
@@ -49,35 +63,92 @@
             text-align: center;
             width: 5%;
         }
-        
+
         th:nth-child(2),
         td:nth-child(2) {
             text-align: center;
             width: 100px;
-            
+
             img {
                 width: 100%;
                 border: 1px solid silver;
             }
         }
-        
+
         th:nth-child(4),
         td:nth-child(4) {
             text-align: center;
             width: 15%;
         }
-        
+
         th:nth-child(5),
         td:nth-child(5) {
             text-align: center;
             width: 15%;
         }
-        
+
         th:nth-child(6),
         td:nth-child(6) {
             text-align: right;
             width: 15%;
         }
+    }
 
+    form {
+        margin-top: 20px;
+    }
+
+    .disabled {
+        opacity: 0.2;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    .paymentpage {
+
+        .row {
+            margin-top: 20px;
+        }
+
+        .col-sm-3 {
+            button {
+                width: 100%;
+            }
+        }
+
+        .col-sm-8 {
+        }
+    }
+}
+
+#working {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: table;
+    z-index: 99999;
+    background-color: rgba(255,255,255,0.8);
+    box-shadow: inset white 0 0 50px;
+
+    visibility: collapse;
+    opacity : 0;
+    transition: opacity ease 1s;
+
+    > span {
+        display: table-cell;
+        text-align: center;
+        vertical-align: middle;
+
+        > i {
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+    }
+
+    &.show {
+        visibility: visible;
+        opacity: 1;
     }
 }

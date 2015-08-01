@@ -1,0 +1,388 @@
+﻿<ncb-modal id="cartmodal" title="Shopping Cart" lg
+           closebutton>
+
+    <div ng-show="shoppingcart.cart.items.length == 0">
+
+        <div class="text-danger">
+            Your shopping cart is currently empty.
+        </div>
+
+    </div>
+
+    <div ng-module="ncb-commerce"
+         ncb-datacontext-integrated table="product"
+         ng-show="shoppingcart.cart.items.length > 0"
+         ng-controller="CheckoutModal as ctrl">
+
+        <carousel interval="0" no-wrap="true">
+
+            <slide>
+
+                <h2 class="text-success">
+                    Ready to checkout? Let's Review your shopping cart.
+                    <i class="fa fa-spin fa-circle-o-notch"
+                       ng-show="isBusy"></i>
+                </h2>
+                Take a moment to check that you got everything, adjust the quantity or
+                remove items using the quantity column. When you are ready, click or tap on the orange arrow to continue.
+
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th></th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Line Total</th>
+                        </tr>
+                    </thead>
+                    <tr ng-repeat="(productid, values) in cartView">
+                        <td>
+                            {{$index + 1}}
+                        </td>
+                        <td>
+                            <img src="{{products[productid].Attachments[0].Url}}" />
+                        </td>
+                        <td>
+                            <div class="form-control-static">
+                                {{products[productid].Title}}
+                                <p class="text-muted">
+                                    {{productid}}
+                                </p>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="input-group">
+                                <span class="input-group-btn">
+                                    <a class="btn btn-default"
+                                       ng-click="shoppingcart.remove(productid)">-</a>
+                                </span>
+                                <span class="form-control">
+                                    {{values.length}}
+                                </span>
+                                <span class="input-group-btn">
+                                    <a class="btn btn-default"
+                                       ng-click="shoppingcart.add(productid)">+</a>
+                                </span>
+                            </span>
+                        </td>
+                        <td>
+                            {{prodcuts[productid].Price | number:0}}
+                        </td>
+                        <td>
+                            {{(prodcuts[productid].Price * values.length) | number:0}}
+                        </td>
+                    </tr>
+                    <tr class="summary">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            Total
+                        </td>
+                        <td>
+                            {{ctrl.getTotal()}}
+                        </td>
+                    </tr>
+                </table>
+
+            </slide>
+            <slide>
+                <div class="row">
+
+                    <div class="col-sm-8">
+
+                        <h2>
+                            Please tell us about yourself.
+                        </h2>
+                        <div ng-show="currentUser == null">
+                            We will need the following details to contact you about your purchase, just in case.<br />
+                            And by knowing more about you, we can serve you better.
+                        </div>
+                        <div ng-show="currentUser != null">
+                            Hi, please take a minute to ensure that your information is current.<br />
+                            Your information will be automatically saved upon checkout.
+                        </div>
+
+                        <form name="customer" class="form-horizontal">
+
+                            <input type="text" title="First Name"
+                                   ncb-textbox required ng-model="shoppingcart.cart.customer.firstName" />
+
+                            <input type="text" title="Last Name"
+                                   ncb-textbox required ng-model="shoppingcart.cart.customer.lastName" />
+
+                            <input type="email" title="Email"
+                                   ncb-textbox required ng-model="shoppingcart.cart.customer.email"
+                                   ng-readonly="currentUser != null" />
+
+                            <input type="text" title="Phone Number"
+                                   ncb-textbox required ng-model="shoppingcart.cart.customer.phone" />
+
+                            <input type="date" title="Birth Date"
+                                   ncb-textbox ng-model="shoppingcart.cart.customer.birthdate" />
+
+                            <p ncb-formstatic title="Gender">
+                                <a class="btn btn-default"
+                                   btn-radio="'male'" ng-model="shoppingcart.cart.customer.gender">
+                                    M
+                                </a>
+                                <a class="btn btn-default"
+                                   btn-radio="'female'" ng-model="shoppingcart.cart.customer.gender">
+                                    F
+                                </a>
+                                <a class="btn btn-default"
+                                   btn-radio="'others'" ng-model="shoppingcart.cart.customer.gender">
+                                    Other
+                                </a>
+                                <a class="btn btn-default"
+                                   btn-radio="''" ng-model="shoppingcart.cart.customer.gender">
+                                    I won't tell
+                                </a>
+                            </p>
+
+                        </form>
+
+                    </div>
+
+                    <div class="col-sm-4"
+                         ng-show="currentUser == null">
+
+                        <h2>
+                            Membership
+                        </h2>
+                        You can type a password to register and make your next purchase more convinient.
+
+                        <form name="login"
+                              ng-controller="MemberShip-LoginController as mctrl">
+
+                            <div class="form-group"
+                                 ng-init="mode='register'"
+                                 ng-show="mode=='login'">
+                                <input type="email" class="form-control" placeholder="Email" readonly
+                                       ng-model="login.email" />
+                            </div>
+
+                            <div class="form-group">
+                                <input type="password" class="form-control" placeholder="password"
+                                       ng-model="login.password" />
+                            </div>
+
+                            <div class="form-group">
+                                <input type="password" class="form-control" placeholder="confirm password"
+                                       ng-show="mode=='register'" ng-model="login.passwordConfirm" />
+                            </div>
+
+                            <div class="form-group">
+
+                                <button class="btn btn-success"
+                                        ng-show="mode == 'register'"
+                                        ng-disabled="login.password != login.passwordConfirm"
+                                        ng-click="login.email=shoppingcart.cart.customer.email; mctrl.register()">
+                                    Register
+                                </button>
+
+                                <button class="btn btn-success"
+                                        ng-show="mode =='login'"
+                                        ng-click="mctrl.login()">
+                                    Login
+                                </button>
+
+                                <a class="btn btn-default"
+                                   ng-click="mode='login'"
+                                   ng-show="login.email=shoppingcart.cart.customer.email; mode=='register'">
+                                    Want to login?
+                                </a>
+
+                                <a class="btn btn-default" ng-click="mode='register'"
+                                   ng-show="login.email=shoppingcart.cart.customer.email; mode=='login'">
+                                    Want to Register?
+                                </a>
+                            </div>
+
+                            <div class="form-group">
+                                <alert ng-repeat="alert in alerts"
+                                       type="{{alert.type}}" close="closeAlert($index)">
+                                    {{alert.msg}}
+                                </alert>
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                    <div class="col-sm-4"
+                         ng-show="currentUser != null">
+
+                        <h2>
+                            Welcome back!
+                        </h2>
+
+                        You are already logged on as:<br />
+                        <b>{{currentUser.UserName}}</b>
+
+                        <form>
+                            <div class="form-group">
+                                <button class="btn btn-default"
+                                        ng-click="membership.logout()">
+                                    Check out as another user
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+
+                <alert ng-show="customer.$valid == false && customer.$pristine == false"
+                       type="danger">
+                    Please make sure all fields in red are filled and email format is correct.
+                </alert>
+            </slide>
+            <slide>
+                <div class="row">
+                    <div class="col-sm-6">
+
+                        <h2>
+                            Shipping Address
+                        </h2>
+                        Address where you want your product to ship to. Please ensure that the
+                        address is correct to prevent delayed shipping.
+
+                        <form name="shipping" class="form-horizontal">
+
+                            <input type="text" title="Ships To" placeholder="Your name or Company Name"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.name" />
+
+                            <input type="text" title="Street" placeholder="eg: #73 Soi Rama IX 62"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.address" />
+
+                            <input type="text" title="Country"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.country" />
+
+                            <input type="text" title="State/Province"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.state" />
+
+                            <input type="text" title="District"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.district" />
+
+                            <input type="text" title="Subdistrict"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.subdistrct" />
+
+                            <input type="text" title="Postal Code"
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.postalcode" />
+
+                            <p ncb-formstatic title="">
+                                <a href="#"
+                                   ng-click="shoppingcart.cart.billing.use = true;ctrl.copytobilling()">Copy details to billing address.</a>
+                            </p>
+                        </form>
+                    </div>
+
+                    <div class="col-sm-6">
+
+                        <h2>
+                            <a class="btn btn-default pull-right" btn-checkbox
+                               ng-model="shoppingcart.cart.billing.use">
+                                Use
+                            </a>
+                            Billing Address
+                        </h2>
+                        If you wish to have receipt, which will be included with
+                        the package, issued using different detail - please enter it below.
+                        <form name="billing" class="form-horizontal"
+                              ng-class="{ 'disabled' : (shoppingcart.cart.billing.use == false || shoppingcart.cart.billing.use == null)}">
+
+                            <input type="text" title="Ships To" placeholder="Your name or Company Name"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.name" />
+
+                            <input type="text" title="Street" placeholder="eg: #73 Soi Rama IX 62"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.address" />
+
+                            <input type="text" title="Country"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.country" />
+
+                            <input type="text" title="State/Province"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.state" />
+
+                            <input type="text" title="District"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.district" />
+
+                            <input type="text" title="Subdistrict"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.subdistrct" />
+
+                            <input type="text" title="Postal Code"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.postalcode" />
+
+                        </form>
+                    </div>
+
+                </div>
+
+                <alert ng-show="shipping.$valid == false"
+                       type="danger">
+                    Shipping address is not valid, all fields are required.
+                </alert>
+
+                <alert ng-show="billing.$valid == false && billing.$pristine == false"
+                       type="warning">
+                    Billing address is not valid, all fields are required.
+                </alert>
+            </slide>
+            <slide class="paymentpage">
+                <div ncb-datacontext table="saleorder">
+                    <h2>
+                        We are ready to process your order.
+                    </h2>
+                    Please select how you want to pay.
+                    Your purcahse will be submitted and you will receive confirmation via email.<br />
+
+                    <div class="row">
+
+                        <div class="col-sm-3">
+                            <button class="btn btn-default" disabled
+                                    ng-click="ctrl.paysbuy(data)">
+                                PaySbuy
+                            </button>
+                        </div>
+                        <div class="col-sm-8">
+
+                            You will be transfered to <b>PaySbuy</b> to make a payment.
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <button class="btn btn-default" disabled
+                                    ng-click="ctrl.paypal(data)">
+                                PayPal
+                            </button>
+                        </div>
+                        <div class="col-sm-8">
+                            You will be transfered to <b>PayPal</b> to make a payment.
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <button class="btn btn-default"
+                                    ng-click="ctrl.moneytransfer(data)">
+                                Money Transfer
+                            </button>
+                        </div>
+                        <div class="col-sm-8">
+                            You will be transfered to Money Transfer notification page.
+                        </div>
+                    </div>
+                </div>
+            </slide>
+        </carousel>
+    </div>
+
+</ncb-modal>
+<div id="working">
+    <span>
+        <i class="fa fa-3x fa-spin fa-circle-o-notch"></i>
+        <span>working...</span>
+    </span>
+</div>

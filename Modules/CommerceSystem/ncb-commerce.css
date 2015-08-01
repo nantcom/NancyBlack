@@ -4,16 +4,29 @@
   font-weight: 100;
 }
 #cartmodal .carousel {
-  margin-bottom: 50px;
+  min-height: 300px;
+  margin-bottom: 60px;
 }
 #cartmodal .carousel h2 {
+  margin-top: 0;
   font-size: 150%;
 }
 #cartmodal .carousel .carousel-inner .item {
   text-align: left !important;
 }
 #cartmodal .carousel .carousel-control {
-  display: none;
+  background-image: none !important;
+  height: 50px !important;
+  color: orangered;
+  opacity: 0.5;
+  top: auto;
+  bottom: -55px;
+  width: auto;
+  padding: 20px;
+  cursor: pointer;
+}
+#cartmodal .carousel .carousel-control:hover {
+  opacity: 1;
 }
 #cartmodal .carousel .carousel-indicators {
   bottom: -50px;
@@ -62,4 +75,45 @@
 #cartmodal .item > table td:nth-child(6) {
   text-align: right;
   width: 15%;
+}
+#cartmodal form {
+  margin-top: 20px;
+}
+#cartmodal .disabled {
+  opacity: 0.2;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+#cartmodal .paymentpage .row {
+  margin-top: 20px;
+}
+#cartmodal .paymentpage .col-sm-3 button {
+  width: 100%;
+}
+#working {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: table;
+  z-index: 99999;
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: inset white 0 0 50px;
+  visibility: collapse;
+  opacity: 0;
+  transition: opacity ease 1s;
+}
+#working > span {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+}
+#working > span > i {
+  vertical-align: middle;
+  margin-right: 10px;
+}
+#working.show {
+  visibility: visible;
+  opacity: 1;
 }

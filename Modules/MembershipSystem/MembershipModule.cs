@@ -45,7 +45,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             var response = this.LoginWithoutRedirect(user.Guid, DateTime.Now.AddMinutes(15));
             response.Cookies.Add(new Nancy.Cookies.NancyCookie("UserInfo", JsonConvert.SerializeObject(user)));
-
+            
             return response;
         }
 
