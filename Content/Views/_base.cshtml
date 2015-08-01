@@ -77,11 +77,11 @@
         {
             // automatically set current user info into window variable
             <text>
-        window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
-        </texT>
+            window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
+            </texT>
         }
 
-        // automatically set current model into window variable
+        // automatically set current content into window variable
         window.model = { };
         window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
 
@@ -107,6 +107,7 @@
 
             // base modules
             var modules = [
+                "LocalStorageModule",
                 "ui.bootstrap",
                 "ui.validate",
                 "ui.select",

@@ -39,6 +39,11 @@
             throw "DataContext requries table attribute"
         }
 
+        if ($scope.data != null) {
+
+            throw "DataContext was already initialized in current scope"
+        }
+
         var $me = this;
 
         $scope.emittedEvents = emittedEvents;
