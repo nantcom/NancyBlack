@@ -349,4 +349,77 @@
 
     });
 
+    ncg.controller("NotifyMoneyTransfer", function ($scope, $timeout) {
+
+        $scope.products = {};
+        $scope.cartView = [];
+
+        $scope.saleorder = window.model.Content;
+        if ($scope.saleorder.notified == null) {
+
+            $scope.saleorder.notified = false;
+        }
+
+        var getProdcutInfo = function (productid) {
+
+            $scope.data.getById(productid, function (item) {
+
+                $scope.$apply(function () {
+
+                    $scope.products[productid] = item;
+                });
+            });
+        };
+
+        var updateProductInfo = function () {
+
+            for (productid in $scope.cartView) {
+
+                if ($scope.products[productid] == null) {
+
+                    getProdcutInfo(productid);
+                }
+            }
+        };
+
+        $timeout(function () {
+
+            // view the cart directly
+            if (window.location.pathname.indexOf( "/__commerce/saleorder" ) == 0 &&
+                window.location.pathname.indexOf( "/notifytransfer") > 0 ) {
+
+
+                $("#notifypayment").modal("show");
+            }
+        }, 1000);
+
+        $scope.$on("ncb-datacontext.loaded", function () {
+
+            $scope.cartView = _.groupBy($scope.saleorder.items, function (item) { return item; });
+            updateProductInfo();
+        });
+
+        var $me = this;
+
+        $me.sendnotify = function (datacontext, notify) {
+
+            var files = $("input[type=file]")[0].files;
+
+            if (files.length == 0) {
+
+                alert("Please select a file");
+                return;
+            }
+
+            var thenUpload = function (result) {
+
+                datacontext.upload(files[0], function () {
+
+                    $scope.saleorder.notified = true;
+                }, result.id);
+            };
+
+            datacontext.save(notify, thenUpload);
+        };
+    });
 })();

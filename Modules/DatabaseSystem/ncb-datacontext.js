@@ -39,10 +39,10 @@
             throw "DataContext requries table attribute"
         }
 
-        if ($scope.data != null) {
+        //if ($scope.data != null) {
 
-            throw "DataContext was already initialized in current scope"
-        }
+        //    throw "DataContext was already initialized in current scope"
+        //}
 
         var $me = this;
 
@@ -212,7 +212,7 @@
                         if (callback != null) {
 
                             try {
-                                callback();
+                                callback(object);
                             } catch (e) {
 
                             }
@@ -386,12 +386,19 @@
         // file upload
         $scope.data.uploadProgress = 0;
         $scope.data.uploading = false;
-        $scope.data.upload = function (file, callback) {
+        $scope.data.upload = function (file, callback, id) {
 
-            var id = $scope.object.id;
             if (id == null) {
 
-                id = $scope.object.Id;
+                id = $scope.object.id;
+                if (id == null) {
+
+                    id = $scope.object.Id;
+                }
+            }
+
+            if (id == null) {
+                throw "Id parameter is required or $scope.object must be set";
             }
 
             var targetUrl = String.format("/tables/{0}/{1}/files", attrs.table, id);

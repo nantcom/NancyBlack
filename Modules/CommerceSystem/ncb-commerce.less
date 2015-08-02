@@ -1,4 +1,48 @@
-﻿#cartmodal {
+﻿
+table.saleorder {
+    margin-top: 20px;
+
+    th {
+        font-weight: bold;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+        text-align: center;
+        width: 5%;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+        text-align: center;
+        width: 100px;
+
+        img {
+            width: 100%;
+            border: 1px solid silver;
+        }
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+        text-align: center;
+        width: 15%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+        text-align: center;
+        width: 15%;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6) {
+        text-align: right;
+        width: 15%;
+    }
+}   
+
+#cartmodal {
     font-style: normal;
     font-family: 'Leelawadee UI', Leelawadee, Tahoma;
     font-weight: 100;
@@ -51,48 +95,6 @@
         }
     }
 
-    .item > table {
-        margin-top: 20px;
-
-        th {
-            font-weight: bold;
-        }
-
-        th:nth-child(1),
-        td:nth-child(1) {
-            text-align: center;
-            width: 5%;
-        }
-
-        th:nth-child(2),
-        td:nth-child(2) {
-            text-align: center;
-            width: 100px;
-
-            img {
-                width: 100%;
-                border: 1px solid silver;
-            }
-        }
-
-        th:nth-child(4),
-        td:nth-child(4) {
-            text-align: center;
-            width: 15%;
-        }
-
-        th:nth-child(5),
-        td:nth-child(5) {
-            text-align: center;
-            width: 15%;
-        }
-
-        th:nth-child(6),
-        td:nth-child(6) {
-            text-align: right;
-            width: 15%;
-        }
-    }
 
     form {
         margin-top: 20px;
@@ -108,6 +110,7 @@
 
         .row {
             margin-top: 20px;
+            padding: 10px;
         }
 
         .col-sm-3 {
@@ -121,6 +124,9 @@
     }
 }
 
+#notifypayment {
+}
+
 #working {
     position: fixed;
     left: 0;
@@ -131,9 +137,8 @@
     z-index: 99999;
     background-color: rgba(255,255,255,0.8);
     box-shadow: inset white 0 0 50px;
-
     visibility: collapse;
-    opacity : 0;
+    opacity: 0;
     transition: opacity ease 1s;
 
     > span {

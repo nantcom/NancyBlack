@@ -1,0 +1,157 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+}
+
+@section Head
+{
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            box-shadow: 0 0 100px black inset;
+            height: 100%;
+            background-image: url('/Modules/CommerceSystem/images/shopping_blur.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+    </style>
+}
+<div ng-module="ncb-commerce"
+     ng-controller="NotifyMoneyTransfer as ctrl"
+     ncb-datacontext-integrated table="product">
+
+    <ncb-modal id="notifypayment" title="Money Transfer Notification">
+        <div ng-show="saleorder.notified == true">
+            <p>
+                Thank you, we have received your money transfer notification.
+            </p>
+        </div>
+        <div ng-show="saleorder.notified == false">
+            <p>
+                Thank you for your purchase. Please fill in the form below to notify us about
+                money transfer transaction.
+            </p>
+
+            <form name="notifyform"
+                  ncb-datacontext table="notify"
+                  ng-init="object.SaleOrderId = saleorder.Id">
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+
+                        <select ng-model="object.Account" ncb-select title="Account">
+                            <option value="1">KBANK</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-8">
+
+                        <input type="file" title="Payment Slip"
+                               ncb-textbox />
+                    </div>
+
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-8">
+                        Please transfer to:<br />
+                        <b>XXX-X-XXXXX-X</b> (Account Holder Name)
+                    </div>
+
+                    <div class="col-sm-4">
+
+                        <button class="btn btn-success btn-lg pull-right"
+                                ng-disabled="object.Account == null"
+                                ng-click="ctrl.sendnotify(data, object)">
+                            Notify us
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+        <p style="margin-top: 50px;">
+
+            <hr />
+
+            Order Reference Code: <br />
+            <b>{{saleorder.uuid}}</b>
+        </p>
+        <p>
+            <div class="pull-right text-right"
+                 ng-show="object.billto != null">
+                <b>Bill To:</b><br />
+                {{saleorder.billto.name}}<br />
+                {{saleorder.billto.address}}<br />
+                {{saleorder.billto.district}}, {{saleorder.shipto.subdistrict}}<br />
+                {{saleorder.billto.postalcode}}<br />
+            </div>
+            <div>
+                <b>Ship To:</b><br />
+                {{saleorder.shipto.name}}<br />
+                {{saleorder.shipto.address}}<br />
+                {{saleorder.shipto.district}}, {{saleorder.shipto.subdistrict}}<br />
+                {{saleorder.shipto.postalcode}}<br />
+            </div>
+        </p>
+        <table class="table table-hover saleorder">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th></th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="(productid, values) in cartView">
+                <td>
+                    {{$index + 1}}
+                </td>
+                <td>
+                    <img src="{{products[productid].Attachments[0].Url}}" />
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{products[productid].Title}}
+                        <p class="text-muted">
+                            {{productid}}
+                        </p>
+                    </div>
+                </td>
+                <td>
+                    <p class="form-control-static">
+                        {{values.length}}
+                    </p>
+                </td>
+                <td>
+                    {{prodcuts[productid].Price | number:0}}
+                </td>
+                <td>
+                    {{(prodcuts[productid].Price * values.length) | number:0}}
+                </td>
+            </tr>
+            <tr class="summary">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    Total
+                </td>
+                <td>
+                    {{ctrl.getTotal()}}
+                </td>
+            </tr>
+        </table>
+
+    </ncb-modal>
+</div>
