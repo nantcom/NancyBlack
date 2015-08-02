@@ -486,7 +486,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     return cached;
                 }
 
-                var path = Path.Combine(rootPath, "App_Data");
+                var path = Path.Combine(rootPath, "Site");
                 Directory.CreateDirectory(path);
 
                 var fileName = Path.Combine(path, "data.sqlite");

@@ -115,8 +115,9 @@
                                    ncb-textbox required ng-model="shoppingcart.cart.customer.lastName" />
 
                             <input type="email" title="Email"
-                                   ncb-textbox required ng-model="shoppingcart.cart.customer.email"
-                                   ng-readonly="currentUser != null" />
+                                   ncb-textbox required
+                                   ng-model="shoppingcart.cart.customer.email"
+                                   ng-readonly="membership.isLoggedIn()" />
 
                             <input type="text" title="Phone Number"
                                    ncb-textbox required ng-model="shoppingcart.cart.customer.phone" />
@@ -148,7 +149,7 @@
                     </div>
 
                     <div class="col-sm-4"
-                         ng-show="currentUser == null">
+                         ng-show="membership.isAnonymous()">
 
                         <h2>
                             Membership
@@ -158,9 +159,7 @@
                         <form name="login"
                               ng-controller="MemberShip-LoginController as mctrl">
 
-                            <div class="form-group"
-                                 ng-init="mode='register'"
-                                 ng-show="mode=='login'">
+                            <div class="form-group">
                                 <input type="email" class="form-control" placeholder="Email" readonly
                                        ng-model="login.email" />
                             </div>
@@ -214,14 +213,14 @@
                     </div>
 
                     <div class="col-sm-4"
-                         ng-show="currentUser != null">
+                         ng-show="membership.isLoggedIn()">
 
                         <h2>
                             Welcome back!
                         </h2>
 
-                        You are already logged on as:<br />
-                        <b>{{currentUser.UserName}}</b>
+                        You are logged on as:<br />
+                        <b>{{membership.currentUser.UserName}}</b>
 
                         <form>
                             <div class="form-group">
@@ -240,6 +239,7 @@
                     Please make sure all fields in red are filled and email format is correct.
                 </alert>
             </slide>
+
             <slide>
                 <div class="row">
                     <div class="col-sm-6">
@@ -330,6 +330,7 @@
                     Billing address is not valid, all fields are required.
                 </alert>
             </slide>
+
             <slide class="paymentpage">
                 <div ncb-datacontext table="saleorder">
                     <h2>

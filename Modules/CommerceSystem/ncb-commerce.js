@@ -325,24 +325,28 @@
             });
         };
 
-        // view the cart directly
-        if (window.location.pathname == "/__commerce/cart") {
+        $timeout(function () {
 
-            $scope.showcartmodal = function () {
+            // view the cart directly
+            if (window.location.pathname == "/__commerce/cart") {
 
-                if ($("#cartmodal").length == 0) {
+                $scope.showcartmodal = function () {
 
-                    $("body").css("cursor", "progress");
-                    $timeout($scope.showcartmodal, 400);
-                    return;
-                }
+                    if ($("#cartmodal").length == 0) {
 
-                $("body").css("cursor", "default");
-                $("#cartmodal").modal("show");
-            };
+                        $("body").css("cursor", "progress");
+                        $timeout($scope.showcartmodal, 400);
+                        return;
+                    }
 
-            $scope.showcartmodal();
-        }
+                    $("body").css("cursor", "default");
+                    $("#cartmodal").modal("show");
+                };
+
+                $scope.showcartmodal();
+            }
+        }, 1000);
+
     });
 
 })();

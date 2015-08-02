@@ -41,11 +41,16 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         private Nancy.Response ProcessLogin(NcbUser user)
         {
             user.PasswordHash = null;
-            user.Id = 0;
-
-            var response = this.LoginWithoutRedirect(user.Guid, DateTime.Now.AddMinutes(15));
-            response.Cookies.Add(new Nancy.Cookies.NancyCookie("UserInfo", JsonConvert.SerializeObject(user)));
             
+            var response = this.LoginWithoutRedirect(user.Guid);
+            response.Contents = (s) =>
+            {
+                var json = JsonConvert.SerializeObject(user);
+                StreamWriter sw = new StreamWriter(s);
+                sw.Write(json);
+                sw.Flush();
+            };
+
             return response;
         }
 

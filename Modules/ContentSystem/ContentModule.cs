@@ -216,7 +216,7 @@ namespace NantCom.NancyBlack.Modules
                 url = "/" + url;
             }
 
-            return db.Query("Content", string.Format("Url eq '{0}'", url.ToLowerInvariant())).FirstOrDefault();
+            return db.QueryAsDynamic("Content", string.Format("Url eq '{0}'", url.ToLowerInvariant())).FirstOrDefault();
         }
 
         /// <summary>
