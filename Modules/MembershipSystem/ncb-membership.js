@@ -25,6 +25,11 @@
 
             $me.currentUser = window.currentUser;
 
+            $me.closeAlert = function (index) {
+
+                $me.alerts.splice(index, 1);
+            };
+
             if ($me.currentUser == null) {
 
                 $me.currentUser = {
@@ -65,7 +70,7 @@
                 }).
                 error(function (data, status, headers, config) {
 
-                    $me.alerts.push(data);
+                    $me.alerts.push({ type: 'danger', msg: 'Invalid Credentials' });
                 });
 
             };
@@ -75,15 +80,13 @@
                 $http.post('/__membership/register', { Email: email, Password: utils.md5(password) }).
                 success(function (data, status, headers, config) {
 
-                    $scope.alerts.push({ type: 'success', msg: 'Registration Completed.' });
+                    $me.alerts.push({ type: 'success', msg: 'Registration Completed.' });
                     processLogin(data, callback);
 
                 }).
                 error(function (data, status, headers, config) {
 
-                    $scope.login.password = null;
-                    $scope.login.passwordConfirm = null;
-                    $scope.alerts.push({ type: 'danger', msg: 'This email was used.' });
+                    $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
 
                 });
 
@@ -166,9 +169,13 @@
                 return;
             }
 
-            $scope.register($scope.login.email, $scope.login.password, function () {
+            $scope.membership.register($scope.login.email, $scope.login.password, function () {
 
                 $("#loginDialog").modal('hide');
+
+                $scope.login.email = null;
+                $scope.login.password = null;
+                $scope.login.passwordConfirm = null;
             });
         };
 

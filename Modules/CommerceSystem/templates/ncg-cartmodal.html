@@ -202,8 +202,8 @@
                             </div>
 
                             <div class="form-group">
-                                <alert ng-repeat="alert in alerts"
-                                       type="{{alert.type}}" close="closeAlert($index)">
+                                <alert ng-repeat="alert in membership.alerts"
+                                       type="{{alert.type}}" close="membership.closeAlert($index)">
                                     {{alert.msg}}
                                 </alert>
                             </div>
