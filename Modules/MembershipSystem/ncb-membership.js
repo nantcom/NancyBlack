@@ -75,15 +75,15 @@
                 $http.post('/__membership/register', { Email: email, Password: utils.md5(password) }).
                 success(function (data, status, headers, config) {
 
-                    $scope.alerts.push({ type: 'success', msg: 'Registration Completed.' });
+                    $me.alerts.push({ type: 'success', msg: 'Registration Completed.' });
                     processLogin(data, callback);
 
                 }).
                 error(function (data, status, headers, config) {
 
-                    $scope.login.password = null;
-                    $scope.login.passwordConfirm = null;
-                    $scope.alerts.push({ type: 'danger', msg: 'This email was used.' });
+                    $me.login.password = null;
+                    $me.login.passwordConfirm = null;
+                    $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
 
                 });
 
@@ -166,7 +166,7 @@
                 return;
             }
 
-            $scope.register($scope.login.email, $scope.login.password, function () {
+            $scope.membership.register($scope.login.email, $scope.login.password, function () {
 
                 $("#loginDialog").modal('hide');
             });
