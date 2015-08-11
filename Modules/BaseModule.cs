@@ -187,7 +187,7 @@ namespace NantCom.NancyBlack.Modules
                 return View[view, this.GetModel( model )];
             };
         }
-
+        
         private CustomJsonSerializer _Serializer = new CustomJsonSerializer();
 
         /// <summary>

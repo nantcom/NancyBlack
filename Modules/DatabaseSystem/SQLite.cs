@@ -2649,12 +2649,24 @@ namespace SQLite
 
 				//If either side is a parameter and is null, then handle the other side specially (for "is null"/"is not null")
 				string text;
-				if (leftr.CommandText == "?" && leftr.Value == null)
-					text = CompileNullBinaryExpression(bin, rightr);
-				else if (rightr.CommandText == "?" && rightr.Value == null)
-					text = CompileNullBinaryExpression(bin, leftr);
-				else
-					text = "(" + leftr.CommandText + " " + GetSqlName(bin) + " " + rightr.CommandText + ")";
+                if (leftr.CommandText == "?" && leftr.Value == null)
+                {
+                    text = CompileNullBinaryExpression(bin, rightr);
+                }
+                else if (rightr.CommandText == "?" && rightr.Value == null)
+                {
+                    text = CompileNullBinaryExpression(bin, leftr);
+                }
+                else if (leftr.CommandText.Contains("Instr("))
+                {
+                    // left expression contains instr, modify the output expression to include
+                    // + 1 in comparison
+                    text = "(" + leftr.CommandText + " " + GetSqlName(bin) + " " + rightr.CommandText + "+1)";
+                }
+                else
+                {
+                    text = "(" + leftr.CommandText + " " + GetSqlName(bin) + " " + rightr.CommandText + ")";
+                }
 				return new CompileResult { CommandText = text };
 			} else if (expr.NodeType == ExpressionType.Call) {
 				
@@ -2682,7 +2694,11 @@ namespace SQLite
 						sqlCall = "(" + args [0].CommandText + " in " + obj.CommandText + ")";
 					}
 				}
-				else if (call.Method.Name == "StartsWith" && args.Length == 1) {
+                else if (call.Method.Name == "IndexOf" && args.Length == 1)
+                {
+                    sqlCall = string.Format( "(Instr({0},{1}))", obj.CommandText, args[0].CommandText );
+                }
+                else if (call.Method.Name == "StartsWith" && args.Length == 1) {
 					sqlCall = "(" + obj.CommandText + " like (" + args [0].CommandText + " || '%'))";
 				}
 				else if (call.Method.Name == "EndsWith" && args.Length == 1) {

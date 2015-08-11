@@ -22,7 +22,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
     {
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectUpdated = delegate { };
-        public static event Action<NancyBlackDatabase, string, dynamic> ObjectCreated = delegate { };      
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectCreated = delegate { };
 
         private SQLiteConnection _db;
         private DataTypeFactory _dataType;
@@ -48,19 +48,59 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         #region Dynamic Types
-
+        
         /// <summary>
         /// Queries the specified database
         /// </summary>
         /// <param name="db">The database.</param>
         /// <param name="odataFilter">The odata filter.</param>
         /// <returns></returns>
-        private IEnumerable<object> PerformQuery<T>(NameValueCollection odataFilter) where T : class, new()
+        private TableQuery<T> PerformQuery<T>(NameValueCollection odataFilter) where T : class, new()
         {
-            var parser = new ParameterParser<T>();            
+            var parser = new ParameterParser<T>();
             var modelFilter = parser.Parse(odataFilter);
 
-            return modelFilter.Filter(_db.Table<T>());
+            var table = _db.Table<T>();
+
+            if (modelFilter.FilterExpression != null)
+            {
+                table = table.Where(modelFilter.FilterExpression);
+            }
+            
+            if (modelFilter.SortDescriptions.Count() > 0)
+            {
+                foreach (var sort in modelFilter.SortDescriptions)
+                {
+                    var lambda = sort.KeySelector as LambdaExpression;
+                    var returnType = lambda.ReturnType;
+
+                    var orderbyName = "OrderBy";
+                    if (sort.Direction == System.Web.UI.WebControls.SortDirection.Descending)
+                    {
+                        orderbyName = "OrderByDescending";
+                    }
+
+                    var applyResult = typeof(TableQuery<T>).GetMethods().Single(
+                                         method => method.Name == orderbyName)
+                                         .MakeGenericMethod(returnType)
+                                         .Invoke(table, new object[] { lambda });
+                    
+                    table = (TableQuery<T>)applyResult;
+                    
+                }
+            }
+
+            if (modelFilter.SkipCount > 0)
+            {
+                table = table.Skip(modelFilter.SkipCount);
+            }
+
+            if (modelFilter.TakeCount > 0)
+            {
+                table = table.Take(modelFilter.TakeCount);
+            }
+
+            return table;
         }
 
         /// <summary>
@@ -72,10 +112,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public IEnumerable<string> QueryAsJsonString(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
         {
-            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take)
+            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take).ToList()
                    select JObject.FromObject(item).ToString();
         }
-        
+
         /// <summary>
         /// Queries the entity, result is in JObject to support dynamic operations
         /// </summary>
@@ -85,7 +125,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public IEnumerable<JObject> QueryAsJObject(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
         {
-            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take)
+            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take).ToList()
                    select JObject.FromObject(item);
         }
 
@@ -98,8 +138,52 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public IEnumerable<dynamic> QueryAsDynamic(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
         {
-            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take)
+            return from item in this.Query(entityName, oDatafilter, oDataSort, skip, take).ToList()
                    select (dynamic)JObject.FromObject(item);
+        }
+
+        /// <summary>
+        /// Queries the database for specified entity type. If type does not exists, the query returns without result.
+        /// </summary>
+        /// <param name="entityName">Name of the entity.</param>
+        /// <param name="oDatafilter">The o datafilter.</param>
+        /// <param name="oDataSort">The o data sort.</param>
+        /// <returns></returns>
+        public int Count(string entityName, string oDatafilter = null, string oDataSort = null, string skip = null, string take = null)
+        {
+            var type = _dataType.FromName(entityName);
+            if (type == null)
+            {
+                return 0;
+            }
+
+            NameValueCollection nv = new NameValueCollection();
+            if (oDatafilter != null)
+            {
+                nv.Add("$filter", oDatafilter);
+            }
+
+            if (oDataSort != null)
+            {
+                nv.Add("$orderby", oDataSort);
+            }
+
+            if (skip != null)
+            {
+                nv.Add("$skip", skip);
+            }
+
+            if (take != null)
+            {
+                nv.Add("$top", take);
+            }
+
+            var method = typeof(NancyBlackDatabase)
+                            .GetMethod("PerformQuery", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .MakeGenericMethod(type.GetCompiledType());
+
+            dynamic result = method.Invoke(this, new object[] { nv });
+            return result.Count();
         }
 
         /// <summary>
@@ -156,15 +240,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return result;
             }
         }
-        
+
         /// <summary>
         /// Whether we need to post-process the object
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private bool NeedsToPostProcess( DataType type )
+        private bool NeedsToPostProcess(DataType type)
         {
-            return type.Properties.Any( p => p.Name.StartsWith( "js_" ));
+            return type.Properties.Any(p => p.Name.StartsWith("js_"));
         }
 
         /// <summary>
@@ -173,7 +257,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="type"></param>
         /// <param name="input"></param>
         /// <returns></returns>
-        private JObject PostProcess( DataType type, object input )
+        private JObject PostProcess(DataType type, object input)
         {
             if (this.NeedsToPostProcess(type) == false)
             {
@@ -188,12 +272,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 {
                     if (prop.Value.Type == JTokenType.Null)
                     {
-                        jo[prop.Name.Substring(3)] = JToken.Parse("null");                    
+                        jo[prop.Name.Substring(3)] = JToken.Parse("null");
                     }
                     else
                     {
                         jo[prop.Name.Substring(3)] = JToken.Parse((string)prop.Value);
-                    
+
                     }
                     jo.Remove(prop.Name);
                 }
@@ -211,13 +295,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public object GetById(string entityName, int id)
         {
             var type = _dataType.FromName(entityName);
-            var obj = _db.Find( id, _db.GetMapping( type.GetCompiledType() ));
+            var obj = _db.Find(id, _db.GetMapping(type.GetCompiledType()));
 
             if (obj == null)
             {
                 return null;
             }
-            
+
             return obj;
         }
 
@@ -237,7 +321,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return null;
             }
 
-            return this.PostProcess( type, obj );
+            return this.PostProcess(type, obj);
         }
 
         /// <summary>
@@ -246,7 +330,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="entityName"></param>
         /// <param name="inputObject"></param>
         /// <returns></returns>
-        public dynamic UpsertStaticRecord( string entityName, dynamic inputObject )
+        public dynamic UpsertStaticRecord(string entityName, dynamic inputObject)
         {
             var type = _dataType.FromName(entityName);
             if (type == null)
@@ -275,10 +359,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 _db.Update((object)inputObject, actualType);
                 NancyBlackDatabase.ObjectUpdated(this, entityName, inputObject);
             }
-            
+
             return inputObject;
         }
-        
+
         /// <summary>
         /// Upserts the specified entity name.
         /// </summary>
@@ -289,7 +373,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var type = _dataType.FromName(entityName);
             if (type is StaticDataType)
             {
-                return JObject.FromObject( this.UpsertStaticRecord(entityName, inputObject) );
+                return JObject.FromObject(this.UpsertStaticRecord(entityName, inputObject));
             }
 
             JObject jObject = inputObject as JObject;
@@ -303,7 +387,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             // converts complex properties to Json
             foreach (var prop in jObject.Properties().ToList()) // to-list to allow us to add property
             {
-                if (prop.Value.Type == JTokenType.Array || prop.Value.Type == JTokenType.Object )
+                if (prop.Value.Type == JTokenType.Array || prop.Value.Type == JTokenType.Object)
                 {
                     // array or objects are converted to JSON when stored in table
                     jObject["js_" + prop.Name] = prop.Value.ToString(Formatting.None);
@@ -346,7 +430,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             else
             {
                 _db.Update(jObject.ToObject(actualType), actualType);
-                
+
                 NancyBlackDatabase.ObjectUpdated(this, entityName, jObject);
             }
 
@@ -367,7 +451,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             return jObject;
         }
-        
+
         /// <summary>
         /// Deletes the specified entity name.
         /// </summary>
@@ -391,10 +475,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 throw new InvalidOperationException("Id of inputObject is not set or has default value");
             }
-            
+
             var deleting = this.GetById(entityName, id.Value); // get the object out before delete
-            _db.Delete( deleting );
-            
+            _db.Delete(deleting);
+
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
 
@@ -408,7 +492,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T GetById<T>( int id ) where T : IStaticType, new()
+        public T GetById<T>(int id) where T : IStaticType, new()
         {
             return _db.Get<T>(id);
         }
@@ -422,30 +506,35 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             return _db.Table<T>();
         }
-        
+
         /// <summary>
         /// Update/Insert the given input object
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
         /// <returns></returns>
-        public T UpsertRecord<T>( T input ) where T : IStaticType, new()
+        public T UpsertRecord<T>(T input) where T : IStaticType, new()
         {
             var actualType = input.GetType();
             var entityName = actualType.Name;
+            var type = _dataType.FromType(actualType);
+            if (type == null)
+            {
+                throw new ArgumentException("Given entityName does not exists.");
+            }
 
             input.__updatedAt = DateTime.Now;
-            
+
             if (input.Id == 0)
             {
                 input.__createdAt = DateTime.Now;
 
-                 _db.Insert( input, actualType );
+                _db.Insert(input, actualType);
                 NancyBlackDatabase.ObjectCreated(this, entityName, input);
             }
             else
             {
-                _db.Update( input, actualType);
+                _db.Update(input, actualType);
                 NancyBlackDatabase.ObjectUpdated(this, entityName, input);
             }
 
@@ -457,14 +546,14 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
-        public void DeleteRecord<T>( T input ) where T : IStaticType, new()
+        public void DeleteRecord<T>(T input) where T : IStaticType, new()
         {
             var actualType = input.GetType();
             var entityName = actualType.Name;
 
             var deleting = this.GetById<T>(input.Id); // get the object out before delete
             _db.Delete(deleting);
-            
+
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
 
@@ -475,7 +564,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="hostName"></param>
         /// <returns></returns>
-        public static NancyBlackDatabase GetSiteDatabase( string rootPath )
+        public static NancyBlackDatabase GetSiteDatabase(string rootPath)
         {
             var key = "SiteDatabase";
             lock (key)
@@ -531,7 +620,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return cached;
             }
         }
-        
+
+        /// <summary>
+        /// Get NancyBlackDatabase for given filename
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        public static NancyBlackDatabase GetDatabase(string fileName)
+        {
+            var db = new SQLiteConnection(fileName, true);
+            return new NancyBlackDatabase(db);
+        }
+
     }
 
 }

@@ -27,6 +27,8 @@ namespace NantCom.NancyBlack.Modules
 
             Get["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
 
+            Get["/tables/{table_name}/count"] = this.HandleRequestForSiteDatabase(this.HandleCountRequest);
+
             Get["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleSingleItemRequest);
 
             Post["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
@@ -205,8 +207,24 @@ namespace NantCom.NancyBlack.Modules
                                 this.Request.Query["$orderby"],
                                 this.Request.Query["$skip"],
                                 this.Request.Query["$top"]);
+
+            
+            
             return rows;
         }
+
+        private dynamic HandleCountRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+            var rows = db.Count(entityName,
+                                this.Request.Query["$filter"],
+                                this.Request.Query["$orderby"],
+                                this.Request.Query["$skip"],
+                                this.Request.Query["$top"]);
+
+            return JToken.Parse(rows.ToString());
+        }
+
 
         protected dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
         {
