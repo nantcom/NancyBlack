@@ -2657,12 +2657,6 @@ namespace SQLite
                 {
                     text = CompileNullBinaryExpression(bin, leftr);
                 }
-                else if (leftr.CommandText.Contains("Instr("))
-                {
-                    // left expression contains instr, modify the output expression to include
-                    // + 1 in comparison
-                    text = "(" + leftr.CommandText + " " + GetSqlName(bin) + " " + rightr.CommandText + "+1)";
-                }
                 else
                 {
                     text = "(" + leftr.CommandText + " " + GetSqlName(bin) + " " + rightr.CommandText + ")";
