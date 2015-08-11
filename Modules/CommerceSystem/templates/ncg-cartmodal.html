@@ -68,10 +68,10 @@
                             </span>
                         </td>
                         <td>
-                            {{prodcuts[productid].Price | number:0}}
+                            {{products[productid].Price | number:0}}
                         </td>
                         <td>
-                            {{(prodcuts[productid].Price * values.length) | number:0}}
+                            {{(products[productid].Price * values.length) | number:0}}
                         </td>
                     </tr>
                     <tr class="summary">
@@ -342,10 +342,24 @@
                     <div class="row">
 
                         <div class="col-sm-3">
-                            <button class="btn btn-default" disabled
-                                    ng-click="ctrl.paysbuy(data)">
-                                PaySbuy
-                            </button>
+                            
+                            <input type="image" src="https://www.paysbuy.com/imgs/paypalcredit.png"
+                                   border="0"
+                                   ng-click="ctrl.submitpaysbuy(data)"
+                                   alt="Make it easier,PaySbuy - it's fast,free and secure!" />
+
+                            <Form id="paysbuy_form" name="formpaysbuy" method="post" 
+                                  action="https://www.paysbuy.com/paynow.aspx?lang=t"
+                                  style="display: none;" >
+                                <input type="Hidden" Name="psb" ng-model="credential.paysbuy.psb" value="{{credential.paysbuy.psb}}"/>
+                                <input Type="Hidden" Name="biz" ng-model="credential.paysbuy.biz" value="{{credential.paysbuy.biz}}"/>
+                                <input Type="Hidden" Name="inv" ng-model="credential.paysbuy.inv" value="{{credential.paysbuy.inv}}"/>
+                                <input Type="Hidden" Name="itm" ng-model="credential.paysbuy.itm" value="{{credential.paysbuy.itm}}"/>
+                                <input Type="Hidden" Name="amt" ng-model="credential.paysbuy.amt" value="{{credential.paysbuy.amt}}" />
+                                <input Type="Hidden" Name="postURL" ng-model="credential.paysbuy.postURL" value="{{credential.paysbuy.postURL}}" />                                
+                                <button id="paysbuy_submit_btn" type="submit" style="visibility: hidden" />                                                               
+                            </Form>
+                           
                         </div>
                         <div class="col-sm-8">
 

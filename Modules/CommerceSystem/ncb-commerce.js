@@ -33,7 +33,7 @@
             }
 
             scope.shoppingcart = cartSystem;
-
+            
             // ensures that there is an initialized shopping cart
             cartSystem.ensureCartAvailable = function () {
 
@@ -275,6 +275,9 @@
         var $me = this;
         $scope.products = {};
         $scope.cartView = {};
+        $scope.credential = {
+            paysbuy: null
+        };        
 
         var getProdcutInfo = function (productid) {
 
@@ -314,6 +317,66 @@
         $me.savecart = function (datacontext, next) {
 
             datacontext.save(cartSystem.cart, next);
+        };
+
+        var getCredentialPaysbuy = function () {
+            var _paysbuy = {
+                psb: "",
+                biz: "",
+                inv: "",
+                itm: "Hardcode Product Name",
+                amt: "",
+                postURL: "",
+            };
+
+            $http.get('/tables/paymentpaysbuy?$top=1').
+              then(function (response) {
+
+                  var PaymentCredential = response.data[0];
+                  _paysbuy.biz = PaymentCredential.Email;
+                  _paysbuy.psb = PaymentCredential.Psb;
+                  _paysbuy.postURL = PaymentCredential.PostbackUrl;
+
+                  $scope.credential.paysbuy = _paysbuy;
+
+              }, function (response) {
+                  throw "paymentpaysbuy must be set";
+              });
+
+        };
+
+        $me.submitpaysbuy = function (datacontext) {
+
+            getCredentialPaysbuy();
+
+            var stopWatchPaysbuy = $scope.$watch('credential.paysbuy', function (newVal, oldVal) {
+                
+                if (newVal != null) {
+
+                    stopWatchPaysbuy();
+
+                    $me.savecart(datacontext, function (item) {
+
+                        $scope.credential.paysbuy.inv = item.uuid;
+
+                        $scope.credential.paysbuy.amt = $me.getTotal();                        
+
+                        $timeout(function () {
+
+                            $("#paysbuy_submit_btn").click();
+
+                        }, 1000);
+
+                    });
+                }
+
+            });                       
+            
+        };
+
+        $me.getTotal = function () {
+            // TODO - Calc()
+            return 1;
         };
 
         $me.moneytransfer = function ( datacontext) {
