@@ -204,15 +204,49 @@ namespace NantCom.NancyBlack.Modules
         protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
-            var rows = db.Query(entityName,
-                                this.Request.Query["$filter"],
-                                this.Request.Query["$orderby"],
-                                this.Request.Query["$skip"],
-                                this.Request.Query["$top"]);
 
-            
-            
-            return rows;
+            if (this.Request.Query["$select"] == null)
+            {
+                var rows = db.Query(entityName,
+                                    this.Request.Query["$filter"],
+                                    this.Request.Query["$orderby"],
+                                    this.Request.Query["$skip"],
+                                    this.Request.Query["$top"]);
+
+                return rows;
+            }
+            else
+            {
+                var toInclude = ((string)this.Request.Query["$select"]).Split(',');
+                if (toInclude.Length == 1 && toInclude[0] == "$select")
+                {
+                    return 400;
+                }
+
+                if (toInclude.Length == 0)
+                {
+                    return 400;
+                }
+
+                var rows = db.QueryAsJObject(entityName,
+                                    (string)this.Request.Query["$filter"],
+                                    (string)this.Request.Query["$orderby"],
+                                    (string)this.Request.Query["$skip"],
+                                    (string)this.Request.Query["$top"]).ToList();
+
+                foreach (JObject item in rows)
+                {
+                    foreach (var property in item.Properties().ToList())
+                    {
+                        if (toInclude.Contains( property.Name ) == false)
+                        {
+                            property.Remove();
+                        }
+                    }
+                }
+
+                return rows;
+            }
         }
 
         private dynamic HandleCountRequest(NancyBlackDatabase db, dynamic arg)
