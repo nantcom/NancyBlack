@@ -51,7 +51,14 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     // get updated to latest type that was created on-the-fly
                     foreach (var table in _CachedDataType.Values )
                     {
-                        _db.CreateTable(table.GetCompiledType());
+                        var type = table.GetCompiledType();
+                        _db.CreateTable(type);
+
+                        // index all column by default
+                        foreach (var item in table.Properties)
+                        {
+                            _db.CreateIndex(type.Name, item.Name, item.Name == "Id");
+                        }
                     }
                 }
 

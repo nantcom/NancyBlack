@@ -39,8 +39,9 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         max,
         mean,
         stddev,
+        sum,
         count,
-        sum
+        frequency
     }
 
     public class SummarizeTimeSeriesFactory
@@ -203,7 +204,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                             return (double)value;
                         });
                     };
-
+                    
                 case Function.mean:
                     return (col) =>
                     {
@@ -213,8 +214,6 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                             return (double)value;
                        });
                     };
-                case Function.stddev:
-                    throw new NotImplementedException();
 
                 case Function.sum:
 
@@ -229,33 +228,33 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
 
                 case Function.count:
 
-                    // count will have to create multiple results
-                    // each period will contain list of values instead of single value
-                    // each value is the count of distinct values in the period
+                    // number of items in the given period
                     return (col) =>
                     {
-                        var distinctValues = (from item in col
-                                              select valueSelector(item)).Distinct();
+                        return col.Count();
+                    };
 
-                        var frequencies = new List<Series>();
-                        foreach (var d in distinctValues)
-                        {
-                            var count = (from item in col
-                                         where valueSelector(item).CompareTo(d) == 0
-                                         select item).Count();
+                case Function.frequency:
 
-                            var key = d.ToString();
+                    // how many number of distinct occurance of value
+                    // in the given period
 
-                            frequencies.Add(new Series()
-                            {
-                                Key = key,
-                                Value = count
-                            });
-                        }
-
-                        return frequencies;
+                    // each period will contain list of distinct values
+                    // and occurance of each distinct values in the given period
+                    return (col) =>
+                    {
+                        var distinctValues = col.ToLookup( item => valueSelector( item ) );
+                        return from value in distinctValues
+                               let count = value.Count()
+                               orderby count 
+                               select new Series()
+                               {
+                                   Key = value.Key.ToString(),
+                                   Value = count
+                               };
 
                     };
+                    
             }
 
 
@@ -269,14 +268,26 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         /// <returns></returns>
         public IEnumerable<dynamic> GetSummarySeries()
         {
+            var summary = this.CreateSummaryFunction();
+
+            if (this.Period == TimePeriod.all)
+            {
+                // all means no period, every item is in the same group
+                var series = new Series();
+                series.Key = "overall";
+                series.Value = summary( this.Source );
+
+                yield return series;
+
+                yield break;
+            }
+
             var grouper = this.CreatePeriodGroupingFunction();
             var timeSelector = this.CreateTimeSelectorFunction();
 
-            var groups = from item in this.Source
+            var groups = from item in this.Source.ToList()
                          group item by grouper(timeSelector(item)) into g
                          select g;
-
-            var summary = this.CreateSummaryFunction();
 
             foreach (var g in groups)
             {
@@ -313,25 +324,36 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                 timeselect = "__createdAt";
             }
 
+            if (timeperiod == null)
+            {
+                timeperiod = "all";
+                timeselect = "not-used";
+            }
+
             var dt = this.SiteDatabase.DataType.FromName(table);
             if (dt == null)
             {
                 return 404;
             }
 
+            if (select == null || function == null || timeselect == null )
+            {
+                return 400;
+            }
+
             var type = dt.GetCompiledType();
-
-
-            var method = typeof(SummarizeTimeSeriesFactory)
-                            .GetMethods().Single(m => m.Name == "Create" && m.IsStatic)
-                            .MakeGenericMethod(type); // calling this.Summarize<T>
-
             var getTable = typeof(NancyBlackDatabase)
                             .GetMethods().Single(m => m.Name == "Query" && m.GetParameters().Length == 0)
                             .MakeGenericMethod(type); // calling this.Summarize<T>
+
+            var sourceTable = getTable.Invoke( this.SiteDatabase, null );
+
+            var createSummarizer = typeof(SummarizeTimeSeriesFactory)
+                            .GetMethods().Single(m => m.Name == "Create" && m.IsStatic)
+                            .MakeGenericMethod(type); // calling this.Summarize<T>
             
-            dynamic summarizer = method.Invoke(this, new object[] {
-                getTable.Invoke( this.SiteDatabase, null ),
+            dynamic summarizer = createSummarizer.Invoke(this, new object[] {
+                sourceTable,
                 Enum.Parse( typeof(TimePeriod), timeperiod ),
                 timeselect,
                 select,
