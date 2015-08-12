@@ -187,7 +187,32 @@ namespace NantCom.NancyBlack.Modules
                 return View[view, this.GetModel( model )];
             };
         }
-        
+
+        /// <summary>
+        /// Handle request to show a view based on given request
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="model">The model.</param>
+        /// <returns></returns>
+        protected Func<dynamic, dynamic> HandleViewRequest(string view, Func<dynamic, dynamic> modelGetter)
+        {
+            return (arg) =>
+            {
+                dynamic model = null;
+                if (modelGetter != null)
+                {
+                    model = modelGetter(arg);
+                }
+
+                if (model is int)
+                {
+                    return model;
+                }
+
+                return View[view, this.GetModel(model)];
+            };
+        }
+
         private CustomJsonSerializer _Serializer = new CustomJsonSerializer();
 
         /// <summary>

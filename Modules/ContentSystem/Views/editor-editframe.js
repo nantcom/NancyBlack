@@ -264,7 +264,7 @@
 
     });
 
-    ncbEditor.controller("NcbContentEditor", function ($scope, $rootScope, $timeout, $routeParams, $location) {
+    ncbEditor.controller("NcbContentEditor", function ($scope, $rootScope, $timeout, $location) {
 
         var $me = this;
         var siteView = $("#siteview");
@@ -388,6 +388,34 @@
             $scope.menu.goback = gobackHandler;
             $scope.menu.cancel = cancelHandler;
 
+        };
+
+        $me.reset = function () {
+
+            if (confirm( "Do you want to reset this content block to it's original value? (Usually provided with Template)") == false )
+            {
+                return;
+            }
+
+            $rootScope.$broadcast("working");
+
+            $me.getContent(function (content) {
+
+                delete content[$scope.editing.name]
+                // replace
+                $scope.data.save(content, function () {
+
+                    // after save is completed
+                    $rootScope.$broadcast("working-done");
+
+                    $scope.menu.goback = null;
+                    $scope.goback();
+
+                    $scope.reloadSiteView();
+                });
+            });
+
+            return false; // we will handle going back ourselves
         };
 
         $scope.$on("ncb-datacontext.loaded", function (e, args) {

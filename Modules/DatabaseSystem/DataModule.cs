@@ -17,41 +17,158 @@ using System.Runtime.Caching;
 namespace NantCom.NancyBlack.Modules
 {
 
-    public class DataModule : BaseModule
+    public abstract class BaseDataModule : BaseModule
     {
-
-        public DataModule()
-        {
-            // the interface of data mobile is compatible with Azure Mobile Service
-            // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
-
-            Get["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
-
-            Get["/tables/{table_name}/count"] = this.HandleRequestForSiteDatabase(this.HandleCountRequest);
-
-            Get["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleSingleItemRequest);
-
-            Post["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
-
-            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
-
-            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
-
-            // Files
-            
-            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
-
-            Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
-
-        }
-
-        private dynamic HandleSingleItemRequest(NancyBlackDatabase db, dynamic args)
+        /// <summary>
+        /// Handles getting item by it's id
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected dynamic HandleSingleItemRequest(NancyBlackDatabase db, dynamic args)
         {
             var tableName = (string)args.table_name;
             var id = (int)args.item_id;
 
             return this.SiteDatabase.GetByIdAsJObject(tableName, id);
         }
+
+        /// <summary>
+        /// Handles Insert/Update Request
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <returns></returns>
+        protected dynamic HandleInsertUpdateRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+            int id = arg.item_id == null ? 0 : (int)arg.item_id;
+
+            if (arg.body == null)
+            {
+                return 400;
+            }
+
+            if (this.SiteDatabase.DataType.FromName(entityName) == null)
+            {
+                if (this.Request.Url.HostName != "localhost")
+                {
+                    return 403;
+                }
+            }
+
+            var fromClient = arg.body.Value as JObject;
+            dynamic record = db.UpsertRecord(entityName, fromClient);
+            
+            return this.Negotiate
+                .WithContentType("application/json")
+                .WithModel((object)record);
+        }
+
+        /// <summary>
+        /// Handles Query Request (Get /tables/{tableName}?...)
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+            
+            if (this.Request.Query["$select"] == null)
+            {
+                var rows = db.Query(entityName,
+                                    this.Request.Query["$filter"],
+                                    this.Request.Query["$orderby"],
+                                    this.Request.Query["$skip"],
+                                    this.Request.Query["$top"]);
+
+                return rows;
+            }
+            else
+            {
+                var toInclude = ((string)this.Request.Query["$select"]).Split(',');
+                if (toInclude.Length == 1 && toInclude[0] == "$select")
+                {
+                    return 400;
+                }
+
+                if (toInclude.Length == 0)
+                {
+                    return 400;
+                }
+
+                var rows = db.QueryAsJObject(entityName,
+                                    (string)this.Request.Query["$filter"],
+                                    (string)this.Request.Query["$orderby"],
+                                    (string)this.Request.Query["$skip"],
+                                    (string)this.Request.Query["$top"]).ToList();
+
+                foreach (JObject item in rows)
+                {
+                    foreach (var property in item.Properties().ToList())
+                    {
+                        if (toInclude.Contains( property.Name ) == false)
+                        {
+                            property.Remove();
+                        }
+                    }
+                }
+
+                return rows;
+            }
+        }
+
+        /// <summary>
+        /// Handles Count Request
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected dynamic HandleCountRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+            var rows = db.Count(entityName,
+                                this.Request.Query["$filter"],
+                                this.Request.Query["$orderby"],
+                                this.Request.Query["$skip"],
+                                this.Request.Query["$top"]);
+
+            return JToken.Parse(rows.ToString());
+        }
+        
+        /// <summary>
+        /// Handles the delete request
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+            var id = arg.item_id == null ? 0 : (int?)arg.item_id;
+
+            db.DeleteRecord(entityName, new { Id = id });
+
+            return 204;
+        }
+
+        protected void _CheckInterfaceIHasAttachment(string tableName)
+        {
+            var type = this.SiteDatabase.DataType.FromName(tableName);
+            var classType = type.GetCompiledType();
+
+            // Check weather class implement specifed interface or not            
+            bool isImplementIStaticType = typeof(IStaticType).IsAssignableFrom(classType);
+            if (isImplementIStaticType == true)
+            {
+                if (typeof(IHasAttachment).IsAssignableFrom(classType) == false)
+                {
+                    throw new Exception("Class that implemented IStaticType and need the attachment. It also need to be be implemented IHasAttachment");
+                }
+            }
+        }
+
+        #region File Attachment
 
         protected string GetAttachmentFolder(string tableName, string id)
         {
@@ -60,7 +177,7 @@ namespace NantCom.NancyBlack.Modules
 
             return path;
         }
-        
+
         /// <summary>
         /// Handles file upload request, currently not consolidated with Attach File function
         /// </summary>
@@ -111,13 +228,13 @@ namespace NantCom.NancyBlack.Modules
 
             if (contentItem.Attachments == null)
             {
-                contentItem.Attachments = JArray.FromObject( newFiles );
+                contentItem.Attachments = JArray.FromObject(newFiles);
             }
             else
             {
                 foreach (var item in newFiles)
                 {
-                    contentItem.Attachments.Add( JObject.FromObject(item) );
+                    contentItem.Attachments.Add(JObject.FromObject(item));
                 }
             }
 
@@ -151,17 +268,24 @@ namespace NantCom.NancyBlack.Modules
                     if (url.EndsWith("/" + fileName))
                     {
                         array.RemoveAt(i);
-                        
+
                         this.SiteDatabase.UpsertRecord(tableName, contentItem);
                         break;
                     }
                 }
             }
-            
+
 
             return contentItem;
         }
-        
+
+        #endregion
+
+        /// <summary>
+        /// Handles the request againts site's database
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
         protected dynamic HandleRequestForSiteDatabase(Func<NancyBlackDatabase, dynamic, dynamic> action)
         {
             return this.HandleRequest((arg) =>
@@ -170,122 +294,36 @@ namespace NantCom.NancyBlack.Modules
             });
         }
 
-        /// <summary>
-        /// Create a function which will Handles the request.
-        /// </summary>
-        /// <param name="action">The action.</param>
-        /// <returns></returns>
-        protected dynamic HandleInsertUpdateRequest(NancyBlackDatabase db, dynamic arg)
+    }
+
+    /// <summary>
+    /// Class which performs
+    /// </summary>
+    public sealed class DataModule : BaseDataModule
+    {
+        public DataModule()
         {
-            var entityName = (string)arg.table_name;
-            int id = arg.item_id == null ? 0 : (int)arg.item_id;
 
-            if (arg.body == null)
-            {
-                return 400;
-            }
+            // the interface of data mobile is compatible with Azure Mobile Service
+            // http://msdn.microsoft.com/en-us/library/azure/jj710104.aspx
 
-            if (this.SiteDatabase.DataType.FromName(entityName) == null)
-            {
-                if (this.Request.Url.HostName != "localhost")
-                {
-                    return 403;
-                }
-            }
+            Get["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleQueryRequest);
 
-            var fromClient = arg.body.Value as JObject;
-            dynamic record = db.UpsertRecord(entityName, fromClient);
-            
-            return this.Negotiate
-                .WithContentType("application/json")
-                .WithModel((object)record);
-        }
+            Get["/tables/{table_name}/count"] = this.HandleRequestForSiteDatabase(this.HandleCountRequest);
 
-        protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
-        {
-            var entityName = (string)arg.table_name;
+            Get["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleSingleItemRequest);
 
-            if (this.Request.Query["$select"] == null)
-            {
-                var rows = db.Query(entityName,
-                                    this.Request.Query["$filter"],
-                                    this.Request.Query["$orderby"],
-                                    this.Request.Query["$skip"],
-                                    this.Request.Query["$top"]);
+            Post["/tables/{table_name}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
-                return rows;
-            }
-            else
-            {
-                var toInclude = ((string)this.Request.Query["$select"]).Split(',');
-                if (toInclude.Length == 1 && toInclude[0] == "$select")
-                {
-                    return 400;
-                }
+            Patch["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleInsertUpdateRequest);
 
-                if (toInclude.Length == 0)
-                {
-                    return 400;
-                }
+            Delete["/tables/{table_name}/{item_id:int}"] = this.HandleRequestForSiteDatabase(this.HandleDeleteRecordRequest);
 
-                var rows = db.QueryAsJObject(entityName,
-                                    (string)this.Request.Query["$filter"],
-                                    (string)this.Request.Query["$orderby"],
-                                    (string)this.Request.Query["$skip"],
-                                    (string)this.Request.Query["$top"]).ToList();
+            // Files
 
-                foreach (JObject item in rows)
-                {
-                    foreach (var property in item.Properties().ToList())
-                    {
-                        if (toInclude.Contains( property.Name ) == false)
-                        {
-                            property.Remove();
-                        }
-                    }
-                }
+            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
 
-                return rows;
-            }
-        }
-
-        private dynamic HandleCountRequest(NancyBlackDatabase db, dynamic arg)
-        {
-            var entityName = (string)arg.table_name;
-            var rows = db.Count(entityName,
-                                this.Request.Query["$filter"],
-                                this.Request.Query["$orderby"],
-                                this.Request.Query["$skip"],
-                                this.Request.Query["$top"]);
-
-            return JToken.Parse(rows.ToString());
-        }
-
-
-        protected dynamic HandleDeleteRecordRequest(NancyBlackDatabase db, dynamic arg)
-        {
-            var entityName = (string)arg.table_name;
-            var id = arg.item_id == null ? 0 : (int?)arg.item_id;
-
-            db.DeleteRecord(entityName, new { Id = id });
-
-            return 204;
-        }
-
-        protected void _CheckInterfaceIHasAttachment(string tableName)
-        {
-            var type = this.SiteDatabase.DataType.FromName(tableName);
-            var classType = type.GetCompiledType();
-
-            // Check weather class implement specifed interface or not            
-            bool isImplementIStaticType = typeof(IStaticType).IsAssignableFrom(classType);
-            if (isImplementIStaticType == true)
-            {
-                if (typeof(IHasAttachment).IsAssignableFrom(classType) == false)
-                {
-                    throw new Exception("Class that implemented IStaticType and need the attachment. It also need to be be implemented IHasAttachment");
-                }
-            }
+            Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
         }
     }
 }

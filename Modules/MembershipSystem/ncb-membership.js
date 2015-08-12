@@ -173,6 +173,18 @@
 
                 $("#loginDialog").modal('hide');
 
+                // redirect if login from membership page
+                if (window.location.pathname == "/__membership/login") {
+
+                    var target = utils.Querystring("returnUrl");
+
+                    if (target != null) {
+                        target = "/";
+                    }
+
+                    window.location.href = target;
+                }
+
                 $scope.login.email = null;
                 $scope.login.password = null;
                 $scope.login.passwordConfirm = null;

@@ -1,62 +1,30 @@
 ﻿[
   {
     "outputFile": "Modules/ControlsSystem/ncb-Controls.css",
-    "inputFile": "Modules/ControlsSystem/ncb-Controls.less",
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMap": false,
-    "options": {}
+    "inputFile": "Modules/ControlsSystem/ncb-Controls.less"
   },
   {
     "outputFile": "Modules/ContentSystem/Views/editor-editframe.css",
-    "inputFile": "Modules/ContentSystem/Views/editor-editframe.less",
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMap": false,
-    "options": {}
+    "inputFile": "Modules/ContentSystem/Views/editor-editframe.less"
   },
   {
     "outputFile": "Modules/ContentSystem/Views/editor-editarea.css",
-    "inputFile": "Modules/ContentSystem/Views/editor-editarea.less",
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMap": false,
-    "options": {}
+    "inputFile": "Modules/ContentSystem/Views/editor-editarea.less"
   },
   {
     "outputFile": "Modules/DatabaseSystem/ncb-datacontext.css",
-    "inputFile": "Modules/DatabaseSystem/ncb-datacontext.less",
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMap": false,
-    "options": {}
-  },
-  {
-    "outputFile": "Site/style.css",
-    "inputFile": "Site/style.less",
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMap": false,
-    "options": {}
+    "inputFile": "Modules/DatabaseSystem/ncb-datacontext.less"
   },
   {
     "outputFile": "Modules/CommerceSystem/ncb-commerce.css",
-    "inputFile": "Modules/CommerceSystem/ncb-commerce.less",
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMap": false,
-    "options": {}
+    "inputFile": "Modules/CommerceSystem/ncb-commerce.less"
+  },
+  {
+    "outputFile": "Site/style.css",
+    "inputFile": "Site/style.less"
+  },
+  {
+    "outputFile": "Site/color.css",
+    "inputFile": "Site/color.less"
   }
 ]
