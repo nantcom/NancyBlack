@@ -75,7 +75,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     var returnType = lambda.ReturnType;
 
                     var orderbyName = "OrderBy";
-                    if (sort.Direction == System.Web.UI.WebControls.SortDirection.Descending)
+                    if (sort.Direction == SortDirection.Descending)
                     {
                         orderbyName = "OrderByDescending";
                     }
