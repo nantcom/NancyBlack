@@ -145,15 +145,19 @@ namespace NantCom.NancyBlack.Configuration
 
         public ProcessorMatch CanProcess(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
-            if (requestedMediaRange.Matches("text/xml") ||
-                requestedMediaRange.Matches("application/xml"))
+            if (requestedMediaRange.IsWildcard == false)
             {
-                return new ProcessorMatch
+                if (requestedMediaRange.Matches("text/xml") ||
+                    requestedMediaRange.Matches("application/xml"))
                 {
-                    ModelResult = MatchResult.ExactMatch,
-                    RequestedContentTypeResult = MatchResult.ExactMatch
-                };
+                    return new ProcessorMatch
+                    {
+                        ModelResult = MatchResult.ExactMatch,
+                        RequestedContentTypeResult = MatchResult.ExactMatch
+                    };
+                }
             }
+
 
             return new ProcessorMatch
             {
