@@ -86,24 +86,28 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 var baseUrls = (from p in products
                                 let url = getUrlWithoutLeaf(p.Url)
                                 where url != null
-                                select "\\this\\is\\a\\test" + url).Distinct().ToList();
-
+                                select url).Distinct().ToList();
+                
                 Dictionary<string, Node> tree = new Dictionary<string, Node>();
                 int id = 0;
                 foreach (var item in baseUrls)
                 {
-                    var parts = item.Split('\\').Skip(1).ToList();
+                    var parts = item.Split('\\').ToList();
                     for (int i = 1; i < parts.Count; i++)
                     {
                         var parentPath = string.Join("\\", parts.Take(i));
                         var fullPath = string.Join("\\", parts.Take(i + 1));
-                        var myPath = parts[i];
+
+                        if (parentPath == "")
+                        {
+                            parentPath = "Products";
+                        }
 
                         if (tree.ContainsKey( parentPath ) == false)
                         {
                             tree[parentPath] = new Node()
                             {
-                                id = ++id,
+                                id = id++,
                                 title = Path.GetFileName( parentPath ),
                                 fullPath = parentPath.Replace('\\', '/'),
                             };
@@ -113,8 +117,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         {
                             var node = new Node()
                             {
-                                id = ++id,
-                                title = Path.GetFileName(parentPath),
+                                id = id++,
+                                title = Path.GetFileName(fullPath),
                                 fullPath = fullPath.Replace('\\', '/'),
                             };
 
