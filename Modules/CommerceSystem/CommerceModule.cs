@@ -86,37 +86,42 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 var baseUrls = (from p in products
                                 let url = getUrlWithoutLeaf(p.Url)
                                 where url != null
-                                select url).Distinct().ToList();
+                                select "\\this\\is\\a\\test" + url).Distinct().ToList();
 
                 Dictionary<string, Node> tree = new Dictionary<string, Node>();
                 int id = 0;
                 foreach (var item in baseUrls)
                 {
-                    var parts = item.Split('\\');
-                    var fullPath = "";
-                    foreach (var part in parts.Skip(1).Take( parts.Length - 2 ))
+                    var parts = item.Split('\\').Skip(1).ToList();
+                    for (int i = 1; i < parts.Count; i++)
                     {
-                        fullPath = fullPath + "\\" + part;
-                        if (tree.ContainsKey(fullPath) == false)
+                        var parentPath = string.Join("\\", parts.Take(i));
+                        var fullPath = string.Join("\\", parts.Take(i + 1));
+                        var myPath = parts[i];
+
+                        if (tree.ContainsKey( parentPath ) == false)
                         {
-                            tree[fullPath] = new Node()
+                            tree[parentPath] = new Node()
                             {
                                 id = ++id,
-                                title = part,
-                                fullPath = fullPath.Replace('\\', '/'),
+                                title = Path.GetFileName( parentPath ),
+                                fullPath = parentPath.Replace('\\', '/'),
                             };
                         }
-                    }
 
-                    var parentDirectory = Path.GetDirectoryName(item);
-                    var leafDirectory = Path.GetFileName(item);
-                    
-                    tree[parentDirectory].nodes.Add(new Node()
-                    {
-                        id = ++id,
-                        title = leafDirectory,
-                        fullPath = item.Replace('\\', '/')
-                    });
+                        if (tree.ContainsKey( fullPath ) == false)
+                        {
+                            var node = new Node()
+                            {
+                                id = ++id,
+                                title = Path.GetFileName(parentPath),
+                                fullPath = fullPath.Replace('\\', '/'),
+                            };
+
+                            tree[fullPath] = node;
+                            tree[parentPath].nodes.Add(node);
+                        }
+                    }
                 }
 
 
