@@ -58,10 +58,36 @@ namespace NantCom.NancyBlack.Modules
 
             var fromClient = arg.body.Value as JObject;
             dynamic record = db.UpsertRecord(entityName, fromClient);
-            
+
             return this.Negotiate
                 .WithContentType("application/json")
                 .WithModel((object)record);
+        }
+
+        /// <summary>
+        /// Handles Query Request with support for $count and $inlinecount
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            if (this.Request.Query["$inlinecount"] == "allpages")
+            {
+                return this.HandleInlineCountRequest(db, arg);
+            }
+
+            if (this.Request.Query["$inlinecount"] == "none")
+            {
+                return this.HandleQueryRequest_WithoutCountSupport(db, arg);
+            }
+
+            if (this.Request.Query["$count"] != null)
+            {
+                return this.HandleCountRequest(db, arg);
+            }
+
+            return this.HandleQueryRequest_WithoutCountSupport(db, arg);
         }
 
         /// <summary>
@@ -70,10 +96,10 @@ namespace NantCom.NancyBlack.Modules
         /// <param name="db"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        protected dynamic HandleQueryRequest(NancyBlackDatabase db, dynamic arg)
+        protected dynamic HandleQueryRequest_WithoutCountSupport(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
-            
+
             if (this.Request.Query["$select"] == null)
             {
                 var rows = db.Query(entityName,
@@ -107,7 +133,7 @@ namespace NantCom.NancyBlack.Modules
                 {
                     foreach (var property in item.Properties().ToList())
                     {
-                        if (toInclude.Contains( property.Name ) == false)
+                        if (toInclude.Contains(property.Name) == false)
                         {
                             property.Remove();
                         }
@@ -135,7 +161,24 @@ namespace NantCom.NancyBlack.Modules
 
             return JToken.Parse(rows.ToString());
         }
-        
+
+        /// <summary>
+        /// Handles Count Request
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected dynamic HandleInlineCountRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            var entityName = (string)arg.table_name;
+
+            return new
+            {
+                Count = this.HandleCountRequest(db, arg),
+                Results = this.HandleQueryRequest_WithoutCountSupport( db, arg )
+            };
+        }
+
         /// <summary>
         /// Handles the delete request
         /// </summary>
