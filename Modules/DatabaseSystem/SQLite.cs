@@ -2324,7 +2324,7 @@ namespace SQLite
 					
                     // Read JSON stored in the column
                     var json = SQLite3.ColumnString(stmt, index);
-                    return JsonConvert.DeserializeObject(json, DefaultJsonSettings.Instance);
+                    return JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);
 				}
 			}
 		}
