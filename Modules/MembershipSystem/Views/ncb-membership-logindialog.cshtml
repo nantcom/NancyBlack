@@ -33,6 +33,15 @@
 
         </form>
 
+        <div style="margin-top: 10px">
+            <alert ng-repeat="alert in membership.alerts"
+                   type="{{alert.type}}"
+                   close="membership.closeAlert($index)">
+                {{alert.msg}}
+            </alert>
+        </div>
+
+
         <ncb-footer>
             <p class="form-control-static"
                ng-show="mode == 'register'">

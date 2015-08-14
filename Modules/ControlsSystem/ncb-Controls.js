@@ -29,8 +29,7 @@
         }
     };
 
-    function processFormElement(element)
-    {
+    function processFormElement(element) {
         // Bootstrap Setup
         element.addClass("form-control");
 
@@ -60,7 +59,7 @@
                 var label = $('<label class="control-label col-xs-' + labelCol + '"></label>');
                 label.attr("for", element.attr("name"));
                 label.text(element.attr("title"));
-                
+
                 element.parent().wrap('<div class="form-group"></div>');
                 element.parent().parent().prepend(label);
 
@@ -169,7 +168,7 @@
             link: link
         };
     });
-    
+
     // add 'active' class to A tags
     module.directive('ncbActive', function ($document) {
 
@@ -198,7 +197,7 @@
     module.directive('ncbSelect', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
-            
+
             processFormElement(element);
         }
 
@@ -207,14 +206,14 @@
             link: link
         };
     });
-    
+
     // A Shorter, leaner Input boxes
     module.directive('ncbTextbox', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
 
             processFormElement(element);
-            
+
             // Final touch ups
             if (element.is("[placeholder]") == false) {
                 element.attr("placeholder", element.attr("title"));
@@ -226,7 +225,7 @@
             link: link
         };
     });
-    
+
     // A Shorter, leaner checkbox
     module.directive('ncbCheckbox', function ($document, $compile) {
 
@@ -278,7 +277,7 @@
             element.remove();
 
             label.append(element);
-            
+
             if (element.is("[text]")) {
 
                 var text = $('<span>' + element.attr("text") + '</span>');
@@ -286,11 +285,11 @@
 
                 compiled(scope);
 
-                element.after( text );
+                element.after(text);
             }
 
             if (inputColumn != null) {
-                
+
                 inputColumn.append(parent);
             }
         }
@@ -336,7 +335,7 @@
             // Bootstrap Setup
             var inputGroup = $('<div class="input-group"></div>');
             var inputBtn = $('<span class="input-group-btn"></span>');
-            element.wrap( inputGroup );
+            element.wrap(inputGroup);
 
             var button = $('<button class="btn btn-default" type="button"></button>');
             inputBtn.append(button);
@@ -450,12 +449,12 @@
             link: link
         };
     });
-    
+
     // Add Button
     module.directive('ncbTab', function () {
 
         function link(scope, element, attrs) {
-            
+
             var child = element.children().first();
             child.unwrap();
 
@@ -471,12 +470,12 @@
             template: '<div class="tab-pane fade" ng-transclude></div>'
         };
     });
-    
+
     // Date Picker Control
     module.directive('ncbDatepicker', function ($compile) {
 
         function link(scope, element, attrs) {
-            
+
             if (element.is("[title]")) {
 
                 element.find(".control-label").text(element.attr("title"));
@@ -592,12 +591,12 @@
             templateUrl: '/Modules/ControlsSystem/Templates/ncbSimpleDatePicker.html',
         };
     });
-    
+
     // Modal Dialog
     module.directive('ncbModal', ['$compile', function ($compile) {
 
         function link(scope, element, attrs) {
-            
+
             if (element.is("[closebutton]") == false) {
                 element.find("button.close").remove();
             }
@@ -610,10 +609,10 @@
                 element.find(".modal-dialog").addClass("modal-sm");
             }
 
-            if (element.is("[deletebutton]") == false)
-            {
-                element.find("button.ncb-modal-delete").remove();
-            } else {
+            if (element.is("[deletebutton]") == false) {
+                element.find("button.ncb-modal-delete").css("visibility", "collapse");
+            }
+            else {
 
                 if (attrs.ondelete != null) {
 
@@ -644,7 +643,20 @@
                         element.find("button.ncb-modal-delete").remove(); // button is not bound
                     }
                 }
+            }
 
+            if (attrs.deletebutton != "") {
+
+                scope.$watch(attrs.deletebutton, function (newValue) {
+
+                    if ( newValue == true )
+                    {
+                        element.find("button.ncb-modal-delete").css("visibility", "visible");
+                    } else {
+
+                        element.find("button.ncb-modal-delete").css("visibility", "collapse");
+                    }
+                });
             }
 
             var title = element.find("h2.modal-title");
@@ -687,11 +699,11 @@
     module.directive('ncbListedit', ['$compile', function ($compile) {
 
         function link(scope, element, attrs) {
-            
+
             scope.list = [{ name: 'a' }];
 
             // alter ncb-repeat into ng-repeat
-            element.find(".ncb-listarea").find("[ncb-repeat]").each(function ( i, item ) {
+            element.find(".ncb-listarea").find("[ncb-repeat]").each(function (i, item) {
 
                 $(item).attr("ng-repeat", $(item).attr("ncb-repeat"));
                 $(item).removeAttr("ncb-repeat");
@@ -722,7 +734,7 @@
             link: link
         };
     }]);
-    
+
     // JSON Editor
     module.directive('ncbJsonedit', function () {
 
@@ -853,7 +865,7 @@
                         scope.model = !scope.model;
                         ngModelCtrl.$setViewValue(scope.model);
 
-                        scope.$parent.$eval( attrs.changed );
+                        scope.$parent.$eval(attrs.changed);
                     }
                 };
             }
@@ -877,14 +889,14 @@
                 var current = $(this);
                 var url = current.attr("href");
 
-                var match = currentUrl.indexOf( url ) >= 0;
+                var match = currentUrl.indexOf(url) >= 0;
                 if (currentUrl == "/" || url == "/") {
 
                     match = (url == currentUrl);
                 }
 
                 // starts with path name
-                if ( match == true ) {
+                if (match == true) {
 
                     if (attrs.applyto != null) {
 
@@ -908,7 +920,7 @@
         function link(scope, element, attrs) {
 
             if (attrs.whendrop == null) {
-                
+
                 throw "whendrop attribute is required.";
             }
 
@@ -936,7 +948,7 @@
 
                 var fn = scope.$eval(attrs.whendrop);
                 if (fn == null) {
-                    
+
                     throw attrs.whendrop + " does not resolve to function";
                 }
                 fn(e.originalEvent.dataTransfer.files);
@@ -1005,6 +1017,25 @@
 
                 $(element.data("on")).toggleClass(attrs.ncbToggle);
             });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    // insert background image with css
+    module.directive('ncbClosealert', function () {
+
+        function link(scope, element, attrs) {
+
+            if (scope.closeAlert == null) {
+
+                scope.closeAlert = function (index) {
+                    scope.alerts.splice(index, 1);
+                };
+            }
         }
 
         return {

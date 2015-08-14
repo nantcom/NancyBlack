@@ -57,7 +57,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             return this.HandleRequest((arg) =>
             {
                 return from type in dbGetter().DataType.RegisteredTypes
-                       where type.NormalizedName.StartsWith("__") == false
+                       where (type is StaticDataType) == false
                        select type;
             });
         }

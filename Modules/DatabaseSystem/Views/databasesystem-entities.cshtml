@@ -15,7 +15,7 @@
         Manage Entities
     </h1>
     <p>
-        This page allows you to manage structure of all tables in the system.
+        This page allows you to manage structure of all custom tables in the system.
     </p>
 
     <div class="pull-right">
@@ -101,12 +101,7 @@
                 </tr>
             </table>
         </div>
-
-        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">
-            {{alert.msg}}
-        </alert>
-
-
+        
         <ncb-footer>
 
             <button type="button"

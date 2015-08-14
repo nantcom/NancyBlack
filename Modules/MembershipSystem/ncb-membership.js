@@ -14,16 +14,21 @@
 
     var membership = angular.module('ncb-membership', []);
 
-    membership.directive('ncbMembership', function ($http, $compile, $cookies) {
+    membership.directive('ncbMembership', function ($http, $compile, $cookies, $window) {
 
         function link($scope, element, attrs) {
+
+            if ($scope.membership != null) {
+
+                throw "Membership was already used in this scope";
+            }
 
             $scope.membership = {};
             $scope.membership.alerts = [];
 
             var $me = $scope.membership;
 
-            $me.currentUser = window.currentUser;
+            $me.currentUser = $window.currentUser;
 
             $me.closeAlert = function (index) {
 
@@ -42,7 +47,7 @@
             var processLogin = function (response, callback) {
 
                 $me.currentUser = response;
-                window.currentUser = response;
+                $window.currentUser = response;
 
                 $scope.$emit("ncb-membership.login", {
                     sender: $scope,

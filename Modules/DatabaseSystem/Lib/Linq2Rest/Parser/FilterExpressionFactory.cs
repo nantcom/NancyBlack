@@ -175,23 +175,29 @@ namespace Linq2Rest.Parser
 
 		private static Expression GetFunction(string function, Expression left, Expression right, ParameterExpression sourceParameter, ICollection<ParameterExpression> lambdaParameters)
 		{
-			//Contract.Requires(function != null);
-			//Contract.Requires(left != null);
+            //Contract.Requires(function != null);
+            //Contract.Requires(left != null);
 
-			switch (function.ToLowerInvariant())
+            var tostringL = Expression.Call(Expression.Convert(left, typeof(object)),
+                                            typeof(object).GetMethod("ToString"));
+
+            var tostringR = Expression.Call(Expression.Convert(right, typeof(object)),
+                                            typeof(object).GetMethod("ToString"));
+            
+            switch (function.ToLowerInvariant())
 			{
 				case "substringof":
 					return Expression.Call(right, MethodProvider.ContainsMethod, new[] { left });
 				case "endswith":
-					return Expression.Call(left, MethodProvider.EndsWithMethod, new[] { right });
+					return Expression.Call(tostringL, MethodProvider.EndsWithMethod, new[] { tostringR });
 				case "startswith":
-					return Expression.Call(left, MethodProvider.StartsWithMethod, new[] { right });
-                case "contains":
-                    return Expression.Call(left, MethodProvider.ContainsMethod, new[] { right });
+                    return Expression.Call(tostringL, MethodProvider.StartsWithMethod, new[] { tostringR });
+                case "contains":                    
+                    return Expression.Call(tostringL, MethodProvider.ContainsMethod, new[] { tostringR });
                 case "length":
 					return Expression.Property(left, MethodProvider.LengthProperty);
 				case "indexof":
-					return Expression.Call(left, MethodProvider.IndexOfMethod, new[] { right });
+					return Expression.Call(tostringL, MethodProvider.IndexOfMethod, new[] { tostringR });
                 case "substring":
 					return Expression.Call(left, MethodProvider.SubstringMethod, new[] { right });
 				case "tolower":

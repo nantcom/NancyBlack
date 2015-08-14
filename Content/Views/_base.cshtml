@@ -71,7 +71,7 @@
 <body ncb-membership>
 
     @RenderBody()
-    
+
     <script>
         @if (this.CurrentUser != null)
         {
@@ -102,8 +102,7 @@
     @RenderSection("Script", false)
 
     <script>
-
-        $(document).ready( function() {
+		window.onload = function() {
 
             // base modules
             var modules = [
@@ -126,7 +125,10 @@
                 me.removeAttr("ng-module");
             });
 
-            angular.bootstrap($("body"), modules);
+			angular.bootstrap($("body"), modules);
+		};
+
+        $(document).ready( function() {
 
             //#region Helper to support drag and drop and prevent dropping file to document
 
@@ -145,6 +147,7 @@
             $(document).on('drop', cancel);
 
             //#endregion
+
         });
     </script>
     @if (this.Site.application.FacebookAppId != null)
@@ -184,7 +187,6 @@
         </script>
 
     }
-
 </body>
 
 
