@@ -66,7 +66,6 @@
             position: fixed;
         }
     </style>
-
 </head>
 <body ncb-membership>
 
@@ -102,7 +101,14 @@
     @RenderSection("Script", false)
 
     <script>
-		window.onload = function() {
+
+        window.loaded = false;
+        window.initialize = function() {
+
+            if (window.loaded == true) {
+
+				return;
+            }
 
             // base modules
             var modules = [
@@ -125,10 +131,15 @@
                 me.removeAttr("ng-module");
             });
 
-			angular.bootstrap($("body"), modules);
-		};
+            angular.bootstrap($("body"), modules);
+            window.loaded = true;
+        };
+
+        window.addEventListener( "load", window.initialize );
 
         $(document).ready( function() {
+
+            window.setTimeout( window.initialize, 400 );
 
             //#region Helper to support drag and drop and prevent dropping file to document
 
