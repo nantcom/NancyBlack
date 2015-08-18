@@ -1064,10 +1064,10 @@
             });
 
             // To bind event to table
-            element.on('mousedown', function (event) {
-                // Prevent default dragging of selected content
-                event.preventDefault();
-            });
+            //element.on('mousedown', function (event) {
+            //    // Prevent default dragging of selected content
+            //    event.preventDefault();
+            //});
         }
 
         // Use for connect to other API or Component.
@@ -1076,12 +1076,8 @@
             // Note:
             // Access outside scope via $scope.$parent
             console.log("DIRTIVE Scope", $scope);
-            //$scope.displayColumns = [
-            //    "Id", "Title", "Url",
-            //    "DisplayOrder", "Stock", "Price"
-            //];
 
-            var idCol = _CreateColumnObject("id");
+            var idCol = _CreateColumnObject("id", "Id");
             var titleCol = _CreateColumnObject("Title");
             var stockCol = _CreateColumnObject("Stock");
             var priceCol = _CreateColumnObject("Price");
@@ -1091,9 +1087,12 @@
 
             console.log("-COLS-",$scope.cols);
 
-            function _CreateColumnObject(name) {
+            function _CreateColumnObject(name, dbField) {
+
+                var filterKey = dbField == undefined ? name : dbField;
+                
                 var filter = {};                
-                filter[name] = 'text';
+                filter[filterKey]= 'text';
                 return {
                     title: name,
                     sortable: name,
@@ -1114,7 +1113,7 @@
             }, {
                 total: 0, // length of data
                 getData: function ($defer, params) {
-                    console.log("GETDATA", params.filter());
+                    
                     var oDataQueryParams = _oDataAddFilterAndOrder(params);
 
                     $scope.$parent.data.inlinecount(oDataQueryParams, function (data) {

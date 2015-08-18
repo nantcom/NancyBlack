@@ -26,6 +26,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             Get["/Admin/Tables/{table_name}"] = this.HandleTableRequests;
 
             Get["/tables/DataType"] = this.HandleListDataTypeRequest(() => this.SiteDatabase);
+            Get["/tables/DataType/{type_name}"] = this.HandleSpecifiedDataTypeRequest(() => this.SiteDatabase);
             Post["/tables/DataType/Scaffold"] = this.HandleScaffoldRequest(() => this.SiteDatabase);
             Post["/tables/DataType"] = this.HandleRegisterDataTypeRequest(() => this.SiteDatabase);
             Patch["/tables/DataType/{item_id}"] = this.HandleRegisterDataTypeRequest(() => this.SiteDatabase);
@@ -61,7 +62,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                        select type;
             });
         }
-        
+
+        protected Func<dynamic, dynamic> HandleSpecifiedDataTypeRequest(Func<NancyBlackDatabase> dbGetter)
+        {
+            return this.HandleRequest((arg) =>
+            {
+                return from type in dbGetter().DataType.RegisteredTypes
+                       where type.NormalizedName == arg.type_name.ToString()
+                       select type;
+            });
+        }        
+
         protected Func<dynamic, dynamic> HandleScaffoldRequest(Func<NancyBlackDatabase> dbGetter)
         {
             return this.HandleRequest((arg) =>
