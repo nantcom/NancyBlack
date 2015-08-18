@@ -14,7 +14,8 @@
       "Content/Scripts/angular-ui/ui-bootstrap-tpls.min.js",
       "Content/Scripts/angular-ui/ui-validate.min.js",
       "Content/Scripts/MobileServices.Web-1.2.5.min.js",
-      "Content/scripts/angular-ui-select/select.min.js"
+      "Content/scripts/angular-ui-select/select.min.js",
+      "Content/scripts/ng-table/ng-table.min.js"
     ],
     "minify": {
       "enabled": true
@@ -28,7 +29,8 @@
       "Content/bootstrap.min.css",
       "Content/font-awesome.min.css",
       "Content/ionicons/css/ionicons.min.css",
-      "Content/Scripts/angular-ui-select/select.min.css"
+      "Content/Scripts/angular-ui-select/select.min.css",
+      "Content/scripts/ng-table/ng-table.min.css"
     ],
     "minify": {
       "enabled": true,

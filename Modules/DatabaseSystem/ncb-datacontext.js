@@ -153,6 +153,12 @@
             throw "Reload is not available unless model is specified";
         };
 
+        // focus on the given object
+        $scope.data.view = function (item) {
+            $scope.object = item;
+            console.log("view2", $scope)
+        };
+
         // Insert is, unlike save, always create new object in the backend
         $scope.data.insert = function (object, callback) {
 
@@ -267,7 +273,7 @@
         };
 
         $scope.data.copy = function (object, callback) {
-
+            
             if (confirm("Copy?") == false) {
 
                 return;
@@ -279,7 +285,7 @@
             delete toSave.id;
             delete toSave.__createdAt;
             delete toSave.__updatedAt;
-
+            console.log("COPY:", $scope);
             $scope.data.save(toSave, callback);
         };
 
@@ -633,12 +639,13 @@
 
                 if ($scope.data != null) {
 
-                    $scope.data.refresh();
+                    //$scope.data.refresh();
 
-                    // focus on the given object
-                    $scope.data.view = function (item) {
-                        $scope.object = item;
-                    };
+                    //// focus on the given object
+                    //$scope.data.view = function (item) {                        
+                    //    $scope.object = item;
+                    //    console.log("view", $scope)
+                    //};
                 }
             };
         }

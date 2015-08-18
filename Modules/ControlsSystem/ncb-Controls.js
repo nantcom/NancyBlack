@@ -95,7 +95,7 @@
 
     }
 
-    var module = angular.module('ncb-controls', []);
+    var module = angular.module('ncb-controls', ['ngTable']);
 
     // Take Picture and upload
     module.directive('ncbCameraOpen', function ($document, $timeout) {
@@ -1047,9 +1047,9 @@
             link: link,
         };
     });
+  
+    module.directive('ncbNgtable', [function () {
 
-    module.directive('ncbNgtable', function () {
-            
         function link(scope, element, attrs) { //controllers
 
             // Best practice to destroy its own directive.
@@ -1061,43 +1061,32 @@
             //element.on('mousedown', function (event) {
             //    // Prevent default dragging of selected content
             //    event.preventDefault();
-            //});
+            //});            
+
         }
 
         // Use for connect to other API or Component.
-        function controller($scope, $http, ngTableParams) {                                    
+        function controller($scope, $http, ngTableParams) {
 
-            // Note:
-            // Access outside scope via $scope.$parent
-            $scope.modalId = "NcbNgtableModalId";
-            $scope.cols = [];
+            var _tableName = $scope.$parent.table.getTableName();
+            var _normalizedTableName = _tableName.toLowerCase();
+
+            $scope.modalId = _tableName + "Modal";
+            $scope.tablename = _normalizedTableName;
+
             $scope.object = $scope.$parent.object;
-            
-            $scope.viewdata = function ViewData(data) {
-                console.log("ViewData", data);
-                $scope.object = data;
-            }
+            $scope.data = $scope.$parent.data;
 
-            $scope.savedata = function SaveData(data) {
-                $scope.$parent.data.save(data);
-                $('#' + $scope.modalId).modal('hide');
-            }
-            
-            var _TableName = $scope.$parent.table.getTableName();
-            $scope.tablename = _TableName;
-            $http.get('/tables/datatype/' + _TableName).
-              then(function (response) {
-
-                  var _DataType = response.data;
-                  $scope.cols = _AddDynamicColumns(_DataType.Properties);
-                  
-              }, function (response) {
-                    // TODO
-                  // called asynchronously if an error occurs
-                  // or server returns response with an error status.
-              });
-
+            $scope.cols = []; // ng-table-dynamic    
             $scope.filters = {};
+
+            // Watch for edit data;
+            $scope.$parent.$watch('object', function (newVal, oldVal) {                
+                if (newVal != null) {
+                    $scope.object = $scope.$parent.object;
+                }
+            });
+
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
                 count: 10,          // count per page
@@ -1107,68 +1096,22 @@
                 filter: $scope.filters // initial filters
             }, {
                 total: 0, // length of data
-                getData: function ($defer, params) {
-                    
-                    var oDataQueryParams = _oDataAddFilterAndOrder(params);
-
-                    $scope.$parent.data.inlinecount(oDataQueryParams, function (data) {
-                        $defer.resolve(data.Results);
-                        params.total(data.Count);
-                    });
-
-                }
+                getData: _GetData
             });
 
-            function _AddDynamicColumns(Properties) {
-                
-                var _arrDisplayColumns = [];
+            if ($scope.tableTemplateId == null) {
+                _GetDataType();                
+            }
+                                                         
+            function _GetData($defer, params) {
 
-                Properties.forEach(function (_Property) {
+                var oDataQueryParams = _oDataAddFilterAndOrder(params);
 
-                    if (_Property.Name == undefined || _Property.Name == null) {
-
-                        console.error("NcbNgTable dynamic column error on property", _Property)
-
-                    } else {
-
-                        var _dbField = null;
-                        if (_Property.Name == "Id") {
-                            _dbField = 'id';
-                        }
-                        var _colObj = _CreateColumnObject(_Property.Name, _Property.Type, _dbField);
-                        _arrDisplayColumns.push(_colObj);
-                                                                      
-                    }
-                    
+                $scope.$parent.data.inlinecount(oDataQueryParams, function (data) {
+                    $defer.resolve(data.Results);
+                    params.total(data.Count);
                 });
 
-                // Push Action column
-                var _editObj = _CreateColumnObject(
-                        "Actions",
-                        "Actions",
-                        null);
-                
-                _arrDisplayColumns.push(_editObj);
-
-                return _arrDisplayColumns;
-
-            };
-
-            function _CreateColumnObject(name, dataType, dbField) {
-                
-                var filterKey = dbField == null ? name : dbField;
-
-                var filter = {};
-                filter[filterKey] = 'text';
-
-                return {
-                    title: name,
-                    sortable: name,
-                    filter: filter,
-                    show: true,
-                    datatype: dataType,
-                    field: filterKey
-                };
             };
 
             function _oDataAddFilterAndOrder(params) {
@@ -1194,7 +1137,9 @@
                 for (var property in _filter) {
                     var _filterAttr = _filter[property];
 
-                    if (_filterAttr == null || _filterAttr == "") { continue; }
+                    if (_filterAttr == null || _filterAttr == "") {
+                        continue;
+                    }
 
                     var _strFilter = "";
 
@@ -1222,7 +1167,76 @@
 
             };
 
-            
+            function _GetDataType() {
+                $http.get('/tables/datatype/' +_normalizedTableName).
+                  then(function (response) {
+
+                      var _DataType = response.data;
+                      $scope.cols = _AddDynamicColumns(_DataType.Properties);
+
+                }, function (response) {
+                          // TODO
+                          // called asynchronously if an error occurs
+                          // or server returns response with an error status.
+                });
+            };
+
+            function _AddDynamicColumns(Properties) {
+
+                var _arrDisplayColumns = [];
+
+                Properties.forEach(function (_Property) {
+
+                    if (_Property.Name == undefined || _Property.Name == null) {
+
+                        console.error("NcbNgTable dynamic column error on property", _Property)
+
+                    } else {
+
+                        var _dbField = null;
+                        if (_Property.Name == "Id") {
+                            _dbField = 'id';
+                        }
+                        var _colObj = _CreateColumnObject(_Property.Name, _Property.Type, _dbField);
+                        _arrDisplayColumns.push(_colObj);
+
+                    }
+
+                });
+
+                // Push Action column
+                var _editObj = _CreateColumnObject(
+                        "Actions",
+                        "Actions",
+                            null);
+
+                _arrDisplayColumns.push(_editObj);
+
+                return _arrDisplayColumns;
+
+            };
+
+            function _CreateColumnObject(name, dataType, dbField) {
+
+                var filterKey = dbField == null ? name : dbField;
+
+                var filter = {
+                };
+                // Action column should not has a filter
+                if (filterKey != "Actions" && filterKey.toLowerCase() != "id") {
+                    filter[filterKey] = 'text';
+                }
+
+                return {
+                    title: name,
+                    sortable: name,
+                    filter: filter,
+                    show: true,
+                    datatype: dataType,
+                    field: filterKey
+                };
+            };
+          
         };
 
         return {
@@ -1230,6 +1244,8 @@
             //require: ['^myTabs', '^ngModel'], //Required for specified controller 
             link: link, // Link to DOM            
             scope: { // This scope is binding to template
+                tableTemplateId: '=tabletemplate',
+                modalTemplateId: '=modaltemplate',
                 //tableName: '=table', // Isolate scope name customerInfo     
                 //displayColumns: '=columns',
                 // 'close': '&onClose' // & Mean pass function Best Practice: use &attr in the scope option when you want your directive to expose an API for binding to behaviors.
@@ -1241,8 +1257,8 @@
             // eg. Controller: $scope.name = "A"; Template: Print {{A}} Man.
             //transclude: true,             
             //controllerAs: "",
-            
+
         };
-    });   
+    }]);   
 
 })();
