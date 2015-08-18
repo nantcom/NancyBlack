@@ -67,9 +67,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             return this.HandleRequest((arg) =>
             {
-                return from type in dbGetter().DataType.RegisteredTypes
-                       where type.NormalizedName == arg.type_name.ToString()
-                       select type;
+                return (from type in dbGetter().DataType.RegisteredTypes
+                        where type.NormalizedName == arg.type_name.ToString()
+                        select type).FirstOrDefault();
             });
         }        
 
