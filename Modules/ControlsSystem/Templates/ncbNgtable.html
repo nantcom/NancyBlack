@@ -16,7 +16,49 @@
             <span ng-if="col.datatype == 'Int32'">
                 {{row[col.field]}}
             </span>
-        </td>
+            <span ng-if="col.datatype == 'Actions'" 
+                  style="white-space: nowrap" class="commandColumn">
+               
+                <button class="btn btn-info"
+                        data-toggle="modal" data-target="#{{modalId}}"
+                        ng-click="viewdata(row)">
+                    <i class="fa fa-edit"></i>
+                </button>
+
+            </span>
+        </td>        
     </tr>
    
 </table>
+
+<ncb-modal id="{{modalId}}"
+           title="{{object.id == null ? 'Create Data' : 'Edit Data'}}"
+           closebutton deletebutton>
+
+    <form role="form" name="NcbUserForm">
+
+        <tabset>
+            <tab heading="General">
+                
+                <span ng-repeat="col in cols" ng-if="col.datatype != 'Actions'">
+                    {{col.title}}
+                    <input type="text"
+                           name="" title=""
+                           ncb-textbox
+                           ng-model="object[col.field]" />
+                </span>
+                                               
+            </tab>
+
+        </tabset>        
+    </form>
+
+    <ncb-footer>
+        <button class="btn btn-primary btn-lg"                
+                ng-click="savedata(object)">
+            <span ng-show="object.id == null">Create</span>
+            <span ng-show="object.id != null">Save</span>
+        </button>
+    </ncb-footer>
+
+</ncb-modal>

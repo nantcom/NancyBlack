@@ -213,7 +213,7 @@
     module.directive('ncbTextbox', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
-
+            
             processFormElement(element);
 
             // Final touch ups
@@ -1069,9 +1069,22 @@
 
             // Note:
             // Access outside scope via $scope.$parent
+            $scope.modalId = "NcbNgtableModalId";
             $scope.cols = [];
-            var _TableName = $scope.$parent.table.getTableName();
+            $scope.object = $scope.$parent.object;
             
+            $scope.viewdata = function ViewData(data) {
+                console.log("ViewData", data);
+                $scope.object = data;
+            }
+
+            $scope.savedata = function SaveData(data) {
+                $scope.$parent.data.save(data);
+                $('#' + $scope.modalId).modal('hide');
+            }
+            
+            var _TableName = $scope.$parent.table.getTableName();
+            $scope.tablename = _TableName;
             $http.get('/tables/datatype/' + _TableName).
               then(function (response) {
 
@@ -1124,10 +1137,18 @@
                         }
                         var _colObj = _CreateColumnObject(_Property.Name, _Property.Type, _dbField);
                         _arrDisplayColumns.push(_colObj);
-
+                                                                      
                     }
                     
                 });
+
+                // Push Action column
+                var _editObj = _CreateColumnObject(
+                        "Actions",
+                        "Actions",
+                        null);
+                
+                _arrDisplayColumns.push(_editObj);
 
                 return _arrDisplayColumns;
 
@@ -1222,26 +1243,6 @@
             //controllerAs: "",
             
         };
-    });
-
-    module.directive('ncbNgTableHeader', function () {
-
-        function link(scope, element, attrs) {
-            console.log(scope.col);
-        }
-
-        return {
-            restrict: 'E',
-            link: link,
-            scope: {
-                col: '=colname',
-            },
-            template: "{{col}}",
-            //template: "<td data-title='{{col}}' sortable='{{col}}' filter='{ {{col}}: 'text' }'>{{col}}</td>",
-            //templateUrl: function (elem, attr) {
-            //    return '<td>1</td>';
-            //}
-        };
-    });
+    });   
 
 })();
