@@ -289,7 +289,7 @@
             $scope.isBusy = true;
 
             $scope.table.read(oDataQuery).done(function (results) {
-
+                
                 results.forEach($me.processServerObject);
                 if (callback != null) {
 
@@ -302,6 +302,46 @@
                 });
 
             }, $me.handleError);
+        };
+
+        $scope.data.count = function (oDataQuery, callback) {
+
+            $scope.isBusy = true;
+
+            $scope.table.read(oDataQuery).done(function (results) {
+                
+                if (callback != null) {
+
+                    callback(results);
+                }
+
+                $scope.$apply(function () {
+
+                    $scope.isBusy = false;
+                });
+
+            }, $me.handleError);
+        };
+
+        $scope.data.inlinecount = function (oDataQuery, callback) {
+
+            $scope.isBusy = true;
+
+            $scope.table.read(oDataQuery).done(function (results) {
+
+                results.Results.forEach($me.processServerObject);
+                if (callback != null) {
+
+                    callback(results);
+                }
+
+                $scope.$apply(function () {
+
+                    $scope.isBusy = false;
+                });
+
+            }, $me.handleError);
+
         };
 
         // get specific item using id
@@ -806,10 +846,10 @@
                         $scope.isBusy = false;
 
                         if (attrs.labelpath != null) {
-
-                            results.forEach(function (item) {
-                                item.label = item[attrs.labelpath];
-                            });
+                            console.log("RefreshLookup", results)
+                            //results.forEach(function (item) {
+                            //    item.label = item[attrs.labelpath];
+                            //});
                         }
 
                         $scope.lookup = results;

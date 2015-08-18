@@ -173,16 +173,18 @@
     module.directive('ncbActive', function ($document) {
 
         function link(scope, element, attrs) {
-
+            
             var url = element.attr("href");
+            
             if (url == null) {
                 return;
             }
 
-            var urlMatch = window.location.href.indexOf(url) >= 0;
+            var urlMatch = window.location.href.indexOf(url) >= 0;            
             if (urlMatch == true) {
-
+                
                 element.addClass("active");
+                
             }
 
         }
@@ -761,7 +763,7 @@
             $me.refreshData = function () {
 
                 var value = scope.$eval($me.expression);
-                console.log("watch refresh, value:" + value);
+                
                 if (value == null) {
 
                     value = {};
@@ -885,25 +887,27 @@
 
             var currentUrl = window.location.pathname;
             element.find("a").each(function () {
-
+                
                 var current = $(this);
                 var url = current.attr("href");
-
+                
                 var match = currentUrl.indexOf(url) >= 0;
                 if (currentUrl == "/" || url == "/") {
 
                     match = (url == currentUrl);
                 }
-
+                
                 // starts with path name
                 if (match == true) {
-
+                    
                     if (attrs.applyto != null) {
 
                         current.parents(attrs.applyto).addClass(activeClass);
                         current.find(attrs.applyto).addClass(activeClass);
-                    }
+                        
+                    }                    
                     current.addClass(activeClass);
+                    current.parent('li').addClass(activeClass);
                 }
             });
         }
@@ -1041,6 +1045,177 @@
         return {
             restrict: 'A',
             link: link,
+        };
+    });
+
+    module.directive('ncbNgtable', function () {
+            
+        function link(scope, element, attrs) { //controllers
+
+            var _tableName = scope.tableName;
+
+            console.log("TABLE NAME:", scope.tableName);
+            console.log("ELEMENT:", element);
+            console.log("ATTRS", attrs);
+
+            // Best practice to destroy its own directive.
+            scope.$on('$destroy', function () {
+                // Do someting to prevent memory leak
+            });
+
+            // To bind event to table
+            element.on('mousedown', function (event) {
+                // Prevent default dragging of selected content
+                event.preventDefault();
+            });
+        }
+
+        // Use for connect to other API or Component.
+        function controller($scope, ngTableParams) {                                    
+
+            // Note:
+            // Access outside scope via $scope.$parent
+            console.log("DIRTIVE Scope", $scope);
+            //$scope.displayColumns = [
+            //    "Id", "Title", "Url",
+            //    "DisplayOrder", "Stock", "Price"
+            //];
+
+            var idCol = _CreateColumnObject("id");
+            var titleCol = _CreateColumnObject("Title");
+            var stockCol = _CreateColumnObject("Stock");
+            var priceCol = _CreateColumnObject("Price");
+            var urlCol = _CreateColumnObject("Url");
+
+            $scope.cols = [idCol, titleCol, urlCol, stockCol, priceCol];
+
+            console.log("-COLS-",$scope.cols);
+
+            function _CreateColumnObject(name) {
+                var filter = {};                
+                filter[name] = 'text';
+                return {
+                    title: name,
+                    sortable: name,
+                    filter: filter,
+                    show: true,
+                    field: name
+                };
+            };
+
+            $scope.filters = {};
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    Id: 'asc'       // initial sorting
+                },
+                //filter: $scope.filters // initial filters
+            }, {
+                total: 0, // length of data
+                getData: function ($defer, params) {
+                    console.log("GETDATA", params.filter());
+                    var oDataQueryParams = _oDataAddFilterAndOrder(params);
+
+                    $scope.$parent.data.inlinecount(oDataQueryParams, function (data) {
+                        $defer.resolve(data.Results);
+                        params.total(data.Count);
+                    });
+
+                }
+            });
+
+            function _oDataAddFilterAndOrder(params) {
+
+                var oDataQueryParams = '';
+
+                var _filter = params.filter();
+                var _sorting = params.sorting();
+                var _pageNum = params.page();
+                var _pageSize = params.count();
+
+                var _takeV = 10;
+                var _skipV = 0;
+
+                // OrderBy
+                for (var property in _sorting) {
+                    var _sortOrder = _sorting[property];
+                    oDataQueryParams += '$orderby=' + property + ' ' + _sortOrder;
+                }
+
+                // Filters
+                var _arrFilters = [];
+                for (var property in _filter) {
+                    var _filterAttr = _filter[property];
+
+                    if (_filterAttr == null || _filterAttr == "") { continue; }
+
+                    var _strFilter = "";
+
+                    _strFilter = "contains(" + property + ",'" + _filterAttr + "')";
+
+                    _arrFilters.push(_strFilter);
+                }
+
+                if (_arrFilters.length > 0) {
+                    var _baseQuery = "&$filter=";
+                    var _joinFilters = _arrFilters.join(" and ");
+                    oDataQueryParams += _baseQuery + _joinFilters;
+                }
+
+                // Skip & Take
+                _takeV = _pageSize;
+                _skipV = (_pageNum * _pageSize) - _pageSize;
+
+                oDataQueryParams += "&$skip=" + _skipV + "&$top=" + _takeV;
+
+                // InlineCount
+                oDataQueryParams += '&$inlinecount=allpages';
+
+                return oDataQueryParams;
+
+            };
+
+            
+        };
+
+        return {
+            restrict: 'E', // To use <ncb-ngtable></ncb-ngtable>
+            //require: ['^myTabs', '^ngModel'], //Required for specified controller 
+            link: link, // Link to DOM            
+            scope: { // This scope is binding to template
+                tableName: '=table', // Isolate scope name customerInfo     
+                displayColumns: '=columns',
+                // 'close': '&onClose' // & Mean pass function Best Practice: use &attr in the scope option when you want your directive to expose an API for binding to behaviors.
+            },
+            templateUrl: '/Modules/ControlsSystem/Templates/ncbNgtable.html',
+            // It's like this directive is a mask and allowed the controller passed the value through template.
+            // In the other hand the value does not pass the isolate scope.
+            // eg. Controller: $scope.name = "A"; Template: Print {{A}} Man.
+            //transclude: true, 
+            controller: controller,
+            //controllerAs: "",
+            
+        };
+    });
+
+    module.directive('ncbNgTableHeader', function () {
+
+        function link(scope, element, attrs) {
+            console.log(scope.col);
+        }
+
+        return {
+            restrict: 'E',
+            link: link,
+            scope: {
+                col: '=colname',
+            },
+            template: "{{col}}",
+            //template: "<td data-title='{{col}}' sortable='{{col}}' filter='{ {{col}}: 'text' }'>{{col}}</td>",
+            //templateUrl: function (elem, attr) {
+            //    return '<td>1</td>';
+            //}
         };
     });
 

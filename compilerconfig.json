@@ -22,9 +22,5 @@
   {
     "outputFile": "Site/style.css",
     "inputFile": "Site/style.less"
-  },
-  {
-    "outputFile": "Site/color.css",
-    "inputFile": "Site/color.less"
   }
 ]

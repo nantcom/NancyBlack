@@ -162,6 +162,19 @@ namespace NantCom.NancyBlack.Modules
             return JToken.Parse(rows.ToString());
         }
 
+        protected dynamic HandleCountWithoutSkipAndTakeRequest(NancyBlackDatabase db, dynamic arg)
+        {
+            // Count without Skip and Take
+            var entityName = (string)arg.table_name;
+            var rows = db.Count(entityName,
+                                this.Request.Query["$filter"],
+                                this.Request.Query["$orderby"],
+                                null,
+                                null);
+
+            return JToken.Parse(rows.ToString());
+        }
+
         /// <summary>
         /// Handles Count Request
         /// </summary>
@@ -170,11 +183,9 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         protected dynamic HandleInlineCountRequest(NancyBlackDatabase db, dynamic arg)
         {
-            var entityName = (string)arg.table_name;
-
             return new
             {
-                Count = this.HandleCountRequest(db, arg),
+                Count = this.HandleCountWithoutSkipAndTakeRequest(db, arg),
                 Results = this.HandleQueryRequest_WithoutCountSupport( db, arg )
             };
         }

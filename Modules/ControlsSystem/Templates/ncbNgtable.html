@@ -1,0 +1,51 @@
+﻿Table Name : {{tableName}}
+
+{{displayColumns}}
+
+<table id="CaseTable"
+       ncb-datatable
+       class="table table-striped table-hover"
+       style="width: 100%"
+       ng-table-dynamic="tableParams with cols"
+       show-filter="true">    
+
+    <!--<tr ng-repeat="user in tableParams.data">
+        <td ng-repeat="col in $columns">
+            {{user[col.field]}}
+        </td>
+    </tr>-->
+
+    <tr ng-repeat="row in tableParams.data">
+        <td ng-repeat="col in $columns">
+            {{row[col.field]}}
+        </td>
+    </tr>
+
+    <!--<tr ng-repeat="product in tableParams.data">
+        <!--<td style="text-align: left" header="'ng-table/headers/checkbox.html'">
+            <input type="checkbox" ng-model="checkboxes.items[product.id]" />
+        </td>-->
+        <!--<td style="text-align: left">
+            <input type="checkbox" ng-model="checkboxes.items[product.id]" />
+        </td>
+
+
+        <td data-title="'No'">{{$index + 1}}</td>
+        <td data-title="'Id'" sortable="'Id'" filter="{ Id: 'text' }">{{product.id}}</td>
+        <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">{{product.Title}}</td>
+        <td data-title="'Url'" sortable="'Url'" filter="{ Url: 'text' }">{{product.Url}}</td>
+        <td data-title="'DisplayOrder'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }">{{product.DisplayOrder}}</td>
+        <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }">{{product.Stock}}</td>
+        <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }">{{product.Price}}</td>-->
+        <!--<td data-title="'Actions'" style="white-space: nowrap">
+            <a href="#">
+                <button class="btn btn-info"
+                        ng-click="ctrl.view_data(product)">
+                    <i class="fa fa-edit"></i>
+                </button>
+            </a>
+        </td>
+
+    </tr>-->
+
+</table>

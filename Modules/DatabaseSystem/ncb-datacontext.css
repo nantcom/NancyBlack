@@ -12,11 +12,11 @@
   line-height: 30px;
   pointer-events: none;
   position: relative;
-  z-index: 7999;
+  z-index: 1001;
 }
 .uploader > .uploadprogress {
   position: absolute;
-  z-index: 7998;
+  z-index: 1000;
   height: 100%;
   background-color: #6b84ba;
   transition: width ease-out 0.1s;

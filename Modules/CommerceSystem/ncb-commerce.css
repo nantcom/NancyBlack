@@ -103,6 +103,9 @@ table.saleorder td:nth-child(6) {
   box-shadow: inset white 0 0 50px;
   visibility: collapse;
   opacity: 0;
+  -moz-transition: opacity ease 1s;
+  -o-transition: opacity ease 1s;
+  -webkit-transition: opacity ease 1s;
   transition: opacity ease 1s;
 }
 #working > span {
@@ -117,4 +120,28 @@ table.saleorder td:nth-child(6) {
 #working.show {
   visibility: visible;
   opacity: 1;
+}
+#productlist #LeftMenuTree {
+  width: 300px;
+  height: 100%;
+  top: 0;
+  z-index: 9999;
+  padding-top: 65px;
+  overflow-x: hidden;
+  position: fixed;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+#productlist #LeftMenuTree > div[ui-tree] {
+  height: 100%;
+  overflow-y: auto;
+}
+#productlist .carousel .slide {
+  height: 360px;
+  width: 360px;
+  margin: auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  display: inline-block;
 }
