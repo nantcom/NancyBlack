@@ -1052,12 +1052,6 @@
             
         function link(scope, element, attrs) { //controllers
 
-            var _tableName = scope.tableName;
-
-            console.log("TABLE NAME:", scope.tableName);
-            console.log("ELEMENT:", element);
-            console.log("ATTRS", attrs);
-
             // Best practice to destroy its own directive.
             scope.$on('$destroy', function () {
                 // Do someting to prevent memory leak
@@ -1071,36 +1065,24 @@
         }
 
         // Use for connect to other API or Component.
-        function controller($scope, ngTableParams) {                                    
+        function controller($scope, $http, ngTableParams) {                                    
 
             // Note:
             // Access outside scope via $scope.$parent
-            console.log("DIRTIVE Scope", $scope);
+            $scope.cols = [];
+            var _TableName = $scope.$parent.table.getTableName();
+            
+            $http.get('/tables/datatype/' + _TableName).
+              then(function (response) {
 
-            var idCol = _CreateColumnObject("id", "Id");
-            var titleCol = _CreateColumnObject("Title");
-            var stockCol = _CreateColumnObject("Stock");
-            var priceCol = _CreateColumnObject("Price");
-            var urlCol = _CreateColumnObject("Url");
-
-            $scope.cols = [idCol, titleCol, urlCol, stockCol, priceCol];
-
-            console.log("-COLS-",$scope.cols);
-
-            function _CreateColumnObject(name, dbField) {
-
-                var filterKey = dbField == undefined ? name : dbField;
-                
-                var filter = {};                
-                filter[filterKey]= 'text';
-                return {
-                    title: name,
-                    sortable: name,
-                    filter: filter,
-                    show: true,
-                    field: name
-                };
-            };
+                  var _DataType = response.data;
+                  $scope.cols = _AddDynamicColumns(_DataType.Properties);
+                  
+              }, function (response) {
+                    // TODO
+                  // called asynchronously if an error occurs
+                  // or server returns response with an error status.
+              });
 
             $scope.filters = {};
             $scope.tableParams = new ngTableParams({
@@ -1109,7 +1091,7 @@
                 sorting: {
                     Id: 'asc'       // initial sorting
                 },
-                //filter: $scope.filters // initial filters
+                filter: $scope.filters // initial filters
             }, {
                 total: 0, // length of data
                 getData: function ($defer, params) {
@@ -1123,6 +1105,50 @@
 
                 }
             });
+
+            function _AddDynamicColumns(Properties) {
+                
+                var _arrDisplayColumns = [];
+
+                Properties.forEach(function (_Property) {
+
+                    if (_Property.Name == undefined || _Property.Name == null) {
+
+                        console.error("NcbNgTable dynamic column error on property", _Property)
+
+                    } else {
+
+                        var _dbField = null;
+                        if (_Property.Name == "Id") {
+                            _dbField = 'id';
+                        }
+                        var _colObj = _CreateColumnObject(_Property.Name, _Property.Type, _dbField);
+                        _arrDisplayColumns.push(_colObj);
+
+                    }
+                    
+                });
+
+                return _arrDisplayColumns;
+
+            };
+
+            function _CreateColumnObject(name, dataType, dbField) {
+                
+                var filterKey = dbField == null ? name : dbField;
+
+                var filter = {};
+                filter[filterKey] = 'text';
+
+                return {
+                    title: name,
+                    sortable: name,
+                    filter: filter,
+                    show: true,
+                    datatype: dataType,
+                    field: filterKey
+                };
+            };
 
             function _oDataAddFilterAndOrder(params) {
 
@@ -1183,16 +1209,16 @@
             //require: ['^myTabs', '^ngModel'], //Required for specified controller 
             link: link, // Link to DOM            
             scope: { // This scope is binding to template
-                tableName: '=table', // Isolate scope name customerInfo     
-                displayColumns: '=columns',
+                //tableName: '=table', // Isolate scope name customerInfo     
+                //displayColumns: '=columns',
                 // 'close': '&onClose' // & Mean pass function Best Practice: use &attr in the scope option when you want your directive to expose an API for binding to behaviors.
             },
             templateUrl: '/Modules/ControlsSystem/Templates/ncbNgtable.html',
+            controller: controller,
             // It's like this directive is a mask and allowed the controller passed the value through template.
             // In the other hand the value does not pass the isolate scope.
             // eg. Controller: $scope.name = "A"; Template: Print {{A}} Man.
-            //transclude: true, 
-            controller: controller,
+            //transclude: true,             
             //controllerAs: "",
             
         };
