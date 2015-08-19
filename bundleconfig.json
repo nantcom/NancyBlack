@@ -4,7 +4,6 @@
     "inputFiles": [
       "Content/scripts/stringformat/stringformat-1.09.min.js",
       "Content/Scripts/jquery-2.1.1.min.js",
-      "Content/Scripts/jquery.signalR-2.2.0.min.js",
       "Content/scripts/underscore.js",
       "Content/Scripts/bootstrap.min.js",
       "Content/Scripts/angular.min.js",

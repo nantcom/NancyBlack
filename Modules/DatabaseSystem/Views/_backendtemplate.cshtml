@@ -56,7 +56,7 @@
             </button>
         </div>
 
-        <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modaltemplate="'tablecustommodal.html'">
+        <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="@(entityName)Modal">
         </ncb-ngtable>
 
         <script type="text/ng-template" id="tablecustomtemplate.html">
@@ -80,7 +80,10 @@
                     {
                         // Lookup
                         var tableName = property.Name.Substring(0, property.Name.Length - 2);
-                        <td>{{ (lookup.@(tableName) | filter: { Id : item.@(property.Name) })[0].Title }}</td>
+                        <td>
+                            <span ncb-vlookup="@(tableName)" key="{{item.@(property.Name)}}">
+                            </span>
+                        </td>
                     }
                     else if (property.Type.EndsWith("[]"))
                     {
@@ -139,148 +142,143 @@
         </table>
 
         </script>
-       
-        <script type="text/ng-template" id="tablecustommodal.html">
 
-            <ncb-modal id="@(entityName)Modal"
-                       title="{{object.id == null ? 'Create @(entityName)' : 'Edit @(entityName)'}}"
-                       closebutton deletebutton>
-                <form role="form" name="@(entityName)Form">
+        <ncb-modal id="@(entityName)Modal"
+                   title="{{object.id == null ? 'Create @(entityName)' : 'Edit @(entityName)'}}"
+                   closebutton deletebutton>
+            <form role="form" name="@(entityName)Form">
 
-                    <tabset>
-                        <tab heading="General">
+                <tabset>
+                    <tab heading="General">
 
-                            @foreach (var property in entity.Properties)
-                            {
-                                if (property.Name == "Id" || property.Name.StartsWith("__") || property.Type.EndsWith("[]"))
-                                {
-                                    continue;
-                                }
-                                else if (property.Name.StartsWith("js_"))
-                                {
-                                    continue;
-                                }
-                                else if (property.Name.EndsWith("Id"))
-                                {
-                                    // Lookup
-                                    var tableName = property.Name.Substring(0, property.Name.Length - 2);
-
-                                    <div class="form-group"
-                                         ncb-lookupscope
-                                         table="@(tableName)" labelpath="Name" filter="$filter=startswith(name, $key)">
-
-                                        <label class="control-label" for="@(property.Name)">
-                                            @(property.Name)
-                                            <i class="fa fa-spin fa-circle-o-notch"
-                                               ng-show="isBusy"></i>
-                                        </label>
-
-                                        <ui-select theme="bootstrap" ng-model="object.@(property.Name)"
-                                                   reset-search-input="false">
-                                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                                               refresh="refreshLookup($select.search)"
-                                                               refresh-delay="0">
-                                                <span>{{item.label}}</span>
-                                            </ui-select-choices>
-                                        </ui-select>
-                                    </div>
-                                }
-                                else if (property.Type == "System.Boolean")
-                                {
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox"
-                                                   ng-model="object.@(property.Name)" /> @(property.Name)
-                                            </label>
-                                        </div>
-                                }
-                                else if (property.Type == "DateTime")
-                                {
-                                    <ncb-datepicker placeholder="To Date"
-                                                    format="'dd MMMM yyyy'"
-                                                    model="object.@(property.Name)"></ncb-datepicker>
-                                }
-                                else if (property.Name.EndsWith("Text"))
-                                {
-                                    <div class="form-group">
-                                        <label class="control-label" for="@(property.Name)">@(property.Name)</label>
-                                        <textarea name="@(property.Name)"
-                                                  class="form-control"
-                                                  ng-model="object.@(property.Name)"
-                                                  placeholder="@(property.Name)" rows="10"></textarea>
-                                    </div>
-
-                                }
-                                else
-                                {
-                                    <input type="text" name="@(property.Name)" title="@(property.Name)"
-                                           ncb-textbox
-                                           ng-model="object.@(property.Name)" />
-                                }
-                            }
-                        </tab>
-                        @foreach (var item in entity.Properties)
+                        @foreach (var property in entity.Properties)
                         {
-                            if (item.Type.EndsWith("[]"))
+                            if (property.Name == "Id" || property.Name.StartsWith("__") || property.Type.EndsWith("[]"))
                             {
-                                <tab heading="@item.Name">
-                                    <table class="table table-hover"
-                                           ncb-listeditor
-                                           target="object.@item.Name">
-                                        <thead>
-                                            <tr>
-                                                <th>@item.Name</th>
-                                                <th width="16px"></th>
-                                            </tr>
-                                        </thead>
-                                        <tr ng-repeat="element in target">
-                                            <td>
-                                                <input class="form-control"
-                                                       placeholder="@(item.Name)" disabled
-                                                       ng-model="element" />
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-danger"
-                                                        ng-click="remove(element)">
-                                                    <i class="glyphicon glyphicon-remove"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <input class="form-control"
-                                                       placeholder="@(item.Name)"
-                                                       ng-model="newItem" />
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-success"
-                                                        ng-click="add()">
-                                                    <i class="glyphicon glyphicon-plus"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                continue;
+                            }
+                            else if (property.Name.StartsWith("js_"))
+                            {
+                                continue;
+                            }
+                            else if (property.Name.EndsWith("Id"))
+                            {
+                                // Lookup
+                                var tableName = property.Name.Substring(0, property.Name.Length - 2);
 
-                                </tab>
+                                <div class="form-group"
+                                     ncb-lookupscope
+                                     table="@(tableName)" labelpath="Title" filter="$filter=startswith(name, $key)">
+
+                                    <label class="control-label" for="@(property.Name)">
+                                        @(property.Name)
+                                        <i class="fa fa-spin fa-circle-o-notch"
+                                           ng-show="isBusy"></i>
+                                    </label>
+
+                                    <ui-select theme="bootstrap" ng-model="object.@(property.Name)"
+                                               reset-search-input="false">
+                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                           refresh="refreshLookup($select.search)"
+                                                           refresh-delay="0">
+                                            <span>{{item.label}}</span>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                            }
+                            else if (property.Type == "System.Boolean")
+                            {
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               ng-model="object.@(property.Name)" /> @(property.Name)
+                                        </label>
+                                    </div>
+                            }
+                            else if (property.Type == "DateTime")
+                            {
+                                <ncb-datepicker placeholder="To Date"
+                                                format="'dd MMMM yyyy'"
+                                                model="object.@(property.Name)"></ncb-datepicker>
+                            }
+                            else if (property.Name.EndsWith("Text"))
+                            {
+                                <div class="form-group">
+                                    <label class="control-label" for="@(property.Name)">@(property.Name)</label>
+                                    <textarea name="@(property.Name)"
+                                              class="form-control"
+                                              ng-model="object.@(property.Name)"
+                                              placeholder="@(property.Name)" rows="10"></textarea>
+                                </div>
+
+                            }
+                            else
+                            {
+                                <input type="text" name="@(property.Name)" title="@(property.Name)"
+                                       ncb-textbox
+                                       ng-model="object.@(property.Name)" />
                             }
                         }
+                    </tab>
+                    @foreach (var item in entity.Properties)
+                    {
+                        if (item.Type.EndsWith("[]"))
+                        {
+                            <tab heading="@item.Name">
+                                <table class="table table-hover"
+                                       ncb-listeditor
+                                       target="object.@item.Name">
+                                    <thead>
+                                        <tr>
+                                            <th>@item.Name</th>
+                                            <th width="16px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="element in target">
+                                        <td>
+                                            <input class="form-control"
+                                                   placeholder="@(item.Name)" disabled
+                                                   ng-model="element" />
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger"
+                                                    ng-click="remove(element)">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input class="form-control"
+                                                   placeholder="@(item.Name)"
+                                                   ng-model="newItem" />
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success"
+                                                    ng-click="add()">
+                                                <i class="glyphicon glyphicon-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                    </tabset>
+                            </tab>
+                        }
+                    }
 
-                </form>
+                </tabset>
 
-                <ncb-footer>
-                    <button class="btn btn-primary btn-lg"
-                            ng-click="data.save(object)">
-                        <span ng-show="object.id == null">Create</span>
-                        <span ng-show="object.id != null">Save</span>
-                    </button>
-                </ncb-footer>
-            </ncb-modal>
+            </form>
 
-        </script>
+            <ncb-footer>
+                <button class="btn btn-primary btn-lg"
+                        ng-click="data.save(object)">
+                    <span ng-show="object.id == null">Create</span>
+                    <span ng-show="object.id != null">Save</span>
+                </button>
+            </ncb-footer>
+        </ncb-modal>
 
-        
-    
+
     </div>

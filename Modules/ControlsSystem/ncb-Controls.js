@@ -661,6 +661,22 @@
                 });
             }
 
+            if (attrs.onshow != "") {
+
+                element.on('shown', function () {
+                    
+                    scope.$eval(attrs.onshow);
+                })
+            }
+
+            if (attrs.onhidden != "") {
+
+                element.on('hidden', function () {
+
+                    scope.$eval(attrs.onhidden);
+                })
+            }
+
             var title = element.find("h2.modal-title");
             if (element.is("[title]") == false) {
                 title.remove();
@@ -1246,6 +1262,7 @@
             scope: { // This scope is binding to template
                 tableTemplateId: '=tabletemplate',
                 modalTemplateId: '=modaltemplate',
+                modalId: '=modalid',
                 //tableName: '=table', // Isolate scope name customerInfo     
                 //displayColumns: '=columns',
                 // 'close': '&onClose' // & Mean pass function Best Practice: use &attr in the scope option when you want your directive to expose an API for binding to behaviors.
