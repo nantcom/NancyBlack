@@ -559,6 +559,31 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
         #endregion
 
+        private static void BZip(string inputFile, string outputFile )
+        {
+            try
+            {
+                using (var fs = File.Open(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var bz = new Ionic.BZip2.BZip2OutputStream(File.OpenWrite(outputFile), 1))
+                {
+                    fs.CopyTo(bz);
+                }
+            }
+            catch (Exception)
+            {
+                var temp = outputFile + ".tmp";
+                File.Copy(inputFile, temp, true);
+                
+                using (var fs = File.Open(temp, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var bz = new Ionic.BZip2.BZip2OutputStream(File.OpenWrite(outputFile), 1))
+                {
+                    fs.CopyTo(bz);
+                }
+
+                File.Delete( outputFile );
+            }
+        }
+
         /// <summary>
         /// Gets site database from given Context
         /// </summary>
@@ -576,24 +601,29 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 }
 
                 var path = Path.Combine(rootPath, "Site");
+                var backupPath = Path.Combine(path, "Backups");
                 Directory.CreateDirectory(path);
+                Directory.CreateDirectory(backupPath);
 
                 var fileName = Path.Combine(path, "data.sqlite");
 
-                if (File.Exists(path))
+                if (File.Exists(fileName))
                 {
                     // create hourly backup
-                    var backupFile = Path.Combine(path, string.Format("hourlybackup-{0:HH}.bak.sqlite", DateTime.Now));
-                    File.Copy(fileName, backupFile, true);
-
-                    // create daily backup
-                    var dailybackupFile = Path.Combine(path, string.Format("dailybackup-{0:dd-MM-yyyy}.bak.sqlite", DateTime.Now));
+                    var backupFile = Path.Combine(backupPath, string.Format("hourlybackup-{0:HH}.sqlite.bz2", DateTime.Now));
                     if (File.Exists(backupFile) == false)
                     {
-                        File.Copy(fileName, backupFile);
+                        NancyBlackDatabase.BZip(fileName, backupFile);
                     }
 
-                    var backupFiles = Directory.GetFiles(path, "dailybackup-*.bak.sqlite");
+                    // create daily backup
+                    var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));
+                    if (File.Exists(dailybackupFile) == false)
+                    {
+                        NancyBlackDatabase.BZip(fileName, dailybackupFile);
+                    }
+
+                    var backupFiles = Directory.GetFiles(backupPath, "dailybackup-*.sqlite.bz2");
                     var now = DateTime.Now;
                     foreach (var file in backupFiles)
                     {

@@ -47,5 +47,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Stock of this product
         /// </summary>
         public int Stock { get; set; }
+
+        /// <summary>
+        /// Actual items in inventory
+        /// </summary>
+        public int ActualInventory { get; set; }
     }
 }

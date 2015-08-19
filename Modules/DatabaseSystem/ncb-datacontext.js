@@ -853,10 +853,9 @@
                         $scope.isBusy = false;
 
                         if (attrs.labelpath != null) {
-                            console.log("RefreshLookup", results)
-                            //results.forEach(function (item) {
-                            //    item.label = item[attrs.labelpath];
-                            //});
+                            results.forEach(function (item) {
+                                item.label = item[attrs.labelpath];
+                            });
                         }
 
                         $scope.lookup = results;

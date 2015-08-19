@@ -211,26 +211,7 @@
         }, 1000);
     });
 
-    membership.controller('MemberShip-ProfileController', function ($scope, $http, ncbDatabaseClient) {
-
-        var me = this;
-        var ncbClient = new ncbDatabaseClient(me, $scope, "User");
-
-        me.object = { name: "test" };
-
-        this.test = function () {
-            alert("test");
-        };
-
-        this.view = function () {
-
-            if ($('#profileDialog').length == 0) {
-                throw "Profile Dialog not found";
-            }
-
-            $scope.object = JSON.parse(JSON.stringify($module.currentUser)); // create a copy of profile
-            $('#profileDialog').modal('show');
-        };
+    membership.controller('MemberShip-ProfileController', function ($scope, $http) {
 
     });
 
