@@ -15550,7 +15550,7 @@ function $SceProvider() {
    * return the same object passed in if it was found in the registry under a compatible context or
    * throw an exception otherwise.  An implementation might only wrap values some of the time based
    * on some criteria.  getTrusted() might return a value and not throw an exception for special
-   * constants or objects even if not wrapped.  All such implementations fulfill this contract.
+   * constants or objects even if not wrapped.  All such implementations fulfill this //Contract.
    *
    *
    * A note on the inheritance model for SCE contexts
