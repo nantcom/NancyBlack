@@ -451,6 +451,7 @@
 
             var fd = new FormData();
             fd.append("fileToUpload", file);
+            fd.append("attachmentType", "UserUpload");
 
             $scope.data.uploadProgress = 0;
             $scope.data.uploadStatus = "uploading";

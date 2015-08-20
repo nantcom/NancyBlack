@@ -231,6 +231,8 @@ namespace NantCom.NancyBlack.Modules
             
             List<dynamic> newFiles = new List<dynamic>();
 
+            String attachmentType = this.Request.Form["attachmentType"];
+
             foreach (var item in this.Request.Files)
             {
                 var fileName = Path.GetFileName(item.Name);
@@ -249,6 +251,7 @@ namespace NantCom.NancyBlack.Modules
                     item.Value.CopyTo(fs);
                     newFiles.Add(new
                     {
+                        AttachmentType = attachmentType,
                         DisplayOrder = 0,
                         Caption = string.Empty,
                         Url =
