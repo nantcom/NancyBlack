@@ -180,8 +180,12 @@ namespace NantCom.NancyBlack.Modules
                             });
                         }
 
-                        // Broadcast to client                        
-                        new DataWatcherHub().NotifyClientForPaymentReceipt(item.AffectedRow);
+                        
+                        if ( datatype.Name.ToLowerInvariant() == "paymentlogpaysbuy" )
+                        {
+                            // Broadcast to client                        
+                            new DataWatcherHub().NotifyClientForPaymentReceipt(item.AffectedRow);
+                        }                        
 
                         var emailConfig = config[item.Action];
                         if (emailConfig.enable)

@@ -231,7 +231,8 @@ namespace NantCom.NancyBlack.Modules
             
             List<dynamic> newFiles = new List<dynamic>();
 
-            String attachmentType = this.Request.Form["attachmentType"];
+            String attachmentType = this.Request.Form["attachmentType"] == null? string.Empty: this.Request.Form["attachmentType"];
+            DateTime CreateDate = DateTime.Now;
 
             foreach (var item in this.Request.Files)
             {
@@ -251,6 +252,7 @@ namespace NantCom.NancyBlack.Modules
                     item.Value.CopyTo(fs);
                     newFiles.Add(new
                     {
+                        CreateDate = CreateDate,
                         AttachmentType = attachmentType,
                         DisplayOrder = 0,
                         Caption = string.Empty,

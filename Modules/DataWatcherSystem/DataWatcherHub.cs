@@ -23,6 +23,11 @@ namespace NantCom.NancyBlack.Modules.DataWatcherSystem
             Clients.All.notify();
         }
 
+        public void PrintDocument(dynamic UrlToFileName)
+        {
+            Clients.All.printDocument(UrlToFileName);
+        }
+
         public void NotifyClientForPaymentReceipt(dynamic args)
         {            
             this._Context.Clients.All.genPaymentReceipt(args);

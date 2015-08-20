@@ -1,7 +1,5 @@
 {
-  "smtp": {
-
-  },
+  "smtp": {},
   "watcher": {
     "content": {
       "name": "Content",
@@ -40,6 +38,236 @@
         "enable": false,
         "emailSubject": "@Model.DataTypeName was deleted.",
         "emailTemplate": "@Model.AffectedRow"
+      }
+    },
+    "location": {
+      "name": "location",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "collection": {
+      "name": "collection",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "saleorder": {
+      "name": "saleorder",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "ncbenroll": {
+      "name": "NcbEnroll",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "ncbuser": {
+      "name": "NcbUser",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "ncbrole": {
+      "name": "NcbRole",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "ncbmailsenderlog": {
+      "name": "NcbMailSenderLog",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "ncbmailinglistsubscription": {
+      "name": "NcbMailingListSubscription",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "inventorymovement": {
+      "name": "InventoryMovement",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "paymentlogpaysbuy": {
+      "name": "PaymentLogPaysbuy",
+      "version": false,
+      "create": {
+        "enable": true,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model",
+        "sendTo": "me@nant.co"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "paymentpaysbuy": {
+      "name": "PaymentPaysbuy",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
+      }
+    },
+    "product": {
+      "name": "Product",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model"
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model",
+        "sendTo": "me@nant.co"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model"
       }
     }
   },
