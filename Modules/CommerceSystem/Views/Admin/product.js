@@ -94,9 +94,12 @@
             total: 0, // length of data
             getData: function ($defer, params) {
 
+                $scope.isBusy = true;
                 var oDataQueryParams = _oDataAddFilterAndOrder(params);
                 
-                $scope.data.inlinecount(oDataQueryParams, function (data) {                    
+                $scope.data.inlinecount(oDataQueryParams, function (data) {
+
+                    $scope.isBusy = false;
                     $defer.resolve(data.Results);
                     params.total(data.Count);
                 });                
@@ -157,7 +160,17 @@
 
         function _viewData(Product) {            
             vm.IsCollapse = false;
+
             $scope.object = Product;
+            $scope.carouseltemplate = null;
+
+            window.setTimeout(function () {
+
+                $scope.$apply(function () {
+
+                    $scope.carouseltemplate = "carousel.html";
+                });
+            }, 100);
         };
 
         function _FilterByUrl(CollectionName) {

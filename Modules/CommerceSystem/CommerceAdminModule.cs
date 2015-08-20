@@ -9,8 +9,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
     {
         public CommerceAdminModule()
         {
-            Get["/admin/product"] = this.HandleViewRequest("/Admin/product", null);
-            Get["/admin/inventory"] = this.HandleViewRequest("/Admin/Inventory", null);
+            Get["/admin/product"] = this.HandleViewRequest("/Admin/productmanager", null);
+            Get["/admin/inventory"] = this.HandleViewRequest("/Admin/Inventorymanager", null);
         }
     }
 }

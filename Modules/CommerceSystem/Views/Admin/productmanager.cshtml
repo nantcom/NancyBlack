@@ -34,7 +34,7 @@
      ng-cloak>
 
     <div>
-        <div ui-tree id="tree-root">
+        <div ui-tree data-drag-enabled="false" id="tree-root">
             <ol ui-tree-nodes ng-model="ctrl.list.nodes">
                 <li ng-repeat="node in ctrl.list.nodes" ui-tree-node ng-include="'nodes_renderer.html'"></li>
             </ol>
@@ -46,7 +46,7 @@
         <div collapse="ctrl.IsCollapse">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h1>{{object.Title}}</h1>
+                    <h1>{{object.id}} : {{object.Title}}</h1>
                     <span class="glyphicon glyphicon-chevron-down"
                           ng-click="ctrl.IsCollapse = !ctrl.IsCollapse"></span>
                 </div>
@@ -54,18 +54,23 @@
                     <div class="row">
                         <div class="col-md-6">
 
-                            <carousel no-wrap="true">
-                                <slide ng-repeat="slide in object.Attachments" active="slide.active">
+                            <script type="text/ng-template" id="carousel.html">
 
-                                    <div class="slide" ncb-background="{{slide.Url}}">
-                                        <div class="carousel-caption">
-                                            <h4>Image {{$index + 1}}</h4>
+                                <carousel no-wrap="true">
+                                    <slide ng-repeat="slide in object.Attachments">
+
+                                        <div class="slide" ncb-background="{{slide.Url}}">
+                                            <div class="carousel-caption">
+                                                <h4>Image {{$index + 1}}</h4>
+                                            </div>
                                         </div>
-                                    </div>
-                                </slide>
-                            </carousel>
+                                    </slide>
+                                </carousel>
 
-                            <br />
+                            </script>
+
+                            <div ng-include="carouseltemplate"></div>
+
 
                             <ncb-attachmentmanager onselect="ctrl.addToContentBlock" selecttext="Insert">
                             </ncb-attachmentmanager>
@@ -74,7 +79,7 @@
 
                         <div class="col-md-6">
                             <form role="form" name="ProductForm">
-                                
+
                                 <input type="text" ncb-textbox ncb-lg required
                                        name="Title" title="Title" ng-model="object.Title">
 
@@ -105,7 +110,7 @@
                                     <input type="number" ncb-textbox ncb-col="col-xs-6" name="Price" title="Price" ng-model="object.Price">
 
                                 </div>
-                                                               
+
                                 <span class="pull-left">Last updated {{object.__updatedAt | date:'medium'}}</span>
 
                             </form>
@@ -129,9 +134,9 @@
                     Update Prices | Stocks
                 </button>
                 <button type="button" class="btn btn-default"
-                        data-toggle="modal" data-target="#ProductModal">
-                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"
-                          ng-click="object = {}"></span>
+                        data-toggle="modal" data-target="#ProductModal"
+                        ng-click="object = { Url: filters.Url }">
+                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
                     Create Product
                 </button>
             </div>
@@ -155,9 +160,6 @@
                     </td>
                     <td data-title="'No'">
                         {{$index + 1}}
-                    </td>
-                    <td data-title="'Id'" sortable="'Id'" filter="{ Id: 'text' }">
-                        {{product.id}}
                     </td>
                     <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
                         <a href ng-click="ctrl.view_data(product)">
@@ -269,7 +271,7 @@
                 <tab heading="General">
 
                     <input type="text" name="Title" title="Title"
-                           ncb-textbox
+                           ncb-textbox required
                            ng-model="object.Title" />
 
                     <input type="text" name="DisplayOrder" title="DisplayOrder"
@@ -277,7 +279,7 @@
                            ng-model="object.DisplayOrder" />
 
                     <input type="text" name="Url" title="Url"
-                           ncb-textbox
+                           ncb-textbox required
                            ng-model="object.Url" />
 
                 </tab>
@@ -287,6 +289,7 @@
 
         <ncb-footer>
             <button class="btn btn-primary btn-lg"
+                    ng-disabled="ProductForm.$valid == false"
                     ng-click="data.save(object)">
                 <span ng-show="object.id == null">Create</span>
                 <span ng-show="object.id != null">Save</span>

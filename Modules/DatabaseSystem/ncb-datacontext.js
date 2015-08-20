@@ -96,6 +96,26 @@
 
         //#endregion
 
+        var removeMetaData = function(item) {
+
+            delete item.$$hashKey;
+            delete item.$type;
+
+            // remove hash key
+            for (property in item) {
+
+                if (item[property] == null) {
+                    continue;
+                }
+
+                if (typeof (item[property]) == "object") {
+
+                    removeMetaData(item[property]);
+                }
+
+            }
+        };
+
         $me.processServerObject = function (item) {
 
             if (item.Id != null) {
@@ -103,6 +123,8 @@
                 item.id = item.Id;
                 delete item.Id;
             }
+
+            removeMetaData(item);
 
             return item;
         };
@@ -204,8 +226,7 @@
             }
 
             // delete extra info
-            delete toSave.$type;
-            delete toSave.$$hashKey;
+            removeMetaData(toSave);
 
             if (toSave.id != null) {
 
