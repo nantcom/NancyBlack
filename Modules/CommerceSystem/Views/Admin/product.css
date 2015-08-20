@@ -1,0 +1,27 @@
+﻿#productlist > div:first-child {
+  float: left;
+  width: 250px;
+}
+#productlist > div:nth-child(2) {
+  margin-left: 260px;
+}
+#productlist .panel-heading {
+  position: relative;
+}
+#productlist .panel-heading h1 {
+  margin: 0;
+  padding: 0;
+  margin-top: 2px;
+}
+#productlist .panel-heading span {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+}
+#productlist .carousel {
+  height: 230px;
+}
+#productlist .carousel .item {
+  height: 230px;
+}

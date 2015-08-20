@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NantCom.NancyBlack.Modules.ContentSystem
+namespace NantCom.NancyBlack.Modules.ContentSystem.Types
 {
     /// <summary>
     /// Designates that the type has required properties

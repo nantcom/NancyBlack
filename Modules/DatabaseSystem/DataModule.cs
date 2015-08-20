@@ -205,23 +205,7 @@ namespace NantCom.NancyBlack.Modules
 
             return 204;
         }
-
-        protected void _CheckInterfaceIHasAttachment(string tableName)
-        {
-            var type = this.SiteDatabase.DataType.FromName(tableName);
-            var classType = type.GetCompiledType();
-
-            // Check weather class implement specifed interface or not            
-            bool isImplementIStaticType = typeof(IStaticType).IsAssignableFrom(classType);
-            if (isImplementIStaticType == true)
-            {
-                if (typeof(IHasAttachment).IsAssignableFrom(classType) == false)
-                {
-                    throw new Exception("Class that implemented IStaticType and need the attachment. It also need to be be implemented IHasAttachment");
-                }
-            }
-        }
-
+        
         #region File Attachment
 
         protected string GetAttachmentFolder(string tableName, string id)
@@ -244,9 +228,7 @@ namespace NantCom.NancyBlack.Modules
             var path = this.GetAttachmentFolder(tableName, id);
 
             dynamic contentItem = this.SiteDatabase.GetByIdAsJObject(tableName, int.Parse(id));
-
-            this._CheckInterfaceIHasAttachment(tableName);
-
+            
             List<dynamic> newFiles = new List<dynamic>();
 
             foreach (var item in this.Request.Files)

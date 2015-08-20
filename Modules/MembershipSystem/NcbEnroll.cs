@@ -1,4 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
-    public class NcbEnroll : IStaticType
+    public class NcbEnroll : IStaticType, IHiddenType
     {
         #region Standard Properties
 

@@ -7,6 +7,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
     public interface IHasAttachment
     {
-        object[] Attachments { get; set; }
+        dynamic[] Attachments { get; set; }
     }
 }

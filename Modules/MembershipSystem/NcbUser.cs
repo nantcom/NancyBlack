@@ -1,5 +1,6 @@
 ﻿using Nancy.Security;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

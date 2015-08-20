@@ -1,5 +1,6 @@
 ﻿using Nancy;
 using NantCom.NancyBlack.Modules.ContentSystem;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json.Linq;
@@ -155,28 +156,6 @@ namespace NantCom.NancyBlack.Modules
         }
 
         #region All Logic Related to Content
-
-        /// <summary>
-        /// Default Content Classs, contains properties that the engine requires
-        /// </summary>
-        private class DefaultContent : IContent
-        {
-            public int Id { get; set; }
-
-            public string Url { get; set; }
-
-            public string Layout { get; set; }
-
-            public string RequiredClaims { get; set; }
-
-            public int DisplayOrder { get; set; }
-
-            public string Title { get; set; }
-
-            public string MetaKeywords { get; set; }
-
-            public string MetaDescription { get; set; }
-        }
 
         /// <summary>
         /// Get child content of given url

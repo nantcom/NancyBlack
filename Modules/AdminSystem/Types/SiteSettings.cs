@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace NantCom.NancyBlack.Modules.MembershipSystem
+namespace NantCom.NancyBlack.Modules.AdminSystem.Types
 {
-    public class NcbRole : IStaticType
+
+    public class SiteSettings : IStaticType
     {
         public int Id
         {
@@ -27,14 +28,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             set;
         }
 
-        /// <summary>
-        /// Name of this role
-        /// </summary>
-        public string Name { get; set; }
-        
-        /// <summary>
-        /// Claims of this Role
-        /// </summary>
-        public string[] Claims { get; set; }
+        public string js_SettingsJson { get; set; }
+
     }
 }

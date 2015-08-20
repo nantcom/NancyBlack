@@ -22,5 +22,9 @@
   {
     "outputFile": "Site/style.css",
     "inputFile": "Site/style.less"
+  },
+  {
+    "outputFile": "Modules/CommerceSystem/Views/Admin/product.css",
+    "inputFile": "Modules/CommerceSystem/Views/Admin/product.less"
   }
 ]

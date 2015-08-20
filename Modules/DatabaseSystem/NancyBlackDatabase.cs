@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Runtime.Caching;
 using System.Web;
 using Nancy.Bootstrapper;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {

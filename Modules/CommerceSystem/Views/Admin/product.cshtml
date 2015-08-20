@@ -1,0 +1,301 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin";
+}
+
+
+@section Head
+{
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+    </style>
+    <link href="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.css" rel="stylesheet" />
+    <link href="/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
+    <link href="/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />
+}
+
+@section Scripts
+{
+    <script src="/Content/Scripts/ng-table/ng-table.min.js"></script>
+    <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
+    <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>
+}
+
+<div ng-module="app"
+     ng-controller="product_controller as ctrl"
+     ncb-datacontext-integrated table="product"
+     id="productlist"
+     ng-cloak>
+
+    <div>
+        <div ui-tree id="tree-root">
+            <ol ui-tree-nodes ng-model="ctrl.list.nodes">
+                <li ng-repeat="node in ctrl.list.nodes" ui-tree-node ng-include="'nodes_renderer.html'"></li>
+            </ol>
+        </div>
+    </div>
+
+    <div>
+
+        <div collapse="ctrl.IsCollapse">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h1>{{object.Title}}</h1>
+                    <span class="glyphicon glyphicon-chevron-down"
+                          ng-click="ctrl.IsCollapse = !ctrl.IsCollapse"></span>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+
+                            <carousel no-wrap="true">
+                                <slide ng-repeat="slide in object.Attachments" active="slide.active">
+
+                                    <div class="slide" ncb-background="{{slide.Url}}">
+                                        <div class="carousel-caption">
+                                            <h4>Image {{$index + 1}}</h4>
+                                        </div>
+                                    </div>
+                                </slide>
+                            </carousel>
+
+                            <br />
+
+                            <ncb-attachmentmanager onselect="ctrl.addToContentBlock" selecttext="Insert">
+                            </ncb-attachmentmanager>
+
+                        </div>
+
+                        <div class="col-md-6">
+                            <form role="form" name="ProductForm">
+                                
+                                <input type="text" ncb-textbox ncb-lg required
+                                       name="Title" title="Title" ng-model="object.Title">
+
+                                <div class="row">
+
+                                    <input type="text" ncb-textbox ncb-col="col-xs-6" name="Url" title="Url" ng-model="object.Url">
+
+                                    <input type="text" ncb-textbox ncb-col="col-xs-6" name="DisplayOrder" title="DisplayOrder" ng-model="object.DisplayOrder">
+
+                                </div>
+
+                                <div class="row">
+
+                                    <p ncb-formstatic ncb-col="col-xs-6" title="Actual Inventory">
+                                        {{object.ActualInventory}}
+                                    </p>
+
+                                    <input type="number" ncb-textbox ncb-col="col-xs-6" name="Stock" title="Stock" ng-model="object.Stock">
+
+                                </div>
+
+                                <div class="row">
+
+                                    <p ncb-formstatic ncb-col="col-xs-6" title="Average Cost">
+                                        {{object.AverageCost}}
+                                    </p>
+
+                                    <input type="number" ncb-textbox ncb-col="col-xs-6" name="Price" title="Price" ng-model="object.Price">
+
+                                </div>
+                                                               
+                                <span class="pull-left">Last updated {{object.__updatedAt | date:'medium'}}</span>
+
+                            </form>
+                            <br />
+                            <button class="btn btn-primary btn-lg pull-right"
+                                    ng-click="data.save(object)">
+                                <span ng-show="object.id != null">Save</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="btn-group pull-right" role="group" aria-label="...">
+                <button type="button" class="btn btn-default"
+                        data-toggle="modal" data-target="#MultipleProductUpdate">
+                    <span class="glyphicon glyphicon-usd"></span>
+                    Update Prices | Stocks
+                </button>
+                <button type="button" class="btn btn-default"
+                        data-toggle="modal" data-target="#ProductModal">
+                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"
+                          ng-click="object = {}"></span>
+                    Create Product
+                </button>
+            </div>
+        </div>
+
+        <div>
+            &nbsp;
+        </div>
+
+        <div>
+            <table id="CaseTable"
+                   ncb-datatable
+                   class="table table-striped table-hover"
+                   style="width: 100%"
+                   ng-table="tableParams"
+                   show-filter="true">
+
+                <tr ng-repeat="product in tableParams.data">
+                    <td style="text-align: left" header="'ng-table/headers/checkbox.html'">
+                        <input type="checkbox" ng-model="checkboxes.items[product.id]" />
+                    </td>
+                    <td data-title="'No'">
+                        {{$index + 1}}
+                    </td>
+                    <td data-title="'Id'" sortable="'Id'" filter="{ Id: 'text' }">
+                        {{product.id}}
+                    </td>
+                    <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
+                        <a href ng-click="ctrl.view_data(product)">
+                            {{product.Title}}
+                        </a>
+                    </td>
+                    <td data-title="'Url'" sortable="'Url'" filter="{ Url: 'text' }">{{product.Url}}</td>
+                    <td data-title="'DisplayOrder'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }">{{product.DisplayOrder}}</td>
+                    <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }">{{product.Stock}}</td>
+                    <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }">
+                        {{product.Price | number }}
+                    </td>
+                    <td data-title="''" style="white-space: nowrap">
+
+                        <button class="btn btn-default"
+                                ng-click="data.copy(item)">
+                            <i class="fa fa-copy"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+            </table>
+
+            <script type="text/ng-template" id="ng-table/headers/checkbox.html">
+                <input type="checkbox" ng-model="checkboxes.checked" id="select_all" name="filter-checkbox" value="" />
+            </script>
+
+        </div>
+
+        <ncb-modal id="MultipleProductUpdate"
+                   title="Update Stock/Price on multiple products"
+                   closebutton deletebutton>
+
+            <form role="form" name="MultipleProductUpdateForm" ng-submit="ctrl.UpdateMultipleProducts(UpdateStock, UpdatePrice)">
+
+                <div class="well">
+                    @*{{checkboxes.items}}*@
+                </div>
+
+                <input type="text" name="Stock" title="Stock"
+                       ncb-textbox
+                       ng-model="ctrl.UpdateStock" />
+
+                <input type="text" name="Price" title="Price"
+                       ncb-textbox
+                       ng-model="ctrl.UpdatePrice" />
+
+            </form>
+
+            <ncb-footer>
+                <button class="btn btn-primary btn-lg" ng-click="ctrl.UpdateMultipleProducts()">
+                    <span>Update</span>
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+
+
+        <script type="text/ng-template" id="nodes_renderer.html">
+            <div ui-tree-handle class="tree-node tree-node-content">
+                <div class="row">
+
+                    <div class="col-md-1">
+                        <!-- Symbol -->
+                        <a class="btn btn-success btn-xs" ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)">
+                            <span class="glyphicon"
+                                  ng-class="{
+                                  'glyphicon-chevron-right': collapsed,
+                                  'glyphicon-chevron-down': !collapsed
+                                }">
+                            </span>
+                        </a>
+                    </div>
+
+                    <div class="col-md-10">
+                        {{node.title}}
+                    </div>
+
+                    <div class="col-md-1 pull-right">
+                        <!-- Action buttons
+                        <a class="pull-right btn btn-danger btn-xs" data-nodrag ng-click="remove(this)">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </a>
+                        <a class="pull-right btn btn-primary btn-xs" data-nodrag ng-click="newSubItem(this)" style="margin-right: 8px;">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </a>
+                        -->
+                        <a class="pull-right btn btn-primary btn-xs" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px;">
+                            <span class="glyphicon glyphicon-chevron-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
+                <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer.html'">
+                </li>
+            </ol>
+        </script>
+    </div>
+
+
+    <ncb-modal id="ProductModal"
+               title="{{object.id == null ? 'Create Product' : 'Edit Product'}}"
+               closebutton deletebutton>
+        <form role="form" name="ProductForm">
+
+            <tabset>
+                <tab heading="General">
+
+                    <input type="text" name="Title" title="Title"
+                           ncb-textbox
+                           ng-model="object.Title" />
+
+                    <input type="text" name="DisplayOrder" title="DisplayOrder"
+                           ncb-textbox
+                           ng-model="object.DisplayOrder" />
+
+                    <input type="text" name="Url" title="Url"
+                           ncb-textbox
+                           ng-model="object.Url" />
+
+                </tab>
+            </tabset>
+
+        </form>
+
+        <ncb-footer>
+            <button class="btn btn-primary btn-lg"
+                    ng-click="data.save(object)">
+                <span ng-show="object.id == null">Create</span>
+                <span ng-show="object.id != null">Save</span>
+            </button>
+        </ncb-footer>
+    </ncb-modal>
+
+
+
+</div>
+
+

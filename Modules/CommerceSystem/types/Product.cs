@@ -1,5 +1,7 @@
 ﻿using NantCom.NancyBlack.Modules.ContentSystem;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     /// <summary>
     /// Represents product in the system
     /// </summary>
-    public class Product : IStaticType, IHasAttachment, IContent
+    public class Product : IStaticType, IContent
     {
         public int Id { get; set; }
 
@@ -36,7 +38,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         #endregion
 
-        public object[] Attachments { get; set; }
+        public dynamic[] Attachments { get; set; }
 
         /// <summary>
         /// Price of this product

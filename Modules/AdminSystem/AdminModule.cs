@@ -11,33 +11,12 @@ using System.Linq;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using System.Runtime.Caching;
+using NantCom.NancyBlack.Modules.AdminSystem.Types;
 
 namespace NantCom.NancyBlack.Modules
 {
     public class AdminModule : BaseModule
     {
-        public class SiteSettings : IStaticType
-        {
-            public int Id
-            {
-                get;
-                set;
-            }
-
-            public DateTime __createdAt
-            {
-                get;
-                set;
-            }
-
-            public DateTime __updatedAt
-            {
-                get;
-                set;
-            }
-
-            public string js_SettingsJson { get; set; }
-        }
 
         public AdminModule()
         {

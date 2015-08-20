@@ -1,6 +1,8 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 @{
     Layout = "_base";
+
+    
 }
 
 @section Head
@@ -19,23 +21,24 @@
 @helper DisplayMenu() {
 
     <li><b>Data</b></li>
-    @{ 
-        var skip = new string[] { "rowversion", "sitesettings" };
-    }
-
     @foreach (var item in this.Database.DataType.RegisteredTypes)
     {
-        @if (skip.Contains(item.NormalizedName))
+        var staticType = typeof(NantCom.NancyBlack.Modules.DatabaseSystem.Types.IStaticType);
+        if ( staticType.IsAssignableFrom( item.GetCompiledType() ) )
         {
             continue;
         }
 
         <li><a href="/Admin/Tables/@item.NormalizedName">@item.OriginalName</a></li>
     }
-    <li><b>Manage</b></li>
+
+    <li style="margin-top: 20px"><b>Commerce</b></li>
+    <li><a href="/Admin/product">Product</a></li>
+    <li><a href="/Admin/inventory">Inventory</a></li>
+
+    <li style="margin-top: 20px"><b>System</b></li>
     <li><a href="/Admin/Tables">Data Types</a></li>
     <li><a href="/Admin/DataWatcher">Data Watch</a></li>
-    @*<li><a href="/Admin/Membership/Roles">User Role</a></li>*@
 }
 
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">

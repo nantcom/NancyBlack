@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -89,10 +90,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public static IEnumerable<DataType> GetStaticDataTypes()
         {
-            var IStaticType = typeof(IStaticType);
+            var staticType = typeof(IStaticType);
 
             return from t in Assembly.GetExecutingAssembly().GetTypes()
-                        where IStaticType.IsAssignableFrom(t) && IStaticType != t && t.IsClass
+                        where staticType.IsAssignableFrom(t) && staticType != t && t.IsClass
                         select new StaticDataType(t);
         }
     }
