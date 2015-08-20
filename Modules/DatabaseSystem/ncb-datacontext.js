@@ -1004,4 +1004,35 @@
         };
     }]);
 
+    ncb.directive('ncbVlookup', function ($http) {
+
+        function link($scope, element, attrs) {
+
+            if (attrs.key == null) {
+
+                throw "key attribute is required";
+            }
+
+            if (attrs.ncbVlookup == null) {
+
+                throw "ncb-lookup attribute value is required";
+            }
+
+            $http.get("/tables/" + attrs.ncbVlookup + "/" + attrs.key).
+                success(function (data, status, headers, config) {
+                    
+                    if (attrs.label == null) {
+                        element.text( data.Title );
+                    }
+
+                    return element.text(data[attrs.label]);
+                });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
 })();

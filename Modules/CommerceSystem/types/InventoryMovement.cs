@@ -27,15 +27,40 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int Change { get; set; }
 
         /// <summary>
+        /// Whether this is inbound record
+        /// </summary>
+        public bool IsInBound { get; set; }
+
+        /// <summary>
         /// Total Price buy or sell
         /// </summary>
         public Decimal TotalPrice { get; set; }
+        
+        /// <summary>
+        /// Shipping Fee
+        /// </summary>
+        public Decimal ShippingFee { get; set; }
+
+        /// <summary>
+        /// Handling Fee
+        /// </summary>
+        public Decimal HandlingFee { get; set; }
+
+        /// <summary>
+        /// Tax
+        /// </summary>
+        public Decimal Tax { get; set; }
+
+        /// <summary>
+        /// Price per unit
+        /// </summary>
+        public Decimal PricePerUnit { get; set; }
 
         /// <summary>
         /// Serial Number of the item
         /// </summary>
         public string SerialNumber { get; set; }
-
+        
         /// <summary>
         /// Purcahse Order Number
         /// </summary>
@@ -50,7 +75,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Receipt Number
         /// </summary>
         public string ReceiptNumber { get; set; }
-
+        
         static InventoryMovement()
         {
             var interest = new string[] { "inventorymovement" };

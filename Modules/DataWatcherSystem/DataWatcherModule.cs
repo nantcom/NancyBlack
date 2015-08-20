@@ -2,7 +2,6 @@
 using Nancy.Bootstrapper;
 using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
-using NantCom.NancyBlack.Modules.DataWatcherSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -179,9 +178,6 @@ namespace NantCom.NancyBlack.Modules
                             });
                         }
 
-                        // Broadcast to client                        
-                        new DataWatcherHub().NotifyClientForPaymentReceipt(item.AffectedRow);
-
                         var emailConfig = config[item.Action];
                         if (emailConfig.enable)
                         {
@@ -190,8 +186,6 @@ namespace NantCom.NancyBlack.Modules
 
                             MailSenderModule.SendEmail(emailConfig.sendTo, subject, body);
                         }
-
-
                     }
                 });
 
