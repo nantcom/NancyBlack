@@ -1,4 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public DateTime __updatedAt { get; set; }
         
-        public object[] Attachments { get; set; }
+        public dynamic[] Attachments { get; set; }
+
+        /// <summary>
+        /// Date of this movement (not the date that the record was created)
+        /// </summary>
+        public DateTime MovementDate { get; set; }
 
         /// <summary>
         /// Product Id Involved in the movement
