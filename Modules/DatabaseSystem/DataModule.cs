@@ -186,7 +186,7 @@ namespace NantCom.NancyBlack.Modules
             return new
             {
                 Count = this.HandleCountWithoutSkipAndTakeRequest(db, arg),
-                Results = this.HandleQueryRequest_WithoutCountSupport( db, arg )
+                Results = this.HandleQueryRequest_WithoutCountSupport(db, arg)
             };
         }
 
@@ -205,7 +205,7 @@ namespace NantCom.NancyBlack.Modules
 
             return 204;
         }
-        
+
         #region File Attachment
 
         protected string GetAttachmentFolder(string tableName, string id)
@@ -228,10 +228,10 @@ namespace NantCom.NancyBlack.Modules
             var path = this.GetAttachmentFolder(tableName, id);
 
             dynamic contentItem = this.SiteDatabase.GetByIdAsJObject(tableName, int.Parse(id));
-            
+
             List<dynamic> newFiles = new List<dynamic>();
 
-            String attachmentType = this.Request.Form["attachmentType"] == null? string.Empty: this.Request.Form["attachmentType"];
+            String attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"];
             DateTime CreateDate = DateTime.Now;
 
             foreach (var item in this.Request.Files)
@@ -342,6 +342,9 @@ namespace NantCom.NancyBlack.Modules
     /// </summary>
     public sealed class DataModule : BaseDataModule
     {
+
+        public static event Action<NancyBlackDatabase, string, dynamic> NewAttachments = delegate { };
+
         public DataModule()
         {
 
@@ -362,7 +365,14 @@ namespace NantCom.NancyBlack.Modules
 
             // Files
 
-            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
+            Post["/tables/{table_name}/{item_id:int}/files"] = (arg) =>
+            {
+                var result = this.HandleFileUploadRequest(arg);
+
+                DataModule.NewAttachments(this.SiteDatabase, arg.table_name, result);
+
+                return result;
+            };            
 
             Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
         }

@@ -7,7 +7,11 @@
       "create": {
         "enable": false,
         "emailSubject": "@Model.DataTypeName was created.",
-        "emailTemplate": "@Model.AffectedRow"
+        "emailTemplate": "@Model.AffectedRow",
+        "autoPrint": {
+          "prinformUrl": "ds",
+          "uploadFileUrl": "ds"
+        }
       },
       "update": {
         "enable": false,
@@ -65,7 +69,12 @@
       "create": {
         "enable": false,
         "emailSubject": "@Model.OriginalName was created.",
-        "emailTemplate": "@Model"
+        "emailTemplate": "@Model",
+        "autoPrint": {
+          "prinformUrl": "colection",
+          "uploadFileUrl": "colection2",
+          "enable": false
+        }
       },
       "update": {
         "enable": false,
@@ -76,7 +85,8 @@
         "enable": false,
         "emailSubject": "@Model.OriginalName was deleted.",
         "emailTemplate": "@Model"
-      }
+      },
+      "uploadFileUrl": "asd"
     },
     "saleorder": {
       "name": "saleorder",
@@ -215,10 +225,20 @@
       "name": "PaymentLogPaysbuy",
       "version": false,
       "create": {
-        "enable": true,
+        "enable": false,
         "emailSubject": "@Model.OriginalName was created.",
         "emailTemplate": "@Model",
-        "sendTo": "me@nant.co"
+        "sendTo": "me@nant.co",
+        "autoPrint": {
+          "prinformUrl": "asd",
+          "uploadFileUrl": "asd",
+          "enable": true
+        },
+        "autoGeneratePDF": {
+          "printformUrl": "printform",
+          "uploadFileUrl": "tables/product/8/files",
+          "enable": true
+        }
       },
       "update": {
         "enable": false,
@@ -229,7 +249,8 @@
         "enable": false,
         "emailSubject": "@Model.OriginalName was deleted.",
         "emailTemplate": "@Model"
-      }
+      },
+      "auto_print": true
     },
     "paymentpaysbuy": {
       "name": "PaymentPaysbuy",
@@ -268,7 +289,42 @@
         "enable": false,
         "emailSubject": "@Model.OriginalName was deleted.",
         "emailTemplate": "@Model"
-      }
+      },
+      "autoPrintAttachment": true
+    },
+    "Content": {
+      "name": "Content",
+      "version": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was created.",
+        "emailTemplate": "@Model.AffectedRow",
+        "autoPrint": {
+          "prinformUrl": "content",
+          "uploadFileUrl": "content1",
+          "enable": false
+        },
+        "autoGeneratePDF": {
+          "prinformUrl": "sas"
+        }
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was updated.",
+        "emailTemplate": "@Model.AffectedRow"
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.DataTypeName was deleted.",
+        "emailTemplate": "@Model.AffectedRow"
+      },
+      "edit": {
+        "autoPrint": {
+          "prinformUrl": "/printform/{Id}",
+          "uploadFileUrl": "/tables/{TableName}/{Id}/Files"
+        }
+      },
+      "state": "create"
     }
   },
   "seo": {

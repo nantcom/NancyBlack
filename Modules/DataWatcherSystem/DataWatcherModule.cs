@@ -41,7 +41,19 @@ namespace NantCom.NancyBlack.Modules
 
                 public string emailTemplate { get; set; }
 
-                public string sendTo { get; set; }
+                public string sendTo { get; set; }                
+
+                public WatcherAutoGeneratePDF autoGeneratePDF { get; set; }
+
+            }            
+
+            public class WatcherAutoGeneratePDF
+            {
+                public bool enable { get; set; }
+
+                public string printformUrl { get; set; }
+
+                public string uploadFileUrl { get; set; }
             }
 
             /// <summary>
@@ -53,6 +65,11 @@ namespace NantCom.NancyBlack.Modules
             /// Versioning enabled
             /// </summary>
             public bool version { get; set; }
+
+            /// <summary>
+            /// Auto print latest attachment enabled
+            /// </summary>
+            public bool autoPrintAttachment { get; set; }
 
             /// <summary>
             /// Email Notify configuration for create events
@@ -93,6 +110,11 @@ namespace NantCom.NancyBlack.Modules
                         return this.deleted;
                     }
 
+                    if (action == "newAttachments")
+                    {
+                        return new WatcherEmailNotifyConfig() { };
+                    }
+
                     throw new NotImplementedException(action + " was not implemented.");
                 }
             }
@@ -126,9 +148,20 @@ namespace NantCom.NancyBlack.Modules
 
             NancyBlackDatabase.ObjectCreated += (a, b, c) => genericHandler("create", a, b, c);
             NancyBlackDatabase.ObjectUpdated += (a, b, c) => genericHandler("update", a, b, c);
-            NancyBlackDatabase.ObjectDeleted += (a, b, c) => genericHandler("deleted", a, b, c);
+            NancyBlackDatabase.ObjectDeleted += (a, b, c) => genericHandler("deleted", a, b, c);            
+            DataModule.NewAttachments += (db, entityName, row) => {
+
+                JObject ContentObject = JObject.Parse(row.ToString());
+
+                var result = (from Attachment in ContentObject["Attachments"]
+                              orderby Attachment["CreateDate"] descending
+                              select Attachment["Url"]).FirstOrDefault().ToString();
+
+                genericHandler("newAttachments", db, entityName, result);
+
+            };
         }
-                
+
         public DataWatcherModule()
         {
             Get["/Admin/DataWatcher"] = this.HandleStaticRequest("admin-datawatcher", null);
@@ -180,14 +213,27 @@ namespace NantCom.NancyBlack.Modules
                             });
                         }
 
-                        
-                        if ( datatype.Name.ToLowerInvariant() == "paymentlogpaysbuy" )
+                        var emailConfig = config[item.Action];                        
+                        var autoGenPdfConfig = emailConfig.autoGeneratePDF;
+                        if (autoGenPdfConfig != null && autoGenPdfConfig.enable == true )
                         {
-                            // Broadcast to client                        
-                            new DataWatcherHub().NotifyClientForPaymentReceipt(item.AffectedRow);
-                        }                        
+                            Object dataToClient = new {
+                                config = autoGenPdfConfig,
+                                data = item.AffectedRow,
+                            };
+                            new DataWatcherHub().GenPDFandUpload(dataToClient);
+                        }
 
-                        var emailConfig = config[item.Action];
+
+                        if (item.Action == "newAttachments")
+                        {                            
+                            if ( config.autoPrintAttachment == true )
+                            {
+                                new DataWatcherHub().PrintDocument(item.AffectedRow);
+                            }                            
+                        }
+
+                        emailConfig = config[item.Action];
                         if (emailConfig.enable)
                         {
                             var subject = Razor.Parse<DatabaseEvent>(emailConfig.emailSubject, item);
