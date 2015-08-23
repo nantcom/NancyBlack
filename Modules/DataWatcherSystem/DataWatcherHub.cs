@@ -17,16 +17,14 @@ namespace NantCom.NancyBlack.Modules.DataWatcherSystem
                                         .GetHubContext<DataWatcherHub>();
         }
 
-        public void NewContosoChatMessage(string name, string message)
+        public void PrintDocument(dynamic UrlToFileName)
         {
-            Clients.All.addNewMessageToPage(name, message);
-            Clients.All.notify();
+            this._Context.Clients.All.printDocument(UrlToFileName);
         }
 
-        public void NotifyClientForPaymentReceipt(dynamic args)
+        public void GenPDFandUpload(dynamic args)
         {            
-            this._Context.Clients.All.genPaymentReceipt(args);
-            this._Context.Clients.All.notify();
+            this._Context.Clients.All.genPDFandUpload(args);            
         }
 
 
