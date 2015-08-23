@@ -1,6 +1,6 @@
 {
-  "localization":  "th",
-  "smtp": { },
+  "localization": "th",
+  "smtp": {},
   "watcher": {
     "content": {
       "name": "Content",
@@ -278,5 +278,12 @@
   },
   "application": {
     "FacebookAppId": "164276583639792"
+  },
+  "paysbuy": {
+    "lang": "t",
+    "psb": 1536714314,
+    "securecode": "612F0DEA64309C4E8FD00AA0253DA51E",
+    "biz": "company@nant.co",
+    "itm": "GoHub Service"
   }
 }

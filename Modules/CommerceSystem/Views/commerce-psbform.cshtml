@@ -1,0 +1,33 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+}
+
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            $("#paysbuy_form").submit();
+        });
+    </script>
+}
+
+<div class="jumbotron">
+    <h1>
+        Redirecting to PaySbuy...
+        <i class="fa fa-spin fa-circle-o-notch"></i>
+    </h1>
+</div>
+
+<form id="paysbuy_form" name="formpaysbuy" method="post"
+      action="https://www.paysbuy.com/paynow.aspx?lang=@(this.Site.paysbuy.lang)"
+      style="display: none;">
+    <input type="Hidden" Name="psb" value="@this.Site.paysbuy.psb" />
+    <input Type="Hidden" Name="biz" value="@this.Site.paysbuy.biz" />
+    <input Type="Hidden" Name="itm" value="@this.Site.paysbuy.itm" />
+    <input Type="Hidden" Name="inv" value="@this.Model.Data.SaleOrderIdentifier" />
+    <input Type="Hidden" Name="amt" value="@this.Model.Data.TotalAmount" />
+    <input Type="Hidden" Name="postURL" value="http://@(this.Request.Url.HostName)/__commerce/postback/paysbuy" />
+</form>

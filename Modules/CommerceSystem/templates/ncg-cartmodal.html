@@ -1,7 +1,7 @@
 ﻿<ncb-modal id="cartmodal" title="Shopping Cart" lg
            closebutton>
 
-    <div ng-show="shoppingcart.cart.items.length == 0">
+    <div ng-show="shoppingcart.cart.Items.length == 0">
 
         <div class="text-danger">
             Your shopping cart is currently empty.
@@ -11,14 +11,9 @@
 
     <div ng-module="ncb-commerce"
          ncb-datacontext-integrated table="product"
-         ng-show="shoppingcart.cart.items.length > 0"
+         ng-show="shoppingcart.cart.Items.length > 0"
          ng-controller="CheckoutModal as ctrl"
          ng-class="{'next-enabled' : ctrl.everythingOK()}">
-
-        {{pages}}
-        <div>
-            {{ctrl.everythingOK()}}
-        </div>
 
         <carousel interval="0" no-wrap="true">
 
@@ -279,7 +274,7 @@
                                         <ul class="dropdown-menu" role="menu"
                                             ng-repeat="addr in addresses">
                                             <li role="menuitem">
-                                                <a href ng-click="shoppingcart.cart.shipto = addr;">
+                                                <a href ng-click="shoppingcart.cart.ShipTo = addr;">
                                                     {{addr.District}} ({{addr.PostalCode}})
                                                 </a>
                                             </li>
@@ -290,29 +285,29 @@
                             </div>
 
                             <input type="text" title="Ships To" placeholder="Your name or Company Name"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.To" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.To" />
 
                             <input type="text" title="Street" placeholder="eg: #73 Soi Rama IX 62"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.Address" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.Address" />
 
                             <input type="text" title="Country"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.Country" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.Country" />
 
                             <input type="text" title="State/Province"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.State" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.State" />
 
                             <input type="text" title="District"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.District" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.District" />
 
                             <input type="text" title="Subdistrict"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.SubDistrict" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.SubDistrict" />
 
                             <input type="text" title="Postal Code"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.PostalCode" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.ShipTo.PostalCode" />
 
                             <p ncb-formstatic title="">
                                 <a href="#"
-                                   ng-click="shoppingcart.cart.useBillingAddress = true;ctrl.copytobilling()">Copy details to billing address.</a>
+                                   ng-click="shoppingcart.cart.UseBillingAddress = true;ctrl.copytobilling()">Copy details to billing address.</a>
                             </p>
                         </form>
                     </div>
@@ -320,7 +315,7 @@
                     <div class="col-sm-6">
                         <h2>
                             <a class="btn btn-default pull-right" btn-checkbox
-                               ng-model="shoppingcart.cart.useBillingAddress">
+                               ng-model="shoppingcart.cart.UseBillingAddress">
                                 Use
                             </a>
                             Billing Address
@@ -328,7 +323,7 @@
                         If you wish to have receipt, which will be included with
                         the package, issued using different detail - please enter it below.
                         <form name="billingAddress" class="form-horizontal" ncb-formlocator
-                              ng-class="{ 'disabled' : (shoppingcart.cart.useBillingAddress == false || shoppingcart.cart.useBillingAddress == null)}">
+                              ng-class="{ 'disabled' : (shoppingcart.cart.UseBillingAddress == false || shoppingcart.cart.UseBillingAddress == null)}">
 
                             <div class="form-group" ng-show="addresses.length > 0">
                                 <label class="col-xs-3"></label>
@@ -341,7 +336,7 @@
                                         <ul class="dropdown-menu" role="menu"
                                             ng-repeat="addr in addresses">
                                             <li role="menuitem">
-                                                <a href ng-click="shoppingcart.cart.billto = addr;">
+                                                <a href ng-click="shoppingcart.cart.BillTo = addr;">
                                                     {{addr.District}} ({{addr.PostalCode}})
                                                 </a>
                                             </li>
@@ -352,25 +347,25 @@
                             </div>
 
                             <input type="text" title="Ships To" placeholder="Your name"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.To" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.To" />
 
                             <input type="text" title="Street" placeholder="eg: #73 Soi Rama IX 62"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.Address" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.Address" />
 
                             <input type="text" title="Country"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.Country" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.Country" />
 
                             <input type="text" title="Province"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.State" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.State" />
 
                             <input type="text" title="District"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.District" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.District" />
 
                             <input type="text" title="Subdistrict"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.SubDistrict" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.SubDistrict" />
 
                             <input type="text" title="Postal Code"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.PostalCode" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.BillTo.PostalCode" />
 
                         </form>
                     </div>
@@ -390,52 +385,37 @@
 
             <slide  active="pages[4]"
                    class="paymentpage">
-                <div ncb-datacontext table="saleorder">
-                    <h2>
+                <div>
+                    <h2 class="text-success">
                         We are ready to process your order.
                     </h2>
                     Please select how you want to pay.
                     Your purcahse will be submitted and you will receive confirmation via email.<br />
 
-                    <div class="row">
+                    <div class="row"
+                         ng-controller="PaysbuyController as psbCtrl">
 
                         <div class="col-sm-3">
                             
-                            <input type="image" src="https://www.paysbuy.com/imgs/paypalcredit.png"
-                                   border="0"
-                                   ng-click="ctrl.submitpaysbuy(data)"
-                                   alt="Make it easier,PaySbuy - it's fast,free and secure!" />
-
-                            <Form id="paysbuy_form" name="formpaysbuy" method="post" 
-                                  action="https://www.paysbuy.com/paynow.aspx?lang=t"
-                                  style="display: none;" >
-                                <input type="Hidden" Name="psb" ng-model="credential.paysbuy.psb" value="{{credential.paysbuy.psb}}"/>
-                                <input Type="Hidden" Name="biz" ng-model="credential.paysbuy.biz" value="{{credential.paysbuy.biz}}"/>
-                                <input Type="Hidden" Name="inv" ng-model="credential.paysbuy.inv" value="{{credential.paysbuy.inv}}"/>
-                                <input Type="Hidden" Name="itm" ng-model="credential.paysbuy.itm" value="{{credential.paysbuy.itm}}"/>
-                                <input Type="Hidden" Name="amt" ng-model="credential.paysbuy.amt" value="{{credential.paysbuy.amt}}" />
-                                <input Type="Hidden" Name="postURL" ng-model="credential.paysbuy.postURL" value="{{credential.paysbuy.postURL}}" />                                
-                                <button id="paysbuy_submit_btn" type="submit" style="visibility: hidden" />                                                               
-                            </Form>
-                           
+                            <a href ng-click="psbCtrl.pay()">
+                                <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
+                            </a> 
+                            <form id="paysbuy_form" name="formpaysbuy" method="post"
+                                  action=""
+                                  style="display: none;">
+                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                                <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
+                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                            </form>
                         </div>
                         <div class="col-sm-8">
-
                             You will be transfered to <b>PaySbuy</b> to make a payment.
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-sm-3">
-                            <button class="btn btn-default" disabled
-                                    ng-click="ctrl.paypal(data)">
-                                PayPal
-                            </button>
-                        </div>
-                        <div class="col-sm-8">
-                            You will be transfered to <b>PayPal</b> to make a payment.
-                        </div>
-                    </div>
                     <div class="row">
                         <div class="col-sm-3">
                             <button class="btn btn-default"
@@ -444,7 +424,7 @@
                             </button>
                         </div>
                         <div class="col-sm-8">
-                            You will be transfered to Money Transfer notification page.
+                            You will be transfered to Money Transfer notification page where you will find information about our bank account.
                         </div>
                     </div>
                 </div>

@@ -100,6 +100,34 @@
                 </span>
             </div>
         </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <h2>PaySbuy</h2>
+
+            <input type="number" title="PSB ID"
+                   ncb-textbox ng-model="object.paysbuy.psb" />
+
+            <input type="text" title="Secure Code"
+                   ncb-textbox ng-model="object.paysbuy.securecode" />
+
+            <input type="email" title="Login Email"
+                   ncb-textbox ng-model="object.paysbuy.biz" />
+
+            <input type="text" title="Product Name (Shown in Payment Page)"
+                   ncb-textbox ng-model="object.paysbuy.itm" />
+
+            <select ng-model="object.paysbuy.lang"
+                    ncb-select title="Payment Page Language">
+                <option value="t">Thai</option>
+                <option value="e">English</option>
+            </select>
+        </div>
+
     </div>
 </div>
 

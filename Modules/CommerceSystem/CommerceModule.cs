@@ -24,8 +24,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return new StandardModel( this, content: saleorder);
             });
 
-            Post["/__commerce/paymentlog/paysbuy"] = this.HandleRequest( this.HandlePaySbuyPostback );
-
             // get the product 
             Get["/__commerce/api/productstructure"] = this.HandleRequest( this.BuildProductStructure );
 
@@ -34,6 +32,52 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             // Save User's address
             Post["/__commerce/api/address"] = this.HandleRequest(this.UpdateUserAddress);
+            
+            // Save User's cart
+            Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
+
+
+            // Disable Payment Log table access
+            Get["/tables/PaymentLog"] = this.HandleStatusCodeRequest(404);
+            Get["/tables/PaymentLog/count"] = this.HandleStatusCodeRequest(404);
+            Get["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+            Post["/tables/PaymentLog"] = this.HandleStatusCodeRequest(404);
+            Patch["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+            Delete["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+
+            // Disable Sale Order Table Access
+            Get["/tables/SaleOrder"] = this.HandleStatusCodeRequest(404);
+            Get["/tables/SaleOrder/count"] = this.HandleStatusCodeRequest(404);
+            Get["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+            Post["/tables/SaleOrder"] = this.HandleStatusCodeRequest(404);
+            Patch["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+            Delete["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+        }
+
+        private dynamic Checkout(dynamic arg)
+        {
+            if (this.CurrentUser.IsAnonymous)
+            {
+                return 400;
+            }
+
+            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
+
+            saleorder.NcbUserId = this.CurrentUser.Id;
+            saleorder.Status = "WaitingForPayment";
+            saleorder.Customer = this.CurrentUser.Profile;
+
+            // Update Total
+            saleorder.TotalAmount = 0;
+            foreach (var item in saleorder.Items)
+            {
+                var product = this.SiteDatabase.GetById<Product>(item);
+                saleorder.TotalAmount += product.Price;
+            }
+
+            this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+
+            return saleorder;
         }
 
         /// <summary>
@@ -92,35 +136,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return this.SiteDatabase.Query<NcgAddress>()
                     .Where(a => a.NcbUserId == this.CurrentUser.Id)
                     .AsEnumerable();
-        }
-
-        private dynamic HandlePaySbuyPostback(dynamic arg)
-        {
-            var FormData = this.Request.Form;
-
-            string Response = string.Empty;
-
-            foreach (var Key in FormData.Keys)
-            {
-                var Value = FormData[Key].ToString();
-                Response += string.Concat(Key.ToString(), ":", Value.ToString(), "|");
-            }
-
-            PaymentLogPaysbuy PaymentLog = new PaymentLogPaysbuy()
-            {
-                Response = Response
-            };
-
-            try
-            {
-                this.SiteDatabase.UpsertRecord("paymentlogpaysbuy", PaymentLog);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-
-            return 201;
         }
 
         /// <summary>

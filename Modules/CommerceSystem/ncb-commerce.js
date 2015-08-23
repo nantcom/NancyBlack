@@ -39,27 +39,23 @@
 
                 if (cartSystem.cart == null) {
 
-
-                    //TODO: if logged in, load the current cart of the user
-
                     // shopping cart was not initialized for this scope, create it
                     cartSystem.cart = {
-                        uuid: generateUUID(),
-                        items: [],
-                        owner: 'Anonymous'
+                        Items: [],
+                        NcbUserId: 0,
                     };
                 }
 
-                if (cartSystem.cart.customer == null) {
+                if (cartSystem.cart.Customer == null) {
 
-                    cartSystem.cart.customer = {};
+                    cartSystem.cart.Customer = {};
                 }
 
                 if (scope.currentUser != null) {
 
                     // user has logged in - update the cart info
-                    cartSystem.cart.customer.email = scope.currentUser.Email;
-                    cartSystem.cart.owner = scope.currentUser.Id;
+                    cartSystem.cart.Customer.Email = scope.currentUser.Email;
+                    cartSystem.cart.NcbUserId = scope.currentUser.Id;
 
                     cartSystem.saveCart();
                 }
@@ -74,11 +70,11 @@
                 if (amount != null && typeof(amount) == "number") {
 
                     for (var i = 0; i < amount; i++) {
-                        cartSystem.cart.items.push(productId);
+                        cartSystem.cart.Items.push(productId);
                     }
                 } else {
 
-                    cartSystem.cart.items.push(productId);
+                    cartSystem.cart.Items.push(productId);
                 }
 
                 cartSystem.saveCart();
@@ -91,7 +87,7 @@
 
                 productId = parseInt(productId);
 
-                var partitions = _.partition(cartSystem.cart.items, function (item) { return item == productId; });
+                var partitions = _.partition(cartSystem.cart.Items, function (item) { return item == productId; });
 
                 var toRemove = partitions[0];
                 var remainder = partitions[1];
@@ -104,7 +100,7 @@
                 }
 
                 toRemove.pop();
-                cartSystem.cart.items = toRemove.concat(remainder);
+                cartSystem.cart.Items = toRemove.concat(remainder);
 
                 cartSystem.saveCart();
             };
@@ -113,7 +109,29 @@
             cartSystem.saveCart = function () {
 
                 localStorageService.set('cart', cartSystem.cart);
-                cartSystem.totalitems = cartSystem.cart.items.length;
+                cartSystem.totalitems = cartSystem.cart.Items.length;
+            };
+
+            cartSystem.checkout = function ( callback ) {
+
+                $http.post("/__commerce/api/checkout", cartSystem.cart)
+                    .success(function (data) {
+
+                        // checked out, clear the local cart
+                        localStorageService.set('cart', null);
+                        cartSystem.cart = null;
+                        cartSystem.ensureCartAvailable();
+
+                        callback(data);
+                    })
+                    .error(function (data) {
+
+                        callback({
+                            error: true,
+                            type: 'danger',
+                            data: data
+                        });
+                    });
             };
 
             cartSystem.cart = localStorageService.get('cart');
@@ -183,19 +201,19 @@
                     return;
                 }
 
-                if (cartSystem.cart == null || cartSystem.cart.items == null) {
+                if (cartSystem.cart == null || cartSystem.cart.Items == null) {
                     return;
                 }
 
                 var getCount = function () {
 
                     var productId = scope.$eval(attrs.productid);
-                    var result = _.filter(cartSystem.cart.items, function (item) { return item == productId; });
+                    var result = _.filter(cartSystem.cart.Items, function (item) { return item == productId; });
 
                     scope.count = result.length;
                 };
 
-                scope.$watchCollection(function () { return cartSystem.cart.items; }, getCount);
+                scope.$watchCollection(function () { return cartSystem.cart.Items; }, getCount);
                 scope.$watch(attrs.productid, getCount);
 
                 scope.initialized = true;
@@ -225,11 +243,11 @@
                     return;
                 }
 
-                if (cartSystem.cart == null || cartSystem.cart.items == null) {
+                if (cartSystem.cart == null || cartSystem.cart.Items == null) {
                     return;
                 }
 
-                scope.$watchCollection(function () { return cartSystem.cart.items; }, function () {
+                scope.$watchCollection(function () { return cartSystem.cart.Items; }, function () {
 
                     // item was added/removed
                     element.find("#cartbutton").addClass("notify");
@@ -385,15 +403,15 @@
 
         $scope.$watch("pages[2]", function (newValue, oldValue) {
 
-            // page 2 was deactivated
+            // page 2 was deactivated after activated
             if (newValue == false && oldValue == true) {
 
                 $scope.membership.updateProfile();
+
             }
         });
 
         //#endregion
-
 
         // Disable/Enable Next Button
         $me.everythingOK = function () {
@@ -428,9 +446,6 @@
 
         $scope.products = {};
         $scope.cartView = {};
-        $scope.credential = {
-            paysbuy: null
-        };        
 
         var getProdcutInfo = function (productid) {
 
@@ -455,11 +470,11 @@
         };
 
         var updateView = function () {
-            $scope.cartView = _.groupBy($scope.shoppingcart.cart.items, function (item) { return item; });
+            $scope.cartView = _.groupBy($scope.shoppingcart.cart.Items, function (item) { return item; });
             updateProductInfo();
         };
 
-        $scope.$watchCollection(function () { return cartSystem.cart.items; }, updateView);
+        $scope.$watchCollection(function () { return cartSystem.cart.Items; }, updateView);
 
         $me.copytobilling = function () {
 
@@ -467,69 +482,18 @@
             cartSystem.cart.billto = JSON.parse(JSON.stringify(cartSystem.cart.shipto));
         };
 
-        $me.savecart = function (datacontext, next) {
-
-            datacontext.save(cartSystem.cart, next);
-        };
-
-        var getCredentialPaysbuy = function () {
-            var _paysbuy = {
-                psb: "",
-                biz: "",
-                inv: "",
-                itm: "Hardcode Product Name",
-                amt: "",
-                postURL: "",
-            };
-
-            $http.get('/tables/paymentpaysbuy?$top=1').
-              then(function (response) {
-
-                  var PaymentCredential = response.data[0];
-                  _paysbuy.biz = PaymentCredential.Email;
-                  _paysbuy.psb = PaymentCredential.Psb;
-                  _paysbuy.postURL = PaymentCredential.PostbackUrl;
-
-                  $scope.credential.paysbuy = _paysbuy;
-
-              }, function (response) {
-                  throw "paymentpaysbuy must be set";
-              });
-
-        };
-
-        $me.submitpaysbuy = function (datacontext) {
-
-            getCredentialPaysbuy();
-
-            var stopWatchPaysbuy = $scope.$watch('credential.paysbuy', function (newVal, oldVal) {
-                
-                if (newVal != null) {
-
-                    stopWatchPaysbuy();
-
-                    $me.savecart(datacontext, function (item) {
-
-                        $scope.credential.paysbuy.inv = item.uuid;
-
-                        $scope.credential.paysbuy.amt = $me.getTotal();                        
-
-                        $timeout(function () {
-
-                            $("#paysbuy_submit_btn").click();
-
-                        }, 1000);
-
-                    });
-                }
-
-            });                       
-            
-        };
-
         $me.getTotal = function () {
-            // TODO - Calc()
-            return 1;
+            
+            var total = 0;
+            $scope.shoppingcart.cart.Items.forEach(function (productid) {
+
+                if ($scope.products[productid] != null) {
+
+                    total += $scope.products[productid].Price;
+                }
+            });
+
+            return total;
         };
 
         $me.moneytransfer = function ( datacontext) {
@@ -562,6 +526,52 @@
                 $scope.showcartmodal();
             }
         }, 1000);
+
+    });
+
+    
+    ncg.controller("PaysbuyController", function ($scope, $http, $timeout) {
+
+        if ($scope.shoppingcart == null) {
+
+            throw "require ncg-Cart in current scope";
+        }
+
+        $scope.so = {};
+
+        var $me = this;
+        $me.pay = function () {
+
+            var submitForm = function () {
+
+                $("#paysbuy_form").attr("action",
+                    "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
+
+                $("#paysbuy_form").submit();
+            };
+
+            var getPaysbuySettings = function () {
+
+                $http.get("/__commerce/paysbuy/settings")
+                    .success(function (data) {
+
+                        $scope.paysbuy = data;
+                        submitForm();
+                    })
+            };
+
+            $scope.shoppingcart.checkout(function (data, arg) {
+
+                if (data.error == true) {
+                    return;
+                }
+
+                $scope.so = data;
+
+                getPaysbuySettings();
+            });
+
+        };
 
     });
 
@@ -611,7 +621,7 @@
 
         $scope.$on("ncb-datacontext.loaded", function () {
 
-            $scope.cartView = _.groupBy($scope.saleorder.items, function (item) { return item; });
+            $scope.cartView = _.groupBy($scope.saleorder.Items, function (item) { return item; });
             updateProductInfo();
         });
 

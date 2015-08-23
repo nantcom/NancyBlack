@@ -194,6 +194,19 @@ namespace NantCom.NancyBlack.Modules
         private CustomJsonSerializer _Serializer = new CustomJsonSerializer();
 
         /// <summary>
+        /// Handles the request by simply returning the status code
+        /// </summary>
+        /// <param name="statusCode"></param>
+        /// <returns></returns>
+        protected Func<dynamic, dynamic> HandleStatusCodeRequest(int statusCode)
+        {
+            return (arg) =>
+            {
+                return statusCode;
+            };
+        }
+
+        /// <summary>
         /// Handles the request.
         /// </summary>
         /// <param name="action">The action.</param>
