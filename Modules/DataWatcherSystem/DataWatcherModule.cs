@@ -131,7 +131,7 @@ namespace NantCom.NancyBlack.Modules
                 
         public DataWatcherModule()
         {
-            Get["/Admin/DataWatcher"] = this.HandleStaticRequest("admin-datawatcher", null);
+            Get["/Admin/DataWatcher"] = this.HandleViewRequest("admin-datawatcher", null);
         }
                 
         public void Hook(IPipelines p)

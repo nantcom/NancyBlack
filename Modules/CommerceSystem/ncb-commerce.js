@@ -65,11 +65,22 @@
                 }
             };
 
-            // Add item to Cart, itemId
-            cartSystem.add = function (productId) {
+            cartSystem.add = function (productId, amount) {
 
                 cartSystem.ensureCartAvailable();
-                cartSystem.cart.items.push(parseInt(productId));
+
+                var productId = parseInt(productId);
+
+                if (amount != null && typeof(amount) == "number") {
+
+                    for (var i = 0; i < amount; i++) {
+                        cartSystem.cart.items.push(productId);
+                    }
+                } else {
+
+                    cartSystem.cart.items.push(productId);
+                }
+
                 cartSystem.saveCart();
             };
 

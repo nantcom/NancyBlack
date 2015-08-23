@@ -29,18 +29,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/__commerce/cart"] = this.HandleRequest((args) =>
             {
-                return View["commerce-shoppingcart", this.GetModel()];
+                return View["commerce-shoppingcart", new StandardModel(this)];
 
             });
 
-            Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleRequest((args) =>
+            Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
             {
                 var saleorder = this.SiteDatabase.Query("saleorder",
                     string.Format("uuid eq '{0}'", (string)args.id),
                     "Id desc").FirstOrDefault();
 
-                return View["commerce-notifytransfer", this.GetModel(saleorder)];
-
+                return new StandardModel( this, content: saleorder);
             });
 
             Post["/__commerce/paymentlog/paysbuy"] = this.HandleRequest((args) =>

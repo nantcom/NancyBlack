@@ -1,30 +1,37 @@
-﻿[
+[
   {
     "outputFile": "Modules/ControlsSystem/ncb-Controls.css",
-    "inputFile": "Modules/ControlsSystem/ncb-Controls.less"
+    "inputFile": "Modules/ControlsSystem/ncb-Controls.less",
+    "sourceMap": false
   },
   {
     "outputFile": "Modules/ContentSystem/Views/editor-editframe.css",
-    "inputFile": "Modules/ContentSystem/Views/editor-editframe.less"
+    "inputFile": "Modules/ContentSystem/Views/editor-editframe.less",
+    "sourceMap": false
   },
   {
     "outputFile": "Modules/ContentSystem/Views/editor-editarea.css",
-    "inputFile": "Modules/ContentSystem/Views/editor-editarea.less"
+    "inputFile": "Modules/ContentSystem/Views/editor-editarea.less",
+    "sourceMap": false
   },
   {
     "outputFile": "Modules/DatabaseSystem/ncb-datacontext.css",
-    "inputFile": "Modules/DatabaseSystem/ncb-datacontext.less"
+    "inputFile": "Modules/DatabaseSystem/ncb-datacontext.less",
+    "sourceMap": false
   },
   {
     "outputFile": "Modules/CommerceSystem/ncb-commerce.css",
-    "inputFile": "Modules/CommerceSystem/ncb-commerce.less"
+    "inputFile": "Modules/CommerceSystem/ncb-commerce.less",
+    "sourceMap": false
   },
   {
     "outputFile": "Site/style.css",
-    "inputFile": "Site/style.less"
+    "inputFile": "Site/style.less",
+    "sourceMap": false
   },
   {
     "outputFile": "Modules/CommerceSystem/Views/Admin/product.css",
-    "inputFile": "Modules/CommerceSystem/Views/Admin/product.less"
+    "inputFile": "Modules/CommerceSystem/Views/Admin/product.less",
+    "sourceMap": false
   }
 ]

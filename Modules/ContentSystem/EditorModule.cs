@@ -22,7 +22,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
                     return 403;
                 }
 
-                return View["editor-editframe", this.GetModel()];
+                return View["editor-editframe", new StandardModel(this)];
             });
 
             Get["/__editor/data/availablelayouts"] = this.HandleRequest((args) =>

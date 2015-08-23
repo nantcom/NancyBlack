@@ -3,6 +3,7 @@ using Nancy.Authentication.Forms;
 using Nancy.TinyIoc;
 using Nancy.ViewEngines;
 using NantCom.NancyBlack.Configuration;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
@@ -25,36 +26,48 @@ namespace NantCom.NancyBlack.Modules
         public dynamic Site { get; set; }
 
         public NancyBlackDatabase Database { get; set; }
-
-        private dynamic _Content;
-
+        
+        /// <summary>
+        /// Viewing Content, Content should have standard IContent Interface
+        /// </summary>
         public dynamic Content
         {
-            get
-            {
-                if (_Content == null)
-                {
-                    return new JObject();
-                }
-                return _Content;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    _Content = null;
-                    return;
-                }
+            get;
+            set;
+        }
 
-                try
-                {
-                    _Content = JObject.FromObject(value);
-                }
-                catch (Exception)
-                {
-                    _Content = JArray.FromObject(value);
-                }
+        /// <summary>
+        /// Model
+        /// </summary>
+        public dynamic Data { get; set; }
+
+        /// <summary>
+        /// HTTP Response Code
+        /// </summary>
+        public int ResponseCode { get; set; }
+
+        /// <summary>
+        /// Create new instance of Standard Model
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="data"></param>
+        public StandardModel( BaseModule module, dynamic content = null, dynamic data = null, int responseCode = 200 )
+        {
+            if (content == null)
+            {
+                content = new JObject();
             }
+
+            this.Content = content;
+            this.Data = data;
+            this.Site = module.CurrentSite;
+            this.Database = module.SiteDatabase;
+            this.ResponseCode = responseCode;
+        }
+        
+        public StandardModel( int responseCode )
+        {
+            this.ResponseCode = responseCode;
         }
     }
 
@@ -80,7 +93,7 @@ namespace NantCom.NancyBlack.Modules
         /// <value>
         /// The site.
         /// </value>
-        protected dynamic CurrentSite
+        public dynamic CurrentSite
         {
             get
             {
@@ -91,7 +104,7 @@ namespace NantCom.NancyBlack.Modules
         /// <summary>
         /// Currently accessing user
         /// </summary>
-        protected NcbUser CurrentUser
+        public NcbUser CurrentUser
         {
             get
             {
@@ -110,7 +123,7 @@ namespace NantCom.NancyBlack.Modules
         /// <value>
         /// The shared database.
         /// </value>
-        protected NancyBlackDatabase SiteDatabase
+        public NancyBlackDatabase SiteDatabase
         {
             get
             {
@@ -147,69 +160,34 @@ namespace NantCom.NancyBlack.Modules
         public BaseModule(IRootPathProvider rootPath)
         {
         }
-
-        /// <summary>
-        /// Gets the standard model which require for NancyBlackRazorViewBase
-        /// </summary>
-        /// <param name="content">The content.</param>
-        /// <returns></returns>
-        protected StandardModel GetModel(dynamic content = null)
-        {
-            if (content == null)
-            {
-                content = new JObject();
-            }
-
-            return new StandardModel()
-            {
-                Database = this.SiteDatabase,
-                Content = content
-            };
-
-        }
-
-        /// <summary>
-        /// Handles the static request.
-        /// </summary>
-        /// <param name="view">The view.</param>
-        /// <param name="model">The model.</param>
-        /// <returns></returns>
-        protected Func<dynamic, dynamic> HandleStaticRequest(string view, Func<dynamic> modelGetter)
-        {
-            return (arg) =>
-            {
-                dynamic model = null;
-                if (modelGetter != null)
-                {
-                    model = modelGetter();
-                }
-
-                return View[view, this.GetModel( model )];
-            };
-        }
-
+        
         /// <summary>
         /// Handle request to show a view based on given request
         /// </summary>
         /// <param name="view">The view.</param>
         /// <param name="model">The model.</param>
         /// <returns></returns>
-        protected Func<dynamic, dynamic> HandleViewRequest(string view, Func<dynamic, dynamic> modelGetter)
+        protected Func<dynamic, dynamic> HandleViewRequest(string view, Func<dynamic, StandardModel> modelGetter = null)
         {
             return (arg) =>
             {
-                dynamic model = null;
+                StandardModel model = null;
                 if (modelGetter != null)
                 {
                     model = modelGetter(arg);
                 }
 
-                if (model is int)
+                if (model == null)
                 {
-                    return model;
+                    model = new StandardModel(this);
                 }
 
-                return View[view, this.GetModel(model)];
+                if (model.ResponseCode != 200)
+                {
+                    return model.ResponseCode;
+                }
+                
+                return View[view, model];
             };
         }
 

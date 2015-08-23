@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace NantCom.NancyBlack
 {
-    public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<dynamic>
+    public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<StandardModel>
     {   
         /// <summary>
         /// Gets the information about current request.

@@ -1045,7 +1045,6 @@
         };
     });
 
-    // insert background image with css
     module.directive('ncbClosealert', function () {
 
         function link(scope, element, attrs) {
@@ -1277,5 +1276,144 @@
 
         };
     }]);   
+
+    module.directive('ncbRunningnumber', function () {
+
+        function link(scope, element, attrs) {
+
+            var value = parseInt(attrs.start);
+            var stop = parseInt(attrs.end);
+
+            if ( isNaN( value ) == true ) {
+                value = stop - 100;
+            }
+
+            if (value < 0) {
+                value = 0;
+            }
+
+            var text = String.format("{0:0,0}", value);
+            element.text(text);
+
+            var handle = window.setInterval(function () {
+
+                value = value + 1;
+
+                if (value >= stop) {
+                    window.clearInterval(handle);
+                    value = stop;
+                }
+
+                var text = String.format("{0:0,0}", value);
+                element.text(text);
+
+                if (value >= stop) {
+                    window.clearInterval(handle);
+                }
+
+            }, 100);
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbParallax', function () {
+
+        function link(scope, element, attrs) {
+
+            var $window = $(window);
+            var ratio = parseFloat(attrs.ncbParallax);
+            var offset = parseFloat(attrs.offset);
+            var last = $window.scrollTop();
+
+            $window.on("scroll", function () {
+
+                var top = $window.scrollTop();
+                var diff = top - last;
+
+                element.css("background-position", "center " + (offset - (diff * ratio)) + "px");
+                
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbFillheight', function () {
+
+        function link(scope, element, attrs) {
+
+            var $window = $(window);
+
+            if (attrs.minheight != null) {
+                element.css("min-height", attrs.minheight);
+            }
+            element.css("height", $window.height());
+
+            $window.on("resize", function () {
+
+                element.css("height", $window.height());
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbScroll', function () {
+
+        function link(scope, element, attrs) {
+
+            if (attrs.href.indexOf("#") != 0)
+                return;
+
+            var target = $(attrs.href);
+            if (target.length == 0) {
+                return;
+            }
+
+            var targetOffset = target.offset().top;
+            element.on("click", function (e) {
+
+                e.preventDefault();
+
+                $("html, body").animate({ scrollTop: targetOffset +"px" });
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbEnter', function () {
+
+        function link(scope, element, attrs) {
+
+            if (attrs.ncbEnter == null)
+                throw "Value to evaluate is required."
+
+            element.on("keyup", function (e) {
+
+                if (e.key == "Enter") {
+                    scope.$eval(attrs.ncbEnter);
+                }
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
 
 })();

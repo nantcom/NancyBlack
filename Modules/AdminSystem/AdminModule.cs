@@ -23,10 +23,10 @@ namespace NantCom.NancyBlack.Modules
             this.RequiresAuthentication();
             this.RequiresClaims(new string[] { "admin" });
 
-            Get["/Admin"] = this.HandleStaticRequest("admin-dashboard", null);
-            Get["/Admin/"] = this.HandleStaticRequest("admin-dashboard", null);
+            Get["/Admin"] = this.HandleViewRequest("admin-dashboard");
+            Get["/Admin/"] = this.HandleViewRequest("admin-dashboard");
 
-            Get["/Admin/sitesettings"] = this.HandleStaticRequest("admin-sitesettings", null);
+            Get["/Admin/sitesettings"] = this.HandleViewRequest("admin-sitesettings");
             Post["/Admin/sitesettings/current"] = this.HandleRequest(this.SaveSiteSettings);
 
             Post["/Admin/api/testemail"] = this.HandleRequest(this.TestSendEmail);

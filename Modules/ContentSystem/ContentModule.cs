@@ -152,7 +152,7 @@ namespace NantCom.NancyBlack.Modules
 
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
 
-            return View[(string)requestedContent.Layout, this.GetModel(requestedContent)];
+            return View[(string)requestedContent.Layout, new StandardModel( this, requestedContent )];
         }
 
         #region All Logic Related to Content

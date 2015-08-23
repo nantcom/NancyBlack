@@ -54,5 +54,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Actual items in inventory
         /// </summary>
         public int ActualInventory { get; set; }
+
+        /// <summary>
+        /// Number of items that user can buy at once
+        /// </summary>
+        public int MaxPerOrder { get; set; }
+        
+        /// <summary>
+        /// Additional information about the object
+        /// </summary>
+        public dynamic Addendum { get; set; }
     }
 }
