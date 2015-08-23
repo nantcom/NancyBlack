@@ -66,7 +66,7 @@ table.saleorder {
         .carousel-control {
             background-image: none !important;
             height: 50px !important;
-            color: orangered;
+            color: green;
             opacity: 0.5;
             top: auto;
             bottom: -55px;
@@ -77,10 +77,21 @@ table.saleorder {
             &:hover {
                 opacity: 1;
             }
+
+            &.left {
+                color: white;
+            }
+
+            &.right {
+                opacity: 0.2;
+                pointer-events: none;
+                cursor: not-allowed;
+            }
         }
 
         .carousel-indicators {
             bottom: -50px;
+            pointer-events: none;
 
             li {
                 border-radius: 0;
@@ -90,11 +101,33 @@ table.saleorder {
             }
 
             li.active {
-                background-color: orangered;
+                background-color: green;
             }
         }
     }
+        
+    .next-enabled {
 
+        .right {
+            opacity: 1 !important;
+            pointer-events: all !important;
+            cursor: pointer !important;
+        }
+    }
+
+
+    #memberPage {
+
+        > div {
+            width: 40%;
+            margin: auto;
+        }
+    }
+
+    #profilePage {
+
+        height: 550px;
+    }
 
     form {
         margin-top: 20px;
@@ -180,16 +213,15 @@ table.saleorder {
             overflow-y: auto;
         }
     }
+
     .carousel {
 
         .slide {
             height: 360px;
             width: 360px;
             margin: auto;
-
             background-size: contain;
             background-repeat: no-repeat;
-
             display: inline-block;
         }
     }

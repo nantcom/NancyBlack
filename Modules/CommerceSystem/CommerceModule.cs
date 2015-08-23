@@ -1,4 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +10,122 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
     public class CommerceModule : BaseModule
     {
+
+        public CommerceModule()
+        {
+            Get["/__commerce/cart"] = this.HandleViewRequest("commerce-shoppingcart");
+
+            Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
+            {
+                var saleorder = this.SiteDatabase.Query("saleorder",
+                    string.Format("uuid eq '{0}'", (string)args.id),
+                    "Id desc").FirstOrDefault();
+
+                return new StandardModel( this, content: saleorder);
+            });
+
+            Post["/__commerce/paymentlog/paysbuy"] = this.HandleRequest( this.HandlePaySbuyPostback );
+
+            // get the product 
+            Get["/__commerce/api/productstructure"] = this.HandleRequest( this.BuildProductStructure );
+
+            // List User's address
+            Get["/__commerce/api/addresses"] = this.HandleRequest(this.FindUserAddress);
+
+            // Save User's address
+            Post["/__commerce/api/address"] = this.HandleRequest(this.UpdateUserAddress);
+        }
+
+        /// <summary>
+        /// Update User Address
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic UpdateUserAddress(dynamic arg)
+        {
+            if (this.CurrentUser.IsAnonymous)
+            {
+                return 400;
+            }
+
+            var input = (arg.body.Value as JArray);
+            if (input == null)
+            {
+                return 400;
+            }
+
+            var existing = this.SiteDatabase.Query<NcgAddress>()
+                            .Where(a => a.NcbUserId == this.CurrentUser.Id)
+                            .ToList();
+
+            foreach (var item in input)
+            {
+
+                var address = item.ToObject<NcgAddress>();
+                if (address == null)
+                {
+                    continue;
+                }
+
+                address.NcbUserId = this.CurrentUser.Id;
+
+                var isExisted = existing.Any(a => a.Equals(address));
+                if (isExisted == false)
+                {
+                    address.Id = 0;
+                    this.SiteDatabase.UpsertRecord<NcgAddress>(address);
+
+                    existing.Add(address);
+                }
+            }
+
+            return existing;
+        }
+
+        private dynamic FindUserAddress(dynamic arg)
+        {
+            if (this.CurrentUser.IsAnonymous)
+            {
+                return 400;
+            }
+
+            return this.SiteDatabase.Query<NcgAddress>()
+                    .Where(a => a.NcbUserId == this.CurrentUser.Id)
+                    .AsEnumerable();
+        }
+
+        private dynamic HandlePaySbuyPostback(dynamic arg)
+        {
+            var FormData = this.Request.Form;
+
+            string Response = string.Empty;
+
+            foreach (var Key in FormData.Keys)
+            {
+                var Value = FormData[Key].ToString();
+                Response += string.Concat(Key.ToString(), ":", Value.ToString(), "|");
+            }
+
+            PaymentLogPaysbuy PaymentLog = new PaymentLogPaysbuy()
+            {
+                Response = Response
+            };
+
+            try
+            {
+                this.SiteDatabase.UpsertRecord("paymentlogpaysbuy", PaymentLog);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
+            return 201;
+        }
+
+        /// <summary>
+        /// Node Class, for product structure view
+        /// </summary>
         public class Node
         {
             public int id { get; set; }
@@ -25,113 +142,61 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
         }
 
-        public CommerceModule()
+        private dynamic BuildProductStructure(dynamic arg)
         {
-            Get["/__commerce/cart"] = this.HandleRequest((args) =>
+            var products = this.SiteDatabase.Query<Product>().AsEnumerable();
+            Func<string, string> getUrlWithoutLeaf = (s) =>
             {
-                return View["commerce-shoppingcart", new StandardModel(this)];
+                return Path.GetDirectoryName(s);
+            };
 
-            });
+            var baseUrls = (from p in products
+                            let url = getUrlWithoutLeaf(p.Url)
+                            where url != null
+                            select url).Distinct().ToList();
 
-            Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
+            Dictionary<string, Node> tree = new Dictionary<string, Node>();
+            int id = 0;
+            foreach (var item in baseUrls)
             {
-                var saleorder = this.SiteDatabase.Query("saleorder",
-                    string.Format("uuid eq '{0}'", (string)args.id),
-                    "Id desc").FirstOrDefault();
-
-                return new StandardModel( this, content: saleorder);
-            });
-
-            Post["/__commerce/paymentlog/paysbuy"] = this.HandleRequest((args) =>
-            {
-
-                var FormData = this.Request.Form;
-
-                string Response = string.Empty;
-
-                foreach (var Key in FormData.Keys)
+                var parts = item.Split('\\').ToList();
+                for (int i = 1; i < parts.Count; i++)
                 {
-                    var Value = FormData[Key].ToString();
-                    Response += string.Concat(Key.ToString(), ":", Value.ToString(), "|");
-                }
+                    var parentPath = string.Join("\\", parts.Take(i));
+                    var fullPath = string.Join("\\", parts.Take(i + 1));
 
-                PaymentLogPaysbuy PaymentLog = new PaymentLogPaysbuy()
-                {
-                    Response = Response
-                };
-
-                try
-                {
-                    this.SiteDatabase.UpsertRecord("paymentlogpaysbuy", PaymentLog);
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
-
-                return 201;
-
-            });
-
-            // get the product 
-            Get["/__commerce/api/productstructure"] = this.HandleRequest((arg) =>
-            {
-                var products = this.SiteDatabase.Query<Product>().AsEnumerable();
-                Func<string, string> getUrlWithoutLeaf = (s) =>
-                {
-                    return Path.GetDirectoryName(s);
-                };
-
-                var baseUrls = (from p in products
-                                let url = getUrlWithoutLeaf(p.Url)
-                                where url != null
-                                select url).Distinct().ToList();
-                
-                Dictionary<string, Node> tree = new Dictionary<string, Node>();
-                int id = 0;
-                foreach (var item in baseUrls)
-                {
-                    var parts = item.Split('\\').ToList();
-                    for (int i = 1; i < parts.Count; i++)
+                    if (parentPath == "")
                     {
-                        var parentPath = string.Join("\\", parts.Take(i));
-                        var fullPath = string.Join("\\", parts.Take(i + 1));
+                        parentPath = "Products";
+                    }
 
-                        if (parentPath == "")
+                    if (tree.ContainsKey(parentPath) == false)
+                    {
+                        tree[parentPath] = new Node()
                         {
-                            parentPath = "Products";
-                        }
+                            id = id++,
+                            title = Path.GetFileName(parentPath),
+                            fullPath = parentPath.Replace('\\', '/'),
+                        };
+                    }
 
-                        if (tree.ContainsKey( parentPath ) == false)
+                    if (tree.ContainsKey(fullPath) == false)
+                    {
+                        var node = new Node()
                         {
-                            tree[parentPath] = new Node()
-                            {
-                                id = id++,
-                                title = Path.GetFileName( parentPath ),
-                                fullPath = parentPath.Replace('\\', '/'),
-                            };
-                        }
+                            id = id++,
+                            title = Path.GetFileName(fullPath),
+                            fullPath = fullPath.Replace('\\', '/'),
+                        };
 
-                        if (tree.ContainsKey( fullPath ) == false)
-                        {
-                            var node = new Node()
-                            {
-                                id = id++,
-                                title = Path.GetFileName(fullPath),
-                                fullPath = fullPath.Replace('\\', '/'),
-                            };
-
-                            tree[fullPath] = node;
-                            tree[parentPath].nodes.Add(node);
-                        }
+                        tree[fullPath] = node;
+                        tree[parentPath].nodes.Add(node);
                     }
                 }
+            }
 
 
-                return tree.Values.FirstOrDefault();
-
-            });
-
+            return tree.Values.FirstOrDefault();
         }
     }
 }

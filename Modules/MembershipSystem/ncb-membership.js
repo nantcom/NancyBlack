@@ -120,6 +120,26 @@
                 var login = $me.isLoggedIn();
                 return login == false;
             };
+
+            $me.updateProfile = function () {
+
+                if ($me.currentUser.Id == 0) {
+                    return;
+                }
+
+                // save user profile
+                $http.post('/__membership/api/updateprofile', $scope.membership.currentUser.Profile)
+                    .success(function (data) {
+
+                        $me.alerts.push({ type: 'success', msg: 'Profile was saved.' });
+
+                    })
+                    .error(function (data, status, headers, config) {
+
+                        $me.alerts.push({ type: 'danger', msg: 'Cannot save data.' });
+
+                    });
+            };
         }
 
         return {

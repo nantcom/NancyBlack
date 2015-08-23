@@ -284,6 +284,148 @@
         }
 
         var $me = this;
+
+        $scope.profileForm = null;
+        $scope.shipToForm = null;
+        $scope.billToForm = null;
+
+        $scope.pages = [true, false, false, false, false]
+
+        //#region Attach forms
+
+        $scope.$on('formLocator', function (event, data) {
+            $scope.profileForm = event.targetScope.profile;
+
+            if (event.targetScope.shippingAddress != null) {
+                $scope.shipToForm = event.targetScope.shippingAddress;
+            }
+
+            if (event.targetScope.billingAddress != null) {
+                $scope.billToForm = event.targetScope.billingAddress;
+            }
+
+            if (event.targetScope.profile != null) {
+                $scope.profileForm = event.targetScope.profile;
+            }
+        });
+
+        //#endregion
+
+        //#region Handle Address Save
+
+        {
+            $scope.addresses = [];
+
+            var cleanupAddress = function (input) {
+
+                if (input == null) {
+
+                    return null;
+                }
+
+                input.To = input.To.trim();
+                input.Address = input.Address.trim();
+                input.Country = input.Country.trim();
+                input.State = input.State.trim();
+                input.District = input.District.trim();
+                input.SubDistrict = input.SubDistrict.trim();
+                input.PostalCode = input.PostalCode.trim();
+
+                return input;
+            };
+
+            var refreshAddresses = function () {
+
+                // load address
+                $http.get("/__commerce/api/addresses").success(function (data) {
+
+                    $scope.addresses = data;
+                });
+            };
+
+            $scope.$on("ncb-membership.login", function () {
+
+                refreshAddresses();
+            });
+
+            $scope.$watch("pages[3]", function (newValue, oldValue) {
+
+                // page activated, refresh address
+                if (newValue == true && oldValue == false) {
+
+                    if ($scope.addresses.length == 0) {
+
+                        refreshAddresses();
+                    }
+                }
+
+                // page 3 (addresses) was deactivated
+                if (newValue == false && oldValue == true) {
+
+                    if ($scope.shipToForm.$valid == false) {
+
+                        return;
+                    }
+
+                    var toSave = [];
+                    toSave[0] = cleanupAddress($scope.shoppingcart.cart.shipto);
+                    toSave[1] = cleanupAddress($scope.shoppingcart.cart.billto);
+
+                    $http.post("/__commerce/api/address", toSave)
+                        .success(function (data) {
+                            $scope.addresses = data;
+                    });
+                }
+            });
+        }
+
+        //#endregion
+
+        //#region Handling Profile save
+
+        $scope.$watch("pages[2]", function (newValue, oldValue) {
+
+            // page 2 was deactivated
+            if (newValue == false && oldValue == true) {
+
+                $scope.membership.updateProfile();
+            }
+        });
+
+        //#endregion
+
+
+        // Disable/Enable Next Button
+        $me.everythingOK = function () {
+
+            if ($scope.pages[0] == true) {
+
+                return true;
+            }
+
+            if ($scope.pages[1] == true) {
+
+                return $scope.membership.isLoggedIn();
+            }
+
+            if ($scope.pages[2] == true) {
+
+                return $scope.profileForm.$valid == true;
+            }
+
+            if ($scope.pages[3] == true) {
+
+                if ($scope.shoppingcart.cart.useBillingAddress == true) {
+
+                    return $scope.shipToForm.$valid == true &&
+                           $scope.billToForm.$valid == true;
+                }
+
+                return $scope.shipToForm.$valid == true;
+            }
+            return false;
+        };
+
         $scope.products = {};
         $scope.cartView = {};
         $scope.credential = {

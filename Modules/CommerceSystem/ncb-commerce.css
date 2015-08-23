@@ -53,7 +53,7 @@ table.saleorder td:nth-child(6) {
 #cartmodal .carousel .carousel-control {
   background-image: none !important;
   height: 50px !important;
-  color: orangered;
+  color: green;
   opacity: 0.5;
   top: auto;
   bottom: -55px;
@@ -64,8 +64,17 @@ table.saleorder td:nth-child(6) {
 #cartmodal .carousel .carousel-control:hover {
   opacity: 1;
 }
+#cartmodal .carousel .carousel-control.left {
+  color: white;
+}
+#cartmodal .carousel .carousel-control.right {
+  opacity: 0.2;
+  pointer-events: none;
+  cursor: not-allowed;
+}
 #cartmodal .carousel .carousel-indicators {
   bottom: -50px;
+  pointer-events: none;
 }
 #cartmodal .carousel .carousel-indicators li {
   border-radius: 0;
@@ -74,7 +83,19 @@ table.saleorder td:nth-child(6) {
   margin-right: 5px;
 }
 #cartmodal .carousel .carousel-indicators li.active {
-  background-color: orangered;
+  background-color: green;
+}
+#cartmodal .next-enabled .right {
+  opacity: 1 !important;
+  pointer-events: all !important;
+  cursor: pointer !important;
+}
+#cartmodal #memberPage > div {
+  width: 40%;
+  margin: auto;
+}
+#cartmodal #profilePage {
+  height: 550px;
 }
 #cartmodal form {
   margin-top: 20px;

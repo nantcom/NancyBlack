@@ -68,7 +68,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// Password, Hashed
         /// </summary>
         public string PasswordHash { get; set; }
-        
+
+        /// <summary>
+        /// User Profile
+        /// </summary>
+        public dynamic Profile { get; set; }
+
         /// <summary>
         /// Whether this is an anonymous user
         /// </summary>

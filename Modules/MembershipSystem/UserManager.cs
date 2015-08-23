@@ -178,7 +178,38 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             return user;
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="user"></param>
+        /// <param name="newProfile"></param>
+        public void UpdateProfile(NancyContext context, dynamic newProfile)
+        {
+            var user = context.CurrentUser as NcbUser;
+            if (user == null || user.IsAnonymous || user == NcbUser.LocalHostAdmin)
+            {
+                throw new InvalidOperationException("Cannot update profile of anonymous user or localhost user");
+            }
+
+            var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
+
+            user = siteDb.GetById<NcbUser>( (context.CurrentUser as NcbUser).Id );
+            user.Profile = newProfile;
+
+            if (user.Profile != null)
+            {
+                siteDb.UpsertRecord<NcbUser>(user);
+
+                // refresh the cache after update
+                var key = "User-" + user.Guid;
+                MemoryCache.Default.Remove(key);
+                MemoryCache.Default.Add(key, user,
+                    new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(15) });
+            }
+        }
+
         /// <summary>
         /// Enroll user with a new claim
         /// </summary>

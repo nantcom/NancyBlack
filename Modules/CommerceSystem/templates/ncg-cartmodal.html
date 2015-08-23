@@ -12,11 +12,17 @@
     <div ng-module="ncb-commerce"
          ncb-datacontext-integrated table="product"
          ng-show="shoppingcart.cart.items.length > 0"
-         ng-controller="CheckoutModal as ctrl">
+         ng-controller="CheckoutModal as ctrl"
+         ng-class="{'next-enabled' : ctrl.everythingOK()}">
+
+        {{pages}}
+        <div>
+            {{ctrl.everythingOK()}}
+        </div>
 
         <carousel interval="0" no-wrap="true">
 
-            <slide>
+            <slide active="pages[0]">
 
                 <h2 class="text-success">
                     Ready to checkout? Let's Review your shopping cart.
@@ -89,78 +95,32 @@
                 </table>
 
             </slide>
-            <slide>
-                <div class="row">
 
-                    <div class="col-sm-8">
+            <slide active="pages[1]">
 
-                        <h2>
-                            Please tell us about yourself.
-                        </h2>
-                        <div ng-show="currentUser == null">
-                            We will need the following details to contact you about your purchase, just in case.<br />
-                            And by knowing more about you, we can serve you better.
+                <div id="memberPage">
+
+                    <div class="text-center"
+                         ng-show="membership.isAnonymous()"
+                         ng-controller="MemberShip-LoginController as mctrl">
+
+                        <div ng-show="mode =='register'">
+                            <h2>
+                                Nice to meet you.
+                            </h2>
+                            Just enter email, password and you are ready. Make sure that your email is correct.
                         </div>
-                        <div ng-show="currentUser != null">
-                            Hi, please take a minute to ensure that your information is current.<br />
-                            Your information will be automatically saved upon checkout.
+                        <div ng-show="mode =='login'">
+                            <h2>
+                                Have we met?
+                            </h2>
+                            If you already have an account, please login to get information from your last purchase.
                         </div>
 
-                        <form name="customer" class="form-horizontal">
-
-                            <input type="text" title="First Name"
-                                   ncb-textbox required ng-model="shoppingcart.cart.customer.firstName" />
-
-                            <input type="text" title="Last Name"
-                                   ncb-textbox required ng-model="shoppingcart.cart.customer.lastName" />
-
-                            <input type="email" title="Email"
-                                   ncb-textbox required
-                                   ng-model="shoppingcart.cart.customer.email"
-                                   ng-readonly="membership.isLoggedIn()" />
-
-                            <input type="text" title="Phone Number"
-                                   ncb-textbox required ng-model="shoppingcart.cart.customer.phone" />
-
-                            <input type="date" title="Birth Date"
-                                   ncb-textbox ng-model="shoppingcart.cart.customer.birthdate" />
-
-                            <p ncb-formstatic title="Gender">
-                                <a class="btn btn-default"
-                                   btn-radio="'male'" ng-model="shoppingcart.cart.customer.gender">
-                                    M
-                                </a>
-                                <a class="btn btn-default"
-                                   btn-radio="'female'" ng-model="shoppingcart.cart.customer.gender">
-                                    F
-                                </a>
-                                <a class="btn btn-default"
-                                   btn-radio="'others'" ng-model="shoppingcart.cart.customer.gender">
-                                    Other
-                                </a>
-                                <a class="btn btn-default"
-                                   btn-radio="''" ng-model="shoppingcart.cart.customer.gender">
-                                    I won't tell
-                                </a>
-                            </p>
-
-                        </form>
-
-                    </div>
-
-                    <div class="col-sm-4"
-                         ng-show="membership.isAnonymous()">
-
-                        <h2>
-                            Membership
-                        </h2>
-                        You can type a password to register and make your next purchase more convinient.
-
-                        <form name="login"
-                              ng-controller="MemberShip-LoginController as mctrl">
+                        <form name="login">
 
                             <div class="form-group">
-                                <input type="email" class="form-control" placeholder="Email" readonly
+                                <input type="email" class="form-control" placeholder="Email"
                                        ng-model="login.email" />
                             </div>
 
@@ -173,13 +133,18 @@
                                 <input type="password" class="form-control" placeholder="confirm password"
                                        ng-show="mode=='register'" ng-model="login.passwordConfirm" />
                             </div>
+                            <div class="form-group text-right"
+                                 ng-show="mode=='login'">
+                                <a href="/__membership/forgot" target="_blank">
+                                    forgot password?
+                                </a>
+                            </div>
 
                             <div class="form-group">
-
                                 <button class="btn btn-success"
                                         ng-show="mode == 'register'"
                                         ng-disabled="login.password != login.passwordConfirm"
-                                        ng-click="login.email=shoppingcart.cart.customer.email; mctrl.register()">
+                                        ng-click="mctrl.register()">
                                     Register
                                 </button>
 
@@ -191,12 +156,12 @@
 
                                 <a class="btn btn-default"
                                    ng-click="mode='login'"
-                                   ng-show="login.email=shoppingcart.cart.customer.email; mode=='register'">
+                                   ng-show="mode=='register'">
                                     Want to login?
                                 </a>
 
                                 <a class="btn btn-default" ng-click="mode='register'"
-                                   ng-show="login.email=shoppingcart.cart.customer.email; mode=='login'">
+                                   ng-show="mode=='login'">
                                     Want to Register?
                                 </a>
                             </div>
@@ -212,7 +177,7 @@
 
                     </div>
 
-                    <div class="col-sm-4"
+                    <div class="text-center"
                          ng-show="membership.isLoggedIn()">
 
                         <h2>
@@ -234,13 +199,65 @@
 
                 </div>
 
-                <alert ng-show="customer.$valid == false && customer.$pristine == false"
-                       type="danger">
-                    Please make sure all fields in red are filled and email format is correct.
-                </alert>
             </slide>
 
-            <slide>
+            <slide active="pages[2]">
+                <div id="profilePage">
+                    <h2>
+                        Please tell us about yourself.
+                    </h2>
+                    <div ng-show="currentUser == null">
+                        We will need the following details to contact you about your purchase, just in case.<br />
+                        And by knowing more about you, we can serve you better.
+                    </div>
+                    <div ng-show="currentUser != null">
+                        Hi, please take a minute to ensure that your information is current.<br />
+                        Your information will be automatically saved upon checkout.
+                    </div>
+
+                    <form name="profile" class="form-horizontal" ncb-formlocator>
+
+                        <input type="text" title="First Name"
+                               ncb-textbox required ng-model="membership.currentUser.Profile.FirstName" />
+
+                        <input type="text" title="Last Name"
+                               ncb-textbox required ng-model="membership.currentUser.Profile.LastName" />
+
+                        <input type="text" title="Phone Number"
+                               ncb-textbox required ng-model="membership.currentUser.Profile.PhoneNumber" />
+
+                        <ncb-datepicker model="membership.currentUser.Profile.DOB"
+                                        title="Birth Date" format="'dd MMMM yyyy'">
+                        </ncb-datepicker>
+
+                        <p ncb-formstatic title="Gender">
+                            <a class="btn btn-default"
+                               btn-radio="'male'" ng-model="membership.currentUser.Profile.Gender">
+                                M
+                            </a>
+                            <a class="btn btn-default"
+                               btn-radio="'female'" ng-model="membership.currentUser.Profile.Gender">
+                                F
+                            </a>
+                            <a class="btn btn-default"
+                               btn-radio="'others'" ng-model="membership.currentUser.Profile.Gender">
+                                Other
+                            </a>
+                            <a class="btn btn-default"
+                               btn-radio="''" ng-model="membership.currentUser.Profile.Gender">
+                                I won't tell
+                            </a>
+                        </p>
+
+                    </form>
+                    <alert ng-show="profile.$valid == false && profile.$pristine == false"
+                           type="danger">
+                        Please make sure all fields in red are filled and email format is correct.
+                    </alert>
+                </div>
+            </slide>
+
+            <slide active="pages[3]">
                 <div class="row">
                     <div class="col-sm-6">
 
@@ -250,70 +267,110 @@
                         Address where you want your product to ship to. Please ensure that the
                         address is correct to prevent delayed shipping.
 
-                        <form name="shipping" class="form-horizontal">
+                        <form name="shippingAddress" class="form-horizontal" ncb-formlocator>
+                            <div class="form-group" ng-show="addresses.length > 0">
+                                <label class="col-xs-3"></label>
+                                <div class="col-xs-9">
+
+                                    <div class="btn-group" dropdown >
+                                        <button id="single-button" type="button" class="btn btn-default" dropdown-toggle ng-disabled="disabled">
+                                            Previous Addresses <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu"
+                                            ng-repeat="addr in addresses">
+                                            <li role="menuitem">
+                                                <a href ng-click="shoppingcart.cart.shipto = addr;">
+                                                    {{addr.District}} ({{addr.PostalCode}})
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                </div>
+                            </div>
 
                             <input type="text" title="Ships To" placeholder="Your name or Company Name"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.name" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.To" />
 
                             <input type="text" title="Street" placeholder="eg: #73 Soi Rama IX 62"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.address" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.Address" />
 
                             <input type="text" title="Country"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.country" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.Country" />
 
                             <input type="text" title="State/Province"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.state" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.State" />
 
                             <input type="text" title="District"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.district" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.District" />
 
                             <input type="text" title="Subdistrict"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.subdistrict" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.SubDistrict" />
 
                             <input type="text" title="Postal Code"
-                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.postalcode" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.shipto.PostalCode" />
 
                             <p ncb-formstatic title="">
                                 <a href="#"
-                                   ng-click="shoppingcart.cart.billing.use = true;ctrl.copytobilling()">Copy details to billing address.</a>
+                                   ng-click="shoppingcart.cart.useBillingAddress = true;ctrl.copytobilling()">Copy details to billing address.</a>
                             </p>
                         </form>
                     </div>
 
                     <div class="col-sm-6">
-
                         <h2>
                             <a class="btn btn-default pull-right" btn-checkbox
-                               ng-model="shoppingcart.cart.billing.use">
+                               ng-model="shoppingcart.cart.useBillingAddress">
                                 Use
                             </a>
                             Billing Address
                         </h2>
                         If you wish to have receipt, which will be included with
                         the package, issued using different detail - please enter it below.
-                        <form name="billing" class="form-horizontal"
-                              ng-class="{ 'disabled' : (shoppingcart.cart.billing.use == false || shoppingcart.cart.billing.use == null)}">
+                        <form name="billingAddress" class="form-horizontal" ncb-formlocator
+                              ng-class="{ 'disabled' : (shoppingcart.cart.useBillingAddress == false || shoppingcart.cart.useBillingAddress == null)}">
 
-                            <input type="text" title="Ships To" placeholder="Your name or Company Name"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.name" />
+                            <div class="form-group" ng-show="addresses.length > 0">
+                                <label class="col-xs-3"></label>
+                                <div class="col-xs-9">
+
+                                    <div class="btn-group" dropdown>
+                                        <button id="single-button" type="button" class="btn btn-default" dropdown-toggle ng-disabled="disabled">
+                                            Previous Addresses <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu"
+                                            ng-repeat="addr in addresses">
+                                            <li role="menuitem">
+                                                <a href ng-click="shoppingcart.cart.billto = addr;">
+                                                    {{addr.District}} ({{addr.PostalCode}})
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <input type="text" title="Ships To" placeholder="Your name"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.To" />
 
                             <input type="text" title="Street" placeholder="eg: #73 Soi Rama IX 62"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.address" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.Address" />
 
                             <input type="text" title="Country"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.country" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.Country" />
 
-                            <input type="text" title="State/Province"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.state" />
+                            <input type="text" title="Province"
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.State" />
 
                             <input type="text" title="District"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.district" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.District" />
 
                             <input type="text" title="Subdistrict"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.subdistrct" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.SubDistrict" />
 
                             <input type="text" title="Postal Code"
-                                   ncb-textbox required ng-model="shoppingcart.cart.billto.postalcode" />
+                                   ncb-textbox required ng-model="shoppingcart.cart.billto.PostalCode" />
 
                         </form>
                     </div>
@@ -331,7 +388,8 @@
                 </alert>
             </slide>
 
-            <slide class="paymentpage">
+            <slide  active="pages[4]"
+                   class="paymentpage">
                 <div ncb-datacontext table="saleorder">
                     <h2>
                         We are ready to process your order.
@@ -391,6 +449,7 @@
                     </div>
                 </div>
             </slide>
+
         </carousel>
     </div>
 

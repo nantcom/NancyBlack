@@ -501,7 +501,9 @@
                 // if parent is form-horizontal, do things differently
                 if (element.closest("form").hasClass("form-horizontal")) {
                     element.find("label").addClass("col-xs-3");
-                    element.find("p.input-group").addClass("col-xs-7");
+
+                    var container = $('<div class="col-xs-7 dropdown"></div>');
+                    element.find("p.input-group").wrap(container);
                 }
             }
 
@@ -1416,4 +1418,11 @@
         };
     });
 
+    module.directive('ncbFormlocator', function () {
+        return {
+            link: function (scope, element) {
+                scope.$emit('formLocator', element);
+            }
+        };
+    });
 })();

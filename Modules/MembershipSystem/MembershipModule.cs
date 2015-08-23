@@ -10,6 +10,7 @@ using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
@@ -110,6 +111,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             Post["/__membership/enroll"] = this.HandleRequest(this.HandleEnroll);
 
+            Post["/__membership/api/updateprofile"] = this.HandleRequest(this.UpdateProfile);
         }
 
         /// <summary>
@@ -153,6 +155,24 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.Response.AsRedirect("/__membership/enroll?success=true");
             }
         }
+
+        /// <summary>
+        /// Updates user profile 
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic UpdateProfile(dynamic arg)
+        {
+            if (this.CurrentUser.IsAnonymous)
+            {
+                return 400;
+            }
+
+            UserManager.Current.UpdateProfile(this.Context, arg.body.Value);
+
+            return 200;
+        }
+
     }
 
 
