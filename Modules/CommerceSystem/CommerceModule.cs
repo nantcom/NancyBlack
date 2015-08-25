@@ -37,23 +37,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             
             // Save User's cart
             Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
+            
+            Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", (arg) =>
+            {
+                var id = (string)arg.so_id;
+                var so = this.SiteDatabase.Query<SaleOrder>()
+                            .Where(row => row.SaleOrderIdentifier == id)
+                            .FirstOrDefault();
 
-
-            // Disable Payment Log table access
-            Get["/tables/PaymentLog"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/PaymentLog/count"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Post["/tables/PaymentLog"] = this.HandleStatusCodeRequest(404);
-            Patch["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Delete["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-
-            // Disable Sale Order Table Access
-            Get["/tables/SaleOrder"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/SaleOrder/count"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Post["/tables/SaleOrder"] = this.HandleStatusCodeRequest(404);
-            Patch["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Delete["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
+                return new StandardModel(this, JObject.FromObject( new
+                {
+                    Title = arg.form + " for " + so.SaleOrderIdentifier,
+                    Type = (string)arg.form
+                }), so);
+            });
         }
         
         private dynamic Checkout(dynamic arg)
@@ -264,6 +261,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 if (exceptions.Count == 0)
                 {
                     so.Status = SaleOrderStatus.PaymentReceived;
+                    so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
+                        "RC{0:yyyyMMdd}-{1:000000}", so.__createdAt, so.Id);
                 }
 
                 log.Exception = exceptions;

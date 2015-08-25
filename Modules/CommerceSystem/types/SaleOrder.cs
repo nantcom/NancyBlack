@@ -40,6 +40,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         }
 
         /// <summary>
+        /// Receipt Identifier
+        /// </summary>
+        public string ReceiptIdentifier
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Status of this Sale Order
         /// </summary>
         public string Status { get; set; }

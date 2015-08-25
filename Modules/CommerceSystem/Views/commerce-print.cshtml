@@ -1,0 +1,188 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+}
+
+@section Head
+{
+    <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+}
+@section Script
+{
+    <script>
+
+        window.saleorder = @this.Html.Raw(this.GetJson(this.Model.Data));
+        window.billing = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.billing));
+        window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
+
+        (function () {
+
+            var mod = angular.module('Page', []);
+            mod.controller('PageController', function ($scope, $http) {
+
+                $scope.so = window.saleorder;
+                $scope.billing = window.billing;
+                $scope.branding = window.branding;
+            });
+
+            mod.filter('newline', function($sce) {
+
+                return function(input) {
+                    return $sce.trustAsHtml(input.replace(/\n/g, "<br/>"));
+                }
+            });
+
+
+        })();
+    </script>
+}
+<div class="printform"
+     ng-module="Page" ng-controller="PageController as ctrl">
+
+    <div id="page-wrap">
+
+        <div id="header"
+             ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+
+            @this.Model.Content.Type
+        </div>
+
+        <div class="row">
+
+            <div class="col-xs-8">
+                <b>{{billing.name}}</b><br/>
+                {{billing.regid}}<br/>
+                <span ng-bind-html="billing.address | newline"></span>
+            </div>
+
+            <div id="logo" class="col-xs-4">
+
+                <img ng-src="{{branding.logo}}" />
+            </div>
+
+        </div>
+
+        <div id="customer" class="row">
+
+            <div id="customer-title" class="col-xs-6">
+                <div ng-show="so.UseBillingAddress == true">
+                    <b>Bill To:</b>
+                    <b>{{so.BillTo.To}}</b><br />
+                    {{so.BillTo.Address}}<br />
+                    {{so.BillTo.SubDistrict}}, {{so.ShipTo.District}}<br />
+                    {{so.BillTo.State}},{{so.ShipTo.Country}}<br />
+                    {{so.BillTo.PostalCode}}
+                </div>
+                <div ng-show="so.UseBillingAddress == false">
+                    <b>{{so.ShipTo.To}}</b><br />
+                    {{so.ShipTo.Address}}<br />
+                    {{so.ShipTo.SubDistrict}}, {{so.ShipTo.District}}<br />
+                    {{so.ShipTo.State}},{{so.ShipTo.Country}}<br />
+                    {{so.ShipTo.PostalCode}}
+                </div>
+            </div>
+
+            <div class="col-xs-6">
+
+                <table id="meta">
+                    <tr>
+                        <td class="meta-head">
+                            <div class="editabe" id="saleordernumber">
+                                Sale Order #
+                            </div>
+                        </td>
+                        <td>{{so.SaleOrderIdentifier}}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-head">
+                            <div class="editabe" id="receiptnumber">
+                                Receipt #
+                            </div>
+                        </td>
+                        <td>{{so.ReceiptIdentifier}}</td>
+                    </tr>
+                    <tr>
+
+                        <td class="meta-head">
+                            <div class="editabe" id="date">
+                                Date
+                            </div>
+                        </td>
+                        <td>
+                            <div id="date">
+                                {{so.__updatedAt | date:'dd MMMM yyyy'}}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="meta-head">
+                            <div class="editabe" id="amountpaid">
+                                Amount Paid
+                            </div>
+                        </td>
+                        <td>
+                            <div class="due">
+                                {{so.TotalAmount | number:2 }}
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <table id="items" class="table"
+               ncg-productresolver saleorder="so">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Qty.</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="(productid, values) in cartView">
+                <td>
+                    <div class="form-control-static">
+                        {{$index + 1}}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{products[productid].Title}}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{values.length}}
+                    </div>
+                </td>
+                <td>
+
+                    <div class="form-control-static">
+                        {{products[productid].Price | number:2}}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{(products[productid].Price * values.length) | number:2}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="blank" colspan="3"> </td>
+                <td class="total-line">
+                    Total
+                </td>
+                <td class="total-value">
+                    {{getTotal() | number:2 }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>

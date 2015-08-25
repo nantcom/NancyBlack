@@ -176,10 +176,6 @@ table.saleorder td:nth-child(6) {
 */
   font: 14px/1.4 Leelawadee, Sans-serif;
 }
-.printform * {
-  margin: 0;
-  padding: 0;
-}
 .printform #page-wrap {
   width: 18cm;
   margin: 0 auto;
@@ -190,7 +186,12 @@ table.saleorder td:nth-child(6) {
   resize: none;
 }
 .printform table {
+  border: 1px solid black;
   border-collapse: collapse;
+  margin-top: 40px;
+}
+.printform table th {
+  background-color: #eee;
 }
 .printform table td,
 .printform table th {
@@ -207,6 +208,7 @@ table.saleorder td:nth-child(6) {
   font: bold 15px Sans-Serif;
   letter-spacing: 20px;
   padding: 8px 0px;
+  text-transform: uppercase;
 }
 .printform #address {
   width: 250px;
@@ -214,61 +216,16 @@ table.saleorder td:nth-child(6) {
   float: left;
 }
 .printform #customer {
-  overflow: hidden;
+  margin-top: 20px;
 }
 .printform #logo {
   text-align: right;
-  float: right;
-  position: relative;
-  margin-top: 25px;
-  border: 1px solid #fff;
-  max-width: 540px;
+}
+.printform #logo > img {
+  max-width: 100px;
   max-height: 100px;
-  overflow: hidden;
-}
-.printform #logo:hover,
-.printform #logo.edit {
-  border: 1px solid #000;
-  margin-top: 0px;
-  max-height: 125px;
-}
-.printform #logoctr {
-  display: none;
-}
-.printform #logo:hover #logoctr,
-.printform #logo.edit #logoctr {
-  display: block;
-  text-align: right;
-  line-height: 25px;
-  background: #eee;
-  padding: 0 5px;
-}
-.printform #logohelp {
-  text-align: left;
-  display: none;
-  font-style: italic;
-  padding: 10px 5px;
-}
-.printform #logohelp input {
-  margin-bottom: 5px;
-}
-.printform .edit #logohelp {
-  display: block;
-}
-.printform .edit #save-logo,
-.printform .edit #cancel-logo {
-  display: inline;
-}
-.printform .edit #image,
-.printform #save-logo,
-.printform #cancel-logo,
-.printform .edit #change-logo,
-.printform .edit #delete-logo {
-  display: none;
 }
 .printform #customer-title {
-  font-size: 20px;
-  font-weight: bold;
   float: left;
 }
 .printform #meta {
@@ -294,41 +251,44 @@ table.saleorder td:nth-child(6) {
   margin: 30px 0 0 0;
   border: 1px solid black;
 }
-.printform #items th {
-  background: #eee;
+.printform #items tr th:nth-child(1) {
+  width: 5%;
+  text-align: center;
 }
-.printform #items textarea {
-  width: 80px;
-  height: 50px;
+.printform #items tr th:nth-child(2) {
+  width: 40%;
+  text-align: left;
 }
-.printform #items tr.item-row td {
-  border: 0;
-  vertical-align: top;
+.printform #items tr th:nth-child(3) {
+  width: 10%;
+  text-align: center;
 }
-.printform #items td.description {
-  width: 300px;
+.printform #items tr th:nth-child(4) {
+  width: 15%;
+  text-align: center;
 }
-.printform #items td.item-name {
-  width: 175px;
+.printform #items tr th:nth-child(5) {
+  width: 15%;
+  text-align: center;
 }
-.printform #items td.description textarea,
-.printform #items td.item-name textarea {
-  width: 100%;
+.printform #items tr td:nth-child(1),
+.printform #items tr td:nth-child(3) {
+  text-align: center;
 }
-.printform #items td.total-line {
-  border-right: 0;
+.printform #items tr td:nth-child(4),
+.printform #items tr td:nth-child(5) {
   text-align: right;
 }
-.printform #items td.total-value {
+.printform #items td.total-line {
   border-left: 0;
-  padding: 10px;
+  border-right: 1px solid black;
+  text-align: right;
+  font-weight: bold;
+  vertical-align: middle;
 }
-.printform #items td.total-value textarea {
-  height: 20px;
-  background: none;
-}
-.printform #items td.balance {
-  background: #eee;
+.printform #items td.total-value {
+  text-align: right !important;
+  vertical-align: middle;
 }
 .printform #items td.blank {
   border: 0;
@@ -343,34 +303,6 @@ table.saleorder td:nth-child(6) {
   border-bottom: 1px solid black;
   padding: 0 0 8px 0;
   margin: 0 0 8px 0;
-}
-.printform #terms textarea {
-  width: 100%;
-  text-align: center;
-}
-.printform textarea:hover,
-.printform textarea:focus,
-.printform #items td.total-value textarea:hover,
-.printform #items td.total-value textarea:focus,
-.printform .delete:hover {
-  background-color: #EEFF88;
-}
-.printform .delete-wpr {
-  position: relative;
-}
-.printform .delete {
-  display: block;
-  color: #000;
-  text-decoration: none;
-  position: absolute;
-  background: #EEEEEE;
-  font-weight: bold;
-  padding: 0px 3px;
-  border: 1px solid;
-  top: -6px;
-  left: -22px;
-  font-family: Verdana;
-  font-size: 12px;
 }
 .demoprintform {
   padding: 40px;

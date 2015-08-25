@@ -670,4 +670,66 @@
             replace: true,
         };
     });
+    
+    ncg.directive('ncgProductresolver', function ($http) {
+
+        function link($scope, elmement, attrs) {
+
+            $scope.so = $scope.$eval(attrs.saleorder);
+
+            $scope.products = {};
+            $scope.cartView = {};
+
+            var getProdcutInfo = function (productid) {
+
+                $http.get("/tables/product/" + productid)
+                    .success(function (data) {
+                        $scope.products[productid] = data;
+                    });
+            };
+
+            var updateProductInfo = function () {
+
+                for (productid in $scope.cartView) {
+
+                    if ($scope.products[productid] == null) {
+
+                        getProdcutInfo(productid);
+                    }
+                }
+            };
+
+            var updateView = function () {
+                $scope.cartView = _.groupBy($scope.so.Items, function (item) { return item; });
+                updateProductInfo();
+            };
+
+            $scope.$watchCollection(function () { return $scope.so.Items; }, updateView);
+
+            $scope.getTotal = function () {
+
+                var total = 0;
+                if ($scope.so == null) {
+
+                    return 0;
+                }
+                $scope.so.Items.forEach(function (productid) {
+
+                    if ($scope.products[productid] != null) {
+
+                        total += $scope.products[productid].Price;
+                    }
+                });
+
+                return total;
+            };
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: true,
+        };
+    });
 })();

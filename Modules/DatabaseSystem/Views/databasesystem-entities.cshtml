@@ -7,17 +7,23 @@
     Administration - Tables
 }
 
+@section Scripts
+{
+    <script src="~/Modules/DatabaseSystem/Views/databasesystem-tablescontroller.js"></script>
+}
 <div ng-module="TablesModule"
-     ncb-datacontext-integrated table="DataType"
+     ncb-datacontext-integrated table="DataType" loaded="data.refresh()"
      ng-controller="TablesController as ctrl">
 
     <h1 class="page-header">
         Manage Entities
+        <i class="fa fa-spin fa-circle-o-notch"
+           ng-show="isBusy == true || isBusy == null"></i>
     </h1>
     <p>
         This page allows you to manage structure of all custom tables in the system.
     </p>
-
+    <ncb-alerts alerts="alerts"></ncb-alerts>
     <div class="pull-right">
         <button class="btn btn-success"
                 ng-click="ctrl.create()">
@@ -29,8 +35,9 @@
 
     <ncb-modal id="DataTypeModal"
                title="{{object.OriginalName}}"
-               deletebutton closebutton>
+               deletebutton="object.id != null && object.id != 0" closebutton>
 
+        {{object.id != null && object.id != 0}}
 
         <div class="form-group"
              ng-show="object.id == null">
@@ -151,9 +158,3 @@
     </table>
 
 </div>
-@section Scripts
-{
-
-    <script src="~/Modules/DatabaseSystem/Views/databasesystem-tablescontroller.js"></script>
-
-}

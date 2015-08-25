@@ -399,7 +399,6 @@
             }, $me.handleError);
         };
 
-
         $scope.data.delete = function (object, callback) {
 
             if ($scope.object != null) {
@@ -616,6 +615,11 @@
         };
 
         $scope.$emit(emittedEvents.loaded, { sender: $scope });
+
+        if (attrs.loaded != null) {
+
+            $scope.$eval(attrs.loaded);
+        }
     };
 
     // Data Context provides neccessary functions  to access nancyblack database
