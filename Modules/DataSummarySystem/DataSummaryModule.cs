@@ -314,6 +314,9 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         private dynamic HandleSummarizeRequest(dynamic arg)
         {
             var table = (string)arg.table_name;
+
+            TableSecModule.ThrowIfNoPermission(this.Context, table, TableSecModule.PERMISSON_QUERY);
+            
             var timeperiod = (string)this.Request.Query.period;
             var select = (string)this.Request.Query.select;
             var function = (string)this.Request.Query.fn;

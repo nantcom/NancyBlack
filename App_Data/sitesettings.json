@@ -1,6 +1,12 @@
 {
   "localization": "th",
-  "smtp": {},
+  "smtp": {
+    "fromEmail": "GoHub@nant.co",
+    "server": "smtp.sendgrid.net",
+    "port": "25",
+    "username": "azure_ea67af54c941debca7e4901d7d87803c@azure.com",
+    "password": "nantcom2011!"
+  },
   "watcher": {
     "content": {
       "name": "Content",
@@ -88,9 +94,10 @@
         "emailTemplate": "@Model"
       },
       "update": {
-        "enable": false,
+        "enable": true,
         "emailSubject": "@Model.OriginalName was updated.",
-        "emailTemplate": "@Model"
+        "emailTemplate": "@Model",
+        "sendTo": "me@nant.co"
       },
       "deleted": {
         "enable": false,
@@ -270,6 +277,181 @@
         "emailSubject": "@Model.OriginalName was deleted.",
         "emailTemplate": "@Model"
       }
+    },
+    "contactform": {
+      "name": "ContactForm",
+      "version": false,
+      "autoPrintAttachment": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      }
+    },
+    "biz": {
+      "name": "Biz",
+      "version": false,
+      "autoPrintAttachment": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      }
+    },
+    "gohubsearchlog": {
+      "name": "GoHubSearchLog",
+      "version": false,
+      "autoPrintAttachment": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      }
+    },
+    "ncgaddress": {
+      "name": "NcgAddress",
+      "version": false,
+      "autoPrintAttachment": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      }
+    },
+    "paymentlog": {
+      "name": "PaymentLog",
+      "version": false,
+      "autoPrintAttachment": false,
+      "create": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was created.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "update": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was updated.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      },
+      "deleted": {
+        "enable": false,
+        "emailSubject": "@Model.OriginalName was deleted.",
+        "emailTemplate": "@Model",
+        "autoGeneratePDF": {
+          "enable": false,
+          "printformUrl": "printform/{Id}",
+          "uploadFileUrl": "tables/{TableName}/{Id}/Files"
+        }
+      }
     }
   },
   "seo": {
@@ -285,5 +467,6 @@
     "securecode": "612F0DEA64309C4E8FD00AA0253DA51E",
     "biz": "company@nant.co",
     "itm": "GoHub Service"
-  }
+  },
+  "SMTPUseSSL": false
 }

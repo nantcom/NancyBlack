@@ -13,6 +13,43 @@ using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using System.Collections.Generic;
 using System.Web.Routing;
+using NantCom.NancyBlack.Configuration;
+
+namespace NantCom.NancyBlack
+{
+    public static class ContextExt
+    {
+        /// <summary>
+        /// Get Site Settings
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static dynamic GetSiteSettings( this NancyContext ctx )
+        {
+            return ctx.Items["CurrentSite"];
+        }
+
+        /// <summary>
+        /// Get Site Database
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static NancyBlackDatabase GetSiteDatabase(this NancyContext ctx)
+        {
+            return ctx.Items["SiteDatabase"] as NancyBlackDatabase;
+        }
+
+        /// <summary>
+        /// Gets root path
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        public static string GetRootPath(this NancyContext ctx)
+        {
+            return BootStrapper.RootPath;
+        }
+    }
+}
 
 namespace NantCom.NancyBlack.Configuration
 {
@@ -119,9 +156,9 @@ namespace NantCom.NancyBlack.Configuration
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
                 ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
-                ctx.Items["CurrentSite"] = BootStrapper.GetSiteSettings();
-                ctx.Items["SiteSettings"] = BootStrapper.GetSiteSettings();
-
+                ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
+                ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
+                ctx.Items["RootPath"] = BootStrapper.RootPath;
                 if (ctx.CurrentUser == null)
                 {
                     ctx.CurrentUser = NcbUser.Anonymous;
@@ -147,31 +184,6 @@ namespace NantCom.NancyBlack.Configuration
         {
             get;
             private set;
-        }
-
-        /// <summary>
-        /// Gets the site settings
-        /// </summary>
-        /// <returns></returns>
-        public static dynamic GetSiteSettings()
-        {
-            if (MemoryCache.Default["CurrentSite"] != null)
-            {
-                return MemoryCache.Default["CurrentSite"];
-            }
-            else
-            {
-                var settingsFile = Path.Combine(BootStrapper.RootPath, "App_Data", "sitesettings.json");
-                var json = File.ReadAllText(settingsFile);
-
-                var settingsObject = JObject.Parse(json);
-
-                var cachePolicy = new CacheItemPolicy();
-                cachePolicy.ChangeMonitors.Add(new HostFileChangeMonitor( new List<string>() { settingsFile } ));
-                MemoryCache.Default.Add("CurrentSite", settingsObject, cachePolicy);
-
-                return settingsObject;
-            }
         }
         
 

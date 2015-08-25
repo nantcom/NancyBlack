@@ -118,8 +118,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             return View["Admin/" + arg.table_name, new StandardModel(this, type)];
         }
-
-
+        
         public class ViewModel
         {
             public DataType DataType { get; set; }

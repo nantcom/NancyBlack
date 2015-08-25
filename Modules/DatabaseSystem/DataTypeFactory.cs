@@ -148,7 +148,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public DataType FromName(string typeName, bool generateEmpty = false)
         {
             DataType dt;
-            if (this.Types.TryGetValue(typeName.Trim().ToLowerInvariant(), out dt))
+            if (this.Types.TryGetValue(DataTypeFactory.NormalizeTypeName( typeName ), out dt))
             {
                 return dt;
             }
@@ -314,6 +314,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             return created;
         }
+        
+        /// <summary>
+        /// Normalizes the type name
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string NormalizeTypeName(string input)
+        {
+            return input.Trim().ToLowerInvariant();
+        }
+
 
     }
 }

@@ -97,7 +97,7 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                return BootStrapper.GetSiteSettings();
+                return AdminModule.ReadSiteSettings();
             }
         }
 
@@ -255,6 +255,10 @@ namespace NantCom.NancyBlack.Modules
                     }
 
                     result = action(arg);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return 403;
                 }
                 catch (InvalidOperationException ex)
                 {

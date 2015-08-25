@@ -30,6 +30,8 @@ namespace NantCom.NancyBlack.Modules
             var tableName = (string)args.table_name;
             var id = (int)args.item_id;
 
+            TableSecModule.ThrowIfNoPermission(this.Context, tableName, TableSecModule.PERMISSON_QUERY);
+
             return this.SiteDatabase.GetByIdAsJObject(tableName, id);
         }
 
@@ -41,7 +43,6 @@ namespace NantCom.NancyBlack.Modules
         protected dynamic HandleInsertUpdateRequest(NancyBlackDatabase db, dynamic arg)
         {
             var entityName = (string)arg.table_name;
-            int id = arg.item_id == null ? 0 : (int)arg.item_id;
 
             if (arg.body == null)
             {
@@ -54,9 +55,27 @@ namespace NantCom.NancyBlack.Modules
                 {
                     return 403;
                 }
+                
+                // enable all access for automatically created table
+                TableSecModule.SetTableSec(this.Context, entityName, true, true, true, true);
+            }
+            
+            dynamic fromClient = arg.body.Value as JObject;
+            int? id = fromClient.id;
+            if (id == null)
+            {
+                id = fromClient.Id;
             }
 
-            var fromClient = arg.body.Value as JObject;
+            if (id == null || id == 0)
+            {
+                TableSecModule.ThrowIfNoPermission(this.Context, entityName, TableSecModule.PERMISSON_CREATE);
+            }
+            else
+            {
+                TableSecModule.ThrowIfNoPermission(this.Context, entityName, TableSecModule.PERMISSON_UPDATE);
+            }
+
             dynamic record = db.UpsertRecord(entityName, fromClient);
 
             return this.Negotiate

@@ -581,7 +581,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     fs.CopyTo(bz);
                 }
 
-                File.Delete( outputFile );
+                File.Delete(temp);
             }
         }
 
@@ -602,11 +602,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 }
 
                 var path = Path.Combine(rootPath, "Site");
+                var fileName = Path.Combine(path, "data.sqlite");
+                
                 var backupPath = Path.Combine(path, "Backups");
                 Directory.CreateDirectory(path);
                 Directory.CreateDirectory(backupPath);
-
-                var fileName = Path.Combine(path, "data.sqlite");
 
                 if (File.Exists(fileName))
                 {

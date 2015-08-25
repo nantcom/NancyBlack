@@ -12,6 +12,7 @@ using System.Web;
 using Newtonsoft.Json.Linq;
 using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.AdminSystem.Types;
+using NantCom.NancyBlack.Configuration;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -74,19 +75,68 @@ namespace NantCom.NancyBlack.Modules
         private dynamic SaveSiteSettings(dynamic arg)
         {
             var input = arg.body.Value as JObject;
-            var settingsFile = Path.Combine(this.RootPath, "App_Data", "sitesettings.json");
 
-            File.Copy(settingsFile, settingsFile + ".bak", true);
-            File.WriteAllText(settingsFile, input.ToString());
-
-            this.SiteDatabase.UpsertRecord( new SiteSettings()
-            {
-                js_SettingsJson = input.ToString()
-            });
-
-            MemoryCache.Default["CurrentSite"] = input;
+            AdminModule.WriteSiteSettings( this.Context, input);
 
             return input;
+        }
+
+        /// <summary>
+        /// Writes the site settings
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="newSettings"></param>
+        public static void WriteSiteSettings( NancyContext context, JObject newSettings)
+        {
+            var settingsFile = Path.Combine(context.GetRootPath(), "Site", "sitesettings.dat");
+
+            File.Copy(settingsFile, settingsFile + ".bak", true);
+            File.WriteAllText(settingsFile, newSettings.ToString());
+
+            context.GetSiteDatabase().UpsertRecord(new SiteSettings()
+            {
+                js_SettingsJson = newSettings.ToString()
+            });
+
+            MemoryCache.Default["CurrentSite"] = newSettings;
+        }
+
+        /// <summary>
+        /// Read the site settings
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        public static dynamic ReadSiteSettings()
+        {
+            if (MemoryCache.Default["CurrentSite"] != null)
+            {
+                return MemoryCache.Default["CurrentSite"];
+            }
+            else
+            {
+                var settingsFile = Path.Combine(BootStrapper.RootPath, "Site", "sitesettings.dat");
+
+                var settingsObject = new JObject();
+                if (File.Exists( settingsFile ) == true)
+                {
+                    var json = File.ReadAllText(settingsFile);
+                    settingsObject = JObject.Parse(json);
+                }
+                else
+                {
+#if DEBUG
+                    System.Diagnostics.Debugger.Break();
+                    // NOTE: settings file is moved to Site folder
+#endif
+                    File.WriteAllText(settingsFile, "{}");
+                }
+
+                var cachePolicy = new CacheItemPolicy();
+                cachePolicy.ChangeMonitors.Add(new HostFileChangeMonitor(new List<string>() { settingsFile }));
+                MemoryCache.Default.Add("CurrentSite", settingsObject, cachePolicy);
+
+                return settingsObject;
+            }
         }
 
     }

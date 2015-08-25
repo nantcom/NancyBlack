@@ -96,7 +96,7 @@
 
         //#endregion
 
-        var removeMetaData = function(item) {
+        var removeMetaData = function (item) {
 
             delete item.$$hashKey;
             delete item.$type;
@@ -294,7 +294,7 @@
         };
 
         $scope.data.copy = function (object, callback) {
-            
+
             if (confirm("Copy?") == false) {
 
                 return;
@@ -316,7 +316,7 @@
             $scope.isBusy = true;
 
             $scope.table.read(oDataQuery).done(function (results) {
-                
+
                 results.forEach($me.processServerObject);
                 if (callback != null) {
 
@@ -336,7 +336,7 @@
             $scope.isBusy = true;
 
             $scope.table.read(oDataQuery).done(function (results) {
-                
+
                 if (callback != null) {
 
                     callback(results);
@@ -378,16 +378,23 @@
 
             $scope.table.lookup(id).done(function (result) {
 
-                $me.processServerObject( result );
+                $me.processServerObject(result);
                 if (callback != null) {
 
                     callback(result);
+
+                    $scope.$apply(function () {
+
+                        $scope.isBusy = false;
+                    });
+                } else {
+
+                    $scope.$apply(function () {
+
+                        $scope.object = result;
+                        $scope.isBusy = false;
+                    });
                 }
-
-                $scope.$apply(function () {
-
-                    $scope.isBusy = false;
-                });
 
             }, $me.handleError);
         };
@@ -511,7 +518,7 @@
 
                     callback(object);
                 }
-                
+
                 $scope.$apply(function () {
 
                     $scope.object = object;
@@ -1041,9 +1048,9 @@
 
             $http.get("/tables/" + attrs.ncbVlookup + "/" + attrs.key).
                 success(function (data, status, headers, config) {
-                    
+
                     if (attrs.label == null) {
-                        element.text( data.Title );
+                        element.text(data.Title);
                     }
 
                     return element.text(data[attrs.label]);

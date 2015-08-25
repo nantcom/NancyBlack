@@ -54,7 +54,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             get
             {
-                return this.OriginalName.Trim().ToLowerInvariant();
+                return DataTypeFactory.NormalizeTypeName(this.OriginalName);
             }
         }
 
