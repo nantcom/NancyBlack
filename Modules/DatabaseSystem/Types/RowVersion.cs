@@ -33,6 +33,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem.Types
         }
 
         /// <summary>
+        /// User Host Address
+        /// </summary>
+        public string UserHostAddress { get; set; }
+
+        /// <summary>
         /// Id of the row that was changed
         /// </summary>
         public int RowId { get; set; }
