@@ -61,6 +61,19 @@ namespace SQLite
         public static readonly DefaultJsonSettings Instance = new DefaultJsonSettings();
     }
 
+    internal class NoTypeNameHandlingJsonSettings : JsonSerializerSettings
+    {
+        public NoTypeNameHandlingJsonSettings()
+        {
+            this.TypeNameHandling = TypeNameHandling.None;
+            this.Formatting = Formatting.None;
+            this.PreserveReferencesHandling = PreserveReferencesHandling.None;
+            this.ReferenceLoopHandling = ReferenceLoopHandling.Error;
+        }
+
+        public static readonly NoTypeNameHandlingJsonSettings Instance = new NoTypeNameHandlingJsonSettings();
+    }
+
     public class SQLiteException : Exception
     {
         public SQLite3.Result Result { get; private set; }
@@ -2559,7 +2572,17 @@ namespace SQLite
 
                     // Read JSON stored in the column
                     var json = SQLite3.ColumnString(stmt, index);
-                    return JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);
+                    object result = null;
+                    try
+                    {
+                        result = JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);
+                    }
+                    catch (Exception)
+                    {
+                        result = JsonConvert.DeserializeObject(json, clrType, NoTypeNameHandlingJsonSettings.Instance);
+                    }
+
+                    return result;
                 }
             }
         }

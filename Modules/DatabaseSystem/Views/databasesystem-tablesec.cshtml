@@ -59,7 +59,8 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="(key, item) in object.tablesec">
+                <tr ng-repeat="(key, item) in object.tablesec"
+                    ng-hide="item.name == null">
                     <td>
                         <p class="form-control-static">
                             {{item.name}}
