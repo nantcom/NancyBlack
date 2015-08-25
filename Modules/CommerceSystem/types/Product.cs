@@ -41,6 +41,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public dynamic[] Attachments { get; set; }
 
         /// <summary>
+        /// SKU Number
+        /// </summary>
+        public string SKUNumber { get; set; }
+
+        /// <summary>
         /// Price of this product
         /// </summary>
         public Decimal Price { get; set; }

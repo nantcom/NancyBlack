@@ -1,6 +1,7 @@
 ﻿using Nancy;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +18,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __updatedAt { get; set; }
 
         /// <summary>
+        /// Payment Method
+        /// </summary>
+        public string PaymentMethod { get; set; }
+
+        /// <summary>
         /// Id of the sale order
         /// </summary>
         public int SaleOrderId { get; set; }
+
+        /// <summary>
+        /// Amount Logged
+        /// </summary>
+        public Decimal Amount { get; set; }
+
+        /// <summary>
+        /// Associated Fees
+        /// </summary>
+        public Decimal Fee { get; set; }
 
         /// <summary>
         /// IP Address of server that created this response
@@ -62,8 +78,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             log.IPAddress = context.Request.UserHostAddress;
             log.Method = context.Request.Method;
             log.Url = context.Request.Url;
-            log.FormResponse = context.Request.Form;
-            log.QueryString = context.Request.Query;
+            log.FormResponse = JObject.FromObject(context.Request.Form.ToDictionary());
+            log.QueryString = JObject.FromObject(context.Request.Query.ToDictionary());
 
             return log;
         }

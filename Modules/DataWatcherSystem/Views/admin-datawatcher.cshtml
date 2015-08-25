@@ -301,8 +301,8 @@
 
                             create: {
                                 enable: false,
-                                emailSubject: '@@Model.OriginalName was created.',
-                                emailTemplate: '@@Model',
+                                emailSubject: '@@Model.DataTypeName was created.',
+                                emailTemplate: '@@Model.AffectedRow',
 
                                 autoGeneratePDF: {
                                     enable: false,
@@ -314,8 +314,8 @@
 
                             update: {
                                 enable: false,
-                                emailSubject: '@@Model.OriginalName was updated.',
-                                emailTemplate: '@@Model',
+                                emailSubject: '@@Model.DataTypeName was updated.',
+                                emailTemplate: '@@Model.AffectedRow',
 
                                 autoGeneratePDF: {
                                     enable: false,
@@ -328,7 +328,7 @@
                             deleted: {
                                 enable: false,
                                 emailSubject: '@@Model.OriginalName was deleted.',
-                                emailTemplate: '@@Model',
+                                emailTemplate: '@@Model.AffectedRow',
 
                                 autoGeneratePDF: {
                                     enable: false,

@@ -1,7 +1,9 @@
 ﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -53,7 +55,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Patch["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
             Delete["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
         }
-
+        
         private dynamic Checkout(dynamic arg)
         {
             if (this.CurrentUser.IsAnonymous)
@@ -74,6 +76,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 var product = this.SiteDatabase.GetById<Product>(item);
                 saleorder.TotalAmount += product.Price;
             }
+
+            this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+
+            saleorder.SaleOrderIdentifier = string.Format( CultureInfo.InvariantCulture,
+                    "SO{0:yyyyMMdd}-{1:000000}",
+                    saleorder.__createdAt,
+                    saleorder.Id);
 
             this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
 
@@ -212,6 +221,73 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
 
             return tree.Values.FirstOrDefault();
+        }
+
+        public static void HandlePayment( NancyBlackDatabase db, PaymentLog log, string saleOrderIdentifier )
+        {
+            // ensure only one thread is processing this so
+            lock (saleOrderIdentifier)
+            {
+                // find the sale order
+                var so = db.Query<SaleOrder>()
+                            .Where(row => row.SaleOrderIdentifier == saleOrderIdentifier)
+                            .FirstOrDefault();
+                
+                log.SaleOrderId = so.Id;
+
+                JArray exceptions = new JArray();
+
+                // Wrong Payment Status, Exit now.
+                if (so.Status != SaleOrderStatus.WaitingForPayment)
+                {
+                    so.Status = SaleOrderStatus.DuplicatePayment;
+                    exceptions.Add(JObject.FromObject(new
+                    {
+                        type = "Wrong Status",
+                        description = string.Format(
+                            "Current status of SO is: {0}", so.Status )
+                    }));
+
+                }
+                
+                if (log.Amount != so.TotalAmount)
+                {
+                    so.Status = SaleOrderStatus.PaymentReceivedWithException;
+                    exceptions.Add(JObject.FromObject(new
+                    {
+                        type = "Wrong Amount",
+                        description = string.Format(
+                            "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
+                    }));
+                }
+
+                if (exceptions.Count == 0)
+                {
+                    so.Status = SaleOrderStatus.PaymentReceived;
+                }
+
+                log.Exception = exceptions;
+                db.UpsertRecord<PaymentLog>(log);
+
+                db.UpsertRecord<SaleOrder>(so);
+            }
+
+        }
+
+        public static void SetPackingStatus(NancyBlackDatabase db, SaleOrder so)
+        {
+            // deduct stock of all product
+            // first, we group the product id to minimize selects
+            var products = from item in so.Items
+                           group item by item into g
+                           select g;
+
+            foreach (var productIdGroup in products)
+            {
+                var product = db.GetById<Product>(productIdGroup.Key);
+                product.Stock = product.Stock - productIdGroup.Count();
+                db.UpsertRecord<Product>(product);
+            }
         }
     }
 }

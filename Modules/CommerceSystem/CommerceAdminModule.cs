@@ -11,6 +11,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/admin/product"] = this.HandleViewRequest("/Admin/productmanager", null);
             Get["/admin/inventory"] = this.HandleViewRequest("/Admin/Inventorymanager", null);
+            Get["/admin/commerce/forms"] = this.HandleViewRequest("/Admin/commerceadmin-templates", null);
         }
     }
 }

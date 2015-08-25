@@ -47,6 +47,11 @@ namespace NantCom.NancyBlack.Modules
         
         private dynamic TestSendEmail(dynamic arg)
         {
+            if (this.CurrentUser.HasClaim("admin") == false)
+            {
+                return 403;
+            }
+
             var target = (string)arg.body.Value.to;
             var settings = arg.body.Value.settings;
             var template = arg.body.Value.template;

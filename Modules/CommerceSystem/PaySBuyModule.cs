@@ -7,9 +7,44 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
-    public class PaySBuyModule : BaseModule
+    public class PaySbuyModule : BaseModule
     {
-        public PaySBuyModule()
+        public class PaySbuyPostback
+        {
+            /// <summary>
+            /// Identifier of sale order
+            /// </summary>
+            public string result { get; set; }
+
+            /// <summary>
+            /// apCode
+            /// </summary>
+            public string apCode { get; set; }
+
+            /// <summary>
+            /// Amount
+            /// </summary>
+            public Decimal amt { get; set; }
+
+            /// <summary>
+            /// Fee
+            /// </summary>
+            public Decimal fee { get; set; }
+
+            public string method { get; set; }
+
+            /// <summary>
+            /// Create Date
+            /// </summary>
+            public string create_date { get; set; }
+
+            /// <summary>
+            /// Payment Date
+            /// </summary>
+            public string payment_date { get; set; }
+        }
+
+        public PaySbuyModule()
         {
             Get["/__commerce/paysbuy/settings"] = this.HandleRequest(this.GetPaySbuySettings);
 
@@ -34,13 +69,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic HandlePaySbuyPostback(dynamic arg)
         {
-            //foreach (var Key in FormData.Keys)
-            //{
-            //    var Value = FormData[Key].ToString();
-            //    Response += string.Concat(Key.ToString(), ":", Value.ToString(), "|");
-            //}
+            JObject postback = JObject.FromObject(this.Request.Form.ToDictionary());
+            PaySbuyPostback paysbuyPostback = postback.ToObject<PaySbuyPostback>();
+
             var log = PaymentLog.FromContext(this.Context);
-            this.SiteDatabase.UpsertRecord<PaymentLog>(log);
+
+            log.Amount = paysbuyPostback.amt;
+            log.Fee = paysbuyPostback.fee;
+
+            CommerceModule.HandlePayment(this.SiteDatabase, log, paysbuyPostback.result);
 
             return 201;
         }

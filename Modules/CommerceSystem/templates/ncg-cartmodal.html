@@ -27,67 +27,7 @@
                 Take a moment to check that you got everything, adjust the quantity or
                 remove items using the quantity column. When you are ready, click or tap on the orange arrow to continue.
 
-                <table class="table table-hover saleorder">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th></th>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Line Total</th>
-                        </tr>
-                    </thead>
-                    <tr ng-repeat="(productid, values) in cartView">
-                        <td>
-                            {{$index + 1}}
-                        </td>
-                        <td>
-                            <img src="{{products[productid].Attachments[0].Url}}" />
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{products[productid].Title}}
-                                <p class="text-muted">
-                                    {{productid}}
-                                </p>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="input-group">
-                                <span class="input-group-btn">
-                                    <a class="btn btn-default"
-                                       ng-click="shoppingcart.remove(productid)">-</a>
-                                </span>
-                                <span class="form-control">
-                                    {{values.length}}
-                                </span>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-default"
-                                       ng-click="shoppingcart.add(productid)">+</a>
-                                </span>
-                            </span>
-                        </td>
-                        <td>
-                            {{products[productid].Price | number:0}}
-                        </td>
-                        <td>
-                            {{(products[productid].Price * values.length) | number:0}}
-                        </td>
-                    </tr>
-                    <tr class="summary">
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                            Total
-                        </td>
-                        <td>
-                            {{ctrl.getTotal()}}
-                        </td>
-                    </tr>
-                </table>
+                <ncg-sotable></ncg-sotable>
 
             </slide>
 
@@ -437,6 +377,6 @@
 <div id="working">
     <span>
         <i class="fa fa-3x fa-spin fa-circle-o-notch"></i>
-        <span>working...</span>
+        <span>Sending you to payment handler...</span>
     </span>
 </div>

@@ -122,6 +122,10 @@
                         cartSystem.cart = null;
                         cartSystem.ensureCartAvailable();
 
+                        // hide cart
+                        $("#cartmodal").modal("show");
+                        $("#working").addClass("show");
+
                         callback(data);
                     })
                     .error(function (data) {
@@ -312,7 +316,6 @@
         //#region Attach forms
 
         $scope.$on('formLocator', function (event, data) {
-            $scope.profileForm = event.targetScope.profile;
 
             if (event.targetScope.shippingAddress != null) {
                 $scope.shipToForm = event.targetScope.shippingAddress;
@@ -428,10 +431,18 @@
 
             if ($scope.pages[2] == true) {
 
+                if ($scope.profileForm == null) {
+                    return false;
+                }
+
                 return $scope.profileForm.$valid == true;
             }
 
             if ($scope.pages[3] == true) {
+
+                if ($scope.shipToForm == null || $scope.billToForm == null) {
+                    return false;
+                }
 
                 if ($scope.shoppingcart.cart.useBillingAddress == true) {
 
@@ -444,56 +455,10 @@
             return false;
         };
 
-        $scope.products = {};
-        $scope.cartView = {};
-
-        var getProdcutInfo = function (productid) {
-
-            $scope.data.getById(productid, function (item) {
-
-                $scope.$apply(function () {
-
-                    $scope.products[productid] = item;
-                });
-            });
-        };
-
-        var updateProductInfo = function () {
-
-            for (productid in $scope.cartView) {
-
-                if ($scope.products[productid] == null) {
-
-                    getProdcutInfo(productid);
-                }
-            }
-        };
-
-        var updateView = function () {
-            $scope.cartView = _.groupBy($scope.shoppingcart.cart.Items, function (item) { return item; });
-            updateProductInfo();
-        };
-
-        $scope.$watchCollection(function () { return cartSystem.cart.Items; }, updateView);
-
         $me.copytobilling = function () {
 
 
             cartSystem.cart.billto = JSON.parse(JSON.stringify(cartSystem.cart.shipto));
-        };
-
-        $me.getTotal = function () {
-            
-            var total = 0;
-            $scope.shoppingcart.cart.Items.forEach(function (productid) {
-
-                if ($scope.products[productid] != null) {
-
-                    total += $scope.products[productid].Price;
-                }
-            });
-
-            return total;
         };
 
         $me.moneytransfer = function ( datacontext) {
@@ -529,7 +494,6 @@
 
     });
 
-    
     ncg.controller("PaysbuyController", function ($scope, $http, $timeout) {
 
         if ($scope.shoppingcart == null) {
@@ -646,6 +610,64 @@
             };
 
             datacontext.save(notify, thenUpload);
+        };
+    });
+
+    ncg.directive('ncgSotable', function ($http) {
+
+        function link($scope, element, attrs) {
+
+            $scope.products = {};
+            $scope.cartView = {};
+
+            var getProdcutInfo = function (productid) {
+
+                $http.get("/tables/product/" + productid)
+                    .success(function (data) {
+                        $scope.products[productid] = data;
+                    });
+            };
+
+            var updateProductInfo = function () {
+
+                for (productid in $scope.cartView) {
+
+                    if ($scope.products[productid] == null) {
+
+                        getProdcutInfo(productid);
+                    }
+                }
+            };
+
+            var updateView = function () {
+                $scope.cartView = _.groupBy($scope.shoppingcart.cart.Items, function (item) { return item; });
+                updateProductInfo();
+            };
+
+            $scope.$watchCollection(function () { return cartSystem.cart.Items; }, updateView);
+
+            $scope.getTotal = function () {
+
+                var total = 0;
+                $scope.shoppingcart.cart.Items.forEach(function (productid) {
+
+                    if ($scope.products[productid] != null) {
+
+                        total += $scope.products[productid].Price;
+                    }
+                });
+
+                return total;
+            };
+
+        }
+
+        return {
+            restrict: 'E',
+            templateUrl: '/Modules/CommerceSystem/templates/ncg-sotable.html',
+            link: link,
+            scope: false,
+            replace: true,
         };
     });
 })();
