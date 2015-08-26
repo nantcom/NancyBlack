@@ -37,10 +37,10 @@
             </span>
         </td>
         <td>
-            {{products[productid].Price | number:0}}
+            {{products[productid].Price | number:2}}
         </td>
         <td>
-            {{(products[productid].Price * values.length) | number:0}}
+            {{(products[productid].Price * values.length) | number:2}}
         </td>
     </tr>
     <tr class="summary">
@@ -52,7 +52,7 @@
             Total
         </td>
         <td>
-            {{getTotal()}}
+            {{getTotal() | number:2}}
         </td>
     </tr>
 </table>

@@ -23,7 +23,7 @@
     var cartSystem = {};
 
     // create cart system in current scope
-    ncg.directive('ncgCart', function ($rootScope, $http, localStorageService) {
+    ncg.directive('ncgCart', function ($rootScope, $http, $timeout, localStorageService) {
 
         function link(scope, element, attrs) {
 
@@ -117,14 +117,11 @@
                 $http.post("/__commerce/api/checkout", cartSystem.cart)
                     .success(function (data) {
 
-                        // checked out, clear the local cart
-                        localStorageService.set('cart', null);
-                        cartSystem.cart = null;
-                        cartSystem.ensureCartAvailable();
-
                         // hide cart
-                        $("#cartmodal").modal("show");
+                        $("#cartmodal").modal("hide");
                         $("#working").addClass("show");
+
+                        $timeout(cartSystem.clearcart, 100);
 
                         callback(data);
                     })
@@ -136,6 +133,15 @@
                             data: data
                         });
                     });
+            };
+
+            cartSystem.clearcart = function () {
+
+                // checked out, clear the local cart
+                localStorageService.set('cart', null);
+                cartSystem.cart = null;
+                cartSystem.ensureCartAvailable();
+
             };
 
             cartSystem.cart = localStorageService.get('cart');
@@ -490,7 +496,7 @@
 
                 $scope.showcartmodal();
             }
-        }, 1000);
+        }, 100);
 
     });
 
@@ -506,12 +512,18 @@
         var $me = this;
         $me.pay = function () {
 
+            $("#working").addClass("show");
+
             var submitForm = function () {
 
                 $("#paysbuy_form").attr("action",
                     "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
 
-                $("#paysbuy_form").submit();
+                $timeout(function () {
+
+                    $("#paysbuy_form").submit();
+                }, 1000);
+
             };
 
             var getPaysbuySettings = function () {
@@ -527,6 +539,9 @@
             $scope.shoppingcart.checkout(function (data, arg) {
 
                 if (data.error == true) {
+
+                    $("#working").removeClass("show");
+                    alert("Cannot Process your request, please try again.");
                     return;
                 }
 

@@ -64,7 +64,21 @@ namespace NantCom.NancyBlack.Modules
             this.Database = module.SiteDatabase;
             this.ResponseCode = responseCode;
         }
-        
+
+        public StandardModel(BaseModule module, string title, string metakeywords = null, string metadescription = null, dynamic data = null, int responseCode = 200)
+        {
+            this.Content = JObject.FromObject(new
+            {
+                Title = title,
+                MetaKeywords = metakeywords,
+                MetaDescription = metadescription
+            }); ;
+            this.Data = data;
+            this.Site = module.CurrentSite;
+            this.Database = module.SiteDatabase;
+            this.ResponseCode = responseCode;
+        }
+
         public StandardModel( int responseCode )
         {
             this.ResponseCode = responseCode;
