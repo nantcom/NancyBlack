@@ -37,23 +37,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             
             // Save User's cart
             Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
-
-
-            // Disable Payment Log table access
-            Get["/tables/PaymentLog"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/PaymentLog/count"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Post["/tables/PaymentLog"] = this.HandleStatusCodeRequest(404);
-            Patch["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Delete["/tables/PaymentLog/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-
-            // Disable Sale Order Table Access
-            Get["/tables/SaleOrder"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/SaleOrder/count"] = this.HandleStatusCodeRequest(404);
-            Get["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Post["/tables/SaleOrder"] = this.HandleStatusCodeRequest(404);
-            Patch["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
-            Delete["/tables/SaleOrder/{item_id:int}"] = this.HandleStatusCodeRequest(404);
         }
         
         private dynamic Checkout(dynamic arg)

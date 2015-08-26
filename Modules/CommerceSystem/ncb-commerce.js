@@ -670,4 +670,97 @@
             replace: true,
         };
     });
+
+    ncg.directive('ncgChart', function ($http) {
+
+        function link(scope, element, attrs) {                        
+
+            /* Variable declarable */
+            var _monthLabels = ["January", "February", "March", "April", "May", "June", "July"];
+            var _dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+            scope.labels = _dayLabels;
+            scope.series = [];//['Series A'];
+            scope.data = [
+              [65, 59, 80, 81, 56, 55, 40],
+              //[28, 48, 40, 19, 86, 27, 90]
+            ];
+
+            /* Function Mapping */
+            scope.filterChanged = _filterChanged;
+            scope.onClick = _chartOnClick;
+            scope.getDataByPeriod = _getDataByPeriod;
+
+            /* Function Calling */
+            scope.getDataByPeriod("day");
+
+            /* Events */
+            // OnChart create
+            scope.$on('create', function (event, chart) {                
+                //console.log("Create", chart);
+            });
+            // OnChart update
+            scope.$on('update', function (event, chart) {
+                //console.log("Update", chart);
+            });
+
+            /* Function declarable */
+            function _getDataByPeriod(period) {
+
+                var criteria = "/tables/" + scope.table + "/summarize?period=" + period + "&fn=" + scope.fn + "&select=" + scope.select + "&time=__createdAt";
+                $http.get(criteria).
+                      then(function (response) {
+
+                          //$log.info(response.data);
+
+                          _mapDataToGraph(response.data)
+
+                      }, function (response) {
+                          // TODO
+                          // called asynchronously if an error occurs
+                          // or server returns response with an error status.
+                      });
+            };
+
+            function _chartOnClick(points, evt) {
+                console.log(points, evt);
+            };
+
+            function _filterChanged(period) {                
+                _getDataByPeriod(period);
+            };
+
+            function _mapDataToGraph(data, period) {
+
+                var arrKey = [], arrValue = [];
+
+                data.forEach(function (item) {
+                    arrKey.push(item.Key);
+                    arrValue.push(item.Value);
+                });
+
+                scope.data = [arrValue];
+                scope.labels = arrKey;
+
+            };
+
+        }
+
+        return {
+            restrict: 'A',
+            templateUrl: '/Modules/CommerceSystem/templates/ncg-chart.html',
+            link: link,
+            scope: {
+                title: "=title",
+                table: "=table",
+                fn: "=fn",
+                select: "=select"
+            },
+            //replace: true,
+        };
+    });
+
+
+
+
 })();

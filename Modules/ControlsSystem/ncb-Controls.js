@@ -1264,12 +1264,14 @@
                 tableTemplateId: '=tabletemplate',
                 modalTemplateId: '=modaltemplate',
                 modalId: '=modalid',
+                editFn: '&editFn',
                 //tableName: '=table', // Isolate scope name customerInfo     
                 //displayColumns: '=columns',
                 // 'close': '&onClose' // & Mean pass function Best Practice: use &attr in the scope option when you want your directive to expose an API for binding to behaviors.
             },
             templateUrl: '/Modules/ControlsSystem/Templates/ncbNgtable.html',
             controller: controller,
+            //replace: true,
             // It's like this directive is a mask and allowed the controller passed the value through template.
             // In the other hand the value does not pass the isolate scope.
             // eg. Controller: $scope.name = "A"; Template: Print {{A}} Man.

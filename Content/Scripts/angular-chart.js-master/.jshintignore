@@ -1,0 +1,8 @@
+bower_components/
+node_modules/
+dist/
+tmp/
+examples/smoothscroll.min.js
+coverage/
+test/fixtures/coverage.js
+

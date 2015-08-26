@@ -1,0 +1,414 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head{    
+    <link href="/Content/Scripts/angular-xeditable/css/xeditable.css" rel="stylesheet" />
+    <style>
+        .ncb-editable-span{
+            display: block;
+            padding-top: 7px;
+        }
+    </style>
+}
+
+@section Scripts{
+    <script src="/Content/Scripts/angular-xeditable/js/xeditable.js"></script>
+    <script src="/Modules/CommerceSystem/Views/Admin/js/saleorderdetail.js"></script>
+}
+
+<div class="page-header">
+    <h1>SaleOrder Detail<small></small></h1>
+</div>
+
+<div ng-module="saleorderdetail"
+     ng-controller="saleorderdetailview as ctrl"
+     ncb-datacontext table="SaleOrder">
+
+    <tabset justified="true">
+
+        <tab heading="Details">                                    
+            <div class="col-md-6"
+                 ng-include="'orderview.html'">
+            </div>
+            <div class="col-md-6"
+                 ng-include="'customerview.html'"></div>
+            <div class="col-md-6"
+                 ng-include="'billingview.html'"></div>
+            <div class="col-md-6"
+                 ng-include="'shippingview.html'"></div>
+        </tab>
+        <tab heading="Invoice">
+            Short Labeled Justified content
+        </tab>
+
+    </tabset>
+
+</div>
+
+<script type="text/ng-template" id="orderview.html">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Order Detail</h3>
+        </div>
+        <div class="panel-body">            
+            <form class="form-horizontal" editable-form name="orderDetailForm" onbeforesave="saveSaleOrderDetail()">                
+
+                <div class="form-group">
+                    <label for="SaleOrderIdentifier" class="col-sm-4 control-label">SaleOrderIdentifier</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="SaleOrderIdentifier">
+                            {{object.SaleOrderIdentifier}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="CreatedAt">
+                            {{object.__createdAt}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="Status" class="col-sm-4 control-label">Status</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="Status">
+                            {{object.Status}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="TotalAmount" class="col-sm-4 control-label">TotalAmount</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="TotalAmount">
+                            {{object.TotalAmount}}
+                        </span>
+                    </div>
+                </div>                
+            </form>
+        </div>
+    </div>
+</script>
+
+<script type="text/ng-template" id="customerview.html">
+    <form class="form-horizontal" editable-form name="customerDetailForm" onaftersave="saveSaleOrderDetail()">
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    Customer Detail
+                    <span type="button" class="btn btn-default btn-xs pull-right"
+                          ng-click="customerDetailForm.$show()"
+                          ng-show="!customerDetailForm.$visible">
+                        Edit
+                    </span>
+                    <span class="pull-right" ng-show="customerDetailForm.$visible" >
+                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="customerDetailForm.$waiting">
+                            Save
+                        </button>
+                        <button type="button" class="btn btn-default btn-xs" ng-disabled="customerDetailForm.$waiting" ng-click="customerDetailForm.$cancel()">
+                            Cancel
+                        </button>
+                    </span>
+                </h3>                
+
+            </div>
+            <div class="panel-body">                
+                <div class="form-group">
+                    <label for="FirstName" class="col-sm-4 control-label">FirstName</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="FirstName"
+                              e-name="FirstName"
+                              editable-text="object.Customer.FirstName">
+                            {{object.Customer.FirstName || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="LastName" class="col-sm-4 control-label">LastName</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="LastName"
+                              e-name="LastName"
+                              editable-text="object.Customer.LastName">
+                            {{object.Customer.LastName || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="PhoneNumber" class="col-sm-4 control-label">PhoneNumber</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="PhoneNumber"
+                              e-name="PhoneNumber"
+                              editable-text="object.Customer.PhoneNumber">
+                            {{object.Customer.PhoneNumber || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="Gender" class="col-sm-4 control-label">Gender</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="Gender"
+                              e-name="Gender"
+                              editable-select="object.Customer.Gender"
+                              e-ng-options="s.title as s.title for s in genderList">
+                            {{object.Customer.Gender || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="DOB" class="col-sm-4 control-label">DOB</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="DOB"
+                              e-name="DOB"
+                              editable-date="object.Customer.DOB">
+                            {{object.Customer.DOB || 'empty' | date: 'MM/dd/yyyy'}}
+                        </span>
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/ng-template" id="billingview.html">
+    <form class="form-horizontal" editable-form name="billingDetailForm" onaftersave="saveSaleOrderDetail()">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    Billing Address
+                    <span type="button" class="btn btn-default btn-xs pull-right"
+                          ng-click="billingDetailForm.$show()"
+                          ng-show="!billingDetailForm.$visible">
+                        Edit
+                    </span>
+                    <span class="pull-right" ng-show="billingDetailForm.$visible">
+                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="billingDetailForm.$waiting">
+                            Save
+                        </button>
+                        <button type="button" class="btn btn-default btn-xs"
+                                ng-disabled="billingDetailForm.$waiting"
+                                ng-click="billingDetailForm.$cancel()">
+                            Cancel
+                        </button>
+                    </span>
+                </h3>
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label for="To" class="col-sm-4 control-label">To</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="To"
+                              e-name="To"
+                              editable-text="object.BillTo.To">
+                            {{object.BillTo.To || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="Address" class="col-sm-4 control-label">Address</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="Address"
+                              e-name="Address"
+                              editable-text="object.BillTo.Address">
+                            {{object.BillTo.Address || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="Country" class="col-sm-4 control-label">Country</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="Country"
+                              e-name="Country"
+                              editable-text="object.BillTo.Country">
+                            {{object.BillTo.Country || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="State" class="col-sm-4 control-label">State</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="State"
+                              e-name="State"
+                              editable-text="object.BillTo.State">
+                            {{object.BillTo.State || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="District" class="col-sm-4 control-label">District</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="District"
+                              e-name="District"
+                              editable-text="object.BillTo.District">
+                            {{object.BillTo.District || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="SubDistrict"
+                              e-name="SubDistrict"
+                              editable-text="object.BillTo.SubDistrict">
+                            {{object.BillTo.SubDistrict || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="PostalCode"
+                              e-name="PostalCode"
+                              editable-text="object.BillTo.PostalCode">
+                            {{object.BillTo.PostalCode || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/ng-template" id="shippingview.html">
+    <form class="form-horizontal" editable-form name="shippingDetailForm" onaftersave="saveSaleOrderDetail()">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    Shipping Address
+                    <span type="button" class="btn btn-default btn-xs pull-right"
+                          ng-click="shippingDetailForm.$show()"
+                          ng-show="!shippingDetailForm.$visible">
+                        Edit
+                    </span>
+                    <span class="pull-right" ng-show="shippingDetailForm.$visible">
+                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="shippingDetailForm.$waiting">
+                            Save
+                        </button>
+                        <button type="button" class="btn btn-default btn-xs" 
+                                ng-disabled="shippingDetailForm.$waiting" 
+                                ng-click="shippingDetailForm.$cancel()">
+                            Cancel
+                        </button>
+                    </span>
+                </h3>
+            </div>
+            <div class="panel-body">                
+
+                    <div class="form-group">
+                        <label for="To" class="col-sm-4 control-label">To</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="To"
+                                  e-name="To"
+                                  editable-text="object.ShipTo.To">
+                                {{object.ShipTo.To || 'empty'}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Address" class="col-sm-4 control-label">Address</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="Address"
+                                  e-name="Address"
+                                  editable-text="object.ShipTo.Address">
+                                {{object.ShipTo.Address || 'empty'}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Country" class="col-sm-4 control-label">Country</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="Country"
+                                  e-name="Country"
+                                  editable-text="object.ShipTo.Country">
+                                {{object.ShipTo.Country || 'empty'}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="State" class="col-sm-4 control-label">State</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="State"
+                                  e-name="State"
+                                  editable-text="object.ShipTo.State">
+                                {{object.ShipTo.State || 'empty'}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="District" class="col-sm-4 control-label">District</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="District"
+                                  e-name="District"
+                                  editable-text="object.ShipTo.District">
+                                {{object.ShipTo.District || 'empty'}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="SubDistrict"
+                                  e-name="SubDistrict"
+                                  editable-text="object.ShipTo.SubDistrict">
+                                {{object.ShipTo.SubDistrict || 'empty'}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
+                        <div class="col-sm-8">
+                            <span class="ncb-editable-span"
+                                  id="PostalCode"
+                                  e-name="PostalCode"
+                                  editable-text="object.ShipTo.PostalCode">
+                                {{object.ShipTo.PostalCode || 'empty'}}
+                            </span>
+                        </div>
+                    </div>                
+            </div>
+        </div>
+    </form>
+</script>

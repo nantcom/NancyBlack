@@ -1,0 +1,30 @@
+﻿<div class="panel panel-default">
+    <div class="panel-heading">
+        {{title}}
+        <span class="glyphicon glyphicon-refresh pull-right"></span>
+    </div>
+    <div class="panel-body">
+        <span class="pull-right" ng-include="'btnchartfilter.html'"></span>
+        <canvas id="line" class="chart chart-line" data="data"
+                labels="labels" legend="true" series="series"
+                click="onClick"></canvas>
+    </div>
+</div>
+
+<script type="text/ng-template" id="btnchartfilter.html">
+    <div class="dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button" id="chartFilter" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Period
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="chartFilter">
+            <li class="dropdown-header">Filter by purchase date</li>
+            <li><a href="#" ng-click="filterChanged('day')">Today</a></li>
+            <li><a href="#" ng-click="filterChanged('week')">This week</a></li>
+            <li><a href="#" ng-click="filterChanged('month')">This month</a></li>
+            <li><a href="#" ng-click="filterChanged('year')">This year</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Custom</a></li>
+        </ul>
+    </div>
+</script>

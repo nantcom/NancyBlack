@@ -1,0 +1,164 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head
+{
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        body {
+            overflow-x: scroll;
+        }
+    </style>
+    @*<link href="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.css" rel="stylesheet" />
+    <link href="/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
+    <link href="/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />*@
+
+    <link href="/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
+}
+
+@section Scripts
+{
+    @*<script src="/Content/Scripts/ng-table/ng-table.min.js"></script>
+    <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
+    <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>*@
+
+    <script src="/Content/Scripts/Chart.js-master/Chart.min.js"></script>
+    <script src="/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
+    <script src="/Modules/CommerceSystem/Views/Admin/js/saleorder.js"></script>
+
+    <script>
+        function _testCall() {
+            console.log("CALLED");
+            window.location = "/testman";
+        };
+    </script>
+
+}
+
+<div ng-module="saleorder"
+     ng-controller="saleorder_list as ctrl"
+     ncb-datacontext table="SaleOrder"
+     id="ManageSaleorder">
+
+    <div class="page-header">
+        <h1>SaleOrder Dashboard <small></small></h1>
+    </div>
+
+    <div class="col-md-6" 
+         ncg-chart
+         title="'SUM SaleOrder'"
+         table="'SaleOrder'"
+         fn="'sum'"
+         select="'TotalAmount'">
+    </div>
+
+    <div class="col-md-6" 
+         ncg-chart
+         title="'Count SaleOrder'"
+         table="'SaleOrder'"
+         fn="'count'"
+         select="'TotalAmount'">
+    </div>    
+
+    <div class="page-header">
+        <h3>Manage SaleOrder <small></small></h3>        
+    </div>    
+    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal" 
+                 edit-fn="ctrl.viewOrderDetail(id)">
+    </ncb-ngtable>
+
+    <script type="text/ng-template" id="tablecustomtemplate.html">
+
+        <table id="NcbNgTable"
+               ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td data-title="'ID'"
+                    sortable="'__createdAt'">
+                    {{item.id}}
+                </td>
+                <td data-title="'__createdAt'"
+                    sortable="'__createdAt'">
+                    {{item.__createdAt | date:'dd MMMM yyyy, HH:mm' }}
+                </td>
+                <td data-title="'__updatedAt'"
+                    sortable="'__updatedAt'">
+                    {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                </td>
+                <td data-title="'SaleOrderIdentifier'"
+                    sortable="'SaleOrderIdentifier'"
+                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    {{item.SaleOrderIdentifier }}
+                </td>
+                <td data-title="'Status'"
+                    sortable="'Status'"
+                    filter="{ 'Status': 'text' }">
+                    {{item.Status }}
+                </td>
+                <td>
+                    <span ncb-vlookup="NcbUser" key="{{item.NcbUserId}}">
+                    </span>
+                </td>
+                <td data-title="'Customer'"
+                    sortable="'Customer'"
+                    filter="{ 'Customer': 'text' }">
+                    {{item.Customer }}
+                </td>
+                <td data-title="'ShipTo'"
+                    sortable="'ShipTo'"
+                    filter="{ 'ShipTo': 'text' }">
+                    {{item.ShipTo }}
+                </td>
+                <td data-title="'BillTo'"
+                    sortable="'BillTo'"
+                    filter="{ 'BillTo': 'text' }">
+                    {{item.BillTo }}
+                </td>
+                <td data-title="'UseBillingAddress'"
+                    sortable="'UseBillingAddress'"
+                    filter="{ 'UseBillingAddress': 'text' }">
+                    {{item.UseBillingAddress }}
+                </td>
+                <td data-title="'Items'"
+                    sortable="'Items'">
+                    <ul ng-repeat="subitem in item.Items">
+                        <li>{{subitem}}</li>
+                    </ul>
+                </td>
+                <td data-title="'TotalAmount'"
+                    sortable="'TotalAmount'"
+                    filter="{ 'TotalAmount': 'text' }">
+                    {{item.TotalAmount }}
+                </td>
+                <td data-title="'ShippingDetails'"
+                    sortable="'ShippingDetails'"
+                    filter="{ 'ShippingDetails': 'text' }">
+                    {{item.ShippingDetails }}
+                </td>
+                <td style="white-space: nowrap">
+
+                    <button class="btn btn-default"
+                            ng-click="data.copy(item)">
+                        <i class="fa fa-copy"></i>
+                    </button>
+
+                    <button class="btn btn-info"                            
+                            ng-click="editFn({id: item.id})">
+                        <i class="fa fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </script>    
+
+</div>
