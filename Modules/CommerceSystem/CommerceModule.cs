@@ -10,7 +10,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
-    public class CommerceModule : BaseModule
+    public class CommerceModule : BaseDataModule
     {
 
         public CommerceModule()
@@ -51,8 +51,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     Type = (string)arg.form
                 }), so);
             });
+
+            Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
         }
-        
+
+        private dynamic HandleSalorderSaveRequest(dynamic arg)
+        {
+            arg.table_name = "SaleOrder";
+
+            // TODO
+            // Create Shipping/Billing Address
+            // In case of Shipping/Billing Address never been created.
+            return this.HandleInsertUpdateRequest(this.SiteDatabase, arg);
+        }
+
         private dynamic Checkout(dynamic arg)
         {
             if (this.CurrentUser.IsAnonymous)

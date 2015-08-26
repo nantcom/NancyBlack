@@ -35,9 +35,12 @@
             <div class="col-md-6"
                  ng-include="'customerview.html'"></div>
             <div class="col-md-6"
-                 ng-include="'billingview.html'"></div>
-            <div class="col-md-6"
                  ng-include="'shippingview.html'"></div>
+            <div class="col-md-6"
+                 ng-include="'billingview.html'"></div>
+            
+            <ncg-sotable></ncg-sotable>
+
         </tab>
         <tab heading="Invoice">
             Short Labeled Justified content
@@ -211,6 +214,29 @@
                 </h3>
             </div>
             <div class="panel-body">
+
+                <div class="form-group">
+                    <label for="CopyAddress" class="col-sm-4 control-label">Copy shipping address</label>
+                    <div class="col-sm-8">
+                        <button type="button" class="btn btn-default" id="CopyAddress"                                
+                                ng-click="copyAddressShippingToBilling($data)">
+                            Copy                            
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="UseBillingAddress" class="col-sm-4 control-label">UseBillingAddress</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="UseBillingAddress"
+                              e-name="UseBillingAddress"
+                              editable-checkbox="object.UseBillingAddress"
+                              e-title="">
+                            {{object.UseBillingAddress && 'Using Billing Address' || 'Not use'}}
+                        </span>
+                    </div>
+                </div>
 
                 <div class="form-group">
                     <label for="To" class="col-sm-4 control-label">To</label>

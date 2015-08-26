@@ -20,8 +20,8 @@
                 _stopWatchData();
                 _loadOrderDetail();
             }
-        });        
-            
+        });
+
         $scope.user = {
             name: 'awesome user'
         };
@@ -38,10 +38,10 @@
         $scope.saveShippingDetail = _saveShippingDetail;
 
         $scope.saveSaleOrderDetail = _saveSaleOrderDetail;
+        $scope.copyAddressShippingToBilling = _copyAddressShippingToBilling;
         
-
         function _loadOrderDetail() {
-            console.log($scope)
+            
             $scope.data.getById(15, function (data) {
                 $scope.object = data;
             });
@@ -70,6 +70,11 @@
             console.log("Save")
         };
 
-
+        function _copyAddressShippingToBilling(arg) {            
+            
+            $scope.object.BillTo = angular.copy($scope.object.ShipTo);
+            
+            console.log("Save", arg)            
+        };
     }
 })();
