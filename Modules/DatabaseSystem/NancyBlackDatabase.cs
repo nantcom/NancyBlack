@@ -15,6 +15,7 @@ using System.Runtime.Caching;
 using System.Web;
 using Nancy.Bootstrapper;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using System.Threading.Tasks;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -509,6 +510,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         /// <summary>
+        /// Runs the given action in SQLite transaction
+        /// </summary>
+        /// <param name="action"></param>
+        public void Transaction( Action action )
+        {
+            _db.RunInTransaction(action);
+        }
+
+        /// <summary>
         /// Update/Insert the given input object
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -560,29 +570,38 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
         #endregion
 
+        /// <summary>
+        /// Background compression of input file to output file. Input file will be copied first in main thread to temp file.
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <param name="outputFile"></param>
         private static void BZip(string inputFile, string outputFile )
         {
-            try
-            {
-                using (var fs = File.Open(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var bz = new Ionic.BZip2.BZip2OutputStream(File.OpenWrite(outputFile), 1))
-                {
-                    fs.CopyTo(bz);
-                }
-            }
-            catch (Exception)
-            {
-                var temp = outputFile + ".tmp";
-                File.Copy(inputFile, temp, true);
-                
-                using (var fs = File.Open(temp, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var bz = new Ionic.BZip2.BZip2OutputStream(File.OpenWrite(outputFile), 1))
-                {
-                    fs.CopyTo(bz);
-                }
+            var temp = outputFile + ".tmp";
+            File.Copy(inputFile, temp, true);
+            File.WriteAllBytes(outputFile, new byte[0]); // touches the output file to prevent further backup
 
-                File.Delete(temp);
-            }
+            // runs backup in background
+            Task.Run(() =>
+            {
+                try
+                {
+                    using (var fs = File.Open(temp, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (var bz = new Ionic.BZip2.ParallelBZip2OutputStream(File.OpenWrite(outputFile), 9))
+                    {
+                        fs.CopyTo(bz);
+                    }
+                }
+                catch( Exception )
+                {
+                    File.Delete(outputFile);
+                }
+                finally
+                {
+                    File.Delete(temp);
+                }
+            });
+
         }
 
         /// <summary>
