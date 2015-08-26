@@ -188,6 +188,7 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 var watcher = siteconfig.Property("watcher").Value as JObject;
+                var userIP = ctx.Request.UserHostAddress;
 
                 Task.Run(() =>
                 {
@@ -207,6 +208,7 @@ namespace NantCom.NancyBlack.Modules
                                 Action = item.Action,
                                 js_Row = JsonConvert.SerializeObject(item.AffectedRow),
                                 UserId = user.Id,
+                                UserHostAddress = userIP,
                                 __createdAt = DateTime.Now,
                                 RowId = (int)item.AffectedRow.Id,
                                 DataType = item.DataTypeName

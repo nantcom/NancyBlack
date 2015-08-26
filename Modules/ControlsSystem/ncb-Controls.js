@@ -630,7 +630,7 @@
 
                 } else {
 
-                    if (element.parents("[ncb-datacontext]").length > 0) {
+                    if (scope.data != null) {
 
                         $("button.ncb-modal-delete").on("click", function () {
 
@@ -1425,6 +1425,27 @@
             link: function (scope, element) {
                 scope.$emit('formLocator', element);
             }
+        };
+    });
+
+    module.directive('ncbAlerts', function ($http) {
+
+        function link($scope, element, attrs) {
+
+            $scope.alerts = $scope.$parent.$eval(attrs.alerts);
+
+            $scope.closeAlert = function (index) {
+
+                $scope.alerts.splice(index, 1);
+            };
+        }
+
+        return {
+            restrict: 'E',
+            templateUrl: '/Modules/ControlsSystem/Templates/ncbAlerts.html',
+            link: link,
+            replace: true,
+            scope: true,
         };
     });
 })();

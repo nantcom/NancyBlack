@@ -1,0 +1,58 @@
+﻿<table class="table table-hover saleorder">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th></th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Line Total</th>
+        </tr>
+    </thead>
+    <tr ng-repeat="(productid, values) in cartView">
+        <td>
+            {{$index + 1}}
+        </td>
+        <td>
+            <img src="{{products[productid].Attachments[0].Url}}" />
+        </td>
+        <td>
+            <div class="form-control-static">
+                {{products[productid].Title}}
+            </div>
+        </td>
+        <td>
+            <span class="input-group">
+                <span class="input-group-btn">
+                    <a class="btn btn-default"
+                       ng-click="shoppingcart.remove(productid)">-</a>
+                </span>
+                <span class="form-control">
+                    {{values.length}}
+                </span>
+                <span class="input-group-btn">
+                    <a class="btn btn-default"
+                       ng-click="shoppingcart.add(productid)">+</a>
+                </span>
+            </span>
+        </td>
+        <td>
+            {{products[productid].Price | number:0}}
+        </td>
+        <td>
+            {{(products[productid].Price * values.length) | number:0}}
+        </td>
+    </tr>
+    <tr class="summary">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>
+            Total
+        </td>
+        <td>
+            {{getTotal()}}
+        </td>
+    </tr>
+</table>

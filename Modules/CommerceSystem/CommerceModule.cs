@@ -37,6 +37,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             
             // Save User's cart
             Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
+            
+            Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", (arg) =>
+            {
+                var id = (string)arg.so_id;
+                var so = this.SiteDatabase.Query<SaleOrder>()
+                            .Where(row => row.SaleOrderIdentifier == id)
+                            .FirstOrDefault();
+
+                return new StandardModel(this, JObject.FromObject( new
+                {
+                    Title = arg.form + " for " + so.SaleOrderIdentifier,
+                    Type = (string)arg.form
+                }), so);
+            });
         }
         
         private dynamic Checkout(dynamic arg)
@@ -247,6 +261,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 if (exceptions.Count == 0)
                 {
                     so.Status = SaleOrderStatus.PaymentReceived;
+                    so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
+                        "RC{0:yyyyMMdd}-{1:000000}", so.__createdAt, so.Id);
                 }
 
                 log.Exception = exceptions;

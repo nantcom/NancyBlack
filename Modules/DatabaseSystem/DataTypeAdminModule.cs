@@ -25,7 +25,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             });
 
             // Administration pages for Table
-            Get["/Admin/Tables/{table_name}"] = this.HandleTableRequests;
+            Get["/Admin/Tables/{table_name}"] = this.HandleTableAdminPageRequests;
 
             Get["/tables/DataType"] = this.HandleListDataTypeRequest(() => this.SiteDatabase);
             Get["/tables/DataType/{type_name}"] = this.HandleSpecifiedDataTypeRequest(() => this.SiteDatabase);
@@ -97,7 +97,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
         #endregion
         
-        protected dynamic HandleTableRequests(dynamic arg)
+        protected dynamic HandleTableAdminPageRequests(dynamic arg)
         {
             var table_name = (string)arg.table_name;
             var replace = this.Context.Request.Query.regenerate == "true";
@@ -116,7 +116,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return this.Response.AsRedirect(this.Context.Request.Path);
             }
 
-            return View["Admin/" + arg.table_name, new StandardModel(this, type)];
+            return View["Admin/" + arg.table_name,
+                new StandardModel(this, JObject.FromObject(new
+                {
+                    Title = "Administration - Table:" + arg.table_name
+                }),
+                type)
+            ];
         }
         
         public class ViewModel

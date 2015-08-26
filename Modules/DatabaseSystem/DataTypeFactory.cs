@@ -40,31 +40,27 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             get
             {
-                lock ("CacheDataType")
+                if (_CachedDataType == null)
                 {
-                    if (_CachedDataType == null)
+                    var dynamicTypes = _db.Table<DataType>().ToList();
+                    var staticTypes = StaticDataType.GetStaticDataTypes();
+
+                    _CachedDataType = dynamicTypes.Concat(staticTypes).ToDictionary(k => k.NormalizedName);
+
+                    // remaps all table to ensure the database
+                    // get updated to latest type that was created on-the-fly
+                    foreach (var table in _CachedDataType.Values)
                     {
-                        var dynamicTypes = _db.Table<DataType>().ToList();
-                        var staticTypes = StaticDataType.GetStaticDataTypes();
+                        var type = table.GetCompiledType();
+                        _db.CreateTable(type);
 
-                        _CachedDataType = dynamicTypes.Concat(staticTypes).ToDictionary(k => k.NormalizedName);
-
-                        // remaps all table to ensure the database
-                        // get updated to latest type that was created on-the-fly
-                        foreach (var table in _CachedDataType.Values)
+                        // index all column by default
+                        foreach (var item in table.Properties)
                         {
-                            var type = table.GetCompiledType();
-                            _db.CreateTable(type);
-
-                            // index all column by default
-                            foreach (var item in table.Properties)
-                            {
-                                _db.CreateIndex(type.Name, item.Name, item.Name == "Id");
-                            }
+                            _db.CreateIndex(type.Name, item.Name, item.Name == "Id");
                         }
                     }
                 }
-
                 return _CachedDataType;
             }
         }
