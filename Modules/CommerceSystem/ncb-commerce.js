@@ -785,7 +785,7 @@
 
                           //$log.info(response.data);
 
-                          _mapDataToGraph(response.data)
+                          _mapDataToGraph(response.data, period)
 
                       }, function (response) {
                           // TODO
@@ -805,11 +805,49 @@
             function _mapDataToGraph(data, period) {
 
                 var arrKey = [], arrValue = [];
+                if (period == "hour") {
 
-                data.forEach(function (item) {
-                    arrKey.push(item.Key);
-                    arrValue.push(item.Value);
-                });
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:HH}:00", date));
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "week") {
+
+                    data.forEach(function (item) {
+                        arrKey.push(item.Key);
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "day") {
+
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:dddd}", date));
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "month") {
+
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:MMMM}", date));
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "year") {
+
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:yyyy}", date));
+                        arrValue.push(item.Value);
+                    });
+                }
 
                 scope.data = [arrValue];
                 scope.labels = arrKey;

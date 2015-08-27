@@ -27,8 +27,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return "/" + filePath;
             });
             Get["/admin/saleorder/{id}"] = this.HandleViewRequest("/Admin/saleorderdetailmanager", null);
-            Get["/admin/commerce/forms"] = this.HandleViewRequest("/Admin/commerceadmin-templates", null);
-            Get["/admin/commerce/forms"] = this.HandleViewRequest("/Admin/commerceadmin-templates", null);
         }
     }
 }
