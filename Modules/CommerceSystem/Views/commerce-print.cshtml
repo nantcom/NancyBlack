@@ -94,14 +94,20 @@
                         </td>
                         <td>{{so.SaleOrderIdentifier}}</td>
                     </tr>
-                    <tr>
-                        <td class="meta-head">
-                            <div class="editabe" id="receiptnumber">
-                                Receipt #
-                            </div>
-                        </td>
-                        <td>{{so.ReceiptIdentifier}}</td>
-                    </tr>
+
+                    @{
+                        if (this.Model.Content.Type == "receipt") {
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="receiptnumber">
+                                        Receipt #
+                                    </div>
+                                </td>
+                                <td>{{so.ReceiptIdentifier}}</td>
+                            </tr>
+                        }
+                    }
+
                     <tr>
 
                         <td class="meta-head">
@@ -118,7 +124,16 @@
                     <tr>
                         <td class="meta-head">
                             <div class="editabe" id="amountpaid">
-                                Amount Paid
+                                @{
+                                    if (this.Model.Content.Type == "invoice")
+                                    {
+                                        <span>Amount Due</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Amount Paid</span>
+                                    }
+                                }
                             </div>
                         </td>
                         <td>
