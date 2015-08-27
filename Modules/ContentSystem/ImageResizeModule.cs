@@ -15,6 +15,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 {
     public class ImageResizeModule : BaseModule
     {
+        public const int MAX_PER_FILE = 10;
+
         public enum ImageResizeMode
         {
             Fill,
@@ -213,6 +215,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
         public class ResizeResult
         {
+            public string SourceFile { get; set; }
+
             public string ContentType { get; set; }
 
             public Stream Output { get; set; }
@@ -228,6 +232,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         {
             var result = new ResizeResult();
             result.Output = new MemoryStream();
+            result.SourceFile = file;
 
             // make sure we have no problem with file lock
             var source = File.ReadAllBytes(file);
@@ -354,6 +359,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
         private static MemoryCache ImageResizeCache = new MemoryCache("Image");
 
+        private static Dictionary<string, int> _FraudCount = new Dictionary<string, int>();
+
         public ImageResizeModule()
         {
             Get["/__resize/{path*}"] = this.HandleRequest((arg) =>
@@ -370,10 +377,28 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 
                 if (cached == null)
                 {
+                    if (_FraudCount.ContainsKey(file) == false)
+                    {
+                        _FraudCount.Add( file, 0 );
+                    }
+
+                    int current = _FraudCount[file]++;
+                    if (current > MAX_PER_FILE)
+                    {
+                        // this file has too many image size
+                        // which may be an attack
+                        return 400;
+                    }
+
                     cached = ImageResizeModule.ResizeAndFilterImage(file, parameter);
                     ImageResizeModule.ImageResizeCache.Add(key, cached, new CacheItemPolicy()
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(60)
+                        SlidingExpiration = TimeSpan.FromMinutes(60),
+                        RemovedCallback = (args) =>
+                        {
+                            var item = args.CacheItem.Value as ResizeResult;
+                            _FraudCount[item.SourceFile] = _FraudCount[item.SourceFile] - 1;
+                        }
                     });
                 }
 
