@@ -131,6 +131,26 @@ namespace NantCom.NancyBlack.Modules
                     File.WriteAllText(settingsFile, "{}");
                 }
 
+                // setup default settings here
+                if (settingsObject["lockdown"] == null)
+                {
+                    settingsObject["lockdown"] = JObject.FromObject(new {
+                        enable = false,
+                        message = "Site is under maintenance."
+                    });
+                }
+
+                if (settingsObject["commerce"] == null)
+                {
+                    settingsObject["commerce"] = JObject.FromObject(new
+                    {
+                        paysbuy = new { },
+                        billing = new { vattype = "" },
+                        branding = new { bgcolor = "black", fgcolor = "white", accentcolor = "blue" }
+                    });
+                }
+
+
                 var cachePolicy = new CacheItemPolicy();
                 cachePolicy.ChangeMonitors.Add(new HostFileChangeMonitor(new List<string>() { settingsFile }));
                 MemoryCache.Default.Add("CurrentSite", settingsObject, cachePolicy);

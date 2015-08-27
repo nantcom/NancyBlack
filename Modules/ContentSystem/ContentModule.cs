@@ -14,6 +14,16 @@ namespace NantCom.NancyBlack.Modules
 {
     public class ContentModule : BaseModule
     {
+        /// <summary>
+        /// Allow custom mapping of input url into another url
+        /// </summary>
+        public static event Func<NancyContext, dynamic, string, string> RewriteUrl = (ctx, arg, url)=> url;
+
+        /// <summary>
+        /// Allow custom mapping of requested content into another content
+        /// </summary>
+        public static event Action<NancyContext, dynamic> MapContent = delegate { };
+
         private static string _RootPath;
 
         public ContentModule()
@@ -51,7 +61,7 @@ namespace NantCom.NancyBlack.Modules
             }
             File.Copy(sourceFile, layoutFilename);
         }
-
+        
         protected dynamic HandleContentRequest(dynamic arg)
         {
             var url = (string)arg.path;
@@ -84,6 +94,9 @@ namespace NantCom.NancyBlack.Modules
             }
 
             dynamic requestedContent = null;
+
+            //
+            url = ContentModule.RewriteUrl(this.Context, arg, url);
 
             // see if the url is collection request or content request
             var parts = url.Split('/');
@@ -151,6 +164,8 @@ namespace NantCom.NancyBlack.Modules
             }
 
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
+
+            ContentModule.MapContent(this.Context, requestedContent);
 
             return View[(string)requestedContent.Layout, new StandardModel( this, requestedContent )];
         }

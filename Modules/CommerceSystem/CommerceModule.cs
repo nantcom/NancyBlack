@@ -280,16 +280,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             // deduct stock of all product
             // first, we group the product id to minimize selects
-            var products = from item in so.Items
-                           group item by item into g
-                           select g;
-
-            foreach (var productIdGroup in products)
+            db.Transaction(() =>
             {
-                var product = db.GetById<Product>(productIdGroup.Key);
-                product.Stock = product.Stock - productIdGroup.Count();
-                db.UpsertRecord<Product>(product);
-            }
+                var products = from item in so.Items
+                               group item by item into g
+                               select g;
+
+                foreach (var productIdGroup in products)
+                {
+                    var product = db.GetById<Product>(productIdGroup.Key);
+                    product.Stock = product.Stock - productIdGroup.Count();
+                    db.UpsertRecord<Product>(product);
+                }
+            });
         }
     }
 }

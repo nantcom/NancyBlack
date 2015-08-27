@@ -44,7 +44,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// SKU Number
         /// </summary>
         public string SKUNumber { get; set; }
-
+        
         /// <summary>
         /// Price of this product
         /// </summary>
@@ -69,5 +69,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Additional information about the object
         /// </summary>
         public dynamic Addendum { get; set; }
+
+        /// <summary>
+        /// Attributes of the product (such as size, color...)
+        /// </summary>
+        public dynamic Attributes { get; set; }
     }
 }

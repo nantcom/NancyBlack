@@ -15,10 +15,13 @@
            ng-show="isBusy"></i>
 
         <button class="btn btn-primary btn-lg pull-right"
-           ng-disabled="isBusy"
-           ng-click="ctrl.save()">Save</button>
+                ng-disabled="isBusy"
+                ng-click="ctrl.save()">
+            Save
+        </button>
 
     </h1>
+    <ncb-alerts alerts="alerts"></ncb-alerts>
     <div class="row">
 
         <div class="col-md-4">
@@ -30,6 +33,61 @@
 
             <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
                    ncb-textbox ng-model="object.Application.GoogleAnalyticsId" />
+
+        </div>
+
+        <div class="col-md-4">
+
+            <h2>
+                <span class="pull-right">
+                    <ncb-onoff ng-model="object.lockdown.enable"></ncb-onoff>
+                </span>
+                Lockdown
+            </h2>
+            {{object.lockdown}}
+            <div ng-show="object.lockdown.enable == true">
+
+                <textarea ng-model="object.lockdown.message" title="Message" rows="5"
+                          ncb-textbox></textarea>
+
+                <select ncb-select title="Example message">
+                    <option ng-click="object.lockdown.message = 'Please be patient, we will be back soon.'">
+                        We will be back soon
+                    </option>
+                    <option ng-click="object.lockdown.message = 'We are working on something, please check back again in a few minutes.'">
+                        Under Maintenance.
+                    </option>
+                    <option ng-click="object.lockdown.message = 'We are working on something, please check back again in a few hours.'">
+                        Under Long Maintenance.
+                    </option>
+                </select>
+
+                <div class="form-group">
+                    <label>Show expected return date.</label>
+                    <div>
+                        <ncb-onoff ng-model="object.lockdown.showreturndate"></ncb-onoff>
+                    </div>
+                </div>
+
+                <div class="row"
+                     ng-show="object.lockdown.showreturndate == true">
+                    <div class="col-xs-8">
+                        <ncb-datepicker model="object.lockdown.returndate" format="'dd MMMM yyyy'"
+                                        title="Expected Return Date"></ncb-datepicker>
+                    </div>
+                    <div class="col-xs-4">
+                        <select ncb-select title="Time"
+                                ng-model="object.lockdown.returntime">
+                            @for (int i = 0; i < 24; i++)
+                            {
+                                <option value="@(i)">@string.Format("{0:00}", i):00</option>
+                            }
+                        </select>
+
+                    </div>
+                </div>
+
+            </div>
 
         </div>
 
@@ -50,14 +108,14 @@
 
             <div class="form-group">
                 <textarea type="text" title="Default Description" rows="5"
-                       ncb-textbox ng-model="object.SEO.DefaultDescription"></textarea>
+                          ncb-textbox ng-model="object.SEO.DefaultDescription"></textarea>
                 <span class="text-muted">Default description of the page, if not specified in Content.</span>
             </div>
 
             <div class="form-group">
                 <label>Google Translate</label><br />
                 <a class="btn btn-default" btn-checkbox ng-model="object.SEO.NoTranslate">Disable Google Translate</a>
-                <br/>
+                <br />
                 <span class="text-muted">Output 'notranslate' meta tag.</span>
             </div>
         </div>
@@ -115,19 +173,34 @@
 
             module.controller("SiteSettingsController", function ($scope, $rootScope, $http ) {
 
+                $scope.alerts = [];
                 $scope.object = @this.Html.Raw(this.GetJson(this.Site));
 
                 if ($scope.object.smtp == null) {
-    
+
                     $scope.object.smtp = {};
                 }
 
                 this.save = function() {
 
                     $http.post( '/Admin/sitesettings/current', $scope.object )
+                        .success( function(data) {
+
+                            $scope.alerts.push( {
+                                type: 'success',
+                                msg: 'Settings was saved.'
+                            });
+                        })
+                        .error( function(data) {
+                            
+                            $scope.alerts.push( {
+                                type: 'danger',
+                                msg: 'Settings was not saved.'
+                            });
+                        });
 
                 };
-                
+
                 this.checkSendEmail = function( template ) {
 
                     $scope.isBusy = true;

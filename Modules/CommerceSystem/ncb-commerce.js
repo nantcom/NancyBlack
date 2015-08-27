@@ -306,11 +306,6 @@
 
     ncg.controller("CheckoutModal", function ($scope, $http, $timeout) {
 
-        if ($scope.shoppingcart == null) {
-
-            throw "require ncg-Cart in current scope";
-        }
-
         var $me = this;
 
         $scope.profileForm = null;
