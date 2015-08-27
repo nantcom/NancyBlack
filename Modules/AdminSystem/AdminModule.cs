@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.AdminSystem.Types;
 using NantCom.NancyBlack.Configuration;
+using Newtonsoft.Json;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -121,6 +122,8 @@ namespace NantCom.NancyBlack.Modules
                 {
                     var json = File.ReadAllText(settingsFile);
                     settingsObject = JObject.Parse(json);
+                    settingsObject = InitializedSiteSettings(settingsObject);
+                    File.WriteAllText(settingsFile, settingsObject.ToString());
                 }
                 else
                 {
@@ -128,7 +131,9 @@ namespace NantCom.NancyBlack.Modules
                     System.Diagnostics.Debugger.Break();
                     // NOTE: settings file is moved to Site folder
 #endif
-                    File.WriteAllText(settingsFile, "{}");
+                    settingsObject = InitializedSiteSettings(settingsObject);
+                    File.WriteAllText(settingsFile, settingsObject.ToString());
+                    //File.WriteAllText(settingsFile, "{}");
                 }
 
                 // setup default settings here
@@ -157,6 +162,42 @@ namespace NantCom.NancyBlack.Modules
 
                 return settingsObject;
             }
+        }
+
+        public static dynamic InitializedSiteSettings(JObject settingsObject)
+        {
+
+            var _commerceObject = settingsObject.GetValue("commerce");
+            if (_commerceObject != null)
+            {
+                return settingsObject;
+            }
+            object defaultCommerce = new
+            {
+                billing = new
+                {
+                    name = "Default Company Name",
+                    regid = "Default Register Id",
+                    address = "Default Address",
+                    vattype = "",
+                },
+                branding = new
+                {
+                    logo = "/Site/billinglogo.jpg",
+                    bgcolor = "green",
+                    fgcolor = "white",
+                    accentcolor = "white",
+                },
+
+            };
+
+            var json = JsonConvert.SerializeObject(defaultCommerce);
+
+            var _defaultSiteSettings = JObject.Parse(json);
+            settingsObject.Add("commerce", _defaultSiteSettings);
+
+            return settingsObject;
+            
         }
 
     }

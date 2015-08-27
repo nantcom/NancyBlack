@@ -15,8 +15,8 @@
         }
     </style>
     @*<link href="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.css" rel="stylesheet" />
-    <link href="/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
-    <link href="/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />*@
+        <link href="/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
+        <link href="/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />*@
 
     <link href="/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
 }
@@ -24,8 +24,8 @@
 @section Scripts
 {
     @*<script src="/Content/Scripts/ng-table/ng-table.min.js"></script>
-    <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
-    <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>*@
+        <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
+        <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>*@
 
     <script src="/Content/Scripts/Chart.js-master/Chart.min.js"></script>
     <script src="/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
@@ -49,7 +49,7 @@
         <h1>SaleOrder Dashboard <small></small></h1>
     </div>
 
-    <div class="col-md-6" 
+    <div class="col-md-6"
          ncg-chart
          title="'SUM SaleOrder'"
          table="'SaleOrder'"
@@ -57,18 +57,18 @@
          select="'TotalAmount'">
     </div>
 
-    <div class="col-md-6" 
+    <div class="col-md-6"
          ncg-chart
          title="'Count SaleOrder'"
          table="'SaleOrder'"
          fn="'count'"
          select="'TotalAmount'">
-    </div>    
+    </div>
 
     <div class="page-header">
-        <h3>Manage SaleOrder <small></small></h3>        
-    </div>    
-    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal" 
+        <h3>Manage SaleOrder <small></small></h3>
+    </div>
+    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
                  edit-fn="ctrl.viewOrderDetail(id)">
     </ncb-ngtable>
 
@@ -111,17 +111,17 @@
                 <td data-title="'Customer'"
                     sortable="'Customer'"
                     filter="{ 'Customer': 'text' }">
-                    {{item.Customer }}
+                    <span ng-include="'tablecustomercell.html'"></span>
                 </td>
                 <td data-title="'ShipTo'"
                     sortable="'ShipTo'"
                     filter="{ 'ShipTo': 'text' }">
-                    {{item.ShipTo }}
+                    <span ng-include="'tableaddresscell.html'"></span>
                 </td>
                 <td data-title="'BillTo'"
                     sortable="'BillTo'"
                     filter="{ 'BillTo': 'text' }">
-                    {{item.BillTo }}
+                    {{item.BillTo | json }}
                 </td>
                 <td data-title="'UseBillingAddress'"
                     sortable="'UseBillingAddress'"
@@ -151,7 +151,7 @@
                         <i class="fa fa-copy"></i>
                     </button>
 
-                    <button class="btn btn-info"                            
+                    <button class="btn btn-info"
                             ng-click="editFn({id: item.id})">
                         <i class="fa fa-edit"></i>
                     </button>
@@ -159,6 +159,92 @@
             </tr>
         </table>
 
-    </script>    
+    </script>
 
 </div>
+
+<script type="text/ng-template" id="tablecustomercell.html">
+
+    <span>FirstName</span>
+    <br />
+    <span>>{{item.Customer.FirstName}}</span>
+    <br />
+    <br />
+
+    <span>LastName</span>
+    <br />
+    <span>>{{item.Customer.LastName}}</span>
+    <br />
+    <br />
+
+    <span>PhoneNumber</span>
+    <br />
+    <span>>{{item.Customer.PhoneNumber}}</span>
+    <br />
+    <br />
+
+    <span>Gender</span>
+    <br />
+    <span>>{{item.Customer.Gender}}</span>
+    <br />
+    <br />
+
+    <span>DOB</span>
+    <br />
+    <span>>{{item.Customer.DOB | date: 'medium'}}</span>
+    <br />
+    <br />
+
+</script>
+
+<script type="text/ng-template" id="tableaddresscell.html">
+
+    <span>Id</span>
+    <br />
+    <span>>{{item.ShipTo.Id}}</span>
+    <br />
+    <br />
+
+    <span>To</span>
+    <br />
+    <span>>{{item.ShipTo.To}}</span>
+    <br />
+    <br />
+
+    <span>Address</span>
+    <br />
+    <span>>{{item.ShipTo.Address}}</span>
+    <br />
+    <br />
+
+    <span>District</span>
+    <br />
+    <span>>{{item.ShipTo.District}}</span>
+    <br />
+    <br />
+
+    <span>SubDistrict</span>
+    <br />
+    <span>>{{item.ShipTo.SubDistrict}}</span>
+    <br />
+    <br />
+
+    <span>State</span>
+    <br />
+    <span>>{{item.ShipTo.State}}</span>
+    <br />
+    <br />
+
+    <span>Country</span>
+    <br />
+    <span>>{{item.ShipTo.Country}}</span>
+    <br />
+    <br />
+
+    <span>PostalCode</span>
+    <br />
+    <span>>{{item.ShipTo.PostalCode}}</span>
+    <br />
+    <br />
+
+</script>
