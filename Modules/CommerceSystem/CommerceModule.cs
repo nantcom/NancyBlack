@@ -15,7 +15,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         public CommerceModule()
         {
-            Get["/__commerce/cart"] = this.HandleViewRequest("commerce-shoppingcart");
+            Get["/__commerce/cart"] = this.HandleViewRequest("commerce-shoppingcart", (arg)=>
+            {
+                return new StandardModel(this, "Checkout");
+            });
 
             Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
             {

@@ -77,6 +77,8 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
 
     public class SummarizeTimeSeries<TSource, TValue> where TValue : IComparable
     {
+        private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         public IEnumerable<TSource> Source { get; set; }
 
         /// <summary>
@@ -144,35 +146,125 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         {
             Func<DateTime, string> periodNormalizer = null;
 
+            Func<DateTime, string> getJavascriptTime = (dt) =>
+            {
+                return dt.Subtract(UnixEpoch).TotalMilliseconds.ToString();
+            };
+
             switch (this.Period)
             {
                 // minute period, time within same minute will be in same group
                 case TimePeriod.minute:
-                    periodNormalizer = (dt) => (new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0)).ToString("yyyyMMdd-HH-mm-00");
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0));
                     break;
 
                 // hour period - time withtin same hour will be in same group
                 case TimePeriod.hour:
-                    periodNormalizer = (dt) => (new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0)).ToString("yyyyMMdd-HH-00-00");
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0));
                     break;
 
                 // day period - time withint same day will be in same group
                 case TimePeriod.day:
-                    periodNormalizer = (dt) => (new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0)).ToString("yyyyMMdd");
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0));
                     break;
                 case TimePeriod.week:
                     var calendar = CultureInfo.InvariantCulture.Calendar;
-                    periodNormalizer = (dt) => "Week-" + calendar.GetWeekOfYear(dt, CalendarWeekRule.FirstDay, DayOfWeek.Monday).ToString() + "/" + dt.Year;
+                    periodNormalizer = (dt) => "Week-" + calendar.GetWeekOfYear(dt, CalendarWeekRule.FirstDay, DayOfWeek.Monday).ToString("00") + "/" + dt.Year;
                     break;
                 case TimePeriod.month:
-                    periodNormalizer = (dt) => dt.ToString("MM-yyyy");
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, 1, 0, 0, 0));
                     break;
                 case TimePeriod.year:
-                    periodNormalizer = (dt) => dt.Year.ToString();
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, 1, 1, 0, 0, 0));
                     break;
             }
 
             return periodNormalizer;
+        }
+
+        /// <summary>
+        /// Create the period step from given date range
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<string> GetPeriods(Func<DateTime, string> periodGrouper)
+        {
+            Func<DateTime, DateTime> stepper = null;
+            switch (this.Period)
+            {
+                case TimePeriod.minute:
+                    stepper = (dt) => dt.AddMinutes(1);
+                    break;
+                case TimePeriod.hour:
+                    stepper = (dt) => dt.AddHours(1);
+                    break;
+                case TimePeriod.day:
+                    stepper = (dt) => dt.AddDays(1);
+                    break;
+                case TimePeriod.week:
+                    stepper = (dt) => dt.AddDays(7);
+                    break;
+                case TimePeriod.month:
+                    stepper = (dt) => dt.AddMonths(1);
+                    break;
+                case TimePeriod.year:
+                    stepper = (dt) => dt.AddYears(1);
+                    break;
+                default:
+                    break;
+            }
+
+            DateTime min;
+            DateTime now = DateTime.Now;
+            switch (this.Period)
+            {
+                case TimePeriod.minute:
+                    min = now.AddHours(-1);
+                    break;
+                case TimePeriod.hour:
+                    min = now.AddHours(-24);
+                    break;
+                case TimePeriod.day:
+                    min = now.Date.AddDays(-7);
+                    break;
+                case TimePeriod.week:
+                    min = now.Date.AddDays(-30);
+                    break;
+                case TimePeriod.month:
+                    min = now.Date.AddMonths(-12);
+                    break;
+                case TimePeriod.year:
+                    min = now.Date.AddYears(-3);
+                    break;
+                default:
+                    throw new InvalidOperationException("TimePeriod is not supported: " + this.Period);
+            }
+
+
+            DateTime current = min;
+            string last = periodGrouper(min);
+            yield return last;
+
+            while (true)
+            {
+                current = stepper(current);
+                if (current > now)
+                {
+                    var lastGroup = periodGrouper(current);
+                    if (lastGroup != last)
+                    {
+                        yield return lastGroup;
+                    }
+
+                    break;
+                }
+
+                var newGroup = periodGrouper(current);
+                if (newGroup != last)
+                {
+                    yield return newGroup;
+                    last = newGroup;
+                }
+            }
         }
 
         /// <summary>
@@ -285,9 +377,16 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             var grouper = this.CreatePeriodGroupingFunction();
             var timeSelector = this.CreateTimeSelectorFunction();
 
-            var groups = from item in this.Source.ToList()
+            var source = this.Source.ToList();
+
+            var groups = from item in source
                          group item by grouper(timeSelector(item)) into g
                          select g;
+            
+            var allseries = this.GetPeriods(grouper).ToDictionary(
+                                k => k,
+                                v => new Series() { Key = v, Value = 0 }
+                            );
 
             foreach (var g in groups)
             {
@@ -295,9 +394,13 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                 series.Key = g.Key;
                 series.Value = summary(g);
 
-                yield return series;
+                allseries[g.Key] = series;
             }
 
+            foreach (var series in allseries.Values.OrderBy( s => s.Key ) )
+            {
+                yield return series;
+            }
         }
     }
 
@@ -347,7 +450,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             var type = dt.GetCompiledType();
             var getTable = typeof(NancyBlackDatabase)
                             .GetMethods().Single(m => m.Name == "Query" && m.GetParameters().Length == 0)
-                            .MakeGenericMethod(type); // calling this.Summarize<T>
+                            .MakeGenericMethod(type); // calling this.Query<T>
 
             var sourceTable = getTable.Invoke( this.SiteDatabase, null );
 

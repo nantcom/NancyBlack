@@ -20,8 +20,8 @@
     "sourceMap": false
   },
   {
-    "outputFile": "Modules/CommerceSystem/ncb-commerce.css",
     "inputFile": "Modules/CommerceSystem/ncb-commerce.less",
+    "outputFile": "Modules/CommerceSystem/ncb-commerce.css",
     "sourceMap": false
   },
   {
