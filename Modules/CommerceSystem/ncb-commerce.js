@@ -911,18 +911,16 @@
         };
     });
 
-    ncg.directive('ncgChart', function ($http) {
+    ncg.directive('ncgChart', function ($http, $filter) {
 
         function link(scope, element, attrs) {                        
 
-            /* Variable declarable */
-            var _monthLabels = ["January", "February", "March", "April", "May", "June", "July"];
-            var _dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            /* Variable declarable */            
 
-            scope.labels = _dayLabels;
-            scope.series = [];//['Series A'];
+            scope.labels = [];
+            scope.series = [];
             scope.data = [
-              [65, 59, 80, 81, 56, 55, 40],
+              //[65, 59, 80, 81, 56, 55, 40],
               //[28, 48, 40, 19, 86, 27, 90]
             ];
 
@@ -949,9 +947,7 @@
 
                 var criteria = "/tables/" + scope.table + "/summarize?period=" + period + "&fn=" + scope.fn + "&select=" + scope.select + "&time=__createdAt";
                 $http.get(criteria).
-                      then(function (response) {
-
-                          //$log.info(response.data);
+                      then(function (response) {                          
 
                           _mapDataToGraph(response.data, period)
 
@@ -970,8 +966,33 @@
                 _getDataByPeriod(period);
             };
 
-            function _mapDataToGraph(data, period) {
+            function _FormatDate(timestamp, period) {
 
+                var _displayValue = "";                
+
+                switch (period) {
+                    case "day":
+                        _displayValue = $filter('date')(timestamp, 'EEEE');
+                        break;
+
+                    case "month":
+                        _displayValue = $filter('date')(timestamp, 'MMMM, yyyy');
+                        break;
+
+                    case "year":
+                        _displayValue = $filter('date')(timestamp, 'yyyy');;
+                        break;
+
+                    default:
+                        _displayValue = timestamp;
+                        break;
+                }
+                
+                return _displayValue;
+            };
+
+            function _mapDataToGraph(data, period) {
+                
                 var arrKey = [], arrValue = [];
                 if (period == "hour") {
 
@@ -1017,7 +1038,7 @@
                     });
                 }
 
-                scope.data = [arrValue];
+                scope.data = [arrValue];                
                 scope.labels = arrKey;
 
             };

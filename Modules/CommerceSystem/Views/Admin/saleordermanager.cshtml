@@ -120,8 +120,8 @@
                 </td>
                 <td data-title="'BillTo'"
                     sortable="'BillTo'"
-                    filter="{ 'BillTo': 'text' }">
-                    {{item.BillTo | json }}
+                    filter="{ 'BillTo': 'text' }">                    
+                    <span ng-include="'tableaddressbillingcell.html'"></span>
                 </td>
                 <td data-title="'UseBillingAddress'"
                     sortable="'UseBillingAddress'"
@@ -199,12 +199,6 @@
 
 <script type="text/ng-template" id="tableaddresscell.html">
 
-    <span>Id</span>
-    <br />
-    <span>>{{item.ShipTo.Id}}</span>
-    <br />
-    <br />
-
     <span>To</span>
     <br />
     <span>>{{item.ShipTo.To}}</span>
@@ -244,6 +238,52 @@
     <span>PostalCode</span>
     <br />
     <span>>{{item.ShipTo.PostalCode}}</span>
+    <br />
+    <br />
+
+</script>
+
+<script type="text/ng-template" id="tableaddressbillingcell.html">
+
+    <span>To</span>
+    <br />
+    <span>>{{item.BillTo.To}}</span>
+    <br />
+    <br />
+
+    <span>Address</span>
+    <br />
+    <span>>{{item.BillTo.Address}}</span>
+    <br />
+    <br />
+
+    <span>District</span>
+    <br />
+    <span>>{{item.BillTo.District}}</span>
+    <br />
+    <br />
+
+    <span>SubDistrict</span>
+    <br />
+    <span>>{{item.BillTo.SubDistrict}}</span>
+    <br />
+    <br />
+
+    <span>State</span>
+    <br />
+    <span>>{{item.BillTo.State}}</span>
+    <br />
+    <br />
+
+    <span>Country</span>
+    <br />
+    <span>>{{item.BillTo.Country}}</span>
+    <br />
+    <br />
+
+    <span>PostalCode</span>
+    <br />
+    <span>>{{item.BillTo.PostalCode}}</span>
     <br />
     <br />
 
