@@ -15,8 +15,10 @@
            ng-show="isBusy"></i>
 
         <button class="btn btn-primary btn-lg pull-right"
-           ng-disabled="isBusy"
-           ng-click="ctrl.save()">Save</button>
+                ng-disabled="isBusy"
+                ng-click="ctrl.save()">
+            Save
+        </button>
 
     </h1>
     <ncb-alerts alerts="alerts"></ncb-alerts>
@@ -56,9 +58,7 @@
                    ncb-textbox ng-model="object.commerce.billing.regid" />
 
             <textarea title="Billing Address" rows="5"
-                   ncb-textbox ng-model="object.commerce.billing.address">
-
-            </textarea>
+                      ncb-textbox ng-model="object.commerce.billing.address"></textarea>
 
             <div class="form-group">
                 <label>VAT</label><br />
@@ -68,7 +68,66 @@
             </div>
 
         </div>
-        
+
+        <div class="col-md-4 "
+             ncg-currencylist>
+
+            <h2>Multi-Currency</h2>
+            <select ng-model="object.commerce.multicurrency.home" disabled
+                    ncb-select title="Home Currency">
+                <option ng-repeat="currency in currencyList"
+                        ng-selected="{{currency.code == object.commerce.multicurrency.home}}"
+                        value="{{currency.code}}">{{currency.code}} - {{currency.name}}</option>
+            </select>
+
+            <alert type="warning">
+                Changing home currency is not yet possible in current release.
+            </alert>
+
+            <div class="form-group"
+                 ncb-listeditor target="object.commerce.multicurrency.available">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Available Currencies</th>
+                            <th width="30px"></th>
+                        </tr>
+                    </thead>
+                    <tr ng-repeat="currency in object.commerce.multicurrency.available">
+                        <td>
+                            <p class="form-control-static">
+                                {{currency}}
+                            </p>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger"
+                                    ng-click="remove(currency)"><i class="fa fa-remove"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <select ng-model="newItem" class="form-control">
+                                <option ng-repeat="currency in currencyList"
+                                        value="{{currency.code}}">
+                                    {{currency.code}} - {{currency.name}}
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-success"
+                                    ng-click="add()">
+                                <i class="fa fa-plus-circle"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+    <div class="row">
+
         <div class="col-md-4">
 
             <h2>Branding</h2>
@@ -80,7 +139,9 @@
                 <div class="col-xs-6 printform">
 
                     <h1 id="header"
-                        ng-style="{ 'background-color' : object.commerce.branding.bgcolor, color : object.commerce.branding.fgcolor }">Header</h1>
+                        ng-style="{ 'background-color' : object.commerce.branding.bgcolor, color : object.commerce.branding.fgcolor }">
+                        Header
+                    </h1>
 
                 </div>
             </div>
@@ -126,18 +187,18 @@
                             $scope.alerts.push( { type: 'success', msg: 'Settings Saved.'});
                         })
                         .error ( function( data ) {
-                            
+
                             $scope.alerts.push( { type: 'danger', msg: 'Save Failed.' + data});
                         });
 
                 };
-                
+
                 $scope.data = {};
                 $("#logouploader").on("change", function (e) {
 
                     var files = $("#logouploader")[0].files;
 
-                    
+
                     var targetUrl = "/admin/commerce/api/uploadlogo";
 
                     var fd = new FormData();
@@ -174,7 +235,7 @@
                     });
 
                     req.done(function (result) {
-                        
+
                         $scope.$apply(function () {
 
                             if ($scope.object.commerce.branding == null) {
@@ -187,7 +248,7 @@
                                 type: 'success',
                                 msg: 'Logo was uploaded'
                             });
-                                                        
+
                             $me.save();
 
                         });

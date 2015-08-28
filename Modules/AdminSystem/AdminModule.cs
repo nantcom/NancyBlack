@@ -144,7 +144,13 @@ namespace NantCom.NancyBlack.Modules
                     {
                         paysbuy = new { },
                         billing = new { vattype = "" },
-                        branding = new { bgcolor = "black", fgcolor = "white", accentcolor = "blue" }
+                        branding = new { bgcolor = "black", fgcolor = "white", accentcolor = "blue" },
+                        multicurrency = new
+                        {
+                            openexchangeratekey = "8ecf50d998af4c2f837bfa416698784e",
+                            home = "THB",
+                            available = new JArray()
+                        }
                     });
                 }
 

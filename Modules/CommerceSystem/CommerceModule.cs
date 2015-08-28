@@ -83,20 +83,33 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             // Update Total
             saleorder.TotalAmount = 0;
+
+            // snapshot the products into this sale order
+            // so that if there is a change in product info later
+            // we still have the one that customer sees
+            List<Product> products = new List<Product>();
             foreach (var item in saleorder.Items)
             {
                 var product = this.SiteDatabase.GetById<Product>(item);
+                products.Add(product);
+                
                 saleorder.TotalAmount += product.Price;
             }
 
-            this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+            this.SiteDatabase.Transaction(() =>
+            {
+                // need to insert to get ID
+                this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
 
-            saleorder.SaleOrderIdentifier = string.Format( CultureInfo.InvariantCulture,
-                    "SO{0:yyyyMMdd}-{1:000000}",
-                    saleorder.__createdAt,
-                    saleorder.Id);
+                saleorder.SaleOrderIdentifier = string.Format(CultureInfo.InvariantCulture,
+                        "SO{0:yyyyMMdd}-{1:000000}",
+                        saleorder.__createdAt,
+                        saleorder.Id);
 
-            this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+                // save the SO ID again
+                this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+            });
+
 
             return saleorder;
         }

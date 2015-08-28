@@ -1443,7 +1443,7 @@
         };
     });
 
-    module.directive('ncbResize', function ($http) {
+    module.directive('ncbResize', function () {
 
         function link($scope, element, attrs) {
 
@@ -1452,41 +1452,54 @@
                 throw "ncb-resize attribute value is required";
             }
 
-            var finalUrl = "/__resize" + attrs.ncbResize + "?";
+            function updateUrl(url) {
 
-            if (attrs.width != null) {
+                element.attr("src", "");
 
-                var w = attrs.width;
-                if (w == "100%") {
-                    w = element.width();
+                var finalUrl = "/__resize" + url + "?";
+
+                if (attrs.width != null) {
+
+                    var w = attrs.width;
+                    if (w == "100%") {
+                        w = element.width();
+                    }
+
+                    finalUrl += String.format("w={0}&",
+                                    w
+                                );
                 }
 
-                finalUrl += String.format( "w={0}&",
-                                w
-                            );
-            } 
+                if (attrs.height != null) {
 
-            if (attrs.height != null) {
+                    var h = attrs.height;
+                    if (h == "100%") {
+                        h = element.height();
+                    }
 
-                var h = attrs.height;
-                if (h == "100%") {
-                    h = element.height();
+                    finalUrl += String.format("h={0}&",
+                                    attrs.height
+                                );
                 }
 
-                finalUrl += String.format("h={0}&",
-                                attrs.height
-                            );
+                if (attrs.width == null && attrs.height == null) {
+
+                    finalUrl += String.format("w={0}&h={1}",
+                                    element.width(),
+                                    element.height()
+                                );
+                }
+
+                element.attr("src", finalUrl);
             }
 
-            if (attrs.width == null && attrs.height == null) {
+            if (attrs.ncbResize.indexOf( '/' ) != 0) {
+                // needs to watch, it is not a url
+                $scope.$parent.$watch(attrs.ncbResize, updateUrl);
+            } else {
 
-                finalUrl += String.format("w={0}&h={1}",
-                                element.width(),
-                                element.height()
-                            );
+                updateUrl(attrs.ncbResize);
             }
-
-            element.attr("src", finalUrl);
         }
 
         return {

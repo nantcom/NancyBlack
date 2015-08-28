@@ -46,7 +46,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string SKUNumber { get; set; }
         
         /// <summary>
-        /// Price of this product
+        /// Price of this product in home currency
         /// </summary>
         public Decimal Price { get; set; }
         
@@ -74,5 +74,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Attributes of the product (such as size, color...)
         /// </summary>
         public dynamic Attributes { get; set; }
+
+        /// <summary>
+        /// Price of this product in Multi Currency
+        /// </summary>
+        public dynamic PriceMultiCurrency { get; set; }
     }
 }

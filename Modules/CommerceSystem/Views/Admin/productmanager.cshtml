@@ -34,6 +34,24 @@
      ng-cloak>
 
     <div>
+        <div style="margin-bottom: 10px">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-success btn-lg"
+                        data-toggle="modal" data-target="#ProductModal"
+                        ng-click="object = { Url: filters.Url }; ctrl.IsCollapse = true;">
+                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                    Product
+                </button>
+                @*<button type="button" class="btn btn-default"
+                        data-toggle="modal" data-target="#MultipleProductUpdate">
+                    <span class="fa fa-check-circle"></span>
+                    Mass Update
+                </button>*@
+            </div>
+            <i class="fa fa-2x fa-spin fa-circle-o-notch pull-right"
+               ng-show="isBusy == true"></i>
+        </div>
+
         <div ui-tree data-drag-enabled="false" id="tree-root">
             <ol ui-tree-nodes ng-model="ctrl.list.nodes">
                 <li ng-repeat="node in ctrl.list.nodes" ui-tree-node ng-include="'nodes_renderer.html'"></li>
@@ -46,7 +64,14 @@
         <div collapse="ctrl.IsCollapse">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h1>{{object.id}} : {{object.Title}}</h1>
+                    <h1>
+                        {{object.id}} : {{object.Title}}
+
+                        <button class="btn btn-warning" style="margin-top:-8px"
+                                ng-click="data.delete(object)">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </h1>
                     <span class="glyphicon glyphicon-chevron-down"
                           ng-click="ctrl.IsCollapse = !ctrl.IsCollapse"></span>
                 </div>
@@ -113,11 +138,11 @@
 
                                         <div class="row">
 
-                                            <p ncb-formstatic ncb-col="col-xs-6" title="Average Cost">
+                                            <p ncb-formstatic ncb-col="col-xs-6" title="Average Cost (@this.Site.commerce.multicurrency.home)">
                                                 {{object.AverageCost}}
                                             </p>
 
-                                            <input type="number" ncb-textbox ncb-col="col-xs-6" name="Price" title="Price" ng-model="object.Price">
+                                            <input type="number" ncb-textbox ncb-col="col-xs-6" name="Price" title="Price  (@this.Site.commerce.multicurrency.home)" ng-model="object.Price">
 
                                         </div>
 
@@ -175,10 +200,12 @@
                             </tabset>
 
                             <div>
-
                                 <button class="btn btn-primary btn-lg pull-right"
                                         ng-click="data.save(object)">
-                                    <span ng-show="object.id != null">Save</span>
+                                    <span ng-show="object.id != null">
+                                        <i class="fa fa-save"></i>
+                                        Save
+                                    </span>
                                 </button>
                                 <p class="form-control-static">Last updated {{object.__updatedAt | date:'medium'}}</p>
 
@@ -190,26 +217,8 @@
             </div>
         </div>
 
-        <div>
-            <div class="btn-group pull-right" role="group" aria-label="...">
-                <button type="button" class="btn btn-default"
-                        data-toggle="modal" data-target="#MultipleProductUpdate">
-                    <span class="glyphicon glyphicon-usd"></span>
-                    Update Prices | Stocks
-                </button>
-                <button type="button" class="btn btn-default"
-                        data-toggle="modal" data-target="#ProductModal"
-                        ng-click="object = { Url: filters.Url }; ctrl.IsCollapse = true;">
-                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
-                    Create Product
-                </button>
-            </div>
-        </div>
-
-        <div>
-            &nbsp;
-        </div>
-
+        <ncb-alerts alerts="alerts"></ncb-alerts>
+        
         <div>
             <table id="CaseTable"
                    ncb-datatable
@@ -234,12 +243,14 @@
                     <td data-title="'DisplayOrder'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }">{{product.DisplayOrder}}</td>
                     <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }">{{product.Stock}}</td>
                     <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }">
-                        {{product.Price | number }}
+                        {{product.Price | number:2 }}
+                        @this.Site.commerce.multicurrency.home
                     </td>
+                    <td data-title="'Updated'" sortable="'__updatedAt'">{{product.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}</td>
                     <td data-title="''" style="white-space: nowrap">
 
                         <button class="btn btn-default"
-                                ng-click="data.copy(item)">
+                                ng-click="data.copy(product)">
                             <i class="fa fa-copy"></i>
                         </button>
 
@@ -256,12 +267,12 @@
 
         <ncb-modal id="MultipleProductUpdate"
                    title="Update Stock/Price on multiple products"
-                   closebutton deletebutton>
+                   closebutton >
 
             <form role="form" name="MultipleProductUpdateForm" ng-submit="ctrl.UpdateMultipleProducts(UpdateStock, UpdatePrice)">
 
                 <div class="well">
-                    @*{{checkboxes.items}}*@
+                    Edit: {{checkboxes.items.legnt}} Products.
                 </div>
 
                 <input type="text" name="Stock" title="Stock"
@@ -285,38 +296,20 @@
 
         <script type="text/ng-template" id="nodes_renderer.html">
             <div ui-tree-handle class="tree-node tree-node-content">
-                <div class="row">
 
-                    <div class="col-md-1">
-                        <!-- Symbol -->
-                        <a class="btn btn-success btn-xs" ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)">
-                            <span class="glyphicon"
-                                  ng-class="{
+                <!-- Symbol -->
+                <a ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)">
+                    <span class="glyphicon"
+                          ng-class="{
                                   'glyphicon-chevron-right': collapsed,
                                   'glyphicon-chevron-down': !collapsed
                                 }">
-                            </span>
-                        </a>
-                    </div>
-
-                    <div class="col-md-10">
-                        {{node.title}}
-                    </div>
-
-                    <div class="col-md-1 pull-right">
-                        <!-- Action buttons
-                        <a class="pull-right btn btn-danger btn-xs" data-nodrag ng-click="remove(this)">
-                            <span class="glyphicon glyphicon-remove"></span>
-                        </a>
-                        <a class="pull-right btn btn-primary btn-xs" data-nodrag ng-click="newSubItem(this)" style="margin-right: 8px;">
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </a>
-                        -->
-                        <a class="pull-right btn btn-primary btn-xs" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px;">
-                            <span class="glyphicon glyphicon-chevron-right"></span>
-                        </a>
-                    </div>
-                </div>
+                    </span>
+                </a>
+                {{node.title}}
+                <a class="pull-right" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px;">
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
             </div>
             <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
                 <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer.html'">
@@ -327,8 +320,8 @@
 
 
     <ncb-modal id="ProductModal"
-               title="{{object.id == null ? 'Create Product' : 'Edit Product'}}"
-               closebutton deletebutton>
+               title="Create New Product"
+               closebutton>
         <form role="form" name="ProductForm">
 
             <tabset>
@@ -336,16 +329,12 @@
 
                     <input type="text" name="Title" title="Title"
                            ncb-textbox required
+                           ng-change="(ProductForm.Url.$untouched ? object.Url = filters.Url + '/' + object.Title.toLowerCase() : null )"
                            ng-model="object.Title" />
-
-                    <input type="text" name="DisplayOrder" title="DisplayOrder"
-                           ncb-textbox
-                           ng-model="object.DisplayOrder" />
 
                     <input type="text" name="Url" title="Url"
                            ncb-textbox required
                            ng-model="object.Url" />
-
                 </tab>
             </tabset>
 

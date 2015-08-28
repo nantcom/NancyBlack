@@ -13,12 +13,7 @@
         $scope.object = {};
 
         $scope.defaultAttributes = ['Color', 'Gender', 'Size', 'BirthMonth'];
-
-        $scope.testtag = function (a) {
-
-            console.log(a);
-        };
-
+        
         var vm = this;        
         vm.view_data = _viewData;
         vm.filterbyurl = _FilterByUrl;
@@ -117,9 +112,15 @@
         //#region Reload on data change
         {
             var reload = function () {
-                $scope.tableParams.reload();
-            };
 
+                $("#ProductModal").modal('hide');
+
+                vm.IsCollapse = true;
+
+                $scope.tableParams.reload();
+                _LoadTreeDataLeftMenu();
+            };
+            
             $rootScope.$on("inserted", reload);
             $rootScope.$on("deleted", reload);
             $rootScope.$on("ncb-datacontext.deleted", reload);

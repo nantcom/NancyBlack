@@ -10,14 +10,14 @@
             <i class="ion-document">
             </i>
 
-            <img ng-src="{{item.Url}}" />
+            <img ncb-resize="{{item.Url}}" width="80" />
         </li>
     </ul>
     <ncb-modal class="attachmentView" closebutton deletebutton
                ondelete="attachmentManager.delete(viewing)"
                title="Attachment">
 
-        <img ng-src="{{viewing.Url}}" />
+        <img ncb-resize="viewing.Url" width="500" />
 
         <ncb-footer>
             <button ng-show="selecttext != null" 
