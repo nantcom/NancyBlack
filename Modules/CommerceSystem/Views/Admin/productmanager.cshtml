@@ -51,8 +51,9 @@
                           ng-click="ctrl.IsCollapse = !ctrl.IsCollapse"></span>
                 </div>
                 <div class="panel-body">
+
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
 
                             <script type="text/ng-template" id="carousel.html">
 
@@ -68,57 +69,120 @@
                                 </carousel>
 
                             </script>
-
-                            <div ng-include="carouseltemplate"></div>
-
-
-                            <ncb-attachmentmanager onselect="ctrl.addToContentBlock" selecttext="Insert">
+                            
+                            <ncb-attachmentmanager>
                             </ncb-attachmentmanager>
 
                         </div>
 
-                        <div class="col-md-6">
-                            <form role="form" name="ProductForm">
+                        <div class="col-md-9">
 
-                                <input type="text" ncb-textbox ncb-lg required
-                                       name="Title" title="Title" ng-model="object.Title">
+                            <tabset>
+                                <tab heading="General">
 
-                                <div class="row">
+                                    <form role="form" name="ProductForm">
 
-                                    <input type="text" ncb-textbox ncb-col="col-xs-6" name="Url" title="Url" ng-model="object.Url">
+                                        <div class="row">
 
-                                    <input type="text" ncb-textbox ncb-col="col-xs-6" name="DisplayOrder" title="DisplayOrder" ng-model="object.DisplayOrder">
+                                            <input type="text" ncb-textbox ncb-lg required ncb-col="col-xs-6"
+                                                   name="Title" title="Title" ng-model="object.Title">
 
-                                </div>
 
-                                <div class="row">
+                                            <input type="text" ncb-textbox ncb-lg ncb-col="col-xs-6"
+                                                   name="SKU" title="SKU#" ng-model="object.SKUNumber">
 
-                                    <p ncb-formstatic ncb-col="col-xs-6" title="Actual Inventory">
-                                        {{object.ActualInventory}}
+                                        </div>
+
+                                        <div class="row">
+
+                                            <input type="text" ncb-textbox ncb-col="col-xs-6" name="Url" title="Url" ng-model="object.Url">
+
+                                            <input type="text" ncb-textbox ncb-col="col-xs-6" name="DisplayOrder" title="DisplayOrder" ng-model="object.DisplayOrder">
+
+                                        </div>
+
+                                        <div class="row">
+
+                                            <p ncb-formstatic ncb-col="col-xs-6" title="Actual Inventory">
+                                                {{object.ActualInventory}}
+                                            </p>
+
+                                            <input type="number" ncb-textbox ncb-col="col-xs-6" name="Stock" title="Stock on E-Commerce" ng-model="object.Stock">
+
+                                        </div>
+
+                                        <div class="row">
+
+                                            <p ncb-formstatic ncb-col="col-xs-6" title="Average Cost">
+                                                {{object.AverageCost}}
+                                            </p>
+
+                                            <input type="number" ncb-textbox ncb-col="col-xs-6" name="Price" title="Price" ng-model="object.Price">
+
+                                        </div>
+
+                                    </form>
+
+                                </tab>
+                                <tab heading="Attributes">
+
+                                    <p>
+                                        Attributes are special descriptor of product such as Color, Gender or Size.
                                     </p>
+                                    <table class="table"
+                                           ncb-attributeeditor target="object.Attributes">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 150px">Attribute</th>
+                                                <th>Value</th>
+                                                <th style="width: 30px"></th>
+                                            </tr>
+                                        </thead>
+                                        <tr ng-repeat="(key,value) in target">
+                                            <td>
+                                                {{key}}
+                                            </td>
+                                            <td>
+                                                {{value}}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-danger"
+                                                        ng-click="remove(key)">
+                                                    <i class="fa fa-remove"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <input type="text" ncb-textbox
+                                                       ng-model="newItem.Key"
+                                                       typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8"/>
+                                            </td>
+                                            <td>
+                                                <input type="text" ncb-textbox
+                                                       ng-model="newItem.Value" />
 
-                                    <input type="number" ncb-textbox ncb-col="col-xs-6" name="Stock" title="Stock" ng-model="object.Stock">
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-success"
+                                                        ng-click="add()">
+                                                    <i class="fa fa-plus"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </tab>
+                            </tabset>
 
-                                </div>
+                            <div>
 
-                                <div class="row">
+                                <button class="btn btn-primary btn-lg pull-right"
+                                        ng-click="data.save(object)">
+                                    <span ng-show="object.id != null">Save</span>
+                                </button>
+                                <p class="form-control-static">Last updated {{object.__updatedAt | date:'medium'}}</p>
 
-                                    <p ncb-formstatic ncb-col="col-xs-6" title="Average Cost">
-                                        {{object.AverageCost}}
-                                    </p>
-
-                                    <input type="number" ncb-textbox ncb-col="col-xs-6" name="Price" title="Price" ng-model="object.Price">
-
-                                </div>
-
-                                <span class="pull-left">Last updated {{object.__updatedAt | date:'medium'}}</span>
-
-                            </form>
-                            <br />
-                            <button class="btn btn-primary btn-lg pull-right"
-                                    ng-click="data.save(object)">
-                                <span ng-show="object.id != null">Save</span>
-                            </button>
+                            </div>
                         </div>
                     </div>
 
@@ -135,7 +199,7 @@
                 </button>
                 <button type="button" class="btn btn-default"
                         data-toggle="modal" data-target="#ProductModal"
-                        ng-click="object = { Url: filters.Url }">
+                        ng-click="object = { Url: filters.Url }; ctrl.IsCollapse = true;">
                     <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
                     Create Product
                 </button>

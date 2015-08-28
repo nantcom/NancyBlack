@@ -117,24 +117,37 @@ namespace NantCom.NancyBlack.Modules
             {
                 var settingsFile = Path.Combine(BootStrapper.RootPath, "Site", "sitesettings.dat");
 
-                var settingsObject = new JObject();
-                if (File.Exists( settingsFile ) == true)
-                {
-                    var json = File.ReadAllText(settingsFile);
-                    settingsObject = JObject.Parse(json);
-                    settingsObject = InitializedSiteSettings(settingsObject);
-                    File.WriteAllText(settingsFile, settingsObject.ToString());
-                }
-                else
+                if (File.Exists( settingsFile ) == false)
                 {
 #if DEBUG
                     System.Diagnostics.Debugger.Break();
                     // NOTE: settings file is moved to Site folder
 #endif
-                    settingsObject = InitializedSiteSettings(settingsObject);
-                    File.WriteAllText(settingsFile, settingsObject.ToString());
-                    //File.WriteAllText(settingsFile, "{}");
+                    File.WriteAllText(settingsFile, "{}"); // need the file to monitor change
                 }
+                
+                var json = File.ReadAllText(settingsFile);
+                var settingsObject = JObject.Parse(json);
+
+                // ensure that some critical settings exists
+                if (settingsObject["lockdown"] == null)
+                {
+                    settingsObject["lockdown"] = JObject.FromObject(new {
+                        enable = false,
+                        message = "Site is under maintenance."
+                    });
+                }
+
+                if (settingsObject["commerce"] == null)
+                {
+                    settingsObject["commerce"] = JObject.FromObject(new
+                    {
+                        paysbuy = new { },
+                        billing = new { vattype = "" },
+                        branding = new { bgcolor = "black", fgcolor = "white", accentcolor = "blue" }
+                    });
+                }
+
 
                 var cachePolicy = new CacheItemPolicy();
                 cachePolicy.ChangeMonitors.Add(new HostFileChangeMonitor(new List<string>() { settingsFile }));
@@ -143,42 +156,6 @@ namespace NantCom.NancyBlack.Modules
                 return settingsObject;
             }
         }
-
-        public static dynamic InitializedSiteSettings(JObject settingsObject)
-        {
-
-            var _commerceObject = settingsObject.GetValue("commerce");
-            if (_commerceObject != null)
-            {
-                return settingsObject;
-            }
-            object defaultCommerce = new
-            {
-                billing = new
-                {
-                    name = "Default Company Name",
-                    regid = "Default Register Id",
-                    address = "Default Address",
-                    vattype = "",
-                },
-                branding = new
-                {
-                    logo = "/Site/billinglogo.jpg",
-                    bgcolor = "green",
-                    fgcolor = "white",
-                    accentcolor = "white",
-                },
-
-            };
-
-            var json = JsonConvert.SerializeObject(defaultCommerce);
-
-            var _defaultSiteSettings = JObject.Parse(json);
-            settingsObject.Add("commerce", _defaultSiteSettings);
-
-            return settingsObject;
-            
-        }
-
+        
     }
 }

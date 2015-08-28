@@ -69,6 +69,14 @@
 </head>
 <body ncb-membership>
 
+
+    @if (this.Site.lockdown != null && this.Site.lockdown.enable == true)
+    {
+        <i class="fa fa-lock"
+           style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
+    }
+
+
     @RenderBody()
 
     <script>

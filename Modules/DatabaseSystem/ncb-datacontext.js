@@ -847,6 +847,60 @@
         };
     }]);
 
+    ncb.directive('ncbAttributeeditor', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+
+            var $me = this;
+
+            $scope.newItem = {};
+            $scope.target = $scope.$parent.$eval(attrs.target);
+
+            $scope.$watch(attrs.target, function () {
+
+                $scope.target = $scope.$parent.$eval(attrs.target);
+            });
+
+            $scope.remove = function (key) {
+
+                var target = $scope.$parent.$eval(attrs.target);
+
+                if (target == null) {
+
+                    return;
+                }
+
+                $scope.newItem.Key = key;
+                $scope.newItem.Value = target[key];
+
+                delete target[key];
+            };
+
+            $scope.add = function () {
+
+                var target = $scope.$parent.$eval(attrs.target);
+
+                if (target == null) {
+
+                    $scope.$parent.$eval(attrs.target + "={}");
+                    target = $scope.$parent.$eval(attrs.target);
+                }
+
+                target[$scope.newItem.Key] = $scope.newItem.Value;
+
+                $scope.target = target;
+
+                $scope.newItem = {};
+            };
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: true
+        };
+    }]);
+
     ncb.directive('ncbLookupscope', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {

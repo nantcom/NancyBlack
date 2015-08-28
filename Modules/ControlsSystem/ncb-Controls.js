@@ -714,47 +714,7 @@
             link: link
         };
     }]);
-
-    // List Editor
-    module.directive('ncbListedit', ['$compile', function ($compile) {
-
-        function link(scope, element, attrs) {
-
-            scope.list = [{ name: 'a' }];
-
-            // alter ncb-repeat into ng-repeat
-            element.find(".ncb-listarea").find("[ncb-repeat]").each(function (i, item) {
-
-                $(item).attr("ng-repeat", $(item).attr("ncb-repeat"));
-                $(item).removeAttr("ncb-repeat");
-
-            });
-
-            // remove transclude, as the html is already put into place
-            element.find(".ncb-listarea").removeAttr("ng-transclude");
-
-            // compile the template to make ng-repeat works
-            $compile(element.find('.ncb-listarea'))(scope);
-
-            var myScope = scope;
-            scope.add = function () {
-
-                myScope.list.push({});
-
-            };
-        }
-
-        return {
-            restrict: 'E',
-            transclude: true,
-            templateUrl: '/Modules/ControlsSystem/Templates/ncbListEdit.html',
-            scope: {
-                list: '=list',
-            },
-            link: link
-        };
-    }]);
-
+    
     // JSON Editor
     module.directive('ncbJsonedit', function () {
 
@@ -1358,11 +1318,45 @@
             if (attrs.minheight != null) {
                 element.css("min-height", attrs.minheight);
             }
-            element.css("height", $window.height());
+
+            var scale = 1;
+            if (attrs.scale != null) {
+                scale = parseFloat(attrs.scale);
+            }
+
+            element.css("height", $window.height() * scale);
 
             $window.on("resize", function () {
 
-                element.css("height", $window.height());
+                element.css("height", $window.height() * scale);
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbFixedmenu', function ($window) {
+
+        function link(scope, element, attrs) {
+
+            if (attrs.fixedclass == null) {
+                throw "fixedclass attribute is required";
+            }
+
+            var $window = $(window);
+            var myHeight = element.offset().top;
+
+            $window.on("scroll", function () {
+
+                var top = $window.scrollTop();
+                if (top > myHeight) {
+                    element.addClass(attrs.fixedclass);
+                } else {
+                    element.removeClass(attrs.fixedclass);
+                }
             });
         }
 
@@ -1448,4 +1442,59 @@
             scope: true,
         };
     });
+
+    module.directive('ncbResize', function ($http) {
+
+        function link($scope, element, attrs) {
+
+            if (attrs.ncbResize == null) {
+
+                throw "ncb-resize attribute value is required";
+            }
+
+            var finalUrl = "/__resize" + attrs.ncbResize + "?";
+
+            if (attrs.width != null) {
+
+                var w = attrs.width;
+                if (w == "100%") {
+                    w = element.width();
+                }
+
+                finalUrl += String.format( "w={0}&",
+                                w
+                            );
+            } 
+
+            if (attrs.height != null) {
+
+                var h = attrs.height;
+                if (h == "100%") {
+                    h = element.height();
+                }
+
+                finalUrl += String.format("h={0}&",
+                                attrs.height
+                            );
+            }
+
+            if (attrs.width == null && attrs.height == null) {
+
+                finalUrl += String.format("w={0}&h={1}",
+                                element.width(),
+                                element.height()
+                            );
+            }
+
+            element.attr("src", finalUrl);
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: true,
+        };
+    });
+
+
 })();

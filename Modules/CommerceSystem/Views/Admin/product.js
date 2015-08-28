@@ -5,12 +5,19 @@
         .module('app', ['ngTable', 'ui.tree'])
         .controller('product_controller', product_controller);
 
-    product_controller.$inject = ['ngTableParams', '$location', '$log', '$scope', '$window', '$http'];
+    product_controller.$inject = ['ngTableParams', '$location', '$log', '$scope', '$window', '$http', '$rootScope'];
 
-    function product_controller(ngTableParams, $location, $log, $scope, $window, $http) {
+    function product_controller(ngTableParams, $location, $log, $scope, $window, $http, $rootScope) {
         /* jshint validthis:true */
 
         $scope.object = {};
+
+        $scope.defaultAttributes = ['Color', 'Gender', 'Size', 'BirthMonth'];
+
+        $scope.testtag = function (a) {
+
+            console.log(a);
+        };
 
         var vm = this;        
         vm.view_data = _viewData;
@@ -106,6 +113,18 @@
     
             }
         });
+
+        //#region Reload on data change
+        {
+            var reload = function () {
+                $scope.tableParams.reload();
+            };
+
+            $rootScope.$on("inserted", reload);
+            $rootScope.$on("deleted", reload);
+            $rootScope.$on("ncb-datacontext.deleted", reload);
+
+        }
 
         function _oDataAddFilterAndOrder(params) {
 

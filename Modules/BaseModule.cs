@@ -220,6 +220,32 @@ namespace NantCom.NancyBlack.Modules
             };
         }
 
+        private string[] _LockdownBypass = new string[]
+        {
+            "/Admin",
+            "/__membership/",
+            "/tables/"
+        };
+
+        protected virtual dynamic HandleLockdown( dynamic arg )
+        {
+            if (this.CurrentSite.lockdown.enable == true)
+            {
+                if (_LockdownBypass.Any( bypass => this.Request.Url.Path.StartsWith( bypass ) ) == true)
+                {
+                    // bypass
+                    return null;
+                }
+
+                if (this.CurrentUser.HasClaim("admin") == false)
+                {
+                    return View["lockdown", new StandardModel(this, "Please be patient.")];
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Handles the request.
         /// </summary>
@@ -229,6 +255,12 @@ namespace NantCom.NancyBlack.Modules
         {
             return (arg) =>
             {
+                dynamic lockdown = this.HandleLockdown(arg);
+                if ( lockdown != null)
+                {
+                    return lockdown;
+                }
+
                 dynamic result = null;
                 try
                 {

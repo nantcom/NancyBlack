@@ -306,11 +306,6 @@
 
     ncg.controller("CheckoutModal", function ($scope, $http, $timeout) {
 
-        if ($scope.shoppingcart == null) {
-
-            throw "require ncg-Cart in current scope";
-        }
-
         var $me = this;
 
         $scope.profileForm = null;
@@ -831,15 +826,49 @@
             function _mapDataToGraph(data, period) {
                 
                 var arrKey = [], arrValue = [];
+                if (period == "hour") {
 
-                data.forEach(function (item) {
-                    // Convert timestamp to be readable.                       
-                    var _displayValue = _FormatDate(item.Key, period);
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
 
-                    arrKey.push(_displayValue);                    
-                    arrValue.push(item.Value);
+                        arrKey.push(String.format("{0:HH}:00", date));
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "week") {
 
-                });
+                    data.forEach(function (item) {
+                        arrKey.push(item.Key);
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "day") {
+
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:dddd}", date));
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "month") {
+
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:MMMM}", date));
+                        arrValue.push(item.Value);
+                    });
+                }
+                if (period == "year") {
+
+                    data.forEach(function (item) {
+                        var date = new Date(parseInt(item.Key));
+
+                        arrKey.push(String.format("{0:yyyy}", date));
+                        arrValue.push(item.Value);
+                    });
+                }
 
                 scope.data = [arrValue];                
                 scope.labels = arrKey;
