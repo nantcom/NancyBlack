@@ -968,6 +968,7 @@
                 element.find(".attachmentView").modal("show");
             };
 
+            $me.readonly = false;
             if (attrs.readonly != null) {
 
                 $scope.$watch(attrs.readonly, function (newValue) {

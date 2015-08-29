@@ -3001,6 +3001,10 @@ namespace SQLite
                 {
                     sqlCall = string.Format("(Instr({0},{1}))", obj.CommandText, args[0].CommandText);
                 }
+                else if (call.Method.Name == "Substring" && args.Length == 1)
+                {
+                    sqlCall = string.Format("(Substr({0},{1}))", obj.CommandText, args[0].CommandText);
+                }
                 else if (call.Method.Name == "StartsWith" && args.Length == 1)
                 {
                     sqlCall = "(" + obj.CommandText + " like (" + args[0].CommandText + " || '%'))";

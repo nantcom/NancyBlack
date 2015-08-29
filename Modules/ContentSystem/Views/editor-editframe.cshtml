@@ -50,7 +50,7 @@
                 </a>
             </li>
             <li ng-class="{ 'disabled' : siteView.collections.length == 0}">
-                <h2>Collections</h2>
+                <h2>List</h2>
             </li>
             <li ng-repeat="col in siteView.collections">
                 <a href="#"
@@ -62,7 +62,9 @@
                 <h2>Site</h2>
             </li>
             <li>
-                <a ng-click="globals.activecollection={ url: '/', table: 'content', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">Pages</a>
+                <a ng-click="globals.activecollection={ url: '/', table: 'content', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">
+                    Main Pages
+                </a>
             </li>
             <li>
                 <a ng-click="switchMenu( $event, 'editframe-siteseo.html')">SEO</a>
@@ -282,7 +284,7 @@
 
                     <i class="ion ion-ios-bookmarks-outline hideover"></i>
 
-                    <img ng-src="{{item.Attachments[0].Url}}" />
+                    <img ncb-resize="{{item.Attachments[0].Url}}" height="200" />
 
                     {{item.Title}}
 

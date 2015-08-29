@@ -272,7 +272,7 @@
 
         $me.getContent = function (callback) {
             
-            var query = String.format("$filter=Url eq '{0}'", $scope.currentUrl);
+            var query = String.format("$filter=Id eq {0}", $scope.currentContent.Id);
             $scope.data.query(query,
             function (results) {
 
@@ -673,7 +673,7 @@
 
             $scope.data.delete(item, function (result) {
 
-                if (item.Url == $scope.currentUrl) {
+                if (item.Url == $scope.currentContent.Url) {
 
                     siteView.contents()[0].location.href = "/";
                 } else {
@@ -711,12 +711,18 @@
             if ($scope.rootUrl == "/") {
 
                 //special query for root case
-                query = "$filter=startswith(Url,'/') and ( indexof(substring(Url, 1),'/') lt 0 )";
+                query = "$filter=startswith(Url,'/') and (indexof(substring(Url,2),'/') eq 0 )";
             } else {
 
                 query = String.format(
-                "$filter=startswith(Url,'{0}')",
-                $scope.rootUrl);
+                    "$filter=startswith(Url,'{0}')",
+                    $scope.rootUrl);
+
+                if ($scope.collection.table.toLowerCase() == "product") {
+
+                    // product must also filter out variations
+                    query += " and (IsVariation eq 0 )";
+                };
             }
 
             query += "&$orderby=DisplayOrder";

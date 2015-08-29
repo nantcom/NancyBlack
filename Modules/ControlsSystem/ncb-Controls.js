@@ -173,18 +173,18 @@
     module.directive('ncbActive', function ($document) {
 
         function link(scope, element, attrs) {
-            
+
             var url = element.attr("href");
-            
+
             if (url == null) {
                 return;
             }
 
-            var urlMatch = window.location.href.indexOf(url) >= 0;            
+            var urlMatch = window.location.href.indexOf(url) >= 0;
             if (urlMatch == true) {
-                
+
                 element.addClass("active");
-                
+
             }
 
         }
@@ -213,7 +213,7 @@
     module.directive('ncbTextbox', function ($document, $timeout) {
 
         function link(scope, element, attrs) {
-            
+
             processFormElement(element);
 
             // Final touch ups
@@ -653,8 +653,7 @@
 
                 scope.$watch(attrs.deletebutton, function (newValue) {
 
-                    if ( newValue == true )
-                    {
+                    if (newValue == true) {
                         element.find("button.ncb-modal-delete").css("visibility", "visible");
                     } else {
 
@@ -666,7 +665,7 @@
             if (attrs.onshow != "") {
 
                 element.on('shown', function () {
-                    
+
                     scope.$eval(attrs.onshow);
                 })
             }
@@ -714,7 +713,7 @@
             link: link
         };
     }]);
-    
+
     // JSON Editor
     module.directive('ncbJsonedit', function () {
 
@@ -741,7 +740,7 @@
             $me.refreshData = function () {
 
                 var value = scope.$eval($me.expression);
-                
+
                 if (value == null) {
 
                     value = {};
@@ -865,25 +864,25 @@
 
             var currentUrl = window.location.pathname;
             element.find("a").each(function () {
-                
+
                 var current = $(this);
                 var url = current.attr("href");
-                
+
                 var match = currentUrl.indexOf(url) >= 0;
                 if (currentUrl == "/" || url == "/") {
 
                     match = (url == currentUrl);
                 }
-                
+
                 // starts with path name
                 if (match == true) {
-                    
+
                     if (attrs.applyto != null) {
 
                         current.parents(attrs.applyto).addClass(activeClass);
                         current.find(attrs.applyto).addClass(activeClass);
-                        
-                    }                    
+
+                    }
                     current.addClass(activeClass);
                     current.parent('li').addClass(activeClass);
                 }
@@ -1024,7 +1023,7 @@
             link: link,
         };
     });
-  
+
     module.directive('ncbNgtable', [function () {
 
         function link($scope, element, attrs) { //controllers
@@ -1035,7 +1034,7 @@
             });
 
             $scope.alwaysfilter = attrs.alwaysfilter;
-            
+
             if (attrs.reloadwatch != null) {
                 $scope.$parent.$watch(attrs.reloadwatch, function () {
 
@@ -1060,7 +1059,7 @@
             $scope.filters = {};
 
             // Watch for edit data;
-            $scope.$parent.$watch('object', function (newVal, oldVal) {                
+            $scope.$parent.$watch('object', function (newVal, oldVal) {
                 if (newVal != null) {
                     $scope.object = $scope.$parent.object;
                 }
@@ -1093,9 +1092,9 @@
 
 
             if ($scope.tableTemplateId == null) {
-                _GetDataType();                
+                _GetDataType();
             }
-                                                         
+
             function _GetData($defer, params) {
 
                 var oDataQueryParams = _oDataAddFilterAndOrder(params);
@@ -1173,17 +1172,17 @@
             };
 
             function _GetDataType() {
-                $http.get('/tables/datatype/' +_normalizedTableName).
+                $http.get('/tables/datatype/' + _normalizedTableName).
                   then(function (response) {
 
                       var _DataType = response.data;
                       $scope.cols = _AddDynamicColumns(_DataType.Properties);
 
-                }, function (response) {
-                          // TODO
-                          // called asynchronously if an error occurs
-                          // or server returns response with an error status.
-                });
+                  }, function (response) {
+                      // TODO
+                      // called asynchronously if an error occurs
+                      // or server returns response with an error status.
+                  });
             };
 
             function _AddDynamicColumns(Properties) {
@@ -1241,7 +1240,7 @@
                     field: filterKey
                 };
             };
-          
+
         };
 
         return {
@@ -1264,7 +1263,7 @@
             //controllerAs: "",
 
         };
-    }]);   
+    }]);
 
     module.directive('ncbRunningnumber', function () {
 
@@ -1273,7 +1272,7 @@
             var value = parseInt(attrs.start);
             var stop = parseInt(attrs.end);
 
-            if ( isNaN( value ) == true ) {
+            if (isNaN(value) == true) {
                 value = stop - 100;
             }
 
@@ -1324,7 +1323,7 @@
                 var diff = top - last;
 
                 element.css("background-position", "center " + (offset - (diff * ratio)) + "px");
-                
+
             });
         }
 
@@ -1416,7 +1415,7 @@
 
                 e.preventDefault();
 
-                $("html, body").animate({ scrollTop: targetOffset +"px" });
+                $("html, body").animate({ scrollTop: targetOffset + "px" });
             });
         }
 
@@ -1476,18 +1475,34 @@
         };
     });
 
+    var resizeWatch = null;
+    var resizeList = [];
     module.directive('ncbResize', function () {
 
         function link($scope, element, attrs) {
 
             if (attrs.ncbResize == null) {
 
-                throw "ncb-resize attribute value is required";
+                throw "ncb-resize attribute value is URL to resize";
+            }
+
+            if (resizeWatch == null) {
+
+                resizeWatch = $(window).on("resize", function () {
+
+                    resizeList.forEach(function (item) {
+
+                        item();
+                    });
+                });
             }
 
             function updateUrl(url) {
 
-                element.attr("src", "");
+                if (url == null) {
+                    return;
+                }
+                var lastSrc = element.attr("src");
 
                 var finalUrl = "/__resize" + url + "?";
 
@@ -1523,16 +1538,35 @@
                                 );
                 }
 
-                element.attr("src", finalUrl);
+                if (lastSrc == finalUrl) {
+                    return;
+                }
+
+                var heavyImage = new Image();
+                heavyImage.src = finalUrl;
+                heavyImage.onload = function () {
+                    element.attr("src", finalUrl);
+                };
+
             }
 
-            if (attrs.ncbResize.indexOf( '/' ) != 0) {
+            if (attrs.ncbResize.indexOf('/') != 0) {
                 // needs to watch, it is not a url
                 $scope.$parent.$watch(attrs.ncbResize, updateUrl);
             } else {
 
                 updateUrl(attrs.ncbResize);
             }
+
+            resizeList.push(function () {
+
+                var url = attrs.ncbResize;
+                if (url.indexOf('/') != 0) {
+                    url = $scope.$parent.$eval(attrs.ncbResize);
+                }
+
+                updateUrl(url);
+            });
         }
 
         return {

@@ -265,9 +265,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-
-                    g.DrawImage(b, parameters.ImageOffsetAndSize);
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                    
+                    g.DrawImage(b,  parameters.ImageOffsetAndSize.Left - 2,
+                                    parameters.ImageOffsetAndSize.Top - 2,
+                                    parameters.ImageOffsetAndSize.Width + 5,
+                                    parameters.ImageOffsetAndSize.Height + 5);
                     g.Dispose();
                 }
                 else

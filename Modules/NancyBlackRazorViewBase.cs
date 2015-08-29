@@ -225,6 +225,34 @@ namespace NantCom.NancyBlack
 
             return null;
         }
+        
+        /// <summary>
+        /// Querys
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListProductUnderUrl(string entityName, string url, Func<dynamic, object> contentTemplate)
+        {
+
+#if DEBUG
+            if (entityName == null)
+            {
+                throw new ArgumentNullException("collectionName");
+            }
+#endif
+            var list = Database.QueryAsJObject(entityName,
+                string.Format("startswith(Url,'{0}') and (IsVariation eq 0)", url),
+                "DisplayOrder");
+
+            foreach (var item in list)
+            {
+                var output = contentTemplate(item);
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
+
 
         /// <summary>
         /// List item in collection under given url
