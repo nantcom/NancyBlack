@@ -30,7 +30,7 @@ namespace NantCom.NancyBlack.Modules
         /// <summary>
         /// Viewing Content, Content should have standard IContent Interface
         /// </summary>
-        public dynamic Content
+        public IContent Content
         {
             get;
             set;
@@ -51,11 +51,11 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="content"></param>
         /// <param name="data"></param>
-        public StandardModel( BaseModule module, dynamic content = null, dynamic data = null, int responseCode = 200 )
+        public StandardModel( BaseModule module, IContent content = null, dynamic data = null, int responseCode = 200 )
         {
             if (content == null)
             {
-                content = new JObject();
+                content = new Page();
             }
 
             this.Content = content;
@@ -67,12 +67,13 @@ namespace NantCom.NancyBlack.Modules
 
         public StandardModel(BaseModule module, string title, string metakeywords = null, string metadescription = null, dynamic data = null, int responseCode = 200)
         {
-            this.Content = JObject.FromObject(new
+            this.Content = new Page()
             {
                 Title = title,
                 MetaKeywords = metakeywords,
                 MetaDescription = metadescription
-            }); ;
+            };
+
             this.Data = data;
             this.Site = module.CurrentSite;
             this.Database = module.SiteDatabase;

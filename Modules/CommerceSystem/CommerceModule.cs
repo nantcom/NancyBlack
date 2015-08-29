@@ -1,4 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System;
@@ -15,32 +16,32 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         public CommerceModule()
         {
-            Get["/__commerce/cart"] = this.HandleViewRequest("commerce-shoppingcart", (arg)=>
+            Get["/__commerce/cart"] = this.HandleViewRequest("commerce-shoppingcart", (arg) =>
             {
                 return new StandardModel(this, "Checkout");
             });
 
-            Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
-            {
-                var saleorder = this.SiteDatabase.Query("saleorder",
-                    string.Format("uuid eq '{0}'", (string)args.id),
-                    "Id desc").FirstOrDefault();
+            //Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
+            //{
+            //    var saleorder = this.SiteDatabase.Query("saleorder",
+            //        string.Format("uuid eq '{0}'", (string)args.id),
+            //        "Id desc").FirstOrDefault();
 
-                return new StandardModel( this, content: saleorder);
-            });
+            //    return new StandardModel(this, content: saleorder);
+            //});
 
             // get the product 
-            Get["/__commerce/api/productstructure"] = this.HandleRequest( this.BuildProductStructure );
+            Get["/__commerce/api/productstructure"] = this.HandleRequest(this.BuildProductStructure);
 
             // List User's address
             Get["/__commerce/api/addresses"] = this.HandleRequest(this.FindUserAddress);
 
             // Save User's address
             Post["/__commerce/api/address"] = this.HandleRequest(this.UpdateUserAddress);
-            
+
             // Save User's cart
             Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
-            
+
             Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", (arg) =>
             {
                 var id = (string)arg.so_id;
@@ -48,11 +49,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .Where(row => row.SaleOrderIdentifier == id)
                             .FirstOrDefault();
 
-                return new StandardModel(this, JObject.FromObject( new
+                var dummyPage = new Page()
                 {
                     Title = arg.form + " for " + so.SaleOrderIdentifier,
-                    Type = (string)arg.form
-                }), so);
+                    ContentParts = JObject.FromObject(new
+                    {
+                        Type = (string)arg.form
+                    }),
+
+                };
+
+                return new StandardModel(this, dummyPage, so);
             });
 
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
@@ -92,7 +99,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 var product = this.SiteDatabase.GetById<Product>(item);
                 products.Add(product);
-                
+
                 saleorder.TotalAmount += product.Price;
             }
 
@@ -248,7 +255,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return tree.Values.FirstOrDefault();
         }
 
-        public static void HandlePayment( NancyBlackDatabase db, PaymentLog log, string saleOrderIdentifier )
+        public static void HandlePayment(NancyBlackDatabase db, PaymentLog log, string saleOrderIdentifier)
         {
             // ensure only one thread is processing this so
             lock (saleOrderIdentifier)
@@ -257,7 +264,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 var so = db.Query<SaleOrder>()
                             .Where(row => row.SaleOrderIdentifier == saleOrderIdentifier)
                             .FirstOrDefault();
-                
+
                 log.SaleOrderId = so.Id;
 
                 JArray exceptions = new JArray();
@@ -270,11 +277,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     {
                         type = "Wrong Status",
                         description = string.Format(
-                            "Current status of SO is: {0}", so.Status )
+                            "Current status of SO is: {0}", so.Status)
                     }));
 
                 }
-                
+
                 if (log.Amount != so.TotalAmount)
                 {
                     so.Status = SaleOrderStatus.PaymentReceivedWithException;

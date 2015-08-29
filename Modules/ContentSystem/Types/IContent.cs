@@ -46,5 +46,15 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Meta Description
         /// </summary>
         string MetaDescription { get; set; }
+
+        /// <summary>
+        /// Content Parts of this item to support editing in NancyWhite
+        /// </summary>
+        dynamic ContentParts { get; set; }
+
+        /// <summary>
+        /// Name of the table which stores this data
+        /// </summary>
+        string TableName { get; }
     }
 }

@@ -70,7 +70,9 @@
 <body ncb-membership>
 
 
-    @if (this.Site.lockdown != null && this.Site.lockdown.enable == true)
+    @if (this.Site.lockdown != null &&
+                 this.Site.lockdown.enable == true &&
+                 this.Request.Url.Path != "/__editor")
     {
         <i class="fa fa-lock"
            style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
@@ -84,8 +86,8 @@
         {
             // automatically set current user info into window variable
             <text>
-            window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
-            </texT>
+        window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
+        </texT>
         }
 
         // automatically set current content into window variable
@@ -115,7 +117,7 @@
 
             if (window.loaded == true) {
 
-				return;
+                return;
             }
 
             // base modules
@@ -175,36 +177,36 @@
         @if (this.Site.Application.FacebookAppId != null)
         {
             <script>
-            window.fbAsyncInit = function () {
-                FB.init({
-                    appId: '@(this.Site.Application.FacebookAppId)',
-                    xfbml: true,
-                    version: 'v2.2'
-                });
-            };
+                window.fbAsyncInit = function () {
+                    FB.init({
+                        appId: '@(this.Site.Application.FacebookAppId)',
+                        xfbml: true,
+                        version: 'v2.2'
+                    });
+                };
 
-            (function (d, s, id) {
-                var js, fjs = d.getElementsByTagName(s)[0];
-                if (d.getElementById(id)) { return; }
-                js = d.createElement(s); js.id = id;
-                js.src = "//connect.facebook.net/en_US/sdk.js";
-                fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));
+                (function (d, s, id) {
+                    var js, fjs = d.getElementsByTagName(s)[0];
+                    if (d.getElementById(id)) { return; }
+                    js = d.createElement(s); js.id = id;
+                    js.src = "//connect.facebook.net/en_US/sdk.js";
+                    fjs.parentNode.insertBefore(js, fjs);
+                }(document, 'script', 'facebook-jssdk'));
             </script>
         }
 
         @if (this.Site.Application.GoogleAnalyticsId != null)
         {
             <script>
-            (function (i, s, o, g, r, a, m) {
-                i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date(); a = s.createElement(o),
-                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
-            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+                (function (i, s, o, g, r, a, m) {
+                    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                        (i[r].q = i[r].q || []).push(arguments)
+                    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+                })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
-            ga('create', '@(this.Site.Application.GoogleAnalyticsId)', 'auto');
-            ga('send', 'pageview');
+                ga('create', '@(this.Site.Application.GoogleAnalyticsId)', 'auto');
+                ga('send', 'pageview');
 
             </script>
 

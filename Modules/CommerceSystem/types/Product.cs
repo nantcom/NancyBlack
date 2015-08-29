@@ -36,6 +36,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public string Url { get; set; }
 
+        /// <summary>
+        /// Content Parts of this product, all frontend editing will gets into this property
+        /// </summary>
+        public dynamic ContentParts { get; set; }
+
+        /// <summary>
+        /// Table Name - always 'Product'
+        /// </summary>
+        public string TableName {  get { return "Product"; } }
+
         #endregion
 
         public dynamic[] Attachments { get; set; }

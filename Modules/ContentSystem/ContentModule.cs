@@ -20,9 +20,9 @@ namespace NantCom.NancyBlack.Modules
         public static event Func<NancyContext, dynamic, string, string> RewriteUrl = (ctx, arg, url)=> url;
 
         /// <summary>
-        /// Allow custom mapping of requested content into another content
+        /// Allow custom processing of requested page
         /// </summary>
-        public static event Action<NancyContext, dynamic> MapContent = delegate { };
+        public static event Action<NancyContext, IContent> ProcessPage = delegate { };
 
         private static string _RootPath;
 
@@ -93,7 +93,7 @@ namespace NantCom.NancyBlack.Modules
                 return 404;
             }
 
-            dynamic requestedContent = null;
+            IContent requestedContent = null;
 
             //
             url = ContentModule.RewriteUrl(this.Context, arg, url);
@@ -104,18 +104,19 @@ namespace NantCom.NancyBlack.Modules
             {
                 // seems to be a collection
                 var typeName = parts[1].Substring(0, parts[1].Length - 1);
-                requestedContent = this.SiteDatabase.QueryAsDynamic(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault();
-
-                if (requestedContent != null)
+                var datatype = this.SiteDatabase.DataType.FromName(typeName);
+                if ( typeof(IContent).IsAssignableFrom( datatype.GetCompiledType() ) == false)
                 {
-                    requestedContent.typeName = typeName;
+                    throw new InvalidOperationException("Type:" + typeName + " does not implement IContent. Type must implement IContent to be served via ContentModule");
                 }
+
+                requestedContent = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault() as IContent;
             }
 
             // if failed to get from table, use content table instead
             if (requestedContent == null)
             {
-                requestedContent = ContentModule.GetContent(this.SiteDatabase, url);
+                requestedContent = ContentModule.GetPage(this.SiteDatabase, url);
             }
 
             if (requestedContent == null)
@@ -133,15 +134,9 @@ namespace NantCom.NancyBlack.Modules
                     return 404;
                 }
 
-                requestedContent = ContentModule.CreateContent(this.SiteDatabase, url);
+                requestedContent = ContentModule.CreatePage(this.SiteDatabase, url);
             }
-
-            // set the typeName to content if not set
-            if (requestedContent.typeName == null)
-            {
-                requestedContent.typeName = "content";
-            }
-
+            
             if (string.IsNullOrEmpty((string)requestedContent.RequiredClaims) == false)
             {
                 var required = ((string)requestedContent.RequiredClaims).Split(',');
@@ -165,7 +160,7 @@ namespace NantCom.NancyBlack.Modules
 
             this.GenerateLayoutPage(this.CurrentSite, requestedContent);
 
-            ContentModule.MapContent(this.Context, requestedContent);
+            ContentModule.ProcessPage(this.Context, requestedContent);
 
             return View[(string)requestedContent.Layout, new StandardModel( this, requestedContent )];
         }
@@ -177,14 +172,17 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static IEnumerable<dynamic> GetChildContents(NancyBlackDatabase db, string url)
+        public static IEnumerable<Page> GetChildPages(NancyBlackDatabase db, string url)
         {
             if (url.StartsWith("/") == false)
             {
                 url = "/" + url;
             }
+            url = url.ToLowerInvariant() + "/";
 
-            return db.QueryAsDynamic("Content", string.Format("startswith(Url,'{0}/')", url.ToLowerInvariant()), "DisplayOrder");
+            return db.Query<Page>()
+                    .Where(p => p.Url.StartsWith(url))
+                    .OrderBy(p => p.DisplayOrder);
         }
 
         /// <summary>
@@ -192,9 +190,11 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static IEnumerable<dynamic> GetRootContents(NancyBlackDatabase db)
+        public static IEnumerable<Page> GetRootPages(NancyBlackDatabase db)
         {
-            return db.QueryAsDynamic("Content", "startswith(Url,'/') and ( indexof(substring(Url, 1),'/') lt 0 )", "DisplayOrder");
+            return db.Query<Page>()
+                    .Where(p => p.Url.StartsWith("/") && p.Url.Substring(1).IndexOf('/') < 0)
+                    .OrderBy(p => p.DisplayOrder);
         }
 
 
@@ -203,23 +203,26 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static dynamic GetContent(NancyBlackDatabase db, string url)
+        public static Page GetPage(NancyBlackDatabase db, string url)
         {
             if (url.StartsWith("/") == false)
             {
                 url = "/" + url;
             }
+            url = url.ToLowerInvariant();
 
-            return db.QueryAsDynamic("Content", string.Format("Url eq '{0}'", url.ToLowerInvariant())).FirstOrDefault();
+            return db.Query<Page>()
+                    .Where(p => p.Url == url)
+                    .FirstOrDefault();
         }
 
         /// <summary>
-        /// Creates a content
+        /// Creates a new Page
         /// </summary>
         /// <param name="url"></param>
         /// <param name="layout"></param>
         /// <returns></returns>
-        public static dynamic CreateContent(NancyBlackDatabase db, string url, string layout = "", string requiredClaims = "", int displayOrder = 0)
+        public static dynamic CreatePage(NancyBlackDatabase db, string url, string layout = "", string requiredClaims = "", int displayOrder = 0)
         {
             if (url.StartsWith("/") == false)
             {
@@ -249,7 +252,7 @@ namespace NantCom.NancyBlack.Modules
                 url = "/" + url;
             }
 
-            var createdContent = db.UpsertRecord("Content", new DefaultContent()
+            var createdContent = db.UpsertRecord<Page>( new Page()
             {
                 Id = 0,
                 Title = Path.GetFileName(url),

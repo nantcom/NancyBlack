@@ -282,6 +282,10 @@
                     throw "cannot find content with query: " + query;
                 }
 
+                if (content.ContentParts == null) {
+                    content.ContentParts = {};
+                }
+
                 callback(content);
             });
         };
@@ -306,10 +310,14 @@
                     }
                 });
 
-                $scope.editing.content = $scope.currentContent;
-                $scope.editing.original = $scope.currentContent[$scope.editing.name];
+                if ($scope.currentContent.ContentParts == null) {
+                    $scope.currentContent.ContentParts = {};
+                }
 
-                if ($scope.currentContent[$scope.editing.name] == null) {
+                $scope.editing.content = $scope.currentContent;
+                $scope.editing.original = $scope.currentContent.ContentParts[$scope.editing.name].trim();
+
+                if ($scope.editing.original == null) {
 
                     // default value from database
                     $scope.editing.original = $scope.editing.element.html();
@@ -334,7 +342,7 @@
 
                 $me.getContent(function (content) {
 
-                    var fromServer = content[$scope.editing.name];
+                    var fromServer = content.ContentParts[$scope.editing.name];
                     if (fromServer != null && fromServer != $scope.editing.original) {
 
                         // alert
@@ -351,7 +359,7 @@
                         }
                     }
 
-                    content[$scope.editing.name] = $scope.editing.element.html();
+                    content.ContentParts[$scope.editing.name] = $scope.editing.element.html();
 
                     // replace
                     $scope.data.save(content, function () {
@@ -439,10 +447,7 @@
             return;
         }
 
-        $scope.currentTable = "content";
-        if (model.Content.typeName != null) {
-            $scope.currentTable = model.Content.typeName;
-        }
+        $scope.currentTable = model.Content.TableName;
 
         $scope.object = JSON.parse( JSON.stringify( model.Content ) );
         $scope.menu.backbuttonText = "save";
@@ -490,10 +495,7 @@
             return;
         }
 
-        $scope.currentTable = "content";
-        if (model.Content.typeName != null) {
-            $scope.currentTable = model.Content.typeName;
-        }
+        $scope.currentTable = model.Content.TableName;
 
         $scope.object = JSON.parse(JSON.stringify(model.Content));
         $scope.menu.backbuttonText = "save";
@@ -535,11 +537,8 @@
                 alert("Cannot get information about page's model");
                 return;
             }
-
-            $scope.currentTable = "content";
-            if (model.Content.typeName != null) {
-                $scope.currentTable = model.Content.typeName;
-            }
+            
+            $scope.currentTable = model.Content.TableName;
 
             $scope.object = JSON.parse(JSON.stringify(model.Content));
         };
@@ -583,10 +582,7 @@
 
         var $me = this;
 
-        $scope.currentTable = "content";
-        if (model.Content.typeName != null) {
-            $scope.currentTable = model.Content.typeName;
-        }
+        $scope.currentTable = model.Content.TableName;
 
         $scope.object = JSON.parse(JSON.stringify(window.sitesettings));
         $scope.menu.backbuttonText = "save";

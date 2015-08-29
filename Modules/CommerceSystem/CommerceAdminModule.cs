@@ -16,11 +16,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
     {
         public CommerceAdminModule()
         {
-            Get["/admin/product"] = this.HandleViewRequest("/Admin/productmanager", null);
-            Get["/admin/inventory"] = this.HandleViewRequest("/Admin/Inventorymanager", null);
-            Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
-            Get["/admin/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
+            Get["/admin/tables/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
+            Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
+            Get["/admin/tables/inventorymovement"] = this.HandleViewRequest("/Admin/Inventorymanager", null);
 
+            Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
+            
             Post["/admin/commerce/api/uploadlogo"] = this.HandleRequest((arg) =>
             {
                 var file = this.Request.Files.First();
@@ -32,6 +33,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 return "/" + filePath;
             });
+
             Get["/admin/saleorder/{id}"] = this.HandleViewRequest("/Admin/saleorderdetailmanager", null);
 
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);

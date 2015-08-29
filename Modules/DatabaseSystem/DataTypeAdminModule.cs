@@ -14,14 +14,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         {
             Get["/Admin/Tables"] = this.HandleViewRequest("databasesystem-entities", (arg) =>
             {
-                return new StandardModel(
-                    this,
-                    JObject.FromObject(new
-                    {
-                        Table = "DataType",
-                        Layout = "_admin",
-                    })
-                );
+                return new StandardModel( this, "Administration - Data Types" );
             });
 
             // Administration pages for Table
@@ -117,12 +110,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             return View["Admin/" + arg.table_name,
-                new StandardModel(this, JObject.FromObject(new
-                {
-                    Title = "Administration - Table:" + arg.table_name
-                }),
-                type)
-            ];
+                        new StandardModel(this, "Administration - Table:" + arg.table_name, data: type)];
         }
         
         public class ViewModel

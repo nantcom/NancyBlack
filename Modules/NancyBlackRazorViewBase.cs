@@ -1,5 +1,6 @@
 ﻿using Nancy.ViewEngines.Razor;
 using NantCom.NancyBlack.Modules;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
@@ -32,7 +33,7 @@ namespace NantCom.NancyBlack
         /// <value>
         /// The content.
         /// </value>
-        public dynamic Content
+        public IContent Content
         {
             get
             {
@@ -150,7 +151,13 @@ namespace NantCom.NancyBlack
         {
             _LastPropertyName = null;
 
-            var value = (string)this.Content[propertyName];
+            string value = null;
+            var contentParts = (this.Content as IContent).ContentParts as JObject;
+            if (contentParts != null)
+            {
+                value = (string)contentParts[propertyName];
+            }
+
             if (value == null)
             {
                 return new NonEncodedHtmlString(defaultContent(null).ToString());
@@ -171,32 +178,9 @@ namespace NantCom.NancyBlack
                 throw new InvalidOperationException("GetEditAttribute was not used prior to calling this method.");
             }
 
-            var value = (string)this.Content[_LastPropertyName];
-            if (value == null)
-            {
-                return new NonEncodedHtmlString(defaultContent(null).ToString());
-            }
-
-            return value;
+            return this.GetContent(_LastPropertyName, defaultContent);
         }
-
-        /// <summary>
-        /// Get Content with editable area
-        /// </summary>
-        /// <returns></returns>
-        public void GetEditableContent(string propertyName, Func<dynamic, object> defaultContent, string enclosingTag = "div", string classes = "")
-        {
-            var content = (string)this.Content[propertyName];
-            if (content == null)
-            {
-                content = defaultContent(null).ToString();
-            }
-
-            this.WriteLiteral(string.Format("<{0} class=\"{1}\" data-editable=\"true\" data-propertyName=\"{2}\">", enclosingTag, classes, propertyName));
-            this.WriteLiteral(content);
-            this.WriteLiteral(string.Format("</{0}>", enclosingTag));
-        }
-
+        
         #endregion
 
         #region Content Hierachy
@@ -307,7 +291,7 @@ namespace NantCom.NancyBlack
                 throw new ArgumentNullException("url");
             }
 #endif
-            var list = ContentModule.GetChildContents(this.Database, url);
+            var list = ContentModule.GetChildPages(this.Database, url);
                 
             foreach (var item in list)
             {
@@ -326,7 +310,7 @@ namespace NantCom.NancyBlack
         public object ListRootContents(Func<dynamic, object> contentTemplate)
         {
             
-            var list = ContentModule.GetRootContents(this.Database);
+            var list = ContentModule.GetRootPages(this.Database);
 
             foreach (var item in list)
             {
@@ -368,6 +352,33 @@ namespace NantCom.NancyBlack
             return from dynamic item in jarray
                    where item.Type == type
                    select item;
+        }
+
+        /// <summary>
+        /// Get attachment url
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetAttachmentUrl(dynamic content = null, int index = 0)
+        {
+            if (content == null)
+            {
+                content = this.Content;
+            }
+
+            var jarray = content.Attachments as JArray;
+            if (jarray == null)
+            {
+                return null;
+            }
+
+            if (index >= jarray.Count)
+            {
+                return null;
+            }
+
+            return jarray[index]["Url"].ToString();
         }
 
         #endregion
