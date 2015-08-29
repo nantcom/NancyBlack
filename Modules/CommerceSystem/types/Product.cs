@@ -79,5 +79,30 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Price of this product in Multi Currency
         /// </summary>
         public dynamic PriceMultiCurrency { get; set; }
+
+        #region Product Variation
+
+        /// <summary>
+        /// Whether this product is a variation of main product
+        /// </summary>
+        public bool IsVariation { get; set; }
+
+        /// <summary>
+        /// Master product Id of this variation
+        /// </summary>
+        public int MasterProductId { get; set; }
+
+        /// <summary>
+        /// Whether this product has variation such as Color, Size. Product that has variation will has its stock determine by combination of all variations
+        /// </summary>
+        public bool HasVariation { get; set; }
+
+        /// <summary>
+        /// Variation Attributes Configuration
+        /// </summary>
+        public dynamic VariationAttributes { get; set; }
+        
+        #endregion
     }
+    
 }

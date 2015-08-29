@@ -1,20 +1,17 @@
 ﻿(function () {
     'use strict';
 
-    angular
-        .module('app', ['ngTable', 'ui.tree'])
-        .controller('product_controller', product_controller);
+    var app = angular.module('app', ['ngTable', 'ui.tree']);
 
-    product_controller.$inject = ['ngTableParams', '$location', '$log', '$scope', '$window', '$http', '$rootScope'];
-
-    function product_controller(ngTableParams, $location, $log, $scope, $window, $http, $rootScope) {
+    app.controller('product_controller', function (ngTableParams, $location, $log, $scope, $window, $http, $rootScope) {
         /* jshint validthis:true */
 
         $scope.object = {};
+        $scope.multicurrency = window.multicurrency;
 
         $scope.defaultAttributes = ['Color', 'Gender', 'Size', 'BirthMonth'];
-        
-        var vm = this;        
+
+        var vm = this;
         vm.view_data = _viewData;
         vm.filterbyurl = _FilterByUrl;
         vm.UpdateMultipleProducts = _UpdateMultipleProducts;
@@ -26,14 +23,14 @@
 
         $scope.$on("ncb-datacontext.loaded", function () {
             _LoadTreeDataLeftMenu();
-        });                            
+        });
 
         function _LoadTreeDataLeftMenu() {
 
             $http.get('/__commerce/api/productstructure').
-                  then(function (response) {                      
-                      vm.list = response.data                      
-                  }, function (response) {                      
+                  then(function (response) {
+                      vm.list = response.data
+                  }, function (response) {
                       $log.error(response)
                   });
         };
@@ -42,14 +39,14 @@
 
             $scope.tableParams.data.forEach(function (Object) {
                 var checked = ($scope.checkboxes.items[Object.id]) || 0;
-                if (checked == true) {                    
+                if (checked == true) {
 
                     Object.Stock = vm.UpdateStock;
                     Object.Price = vm.UpdatePrice;
-                    
-                    $scope.data.save(Object)                    
+
+                    $scope.data.save(Object)
                 }
-                
+
             });
 
         };
@@ -89,7 +86,7 @@
             page: 1,            // show first page
             count: 10,          // count per page
             sorting: {
-                Id: 'asc'       // initial sorting
+                Url: 'asc'       // initial sorting
             },
             filter: $scope.filters // initial filters
         }, {
@@ -98,14 +95,14 @@
 
                 $scope.isBusy = true;
                 var oDataQueryParams = _oDataAddFilterAndOrder(params);
-                
+
                 $scope.data.inlinecount(oDataQueryParams, function (data) {
 
                     $scope.isBusy = false;
                     $defer.resolve(data.Results);
                     params.total(data.Count);
-                });                
-    
+                });
+
             }
         });
 
@@ -120,7 +117,14 @@
                 $scope.tableParams.reload();
                 _LoadTreeDataLeftMenu();
             };
-            
+
+            var reload2 = function () {
+
+                $scope.tableParams.reload();
+                _LoadTreeDataLeftMenu();
+            };
+
+            $rootScope.$on("updated", reload2);
             $rootScope.$on("inserted", reload);
             $rootScope.$on("deleted", reload);
             $rootScope.$on("ncb-datacontext.deleted", reload);
@@ -130,7 +134,7 @@
         function _oDataAddFilterAndOrder(params) {
 
             var oDataQueryParams = '';
-            
+
             var _filter = params.filter();
             var _sorting = params.sorting();
             var _pageNum = params.page();
@@ -140,10 +144,13 @@
             var _skipV = 0;
 
             // OrderBy
+            var sortingQuery = "";
             for (var property in _sorting) {
                 var _sortOrder = _sorting[property];
-                oDataQueryParams += '$orderby=' + property + ' ' + _sortOrder;
+                sortingQuery += property + ' ' + _sortOrder + ',';
             }
+
+            oDataQueryParams += '$orderby=' + sortingQuery.substring(0, sortingQuery.length - 1);
 
             // Filters
             var _arrFilters = [];
@@ -155,14 +162,14 @@
                 var _strFilter = "";
 
                 _strFilter = "contains(" + property + ",'" + _filterAttr + "')";
-                                              
+
                 _arrFilters.push(_strFilter);
             }
 
             if (_arrFilters.length > 0) {
                 var _baseQuery = "&$filter=";
                 var _joinFilters = _arrFilters.join(" and ");
-                oDataQueryParams += _baseQuery + _joinFilters;                
+                oDataQueryParams += _baseQuery + _joinFilters;
             }
 
             // Skip & Take
@@ -176,27 +183,39 @@
 
             return oDataQueryParams;
 
-        };        
+        };
 
-        function _viewData(Product) {            
+        function _viewData(Product) {
+
             vm.IsCollapse = false;
-
             $scope.object = Product;
-            $scope.carouseltemplate = null;
+            $scope.productVariations = null;
 
-            window.setTimeout(function () {
-
-                $scope.$apply(function () {
-
-                    $scope.carouseltemplate = "carousel.html";
-                });
-            }, 100);
+            $http.get( "/")
         };
 
         function _FilterByUrl(CollectionName) {
             var _url = CollectionName.fullPath;
-            $scope.filters.Url = _url;            
+            $scope.filters.Url = _url;
         };
 
-    }
+        vm.quicksize = function (sizes) {
+
+            if (confirm("Do you want to add all sizing options: " + sizes + " to products? This cannot be undone.") == false ) {
+                return;
+            }
+
+            $http.post("/admin/commerce/api/enablesizing", { 'choices': sizes })
+                .success(function () {
+
+                    $scope.alerts.push({ type: 'success', msg: 'Successfully created all sizing vairations.' });
+                });
+        };
+
+    });
+
+    app.controller('ProductVariationController', function ($scope) {
+
+    });
+
 })();

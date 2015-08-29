@@ -177,6 +177,37 @@
 
     ];
 
+    var currencyRate = null;
+    var reloadExhcangeRate = function ($http, localStorageService) {
+
+        $http.get("/admin/commerce/api/exchangerate")
+            .success(function (data) {
+                currencyRate = data;
+                localStorageService.set("currencyRate", data);
+            });
+    };
+    var ensureRateAvailable = function ($http, localStorageService) {
+
+        if (currencyRate == null) {
+
+            currencyRate = localStorageService.get("currencyRate");
+
+            if (currencyRate == null) {
+                reloadExhcangeRate($http, localStorageService);
+            } else {
+
+                var now = (new Date()).getTime();
+                var downloaded = currencyRate.timestamp * 1000;
+
+                if (now - downloaded > 1000 * 60) {
+                    reloadExhcangeRate($http, localStorageService);
+                }
+            }
+
+        }
+
+    };
+
     //#endregion
 
     var ncg = angular.module("ncb-commerce", []);
@@ -201,7 +232,7 @@
             }
 
             scope.shoppingcart = cartSystem;
-            
+
             // ensures that there is an initialized shopping cart
             cartSystem.ensureCartAvailable = function () {
 
@@ -235,7 +266,7 @@
 
                 var productId = parseInt(productId);
 
-                if (amount != null && typeof(amount) == "number") {
+                if (amount != null && typeof (amount) == "number") {
 
                     for (var i = 0; i < amount; i++) {
                         cartSystem.cart.Items.push(productId);
@@ -280,7 +311,7 @@
                 cartSystem.totalitems = cartSystem.cart.Items.length;
             };
 
-            cartSystem.checkout = function ( callback ) {
+            cartSystem.checkout = function (callback) {
 
                 $http.post("/__commerce/api/checkout", cartSystem.cart)
                     .success(function (data) {
@@ -564,7 +595,7 @@
                     $http.post("/__commerce/api/address", toSave)
                         .success(function (data) {
                             $scope.addresses = data;
-                    });
+                        });
                 }
             });
         }
@@ -630,9 +661,9 @@
             cartSystem.cart.billto = JSON.parse(JSON.stringify(cartSystem.cart.shipto));
         };
 
-        $me.moneytransfer = function ( datacontext) {
+        $me.moneytransfer = function (datacontext) {
 
-            $me.savecart(datacontext, function ( item ) {
+            $me.savecart(datacontext, function (item) {
 
                 window.location.href = "/__commerce/saleorder/" + item.uuid + "/notifytransfer";
 
@@ -753,8 +784,8 @@
         $timeout(function () {
 
             // view the cart directly
-            if (window.location.pathname.indexOf( "/__commerce/saleorder" ) == 0 &&
-                window.location.pathname.indexOf( "/notifytransfer") > 0 ) {
+            if (window.location.pathname.indexOf("/__commerce/saleorder") == 0 &&
+                window.location.pathname.indexOf("/notifytransfer") > 0) {
 
 
                 $("#notifypayment").modal("show");
@@ -848,7 +879,7 @@
             replace: true,
         };
     });
-    
+
     ncg.directive('ncgProductresolver', function ($http) {
 
         function link($scope, elmement, attrs) {
@@ -913,9 +944,9 @@
 
     ncg.directive('ncgChart', function ($http, $filter) {
 
-        function link(scope, element, attrs) {                        
+        function link(scope, element, attrs) {
 
-            /* Variable declarable */            
+            /* Variable declarable */
 
             scope.labels = [];
             scope.series = [];
@@ -934,7 +965,7 @@
 
             /* Events */
             // OnChart create
-            scope.$on('create', function (event, chart) {                
+            scope.$on('create', function (event, chart) {
                 //console.log("Create", chart);
             });
             // OnChart update
@@ -947,7 +978,7 @@
 
                 var criteria = "/tables/" + scope.table + "/summarize?period=" + period + "&fn=" + scope.fn + "&select=" + scope.select + "&time=__createdAt";
                 $http.get(criteria).
-                      then(function (response) {                          
+                      then(function (response) {
 
                           _mapDataToGraph(response.data, period)
 
@@ -962,13 +993,13 @@
                 console.log(points, evt);
             };
 
-            function _filterChanged(period) {                
+            function _filterChanged(period) {
                 _getDataByPeriod(period);
             };
 
             function _FormatDate(timestamp, period) {
 
-                var _displayValue = "";                
+                var _displayValue = "";
 
                 switch (period) {
                     case "day":
@@ -987,12 +1018,12 @@
                         _displayValue = timestamp;
                         break;
                 }
-                
+
                 return _displayValue;
             };
 
             function _mapDataToGraph(data, period) {
-                
+
                 var arrKey = [], arrValue = [];
                 if (period == "hour") {
 
@@ -1038,7 +1069,7 @@
                     });
                 }
 
-                scope.data = [arrValue];                
+                scope.data = [arrValue];
                 scope.labels = arrKey;
 
             };
@@ -1058,10 +1089,10 @@
             //replace: true,
         };
     });
-    
+
     // directive which injects currency list into the scope
-    ncg.directive('ncgCurrencylist', function () {
-        
+    ncg.directive('ncgCurrencylist', function ($http) {
+
         function link($scope) {
 
             $scope.currencyList = currencyList;
@@ -1071,6 +1102,89 @@
             restrict: 'A',
             link: link,
             scope: false,
+        };
+    });
+
+    // directive which injects currency functions into scope
+    ncg.directive('ncgMulticurrency', function ($http) {
+
+        function link($scope) {
+
+            $scope.currencyList = currencyList;
+
+            if ($scope.multicurrency == null) {
+                $scope.multicurrency = {};
+                $scope.multicurrency.home = 'THB';
+            }
+
+            var $me = $scope.multicurrency;
+
+            $me.convertHome = function (input, wantCurrency) {
+
+                return $me.convert(input, $me.home, wantCurrency);
+            };
+
+            $me.convert = function (input, inputCurrency, wantCurrency) {
+
+                var want = currencyRate.rates[wantCurrency];
+                var home = currencyRate.rates[inputCurrency];
+
+                var usd = input / home;
+                var result = usd * want;
+
+                return result;
+            };
+
+            $me.getRate = function (wantCurrency) {
+
+                return $me.convert(1, $me.home, wantCurrency);
+            };
+        };
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false,
+        };
+    });
+
+    ncg.filter('xchg', function ($http, localStorageService) {
+
+        ensureRateAvailable($http, localStorageService);
+
+        return function (input, wantCurrency) {
+
+            var want = currencyRate.rates[wantCurrency];
+            var home = currencyRate.rates['THB'];
+
+            var usd = input / home;
+            var result = usd * want;
+
+            return result;
+        };
+    });
+
+    ncg.filter('xchgrate', function ($http, localStorageService) {
+
+        ensureRateAvailable($http, localStorageService);
+        return function (input, want) {
+
+            var home = currencyRate.rates['THB'];
+            var want = currencyRate.rates[want];
+
+            var perUsd = 1 / home;
+            var result = want * perUsd;
+            return result;
+        };
+    });
+
+    ncg.filter('xchgdate', function ($http, localStorageService) {
+
+        ensureRateAvailable($http, localStorageService);
+
+        return function (input) {
+
+            return new Date( currencyRate.timestamp * 1000 );
         };
     });
 

@@ -1,5 +1,6 @@
 ﻿<div>
-    <div class="uploader">
+    <div class="uploader"
+         ng-show="attachmentManager.readonly == false">
         <div class="uploadprogress"
              ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
         <i class="ion-ios-plus-outline"></i>
@@ -13,7 +14,8 @@
             <img ncb-resize="{{item.Url}}" width="80" />
         </li>
     </ul>
-    <ncb-modal class="attachmentView" closebutton deletebutton
+    <ncb-modal class="attachmentView" closebutton
+               deletebutton="attachmentManager.readonly == false"
                ondelete="attachmentManager.delete(viewing)"
                title="Attachment">
 

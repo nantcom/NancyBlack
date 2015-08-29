@@ -995,6 +995,20 @@
                 element.append()
             }
 
+            $scope.viewing = null;
+            $me.view = function (item) {
+
+                $scope.viewing = item;
+                element.find(".attachmentView").modal("show");
+            };
+
+            if (attrs.readonly != null) {
+
+                $scope.$watch(attrs.readonly, function (newValue) {
+                    $me.readonly = newValue;
+                });
+            }
+
             //#region Drag Upload
 
             var uploader = element.find(".uploader");
@@ -1056,14 +1070,12 @@
 
             //#endregion
 
-            $scope.viewing = null;
-            $me.view = function (item) {
-
-                $scope.viewing = item;
-                element.find(".attachmentView").modal("show");
-            };
-
             $me.delete = function (item) {
+
+                if (me.readonly == true) {
+
+                    return;
+                }
 
                 if (confirm("Are you sure to delete? This cannot be undone and your file is gone forever.") == false) {
 
