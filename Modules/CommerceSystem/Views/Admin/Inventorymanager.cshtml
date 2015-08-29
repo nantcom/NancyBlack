@@ -15,7 +15,9 @@
         (function () {
 
             var mod = angular.module("page", []);
-            mod.controller("pageCalculate", function ($scope) {
+            mod.controller("PageController", function ($scope, $rootScope, $timeout) {
+
+                var $me = this;
 
                 $scope.calculatePrice = function (object) {
 
@@ -35,6 +37,33 @@
                     object.Tax = object.Tax / object.ItemsInInvoice;
                 };
 
+                $me.create = function () {
+
+                    $("#InventoryMovementModal").modal("show");
+                    $scope.object = {
+                        IsInBound: true,
+                        MovementDate: new Date()
+                    };
+                };
+
+                $rootScope.$on("inserted", function (e, args) {
+
+                    $("#InventoryMovementModal").modal("hide");
+
+                    $timeout(function () {
+
+                        var temp = JSON.parse(JSON.stringify(args.args));
+                        delete temp.id;
+
+                        $scope.object = temp;
+                        $scope.$apply();
+                        $("#InventoryMovementModal").modal("show");
+
+                    }, 1000);
+
+
+                });
+
             });
 
         })();
@@ -43,15 +72,15 @@
 }
 
 <div ncb-datacontext table="InventoryMovement"
-     ng-module="page" ng-controller="pageCalculate as ctrl">
+     ng-module="page" ng-controller="PageController as ctrl">
 
     <h1 class="page-header">
-        Manage InventoryMovement
+        Inventory Changes
         <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
     </h1>
 
     <div style="margin-bottom: 30px">
-        This page helps you manage InventoryMovement in this system.
+        This page helps you tracks Inventory Changes.
     </div>
 
     <div>
@@ -69,11 +98,10 @@
         </a>
 
         <button class="btn btn-success pull-right"
-                data-toggle="modal" data-target="#InventoryMovementModal"
-                ng-click="object = {}">
+                ng-click="ctrl.create()">
             <span class="glyphicon glyphicon-plus-sign"></span>
             <span>
-                InventoryMovement
+                Inventory Change
             </span>
         </button>
     </div>
@@ -83,7 +111,8 @@
 
     <ncb-modal id="InventoryMovementModal"
                title="{{object.id == null ? 'Create Movement' : 'Edit Movement'}}"
-               closebutton deletebutton>
+               closebutton
+               deletebutton="object.id != null">
 
         <form role="form" name="InventoryMovementForm">
 
@@ -93,7 +122,6 @@
                     <div class="form-group row">
 
                         <div class="col-xs-6">
-
                             <label>Type</label>
                             <div>
                                 <button class="btn btn-default" ng-model="object.IsInBound" btn-radio="true">
@@ -112,7 +140,7 @@
                     </div>
                     <div class="form-group form-group-lg"
                          ncb-lookupscope
-                         table="Product" labelpath="Title" filter="$filter=startswith(Title,$key)">
+                         table="Product" labelpath="Title" filter="$filter=(HasVariation eq 0 or IsVariation eq 1) and startswith(Title,$key)">
 
                         <label class="control-label" for="ProductId">
                             Product
@@ -266,7 +294,7 @@
 
         <ncb-footer>
             <button class="btn btn-primary btn-lg"
-                    ng-click="data.save(object)">
+                    ng-click="data.save(object);">
                 <span ng-show="object.id == null">Create</span>
                 <span ng-show="object.id != null">Save</span>
             </button>
@@ -292,7 +320,9 @@
                     sortable="'__updatedAt'">
                     {{item.__updatedAt | date:'dd/MM/yyyy HH:mm' }}
                 </td>
-                <td data-title="'Product'">
+                <td data-title="'Product'"
+                    sortable="'ProductId'"
+                    style="width: 250px; text-align:left">
 
                     <div ncb-vlookup="product" key="{{item.ProductId}}">
 
@@ -314,13 +344,15 @@
                     filter="{ 'ReceiptNumber': 'text' }">
                     {{item.ReceiptNumber }}
                 </td>
-                <td data-title="'Change'"
-                    sortable="'Change'">
+                <td data-title="'Unit Change'"
+                    sortable="'Change'"
+                    style="width: 120px; text-align:right">
                     {{item.Change }}
                 </td>
-                <td data-title="'TotalPrice'"
-                    sortable="'TotalPrice'">
-                    {{item.TotalPrice | number:2 }}
+                <td data-title="'Unit Price'"
+                    sortable="'PricePerUnit'"
+                    style="width: 150px; text-align:right">
+                    {{item.PricePerUnit | number:2 }}
                 </td>
                 <td style="white-space: nowrap">
 

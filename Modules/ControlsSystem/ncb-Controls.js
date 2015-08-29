@@ -1043,7 +1043,7 @@
         }
 
         // Use for connect to other API or Component.
-        function controller($scope, $http, ngTableParams) {
+        function controller($scope, $http, ngTableParams, $rootScope) {
 
             var _tableName = $scope.$parent.table.getTableName();
             var _normalizedTableName = _tableName.toLowerCase();
@@ -1075,6 +1075,21 @@
                 total: 0, // length of data
                 getData: _GetData
             });
+
+            //#region Reload on data change
+            {
+                var reload = function () {
+
+                    $scope.tableParams.reload();
+                };
+
+                $rootScope.$on("updated", reload);
+                $rootScope.$on("inserted", reload);
+                $rootScope.$on("deleted", reload);
+                $rootScope.$on("ncb-datacontext.deleted", reload);
+
+            }
+
 
             if ($scope.tableTemplateId == null) {
                 _GetDataType();                
@@ -1373,12 +1388,20 @@
             if (attrs.href.indexOf("#") != 0)
                 return;
 
-            var target = $(attrs.href);
-            if (target.length == 0) {
-                return;
+            var targetOffset = 0;
+            if (attrs.href = "#top") {
+
+            }
+            else {
+
+                var target = $(attrs.href);
+                if (target.length == 0) {
+                    return;
+                }
+
+                targetOffset = target.offset().top;
             }
 
-            var targetOffset = target.offset().top;
             element.on("click", function (e) {
 
                 e.preventDefault();

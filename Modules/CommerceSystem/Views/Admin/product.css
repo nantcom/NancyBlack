@@ -1,9 +1,13 @@
-﻿#productlist > div:first-child {
-  float: left;
-  width: 250px;
+﻿#productlist .ng-table-pager {
+  background-color: #efefef;
+  margin-bottom: 100px;
+  padding: 10px;
+  margin-top: -10px;
+  border-top: 2px solid silver;
+  min-height: 58px;
 }
-#productlist > div:nth-child(2) {
-  margin-left: 260px;
+#productlist .ng-table-pager .pagination {
+  margin: 0;
 }
 #productlist .panel-heading {
   position: relative;

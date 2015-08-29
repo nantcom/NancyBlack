@@ -196,7 +196,7 @@
 
                 if (callback != null) {
 
-                    callback();
+                    callback(object);
                 }
 
                 object.inserted = true;
@@ -234,7 +234,6 @@
                     function (result) {
 
                         object = $me.processServerObject(result);
-                        $scope.$emit(emittedEvents.updated, { sender: $scope, args: object });
 
                         if (callback != null) {
 
@@ -244,6 +243,8 @@
 
                             }
                         }
+
+                        $scope.$emit(emittedEvents.updated, { sender: $scope, args: object });
 
                         $scope.$apply(function () {
 

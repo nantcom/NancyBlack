@@ -29,15 +29,15 @@
     <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
     <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>
 }
-
 <div ng-module="app"
      ng-controller="product_controller as ctrl"
      ncb-datacontext-integrated table="product"
      id="productlist"
      ng-cloak
-     ncg-multicurrency>
+     ncg-multicurrency
+     class="row">
 
-    <div>
+    <div class="col-md-3">
         <div style="margin-bottom: 10px">
             <div class="btn-group" role="group" aria-label="...">
                 <button type="button" class="btn btn-success btn-lg"
@@ -61,6 +61,29 @@
                ng-show="isBusy == true"></i>
         </div>
 
+        <script type="text/ng-template" id="nodes_renderer.html">
+            <div ui-tree-handle class="tree-node tree-node-content">
+
+                <!-- Symbol -->
+                <a ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)">
+                    <span class="glyphicon"
+                          ng-class="{
+                                  'glyphicon-chevron-right': collapsed,
+                                  'glyphicon-chevron-down': !collapsed
+                                }">
+                    </span>
+                </a>
+                {{node.title}}
+                <a class="pull-right" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px;">
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </div>
+            <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
+                <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer.html'">
+                </li>
+            </ol>
+        </script>
+
         <div ui-tree data-drag-enabled="false" id="tree-root">
             <ol ui-tree-nodes ng-model="ctrl.list.nodes">
                 <li ng-repeat="node in ctrl.list.nodes" ui-tree-node ng-include="'nodes_renderer.html'"></li>
@@ -68,7 +91,7 @@
         </div>
     </div>
 
-    <div>
+    <div class="col-md-9">
 
         <div collapse="ctrl.IsCollapse">
             <div class="panel panel-default">
@@ -352,7 +375,7 @@
                     </td>
 
                     <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
-                        <a href ng-click="ctrl.view_data(product)">
+                        <a href="#top" ng-click="ctrl.view_data(product)" ncb-scroll>
                             <span style="margin-right: 10px"
                                   ng-show="product.IsVariation">
                                 <i class="fa fa-toggle-right"></i>
@@ -431,28 +454,6 @@
         </ncb-modal>
 
 
-        <script type="text/ng-template" id="nodes_renderer.html">
-            <div ui-tree-handle class="tree-node tree-node-content">
-
-                <!-- Symbol -->
-                <a ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)">
-                    <span class="glyphicon"
-                          ng-class="{
-                                  'glyphicon-chevron-right': collapsed,
-                                  'glyphicon-chevron-down': !collapsed
-                                }">
-                    </span>
-                </a>
-                {{node.title}}
-                <a class="pull-right" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px;">
-                    <span class="glyphicon glyphicon-chevron-right"></span>
-                </a>
-            </div>
-            <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
-                <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer.html'">
-                </li>
-            </ol>
-        </script>
     </div>
 
 
