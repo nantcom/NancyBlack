@@ -1027,19 +1027,21 @@
   
     module.directive('ncbNgtable', [function () {
 
-        function link(scope, element, attrs) { //controllers
+        function link($scope, element, attrs) { //controllers
 
             // Best practice to destroy its own directive.
-            scope.$on('$destroy', function () {
+            $scope.$on('$destroy', function () {
                 // Do someting to prevent memory leak
             });
 
-            // To bind event to table
-            //element.on('mousedown', function (event) {
-            //    // Prevent default dragging of selected content
-            //    event.preventDefault();
-            //});            
+            $scope.alwaysfilter = attrs.alwaysfilter;
+            
+            if (attrs.reloadwatch != null) {
+                $scope.$parent.$watch(attrs.reloadwatch, function () {
 
+                    $scope.tableParams.reload();
+                });
+            }
         }
 
         // Use for connect to other API or Component.
@@ -1087,7 +1089,6 @@
                 $rootScope.$on("inserted", reload);
                 $rootScope.$on("deleted", reload);
                 $rootScope.$on("ncb-datacontext.deleted", reload);
-
             }
 
 
@@ -1138,6 +1139,18 @@
                     _strFilter = "contains(" + property + ",'" + _filterAttr + "')";
 
                     _arrFilters.push(_strFilter);
+                }
+
+                // Always filter...
+                if ($scope.alwaysfilter != null) {
+                    var filter = $scope.$eval($scope.alwaysfilter);
+
+                    if (filter == '' || filter == null) {
+
+                    } else {
+
+                        _arrFilters.push(filter);
+                    }
                 }
 
                 if (_arrFilters.length > 0) {
@@ -1240,9 +1253,6 @@
                 modalTemplateId: '=modaltemplate',
                 modalId: '=modalid',
                 editFn: '&editFn',
-                //tableName: '=table', // Isolate scope name customerInfo     
-                //displayColumns: '=columns',
-                // 'close': '&onClose' // & Mean pass function Best Practice: use &attr in the scope option when you want your directive to expose an API for binding to behaviors.
             },
             templateUrl: '/Modules/ControlsSystem/Templates/ncbNgtable.html',
             controller: controller,

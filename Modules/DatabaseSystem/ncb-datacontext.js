@@ -655,41 +655,6 @@
         };
     }]);
 
-    // Data table is designed to be attached to list or table
-    ncb.directive('ncbDatatable', ['$http', function ($http) {
-
-        function link($scope, element, attrs) {
-
-            var $me = this;
-
-            var stopWatch = $scope.$watch("data", function () {
-
-                $me.initialize();
-            });
-
-            $me.initialize = function () {
-
-                stopWatch();
-
-                if ($scope.data != null) {
-
-                    //$scope.data.refresh();
-
-                    //// focus on the given object
-                    //$scope.data.view = function (item) {                        
-                    //    $scope.object = item;
-                    //    console.log("view", $scope)
-                    //};
-                }
-            };
-        }
-
-        return {
-            restrict: 'A',
-            link: link
-        };
-    }]);
-
     var saveinsertButton = function ($scope, element, attrs, $compile) {
 
         var $me = this;

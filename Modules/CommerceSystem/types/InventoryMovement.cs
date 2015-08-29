@@ -81,33 +81,5 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Receipt Number
         /// </summary>
         public string ReceiptNumber { get; set; }
-        
-        static InventoryMovement()
-        {
-            var interest = new string[] { "inventorymovement" };
-            Action<string, NancyBlackDatabase, string, dynamic> genericHandler = (action, db, typeName, affectedRow) =>
-            {
-                if (interest.Contains(typeName) == false)
-                {
-                    return;
-                }
-
-                var movement = (InventoryMovement)affectedRow;
-
-                lock ("UpdateProduct-" + movement.ProductId)
-                {
-                    var sumChange = db.Query<InventoryMovement>().Where(m => m.ProductId == movement.ProductId)
-                                        .Sum(m => m.Change);
-
-                    var affectedProduct = db.GetById<Product>(movement.ProductId);
-                    affectedProduct.Stock = sumChange;
-                    db.UpsertRecord<Product>(affectedProduct);
-                }
-            };
-
-            NancyBlackDatabase.ObjectCreated += (a, b, c) => genericHandler("create", a, b, c);
-            NancyBlackDatabase.ObjectUpdated += (a, b, c) => genericHandler("update", a, b, c);
-            NancyBlackDatabase.ObjectDeleted += (a, b, c) => genericHandler("deleted", a, b, c);
-        }
     }
 }

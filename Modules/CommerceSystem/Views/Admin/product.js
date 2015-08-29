@@ -214,8 +214,4 @@
 
     });
 
-    app.controller('ProductVariationController', function ($scope) {
-
-    });
-
 })();

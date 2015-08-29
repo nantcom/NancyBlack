@@ -36,11 +36,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);
 
+            Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
+
+            #region Quick Actions
+
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
-            Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
+            #endregion
         }
-
+        
         private dynamic EnableSizingVariations(dynamic arg)
         {
             TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);

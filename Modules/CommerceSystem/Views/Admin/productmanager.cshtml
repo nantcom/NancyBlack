@@ -55,7 +55,7 @@
                     </ul>
                 </div>
             </div>
-            
+
 
             <i class="fa fa-2x fa-spin fa-circle-o-notch pull-right"
                ng-show="isBusy == true"></i>
@@ -110,18 +110,19 @@
                 </div>
                 <div class="panel-body">
 
-                    <div class="row">
-                        <div class="col-md-3">
+                    <tabset>
+                        <tab heading="General">
 
-                            <ncb-attachmentmanager readonly="object.IsVariation == true">
-                            </ncb-attachmentmanager>
+                            <div class="row">
 
-                        </div>
+                                <div class="col-xs-3">
 
-                        <div class="col-md-9">
+                                    <ncb-attachmentmanager readonly="object.IsVariation == true">
+                                    </ncb-attachmentmanager>
 
-                            <tabset>
-                                <tab heading="General">
+                                </div>
+
+                                <div class="col-xs-9">
 
                                     <form role="form" name="ProductForm">
 
@@ -235,116 +236,177 @@
 
                                     </form>
 
-                                </tab>
+                                </div>
+                            </div>
 
-                                <tab heading="Product Variation"
-                                     disable="object.HasVariation == false">
+                        </tab>
 
-                                    <div ng-controller="ProductVariationController as pvCtrl">
+                        <tab heading="Product Variation"
+                             disable="object.HasVariation == false">
 
-                                        <div ng-show="object.HasVariation">
 
-                                            <table class="table"
-                                                   ncb-listeditor target="object.VariationAttributes">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 150px">Variation</th>
-                                                        <th>Available Options</th>
-                                                        <th style="width: 30px"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tr ng-repeat="item in target">
-                                                    <td>
-                                                        {{item.Name}}
-                                                    </td>
-                                                    <td>
-                                                        {{item.Choices}}
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-danger"
-                                                                ng-click="remove(key)">
-                                                            <i class="fa fa-remove"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        <input type="text" ncb-textbox
-                                                               ng-model="newItem.Name" placeholder="Color, Size"
-                                                               typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8" />
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" ncb-textbox
-                                                               ng-model="newItem.Choices" placeholder="Choices such as: 'Pink,Gold,Lime'" />
+                            <div ng-show="object.HasVariation">
 
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-success"
-                                                                ng-click="add()">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        
-                                    </div>
-                                </tab>
+                                <table class="table"
+                                       ncb-listeditor target="object.VariationAttributes">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 150px">Variation</th>
+                                            <th>Available Options</th>
+                                            <th style="width: 30px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in target">
+                                        <td>
+                                            {{item.Name}}
+                                        </td>
+                                        <td>
+                                            {{item.Choices}}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger"
+                                                    ng-click="remove(key)">
+                                                <i class="fa fa-remove"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="text" ncb-textbox
+                                                   ng-model="newItem.Name" placeholder="Color, Size"
+                                                   typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8" />
+                                        </td>
+                                        <td>
+                                            <input type="text" ncb-textbox
+                                                   ng-model="newItem.Choices" placeholder="Choices such as: 'Pink,Gold,Lime'" />
 
-                                <tab heading="Multi-Currency">
-                                    {{object.PriceMultiCurrency == null ? object.PriceMultiCurrency = {} : ''}}
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Currency</th>
-                                                <th>Current Rate</th>
-                                                <th>Converted Price</th>
-                                                <th>Set Price</th>
-                                            </tr>
-                                        </thead>
-                                        <tr ng-repeat="currency in multicurrency.available">
-                                            <td>
-                                                <p class="form-control-static">
-                                                    {{currency}}
-                                                </p>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success"
+                                                    ng-click="add()">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </tab>
+
+                        <tab heading="Multi-Currency"
+                             disable="(object.HasVariation == false || object.IsVariation == true) == false">
+                            <div >
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Currency</th>
+                                            <th>Current Rate</th>
+                                            <th>Converted Price</th>
+                                            <th>Set Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="currency in multicurrency.available">
+                                        <td>
+                                            <p class="form-control-static">
+                                                {{currency}}
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <p class="form-control-static">
+                                                {{ x | xchgrate:currency | number:4 }}
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <p class="form-control-static">
+                                                {{object.Price | xchg:currency | number:4 }}
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <input type="number" ncb-textbox
+                                                   ng-model="object.PriceMultiCurrency[currency]" />
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p class="text-danger">
+                                    DISCLAIMER: Exchange rates are from <b>openexchangerates.org</b>
+                                    which the rates are delayed up to 1 hour. Lastest exchange rates are downloaded at: {{ x | xchgdate | date:'dd MMMM yyyy, HH:mm' }}.
+                                    <b>Calculation does not use per-digit calculation and is subject to rounding errors.</b>
+                                </p>
+                            </div>
+                            
+                        </tab>
+
+                        <tab heading="Inventory"
+                             disable="(object.HasVariation == false || object.IsVariation == true) == false">
+
+                            <div ng-show="object.HasVariation == false || object.IsVariation == true"
+                                 ncb-datacontext table="InventoryMovement">
+
+                                <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                             reloadwatch="object.id"
+                                             alwaysfilter="object.id == null ? '' : 'ProductId eq ' + object.id">
+                                </ncb-ngtable>
+
+                                <script type="text/ng-template" id="tablecustomtemplate.html">
+
+                                    <table id="NcbNgTable"
+                                           ncb-datatable
+                                           class="table table-striped table-hover"
+                                           style="width: 100%"
+                                           ng-table="tableParams"
+                                           show-filter="true">
+
+                                        <tr ng-repeat="item in tableParams.data">
+
+                                            <td data-title="'Date'"
+                                                sortable="'MovementDate'">
+                                                {{item.MovementDate | date:'dd/MM/yyyy' }}
                                             </td>
-                                            <td>
-                                                <p class="form-control-static">
-                                                    {{ x | xchgrate:currency | number:4 }}
-                                                </p>
+                                            <td data-title="'PO#'"
+                                                sortable="'PONumber'"
+                                                filter="{ 'PONumber': 'text' }">
+                                                {{item.PONumber }}
                                             </td>
-                                            <td>
-                                                <p class="form-control-static">
-                                                    {{object.Price | xchg:currency | number:4 }}
-                                                </p>
+                                            <td data-title="'Invoice#'"
+                                                sortable="'InvoiceNumber'"
+                                                filter="{ 'InvoiceNumber': 'text' }">
+                                                {{item.InvoiceNumber }}
                                             </td>
-                                            <td>
-                                                <input type="number" ncb-textbox
-                                                       ng-model="object.PriceMultiCurrency[currency]" />
+                                            <td data-title="'Receipt#'"
+                                                sortable="'ReceiptNumber'"
+                                                filter="{ 'ReceiptNumber': 'text' }">
+                                                {{item.ReceiptNumber }}
+                                            </td>
+                                            <td data-title="'Unit Change'"
+                                                sortable="'Change'"
+                                                style="width: 120px; text-align:right">
+                                                {{item.Change }}
+                                            </td>
+                                            <td data-title="'Unit Price'"
+                                                sortable="'PricePerUnit'"
+                                                style="width: 150px; text-align:right">
+                                                {{item.PricePerUnit | number:2 }}
                                             </td>
                                         </tr>
                                     </table>
-                                    <p class="text-danger">
-                                        DISCLAIMER: Exchange rates are from <b>openexchangerates.org</b>
-                                        which the rates are delayed up to 1 hour. Lastest exchange rates are downloaded at: {{ x | xchgdate | date:'dd MMMM yyyy, HH:mm' }}.
-                                        <b>Calculation does not use per-digit calculation and is subject to rounding errors.</b>
-                                    </p>
-                                </tab>
 
-                            </tabset>
-
-                            <div>
-                                <button class="btn btn-primary btn-lg pull-right"
-                                        ng-click="data.save(object)">
-                                    <span ng-show="object.id != null">
-                                        <i class="fa fa-save"></i>
-                                        Save
-                                    </span>
-                                </button>
-                                <p class="form-control-static text-muted">Last updated {{object.__updatedAt | date:'medium'}}</p>
+                                </script>
 
                             </div>
-                        </div>
+                        </tab>
+                    </tabset>
+                    <div>
+                        <button class="btn btn-primary btn-lg pull-right"
+                                ng-click="data.save(object)">
+                            <span ng-show="object.id != null">
+                                <i class="fa fa-save"></i>
+                                Save
+                            </span>
+                        </button>
+                        <p class="form-control-static text-muted">Last updated {{object.__updatedAt | date:'medium'}}</p>
+
+
+
                     </div>
 
                 </div>
@@ -387,7 +449,7 @@
                         width="100px" style="text-align:center">
                         {{product.Stock}}
                     </td>
-                    <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"                        
+                    <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
                         width="150px" style="text-align:right">
                         {{product.Price | number:2 }}
                         @this.Site.commerce.multicurrency.home
@@ -396,10 +458,10 @@
                              ng-repeat="(key,value) in product.PriceMultiCurrency">
                             {{value | number:2 }} {{key}}
 
-                             <span class="label label-danger text-muted"
-                                   ng-show="{ 'text-danger' : value < multicurrency.convertHome(product.Price, key)}">
-                                 -{{(multicurrency.convertHome(product.Price, key) / value * 100) - 100 | number:2}}%
-                             </span>
+                            <span class="label label-danger text-muted"
+                                  ng-show="{ 'text-danger' : value < multicurrency.convertHome(product.Price, key)}">
+                                -{{(multicurrency.convertHome(product.Price, key) / value * 100) - 100 | number:2}}%
+                            </span>
                         </div>
 
                     </td>

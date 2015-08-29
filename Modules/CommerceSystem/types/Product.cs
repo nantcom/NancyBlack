@@ -54,12 +54,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Stock of this product
         /// </summary>
         public int Stock { get; set; }
-
-        /// <summary>
-        /// Actual items in inventory
-        /// </summary>
-        public int ActualInventory { get; set; }
-
+        
         /// <summary>
         /// Number of items that user can buy at once
         /// </summary>
@@ -79,7 +74,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Price of this product in Multi Currency
         /// </summary>
         public dynamic PriceMultiCurrency { get; set; }
-
+        
         #region Product Variation
 
         /// <summary>
