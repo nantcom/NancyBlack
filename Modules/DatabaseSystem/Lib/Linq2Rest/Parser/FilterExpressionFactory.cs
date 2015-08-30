@@ -177,12 +177,17 @@ namespace Linq2Rest.Parser
 		{
             //Contract.Requires(function != null);
             //Contract.Requires(left != null);
-
-            var tostringL = Expression.Call(Expression.Convert(left, typeof(object)),
+            MethodCallExpression tostringL;
+            MethodCallExpression tostringR = null;
+            
+            tostringL = Expression.Call(Expression.Convert(left, typeof(object)),
                                             typeof(object).GetMethod("ToString"));
 
-            var tostringR = Expression.Call(Expression.Convert(right, typeof(object)),
-                                            typeof(object).GetMethod("ToString"));
+            if (right != null)
+            {
+                tostringR = Expression.Call(Expression.Convert(right, typeof(object)),
+                                                typeof(object).GetMethod("ToString"));
+            }
             
             switch (function.ToLowerInvariant())
 			{

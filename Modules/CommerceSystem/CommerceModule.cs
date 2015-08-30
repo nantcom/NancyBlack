@@ -13,6 +13,28 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
     public class CommerceModule : BaseDataModule
     {
+        static CommerceModule()
+        {
+            ContentModule.MapPage += (ctx, content) =>
+            {
+                if (content is Product)
+                {
+                    var p = content as Product;
+                    if (p.IsVariation)
+                    {
+                        var master = ctx.GetSiteDatabase().GetById<Product>(p.MasterProductId);
+                        if (master == null)
+                        {
+                            return content;
+                        }
+
+                        return master;
+                    }
+                }
+
+                return content;
+            };
+        }
 
         public CommerceModule()
         {

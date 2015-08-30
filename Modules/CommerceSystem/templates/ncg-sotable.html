@@ -18,7 +18,9 @@
         </td>
         <td>
             <div class="form-control-static">
-                {{products[productid].Title}}
+                <a href="{{products[productid].Url}}" target="_blank">
+                    {{products[productid].Title}}
+                </a>
                 <ul ng-repeat="(key,value) in products[productid].Attributes"
                     class="text-muted">
                     <li>

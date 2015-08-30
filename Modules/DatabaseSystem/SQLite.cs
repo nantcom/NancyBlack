@@ -3021,7 +3021,15 @@ namespace SQLite
                 {
                     sqlCall = "(lower(" + obj.CommandText + "))";
                 }
+                else if (call.Method.Name == "ToLowerInvariant")
+                {
+                    sqlCall = "(lower(" + obj.CommandText + "))";
+                }
                 else if (call.Method.Name == "ToUpper")
+                {
+                    sqlCall = "(upper(" + obj.CommandText + "))";
+                }
+                else if (call.Method.Name == "ToUpperInvariant")
                 {
                     sqlCall = "(upper(" + obj.CommandText + "))";
                 }

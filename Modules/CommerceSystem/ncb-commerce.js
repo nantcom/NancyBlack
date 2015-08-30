@@ -640,6 +640,18 @@
 
             if ($scope.pages[3] == true) {
 
+                if ($scope.shoppingcart.cart.ShippingDetails == null) {
+                    $scope.shoppingcart.cart.ShippingDetails = {
+                        method: 'parcel'
+                    };
+                }
+
+                if ($scope.shoppingcart.cart.ShippingDetails.method == 'pickup') {
+
+                    // nothing to do here
+                    return true;
+                }
+
                 if ($scope.shipToForm == null || $scope.billToForm == null) {
                     return false;
                 }

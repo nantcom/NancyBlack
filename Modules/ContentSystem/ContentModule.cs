@@ -24,6 +24,11 @@ namespace NantCom.NancyBlack.Modules
         /// </summary>
         public static event Action<NancyContext, IContent> ProcessPage = delegate { };
 
+        /// <summary>
+        /// Allow mapping from one page to another
+        /// </summary>
+        public static event Func<NancyContext, IContent, IContent> MapPage = (ctx, content) => content;
+
         private static string _RootPath;
 
         public ContentModule()
@@ -115,11 +120,14 @@ namespace NantCom.NancyBlack.Modules
                     if (result is IContent)
                     {
                         requestedContent = result as IContent;
-                    } else
+                        requestedContent = ContentModule.MapPage(this.Context, requestedContent);
+                    }
+                    else
                     {
                         requestedContent = JObject.FromObject(result).ToObject<Page>();
                         (requestedContent as Page).SetTableName(typeName);
                     }
+
                 }
             }
 

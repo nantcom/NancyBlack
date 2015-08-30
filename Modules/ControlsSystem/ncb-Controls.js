@@ -1390,6 +1390,40 @@
         };
     });
 
+    // Add class to target when scroll pass specified element
+    module.directive('ncbScrollpass', function ($window) {
+
+        function link(scope, element, attrs) {
+
+            if (attrs.ncbScrollpass == null) {
+                throw "ncbScrollpass attribute is required";
+            }
+
+            var target = element;
+            if (attrs.target != null) {
+                target = $(attrs.target);
+            }
+
+            var $window = $(window);
+            var myHeight = element.offset().top;
+
+            $window.on("scroll", function () {
+
+                var top = $window.scrollTop();
+                if (top > myHeight) {
+                    target.addClass(attrs.ncbScrollpass);
+                } else {
+                    target.removeClass(attrs.ncbScrollpass);
+                }
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
     module.directive('ncbScroll', function () {
 
         function link(scope, element, attrs) {
@@ -1399,7 +1433,7 @@
 
             var targetOffset = 0;
             if (attrs.href = "#top") {
-
+                // offset is 0
             }
             else {
 
@@ -1415,6 +1449,24 @@
 
                 e.preventDefault();
 
+                $("html, body").animate({ scrollTop: targetOffset + "px" });
+            });
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbScrolltop', function () {
+
+        function link(scope, element, attrs) {
+
+            var targetOffset = 0;
+            element.on("click", function (e) {
+
+                e.preventDefault();
                 $("html, body").animate({ scrollTop: targetOffset + "px" });
             });
         }

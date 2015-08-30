@@ -169,7 +169,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     newProduct.IsVariation = true;
                     newProduct.HasVariation = false;
                     newProduct.VariationAttributes = null;
-                    newProduct.Url = product.Url + url;
+                    newProduct.Url = newUrl.ToLowerInvariant();
 
                     var parts = url.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                     var newProductAttributes = new JObject();
