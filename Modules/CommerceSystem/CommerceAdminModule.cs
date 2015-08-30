@@ -108,12 +108,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);
 
+
             var input = arg.body.Value as JObject;
             var product = input.ToObject<Product>();
+            
+            var dupe = this.SiteDatabase.Query<Product>()
+                .Where(p => p.Url == product.Url)
+                .FirstOrDefault();
+
+            if (dupe != null && dupe.Id != product.Id)
+            {
+                throw new InvalidOperationException("Duplicate Url");
+            }
+
             if (product.HasVariation == false)
             {
                 this.SiteDatabase.UpsertRecord<Product>(product);
-                return product;
             }
 
             var attributes = product.VariationAttributes as JArray;
@@ -122,6 +132,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 this.SiteDatabase.UpsertRecord<Product>(product);
                 return product;
             }
+
 
             // handle generation of product variation
             this.SiteDatabase.Transaction(() =>
