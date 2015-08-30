@@ -135,6 +135,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             saleorder.NcbUserId = this.CurrentUser.Id;
             saleorder.Status = "WaitingForPayment";
             saleorder.Customer = this.CurrentUser.Profile;
+            saleorder.Customer.Email = this.CurrentUser.Email; // sets email
 
             // Update Total
             saleorder.TotalAmount = 0;

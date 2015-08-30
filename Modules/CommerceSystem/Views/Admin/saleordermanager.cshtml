@@ -14,29 +14,15 @@
             overflow-x: scroll;
         }
     </style>
-    @*<link href="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.css" rel="stylesheet" />
-        <link href="/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
-        <link href="/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />*@
-
+<link href="~/Modules/CommerceSystem/Views/Admin/saleordermanager.min.css" rel="stylesheet" />
     <link href="/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
 }
 
 @section Scripts
 {
-    @*<script src="/Content/Scripts/ng-table/ng-table.min.js"></script>
-        <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
-        <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>*@
-
     <script src="/Content/Scripts/Chart.js-master/Chart.min.js"></script>
     <script src="/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
     <script src="/Modules/CommerceSystem/Views/Admin/js/saleorder.js"></script>
-
-    <script>
-        function _testCall() {
-            console.log("CALLED");
-            window.location = "/testman";
-        };
-    </script>
 
 }
 
@@ -46,27 +32,40 @@
      id="ManageSaleorder">
 
     <div class="page-header">
-        <h1>SaleOrder Dashboard <small></small></h1>
+        <h1>Selling Center</h1>
     </div>
 
-    <div class="col-md-6"
-         ncg-chart
-         title="'SUM SaleOrder'"
-         table="'SaleOrder'"
-         fn="'sum'"
-         select="'TotalAmount'">
-    </div>
+    <tabset>
+        <tab heading="General Summary">
 
-    <div class="col-md-6"
-         ncg-chart
-         title="'Count SaleOrder'"
-         table="'SaleOrder'"
-         fn="'count'"
-         select="'TotalAmount'">
-    </div>
+            <div class="row">
+
+                <div class="col-md-6"
+                     ncg-chart
+                     title="'Revenue'"
+                     table="'SaleOrder'"
+                     fn="'sum'"
+                     select="'TotalAmount'">
+                </div>
+
+                <div class="col-md-6"
+                     ncg-chart
+                     title="'Sale Volume'"
+                     table="'SaleOrder'"
+                     fn="'count'"
+                     select="'TotalAmount'">
+                </div>
+            </div>
+
+        </tab>
+        <tab heading="Product Summary">
+
+        </tab>
+    </tabset>
+
 
     <div class="page-header">
-        <h3>Manage SaleOrder <small></small></h3>
+        <h3>Sale Orders</h3>
     </div>
     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
                  edit-fn="ctrl.viewOrderDetail(id)">
@@ -74,7 +73,7 @@
 
     <script type="text/ng-template" id="tablecustomtemplate.html">
 
-        <table id="NcbNgTable"
+        <table id="sotable"
                ncb-datatable
                class="table table-striped table-hover"
                style="width: 100%"
@@ -82,79 +81,81 @@
                show-filter="true">
 
             <tr ng-repeat="item in tableParams.data">
-                <td data-title="'ID'"
-                    sortable="'__createdAt'">
-                    {{item.id}}
-                </td>
-                <td data-title="'__createdAt'"
-                    sortable="'__createdAt'">
-                    {{item.__createdAt | date:'dd MMMM yyyy, HH:mm' }}
-                </td>
-                <td data-title="'__updatedAt'"
-                    sortable="'__updatedAt'">
-                    {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
-                </td>
-                <td data-title="'SaleOrderIdentifier'"
+                <td data-title="'Order#'"
                     sortable="'SaleOrderIdentifier'"
                     filter="{ 'SaleOrderIdentifier': 'text' }">
-                    {{item.SaleOrderIdentifier }}
+                    <a href="/Admin/saleorder/{{item.id}}" ng-click="editFn({id: item.id})">
+                        {{item.SaleOrderIdentifier }}
+                    </a>
+                    <p class="text-muted">
+                        <i class="fa fa-clock-o"></i>
+                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                    </p>
                 </td>
                 <td data-title="'Status'"
                     sortable="'Status'"
                     filter="{ 'Status': 'text' }">
                     {{item.Status }}
                 </td>
-                <td>
-                    <span ncb-vlookup="NcbUser" key="{{item.NcbUserId}}">
-                    </span>
-                </td>
-                <td data-title="'Customer'"
+                <td data-title="'Customer, S&H'"
                     sortable="'Customer'"
                     filter="{ 'Customer': 'text' }">
-                    <span ng-include="'tablecustomercell.html'"></span>
+
+                    {{item.Customer.FirstName}}
+                    {{item.Customer.LastName}}
+
+                    <p class="text-muted">
+                        <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br/>
+                        <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
+                    </p>
+
+                    <div ng-repeat="(k,v) in item.ShippingDetails">
+                        <b>{{k}}</b>: {{v}}
+                    </div>
+
                 </td>
-                <td data-title="'ShipTo'"
-                    sortable="'ShipTo'"
-                    filter="{ 'ShipTo': 'text' }">
-                    <span ng-include="'tableaddresscell.html'"></span>
+                <td data-title="'S&H'"
+                    sortable="'ShippingDetails'">
+                    {{item.ShippingDetails.method}}
                 </td>
-                <td data-title="'BillTo'"
-                    sortable="'BillTo'"
-                    filter="{ 'BillTo': 'text' }">                    
-                    <span ng-include="'tableaddressbillingcell.html'"></span>
+
+                <td data-title="'Products'">
+                    <div ng-repeat="id in item.Items">
+
+                        <div ncb-vlookup="Product" key="{{id}}" scope>
+                            <a href="{{data.Url}}" target="_blank">
+                                {{data.Title}}
+                            </a>
+                            <ul>
+                                <li ng-repeat="(k,v) in data.Attributes">
+                                    <b>{{k}}</b> : {{v}}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </td>
-                <td data-title="'UseBillingAddress'"
-                    sortable="'UseBillingAddress'"
-                    filter="{ 'UseBillingAddress': 'text' }">
-                    {{item.UseBillingAddress }}
-                </td>
-                <td data-title="'Items'"
-                    sortable="'Items'">
-                    <ul ng-repeat="subitem in item.Items">
-                        <li>{{subitem}}</li>
-                    </ul>
-                </td>
-                <td data-title="'TotalAmount'"
+
+                <td data-title="'Amount'"
                     sortable="'TotalAmount'"
                     filter="{ 'TotalAmount': 'text' }">
-                    {{item.TotalAmount }}
-                </td>
-                <td data-title="'ShippingDetails'"
-                    sortable="'ShippingDetails'"
-                    filter="{ 'ShippingDetails': 'text' }">
-                    {{item.ShippingDetails }}
+                    {{item.TotalAmount | number:2 }}
                 </td>
                 <td style="white-space: nowrap">
 
-                    <button class="btn btn-default"
-                            ng-click="data.copy(item)">
-                        <i class="fa fa-copy"></i>
-                    </button>
-
-                    <button class="btn btn-info"
-                            ng-click="editFn({id: item.id})">
+                    <a href="/Admin/saleorder/{{item.id}}" class="btn btn-info">
                         <i class="fa fa-edit"></i>
-                    </button>
+                    </a>
+
+                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
+                       class="btn btn-primary"
+                       ng-disabled="object.Status == 'PaymentReceived'">
+                        <span class="icon ion-printer"></span> IV
+                    </a>
+                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
+                            class="btn btn-success"
+                            ng-disabled="object.Status != 'PaymentReceived'">
+                        <span class="icon ion-printer"></span> R
+                    </a>
                 </td>
             </tr>
         </table>
@@ -162,129 +163,3 @@
     </script>
 
 </div>
-
-<script type="text/ng-template" id="tablecustomercell.html">
-
-    <span>FirstName</span>
-    <br />
-    <span>>{{item.Customer.FirstName}}</span>
-    <br />
-    <br />
-
-    <span>LastName</span>
-    <br />
-    <span>>{{item.Customer.LastName}}</span>
-    <br />
-    <br />
-
-    <span>PhoneNumber</span>
-    <br />
-    <span>>{{item.Customer.PhoneNumber}}</span>
-    <br />
-    <br />
-
-    <span>Gender</span>
-    <br />
-    <span>>{{item.Customer.Gender}}</span>
-    <br />
-    <br />
-
-    <span>DOB</span>
-    <br />
-    <span>>{{item.Customer.DOB | date: 'medium'}}</span>
-    <br />
-    <br />
-
-</script>
-
-<script type="text/ng-template" id="tableaddresscell.html">
-
-    <span>To</span>
-    <br />
-    <span>>{{item.ShipTo.To}}</span>
-    <br />
-    <br />
-
-    <span>Address</span>
-    <br />
-    <span>>{{item.ShipTo.Address}}</span>
-    <br />
-    <br />
-
-    <span>District</span>
-    <br />
-    <span>>{{item.ShipTo.District}}</span>
-    <br />
-    <br />
-
-    <span>SubDistrict</span>
-    <br />
-    <span>>{{item.ShipTo.SubDistrict}}</span>
-    <br />
-    <br />
-
-    <span>State</span>
-    <br />
-    <span>>{{item.ShipTo.State}}</span>
-    <br />
-    <br />
-
-    <span>Country</span>
-    <br />
-    <span>>{{item.ShipTo.Country}}</span>
-    <br />
-    <br />
-
-    <span>PostalCode</span>
-    <br />
-    <span>>{{item.ShipTo.PostalCode}}</span>
-    <br />
-    <br />
-
-</script>
-
-<script type="text/ng-template" id="tableaddressbillingcell.html">
-
-    <span>To</span>
-    <br />
-    <span>>{{item.BillTo.To}}</span>
-    <br />
-    <br />
-
-    <span>Address</span>
-    <br />
-    <span>>{{item.BillTo.Address}}</span>
-    <br />
-    <br />
-
-    <span>District</span>
-    <br />
-    <span>>{{item.BillTo.District}}</span>
-    <br />
-    <br />
-
-    <span>SubDistrict</span>
-    <br />
-    <span>>{{item.BillTo.SubDistrict}}</span>
-    <br />
-    <br />
-
-    <span>State</span>
-    <br />
-    <span>>{{item.BillTo.State}}</span>
-    <br />
-    <br />
-
-    <span>Country</span>
-    <br />
-    <span>>{{item.BillTo.Country}}</span>
-    <br />
-    <br />
-
-    <span>PostalCode</span>
-    <br />
-    <span>>{{item.BillTo.PostalCode}}</span>
-    <br />
-    <br />
-
-</script>

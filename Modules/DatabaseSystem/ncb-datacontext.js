@@ -1073,6 +1073,7 @@
         };
     }]);
 
+    var lookup = {};
     ncb.directive('ncbVlookup', function ($http) {
 
         function link($scope, element, attrs) {
@@ -1087,20 +1088,52 @@
                 throw "ncb-lookup attribute value is required";
             }
 
-            $http.get("/tables/" + attrs.ncbVlookup + "/" + attrs.key).
-                success(function (data, status, headers, config) {
+            if (lookup[attrs.ncbVlookup] == null) {
 
-                    if (attrs.label == null) {
-                        element.text(data.Title);
-                    }
+                lookup[attrs.ncbVlookup] = {};
+            }
 
-                    return element.text(data[attrs.label]);
-                });
+            var setLookup = function (data) {
+
+                $scope.data = data;
+                var value = attrs.label == null ? data.Title : data[attrs.label];
+
+                if (attrs.scope != null) {
+                    return;
+                }
+
+                if (attrs.attr == null) {
+
+                    element.text(value);
+                } else {
+                    element.attr(attrs.attr, value);
+                }
+
+
+            };
+
+            // not found in cache
+            if (lookup[attrs.ncbVlookup][attrs.key] == null) {
+
+                $http.get("/tables/" + attrs.ncbVlookup + "/" + attrs.key).
+                    success(function (data, status, headers, config) {
+
+                        lookup[attrs.ncbVlookup][attrs.key] = data;
+                        setLookup(data);
+                    });
+
+            } else {
+
+                setLookup(lookup[attrs.ncbVlookup][attrs.key]);
+            }
+
+
         }
 
         return {
             restrict: 'A',
             link: link,
+            scope: true,
         };
     });
 

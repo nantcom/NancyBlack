@@ -6,8 +6,8 @@
 
 
 body {
-  padding-top: 50px;
-  font-family: 'Leelawadee UI', 'Segoe UI'
+    padding-top: 50px;
+    font-family: 'Leelawadee UI', 'Segoe UI';
 }
 
 
@@ -16,8 +16,8 @@ body {
  */
 
 .sub-header {
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
 }
 
 /*
@@ -25,7 +25,7 @@ body {
  * Hide default border to remove 1px line.
  */
 .navbar-fixed-top {
-  border: 0;
+    border: 0;
 }
 
 /*
@@ -34,69 +34,70 @@ body {
 
 /* Hide for mobile, show later */
 .sidebar {
-  display: none;
+    display: none;
 }
-@media (min-width: 768px) {
-  .sidebar {
-    position: fixed;
-    top: 51px;
-    bottom: 0;
-    left: 0;
-    width: 200px;
-    z-index: 1000;
-    display: block;
-    padding: 20px;
-    overflow-x: hidden;
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-    background-color: #f5f5f5;
-    border-right: 1px solid #eee;
-  }
 
+@media (min-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 51px;
+        bottom: 0;
+        left: 0;
+        width: 200px;
+        z-index: 1000;
+        display: block;
+        padding: 20px;
+        overflow-x: hidden;
+        overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+        background-color: #f5f5f5;
+        border-right: 1px solid #eee;
+    }
 }
 
 .main {
-    > .row {          
+    > .row {
         margin-top: 20px;
     }
 }
 
-@media (min-width: 768px) and (max-width: 991px){
-    
-  .main {
-      > .row {          
-          margin-left: 175px;
-      }
-  }
+@media (min-width: 768px) and (max-width: 991px) {
+
+    .main {
+        > .row {
+            margin-left: 175px;
+        }
+    }
 }
 
 @media (min-width: 992px) {
-    
-  .main {
-      > .row {          
-          margin-left: 20px;
-      }
-  }
+
+    .main {
+        > .row {
+            margin-left: 20px;
+        }
+    }
 }
 
 /* Sidebar navigation */
 .nav-sidebar {
-  margin-right: -21px; /* 20px padding + 1px border */
-  margin-bottom: 20px;
-  margin-left: -10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
+    margin-right: -21px; /* 20px padding + 1px border */
+    margin-bottom: 20px;
+    margin-left: -10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
 }
 
 
 .nav-sidebar > li > a {
-  padding-right: 20px;
-  padding-left: 20px;
+    padding-right: 20px;
+    padding-left: 20px;
 }
+
 .nav-sidebar > .active > a,
 .nav-sidebar > .active > a:hover,
 .nav-sidebar > .active > a:focus {
-  color: #fff;
-  background-color: #428bca;
+    color: #fff;
+    background-color: #428bca;
 }
 
 
@@ -105,13 +106,14 @@ body {
  */
 
 @media (min-width: 800px) {
-  .main {
-    padding-right: 40px;
-    padding-left: 40px;
-  }
+    .main {
+        padding-right: 40px;
+        padding-left: 40px;
+    }
 }
+
 .main .page-header {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 
@@ -120,18 +122,21 @@ body {
  */
 
 .placeholders {
-  margin-bottom: 30px;
-  text-align: center;
+    margin-bottom: 30px;
+    text-align: center;
 }
+
 .placeholders h4 {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
+
 .placeholder {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
+
 .placeholder img {
-  display: inline-block;
-  border-radius: 50%;
+    display: inline-block;
+    border-radius: 50%;
 }
 
 
@@ -159,7 +164,7 @@ body {
 }
 
 @media (min-width: 768px) {
-    
+
     #hamburger {
         > li {
             display: none;
@@ -167,8 +172,7 @@ body {
     }
 }
 
-h1.page-header
-{
+h1.page-header {
     color: darkblue;
 }
 
@@ -182,7 +186,7 @@ h2 {
     color: cornflowerblue;
 }
 
-.tab-content{
+.tab-content {
     margin-top: 15px;
 }
 
@@ -196,7 +200,6 @@ h2 {
 }
 
 .metric > div > img {
-
     width: 100%;
     height: auto;
     margin: 15px 0;
@@ -225,23 +228,23 @@ h2 {
     font-size: 10px;
 }
 
-.metric .blue {    
+.metric .blue {
     background-color: #009FDA;
 }
 
-.metric .lightblue {    
+.metric .lightblue {
     background-color: #a3ccdc;
 }
 
-.metric .green {    
+.metric .green {
     background-color: #92D400;
 }
 
-.metric .lightgreen {    
+.metric .lightgreen {
     background-color: #bbd066;
 }
 
-.metric .orange {    
+.metric .orange {
     background-color: #E56A29;
 }
 
@@ -265,24 +268,48 @@ table.busy {
 /* Fixes */
 
 @media (min-width: 800px) {
-  .modal-lg {
-    width: 100%;
-  }
+    .modal-lg {
+        width: 100%;
+    }
 }
 
 @media (min-width: 992px) {
-  .modal-lg {
-    width: 900px;
-  }
+    .modal-lg {
+        width: 900px;
+    }
 }
 
 @media (max-width: 767px) {
-  
+
     .navbar-fixed-top {
-        position: fixed
+        position: fixed;
     }
 }
 
 .tool {
     margin-bottom: 30px;
+}
+
+
+.ng-table-pager {
+    background-color: #efefef;
+    margin-bottom: 100px;
+    padding: 10px;
+    margin-top: -10px;
+    border-top: 2px solid silver;
+    min-height: 58px;
+
+    .pagination {
+        margin: 0;
+    }
+}
+
+h1, h2, h3 {
+    color: royalblue;
+}
+
+table {
+    th {
+        text-align: left !important;
+    }
 }

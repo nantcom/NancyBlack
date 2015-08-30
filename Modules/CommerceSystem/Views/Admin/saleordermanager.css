@@ -1,0 +1,24 @@
+﻿#sotable tr td:nth-child(1) {
+  width: 200px;
+}
+#sotable tr td:nth-child(2) {
+  width: 200px;
+}
+#sotable tr td:nth-child(3) {
+  width: 210px;
+}
+#sotable tr td:nth-child(4) {
+  text-align: center;
+}
+#sotable tr td:nth-child(6) {
+  width: 110px;
+  text-align: right;
+}
+#sotable tr td:nth-child(7) {
+  width: 180px;
+  text-align: right;
+}
+#sotable ul {
+  padding: 0 0 0 15px;
+  list-style: square;
+}

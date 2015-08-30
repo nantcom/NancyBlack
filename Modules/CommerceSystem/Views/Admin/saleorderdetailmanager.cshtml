@@ -11,14 +11,13 @@
             padding-top: 7px;
         }
 
-        .ncb-panel-address{
+        .ncb-panel-address {
             height: 500px;
         }
 
         .ncb-panel-detail {
             height: 275px;
         }
-        
     </style>
 }
 
@@ -36,24 +35,23 @@
      ncb-datacontext table="SaleOrder"
      ng-cloak>
 
-    <tabset justified="true">
+    <tabset>
 
         <tab heading="Details">
 
             <div class="col-md-12" style="padding-bottom: 10px;">
-                <!-- Single button -->
-                <div class="btn-group pull-right">
-                    <button type="button" class="btn btn-default dropdown-toggle"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="icon ion-printer"></span>
-                        Print Documents
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">                        
-                        <li><a href="#" ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"><span class="icon ion-document-text"></span> Invoice</a></li>
-                        <li><a href="#" ng-click="printDocument(object.SaleOrderIdentifier, 'receipt')"><span class="icon ion-android-document"></span> Receipt</a></li>                        
-                    </ul>
-                </div>
+                
+                <button ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"
+                   class="btn btn-primary"
+                   ng-disabled="object.Status == 'PaymentReceived'">
+                    <span class="icon ion-printer"></span> Invoice
+                </button>
+
+                <button ng-click="printDocument(object.SaleOrderIdentifier, 'receipt')"
+                   class="btn btn-success"
+                   ng-disabled="object.Status != 'PaymentReceived'">
+                    <span class="icon ion-printer"></span> Receipt
+                </button>
             </div>
 
             <div class="col-md-6"
@@ -68,7 +66,15 @@
 
             <div class="col-md-12" ng-include="productResolverTmpId"></div>
 
-        </tab>       
+        </tab>
+
+        <tab heading="History">
+
+        </tab>
+
+        <tab heading="Communication">
+
+        </tab>
 
     </tabset>
 
@@ -209,7 +215,7 @@
                             {{object.Customer.DOB || 'empty' | date: 'MM/dd/yyyy'}}
                         </span>
                     </div>
-                </div>                
+                </div>
             </div>
         </div>
     </form>
@@ -345,7 +351,7 @@
                             {{object.BillTo.PostalCode || 'empty'}}
                         </span>
                     </div>
-                </div>                
+                </div>
 
             </div>
         </div>
@@ -467,67 +473,67 @@
 </script>
 
 <script type="text/ng-template" id="saleorder_detail_productresolver.html">
-    
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    Shopping Cart
-                </h3>
-            </div>
 
-            <div class="panel-body">
-                <table id="items" class="table"
-                       ncg-productresolver saleorder="object">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Product</th>
-                            <th>Qty.</th>
-                            <th>Unit Price</th>
-                            <th>Line Total</th>
-                        </tr>
-                    </thead>
-                    <tr ng-repeat="(productid, values) in cartView">
-                        <td>
-                            <div class="form-control-static">
-                                {{$index + 1}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{products[productid].Title}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{values.length}}
-                            </div>
-                        </td>
-                        <td>
-
-                            <div class="form-control-static">
-                                {{products[productid].Price | number:2}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{(products[productid].Price * values.length) | number:2}}
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="blank" colspan="3"> </td>
-                        <td class="total-line">
-                            Total
-                        </td>
-                        <td class="total-value">
-                            {{getTotal() | number:2 }}
-                        </td>
-                    </tr>
-                </table>
-            </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Shopping Cart
+            </h3>
         </div>
-       
-    
+
+        <div class="panel-body">
+            <table id="items" class="table"
+                   ncg-productresolver saleorder="object">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Qty.</th>
+                        <th>Unit Price</th>
+                        <th>Line Total</th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="(productid, values) in cartView">
+                    <td>
+                        <div class="form-control-static">
+                            {{$index + 1}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{products[productid].Title}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{values.length}}
+                        </div>
+                    </td>
+                    <td>
+
+                        <div class="form-control-static">
+                            {{products[productid].Price | number:2}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{(products[productid].Price * values.length) | number:2}}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="3"> </td>
+                    <td class="total-line">
+                        Total
+                    </td>
+                    <td class="total-value">
+                        {{getTotal() | number:2 }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
 
 </script>

@@ -216,4 +216,22 @@ table.busy {
 .tool {
   margin-bottom: 30px;
 }
-/*# sourceMappingURL=admin.css.map */
+.ng-table-pager {
+  background-color: #efefef;
+  margin-bottom: 100px;
+  padding: 10px;
+  margin-top: -10px;
+  border-top: 2px solid silver;
+  min-height: 58px;
+}
+.ng-table-pager .pagination {
+  margin: 0;
+}
+h1,
+h2,
+h3 {
+  color: royalblue;
+}
+table th {
+  text-align: left !important;
+}

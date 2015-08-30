@@ -2,6 +2,8 @@
 
 @{
     Layout = "_base";
+
+    var type = this.Model.Content.ContentParts.Type;
 }
 
 @section Head
@@ -45,7 +47,7 @@
         <div id="header"
              ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
 
-            @this.Model.Content.ContentParts.Type
+            @type
         </div>
 
         <div class="row">
@@ -96,7 +98,7 @@
                     </tr>
 
                     @{
-                        if (this.Model.Content.Type == "receipt") {
+                        if (type == "receipt") {
                             <tr>
                                 <td class="meta-head">
                                     <div class="editabe" id="receiptnumber">
@@ -125,7 +127,7 @@
                         <td class="meta-head">
                             <div class="editabe" id="amountpaid">
                                 @{
-                                    if (this.Model.Content.Type == "invoice")
+                                    if (type == "invoice")
                                     {
                                         <span>Amount Due</span>
                                     }
