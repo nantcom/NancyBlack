@@ -30,7 +30,6 @@
         <h1>
             Nancy<span>White</span>
         </h1>
-
         <ul>
             <li>
                 <h2>{{currentUrl}}</h2>
@@ -49,7 +48,7 @@
                     Settings &amp; SEO
                 </a>
             </li>
-            <li ng-class="{ 'disabled' : siteView.collections.length == 0}">
+            <li ng-class="{ 'disabled' : siteView.collections == null || siteView.collections.length == 0}">
                 <h2>List</h2>
             </li>
             <li ng-repeat="col in siteView.collections">
@@ -62,7 +61,7 @@
                 <h2>Site</h2>
             </li>
             <li>
-                <a ng-click="globals.activecollection={ url: '/', table: 'content', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">
+                <a ng-click="globals.activecollection={ url: '/', table: 'page', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">
                     Main Pages
                 </a>
             </li>
@@ -104,11 +103,12 @@
          ng-controller="NcbPageLayoutEdit as ctrl">
         <h1>{{currentUrl}}</h1>
         <h2>Layout:</h2>
-        <h3>choose the available layouts for this content.</h3>
+        <h3>choose the available layouts for this content. changes are automatically saved.</h3>
         <ul>
             <li ng-repeat="item in layouts">
 
-                <a ng-click="ctrl.changelayout($event,item)">
+                <a ng-click="ctrl.changelayout($event,item)"
+                   ng-class="{ 'text-success' : currentContent.Layout == item }">
                     <i class="ion-grid"></i>
                     {{item}}
                 </a>
@@ -389,7 +389,7 @@
                 </div>
             </div>
             <div>
-                <iframe id="siteview" name="siteview" src="/"></iframe>
+                <iframe id="siteview" name="siteview"></iframe>
             </div>
             <div id="toggleview">
                 <a href="#" ng-click="ctrl.view(375, $event)">
@@ -404,9 +404,9 @@
                 <a href="#" ng-click="ctrl.view('none', $event)">
                     <i class="ion-monitor"></i>
                 </a>
-                <span class="pull-right">
-                    {{width}}
-                </span>
+                <a href="#" ng-click="reloadSiteView()" class="pull-right">
+                    <i class="ion-ios-reload"></i>
+                </a>
             </div>
         </div>
     </div>

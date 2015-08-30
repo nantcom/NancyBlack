@@ -1506,7 +1506,7 @@
 
                 var finalUrl = "/__resize" + url + "?";
 
-                if (attrs.width != null) {
+                if (attrs.width != null && attrs.width != "") {
 
                     var w = attrs.width;
                     if (w == "100%") {
@@ -1518,7 +1518,7 @@
                                 );
                 }
 
-                if (attrs.height != null) {
+                if (attrs.height != null && attrs.height != "") {
 
                     var h = attrs.height;
                     if (h == "100%") {
@@ -1530,7 +1530,15 @@
                                 );
                 }
 
-                if (attrs.width == null && attrs.height == null) {
+                if (attrs.width == null && attrs.height == null ) {
+
+                    finalUrl += String.format("w={0}&h={1}",
+                                    element.width(),
+                                    element.height()
+                                );
+                }
+
+                if (attrs.width == "" && attrs.height == "") {
 
                     finalUrl += String.format("w={0}&h={1}",
                                     element.width(),
@@ -1780,6 +1788,41 @@
             restrict: 'A',
             link: link,
             scope: true,
+        };
+    });
+
+    
+    module.directive('ncbSlidetoggle', function () {
+
+        function link($scope, element, attrs) {
+
+            if (attrs.ncbSlidetoggle == null) {
+
+                throw "Requires value to watch";
+            }
+
+            $scope.$watch(attrs.ncbSlidetoggle, function (down) {
+
+                if (down) {
+
+                    $(element).slideDown();
+                    $(element).addClass("in");
+                    $(element).removeClass("out");
+
+                } else {
+
+                    $(element).slideUp();
+                    $(element).addClass("out");
+                    $(element).removeClass("in");
+                }
+
+            });
+        };
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false,
         };
     });
 

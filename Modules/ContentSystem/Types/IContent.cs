@@ -56,5 +56,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Name of the table which stores this data
         /// </summary>
         string TableName { get; }
+
+        /// <summary>
+        /// Attachments
+        /// </summary>
+        dynamic[] Attachments { get; set; }
     }
 }

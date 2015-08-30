@@ -14,25 +14,32 @@
             {{$index + 1}}
         </td>
         <td>
-            <img src="{{products[productid].Attachments[0].Url}}" />
+            <img ncb-resize="products[productid].Attachments[0].Url" width="80" />
         </td>
         <td>
             <div class="form-control-static">
                 {{products[productid].Title}}
+                <ul ng-repeat="(key,value) in products[productid].Attributes"
+                    class="text-muted">
+                    <li>
+                        <b>{{key}}:</b> {{value}}
+                    </li>
+                </ul>
             </div>
         </td>
         <td>
             <span class="input-group">
                 <span class="input-group-btn">
-                    <a class="btn btn-default"
-                       ng-click="shoppingcart.remove(productid)">-</a>
+                    <button class="btn btn-default"
+                       ng-click="shoppingcart.remove(productid)">-</button>
                 </span>
                 <span class="form-control">
                     {{values.length}}
                 </span>
                 <span class="input-group-btn">
-                    <a class="btn btn-default"
-                       ng-click="shoppingcart.add(productid)">+</a>
+                    <button class="btn btn-default"
+                            ng-disabled="products[productid].Stock == values.length"
+                       ng-click="shoppingcart.add(productid)">+</button>
                 </span>
             </span>
         </td>

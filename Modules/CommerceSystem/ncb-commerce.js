@@ -589,8 +589,8 @@
                     }
 
                     var toSave = [];
-                    toSave[0] = cleanupAddress($scope.shoppingcart.cart.shipto);
-                    toSave[1] = cleanupAddress($scope.shoppingcart.cart.billto);
+                    toSave[0] = cleanupAddress($scope.shoppingcart.cart.ShipTo);
+                    toSave[1] = cleanupAddress($scope.shoppingcart.cart.BillTo);
 
                     $http.post("/__commerce/api/address", toSave)
                         .success(function (data) {
@@ -658,7 +658,7 @@
         $me.copytobilling = function () {
 
 
-            cartSystem.cart.billto = JSON.parse(JSON.stringify(cartSystem.cart.shipto));
+            cartSystem.cart.BillTo = JSON.parse(JSON.stringify(cartSystem.cart.ShipTo));
         };
 
         $me.moneytransfer = function (datacontext) {

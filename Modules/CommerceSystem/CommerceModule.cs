@@ -63,6 +63,32 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             });
 
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
+
+            Post["/__commerce/api/resolvevariation"] = this.HandleRequest(this.HandleVariationRequest);
+        }
+
+        private dynamic HandleVariationRequest(dynamic arg)
+        {
+            var parameters = arg.body.Value as JObject;
+
+            var masterId = (int)parameters["MasterProductId"];
+            var products = this.SiteDatabase.Query<Product>()
+                            .Where(p => p.MasterProductId == masterId)
+                            .ToList();
+
+            foreach (var p in products)
+            {
+                var attributes = p.Attributes as JObject;
+                var match = attributes.Properties().All(attr => (string)attr.Value == (string)parameters[attr.Name]);
+
+                if (match == true)
+                {
+                    return p;
+                }
+
+            }
+
+            return 404;
         }
 
         private dynamic HandleSalorderSaveRequest(dynamic arg)
@@ -91,20 +117,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // Update Total
             saleorder.TotalAmount = 0;
 
-            // snapshot the products into this sale order
-            // so that if there is a change in product info later
-            // we still have the one that customer sees
-            List<Product> products = new List<Product>();
-            foreach (var item in saleorder.Items)
-            {
-                var product = this.SiteDatabase.GetById<Product>(item);
-                products.Add(product);
-
-                saleorder.TotalAmount += product.Price;
-            }
-
             this.SiteDatabase.Transaction(() =>
             {
+                // snapshot the products into this sale order
+                // so that if there is a change in product info later
+                // we still have the one that customer sees
+                saleorder.ItemsDetail = new List<Product>();
+                foreach (var item in saleorder.Items)
+                {
+                    var product = this.SiteDatabase.GetById<Product>(item);
+                    saleorder.ItemsDetail.Add(product);
+
+                    saleorder.TotalAmount += product.Price;
+                }
+
                 // need to insert to get ID
                 this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
 

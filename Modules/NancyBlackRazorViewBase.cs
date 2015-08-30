@@ -215,7 +215,7 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="url">Base Url </param>
         /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
-        public object ListProductUnderUrl(string entityName, string url, Func<dynamic, object> contentTemplate)
+        public object ListProductUnderUrl(string entityName, string url, string limit, Func<dynamic, object> contentTemplate)
         {
 
 #if DEBUG
@@ -226,7 +226,8 @@ namespace NantCom.NancyBlack
 #endif
             var list = Database.QueryAsJObject(entityName,
                 string.Format("startswith(Url,'{0}') and (IsVariation eq 0)", url),
-                "DisplayOrder");
+                "DisplayOrder",
+                take: limit);
 
             foreach (var item in list)
             {

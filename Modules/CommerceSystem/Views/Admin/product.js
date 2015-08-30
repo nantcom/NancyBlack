@@ -212,6 +212,18 @@
                 });
         };
 
+        vm.copystock = function (sizes) {
+
+            if (confirm("Do you want to Copy inventory values to stock? This cannot be undone.") == false) {
+                return;
+            }
+
+            $http.post("/admin/commerce/api/copystock", { })
+                .success(function () {
+
+                    $scope.alerts.push({ type: 'success', msg: 'Successfully Copied stock for all products.' });
+                });
+        };
     });
 
 })();

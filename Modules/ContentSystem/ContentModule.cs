@@ -75,8 +75,10 @@ namespace NantCom.NancyBlack.Modules
                 url = "/" + url;
             }
 
+            url = url.ToLowerInvariant();
+
             // invalid admin links
-            if (url.StartsWith("/Admin", StringComparison.InvariantCultureIgnoreCase))
+            if (url.StartsWith("/admin", StringComparison.InvariantCultureIgnoreCase))
             {
                 return 404;
             }
@@ -105,15 +107,23 @@ namespace NantCom.NancyBlack.Modules
                 // seems to be a collection
                 var typeName = parts[1].Substring(0, parts[1].Length - 1);
                 var datatype = this.SiteDatabase.DataType.FromName(typeName);
-                if ( typeof(IContent).IsAssignableFrom( datatype.GetCompiledType() ) == false)
-                {
-                    throw new InvalidOperationException("Type:" + typeName + " does not implement IContent. Type must implement IContent to be served via ContentModule");
-                }
 
-                requestedContent = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault() as IContent;
+                var result = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault();
+                if (result != null)
+                {
+                    // convert it to IContent
+                    if (result is IContent)
+                    {
+                        requestedContent = result as IContent;
+                    } else
+                    {
+                        requestedContent = JObject.FromObject(result).ToObject<Page>();
+                        (requestedContent as Page).SetTableName(typeName);
+                    }
+                }
             }
 
-            // if failed to get from table, use content table instead
+            // if it is not table, use content table instead
             if (requestedContent == null)
             {
                 requestedContent = ContentModule.GetPage(this.SiteDatabase, url);
@@ -153,7 +163,7 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
-            if (requestedContent.Layout == null)
+            if (string.IsNullOrEmpty( requestedContent.Layout ))
             {
                 requestedContent.Layout = "Content";
             }

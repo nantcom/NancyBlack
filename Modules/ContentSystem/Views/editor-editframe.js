@@ -43,16 +43,16 @@
             var collectionItem =
             {
                 element: collection,
-                name: collection.attr("table"),
-                table: collection.attr("table"),
-                layout: collection.attr("layout"),
+                name: collection.attr("name") == null ? collection.attr("table") : collection.attr("name"),
+                table: collection.attr("table") == null ? "" : collection.attr("table").toLowerCase(),
+                layout: collection.attr("layout") == null ? "" : collection.attr("layout").toLowerCase(),
             };
 
             if (collectionItem.table == null) {
 
                 collectionItem.url = collection.attr("rooturl");
                 collectionItem.name = collectionItem.url.substring(1);
-                collectionItem.table = "content";
+                collectionItem.table = "page";
 
             } else {
 
@@ -61,7 +61,7 @@
                     collectionItem.url = collection.attr("rooturl");
 
                 } else {
-                    collectionItem.url = "/" + collection.attr("table") + "s";
+                    collectionItem.url = "/" + collection.attr("table").toLowerCase() + "s";
                 }
 
             }
@@ -243,6 +243,7 @@
             $rootScope.$broadcast("siteView-reloaded", $scope.siteView);
         });
 
+        siteView.attr("src", "/");
     });
 
     ncbEditor.controller("NcbPageContent", function ($scope, $rootScope, $timeout, $location) {
@@ -498,7 +499,7 @@
         $scope.currentTable = model.Content.TableName;
 
         $scope.object = JSON.parse(JSON.stringify(model.Content));
-        $scope.menu.backbuttonText = "save";
+        $scope.menu.backbuttonText = "back";
 
         $http.get('/__editor/data/availablelayouts').
           success(function (data) {
@@ -695,7 +696,7 @@
             $scope.globals.activecollection = null;
 
             $scope.itemwording = "page";
-            if ($scope.collection.table != "content") {
+            if ($scope.collection.table != "Page") {
 
                 $scope.itemwording = "item";
             }
@@ -710,9 +711,19 @@
                 query = "$filter=startswith(Url,'/') and (indexof(substring(Url,2),'/') eq 0 )";
             } else {
 
-                query = String.format(
-                    "$filter=startswith(Url,'{0}')",
-                    $scope.rootUrl);
+                // url already starts with rootUrl
+                if ($scope.rootUrl.indexOf( "/" + $scope.collection.table + "s" ) == 0 ) {
+
+                    query = String.format(
+                        "$filter=startswith(Url,'{0}/')",
+                        $scope.rootUrl);
+                } else {
+
+                    query = String.format(
+                        "$filter=startswith(Url,'/{0}s{1}/')",
+                        $scope.collection.table,
+                        $scope.rootUrl);
+                }
 
                 if ($scope.collection.table.toLowerCase() == "product") {
 

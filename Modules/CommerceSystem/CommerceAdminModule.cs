@@ -44,9 +44,34 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
+            Post["/admin/commerce/api/copystock"] = this.HandleRequest(this.CopyStock);
+
             #endregion
         }
-        
+
+        private dynamic CopyStock(dynamic arg)
+        {
+            TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);
+            
+            this.SiteDatabase.Transaction(() =>
+            {
+                foreach (var item in this.SiteDatabase.Query<Product>()
+                                        .Where(p => p.IsVariation == true)
+                                        .AsEnumerable())
+                {
+
+                    var movements = this.SiteDatabase.Query<InventoryMovement>()
+                                        .Where(mv => mv.ProductId == item.Id)
+                                        .ToList();
+
+                    item.Stock = movements.Sum(mv => mv.Change);
+                    this.SiteDatabase.UpsertRecord<Product>(item);
+                }
+            });
+
+            return 200;
+        }
+
         private dynamic EnableSizingVariations(dynamic arg)
         {
             TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);
