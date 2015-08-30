@@ -1039,7 +1039,7 @@
 
             $me.delete = function (item) {
 
-                if (me.readonly == true) {
+                if ($me.readonly == true) {
 
                     return;
                 }
@@ -1058,6 +1058,10 @@
                 });
             };
 
+            $me.reorder = function () {
+
+                $scope.data.save($scope.object);
+            };
         }
 
         return {

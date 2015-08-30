@@ -5,13 +5,19 @@
              ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
         <i class="ion-ios-plus-outline"></i>
     </div>
-    <ul class="filelist">
+    <ul class="filelist"
+        sv-root sv-part="object.Attachments"
+        sv-on-sort="attachmentManager.reorder()">
+
         <li ng-repeat="item in object.Attachments"
-            ng-click="attachmentManager.view(item)">
-            <i class="ion-document">
+            ng-click="attachmentManager.view(item)"
+            sv-element>
+
+            <i class="ion-ios-photos-outline">
             </i>
 
             <img ncb-resize="{{item.Url}}" width="80" />
+            <div sv-handle ng-if="attachmentManager.readonly == true"></div> 
         </li>
     </ul>
     <ncb-modal class="attachmentView" closebutton

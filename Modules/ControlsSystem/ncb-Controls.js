@@ -1348,12 +1348,45 @@
                 scale = parseFloat(attrs.scale);
             }
 
-            element.css("height", $window.height() * scale);
+            var offset = 0;
+            if (attrs.offset != null) {
+                offset = parseFloat(attrs.offset);
+            }
 
-            $window.on("resize", function () {
+            var updateHeight = function () {
 
-                element.css("height", $window.height() * scale);
-            });
+                element.css("height", ($window.height() * scale) + offset);
+            };
+
+            $window.on("resize", updateHeight);
+            updateHeight();
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
+    module.directive('ncbFillwidth', function () {
+
+        function link(scope, element, attrs) {
+
+            var $window = $(window);
+
+
+            var offset = 0;
+            if (attrs.ncbFillwidth != "") {
+                offset = parseFloat(attrs.ncbFillwidth);
+            }
+
+            var update = function () {
+
+                element.css("width", $window.width() + offset);
+            };
+
+            $window.on("resize", update);
+            update();
         }
 
         return {

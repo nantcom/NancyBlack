@@ -31,9 +31,6 @@
             Nancy<span>White</span>
         </h1>
         <ul>
-            <li>
-                <h2>{{currentUrl}}</h2>
-            </li>
             <li ng-class="{ 'disabled' : siteView.areas.length == 0}">
                 <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
             </li>
@@ -79,8 +76,8 @@
 
     <div class="editableList"
          ng-controller="NcbPageContent as ctrl">
-        <h1>{{currentUrl}}</h1>
-        <h2>Content Blocks:</h2>
+        <h1>CONTENT</h1>
+        <h2>Blocks:</h2>
         <ul>
             <li ng-repeat="item in siteView.areas">
 
@@ -101,8 +98,7 @@
 
     <div ncb-datacontext-integrated table="{{currentTable}}"
          ng-controller="NcbPageLayoutEdit as ctrl">
-        <h1>{{currentUrl}}</h1>
-        <h2>Layout:</h2>
+        <h1>Layout</h1>
         <h3>choose the available layouts for this content. changes are automatically saved.</h3>
         <ul>
             <li ng-repeat="item in layouts">
@@ -122,7 +118,7 @@
 
     <div ncb-datacontext-integrated table="{{currentTable}}"
          ng-controller="NcbPagePropertyEdit as ctrl">
-        <h1>{{currentUrl}}</h1>
+        <h1>Settings &amp; SEO</h1>
 
         <input type="text" ncb-textbox title="Title"
                placeholder="Shows in tab title"
@@ -156,7 +152,7 @@
     <div ncb-datacontext-integrated
          ng-controller="NcbContentEditor as ctrl"
          table="{{currentContent.TableName}}">
-        <h1>{{currentUrl}}</h1>
+        <h1>Content editor</h1>
         <h2 style="text-transform: none">
             <i class="ion-ios-paper-outline"></i>
             {{editing.name}}
@@ -184,7 +180,7 @@
             Attachments
         </h2>
         <h3>
-            files, pictures related with {{currentUrl}}.
+            files, pictures related with this page.
             drop file into the following button to save it to server.
         </h3>
         <ncb-attachmentmanager onselect="ctrl.addToContentBlock" selecttext="Insert">
@@ -379,7 +375,8 @@
     </div>
 
     <div id="siteContent">
-        <div>
+        <div ncb-fillheight offset="-20"
+             ncb-fillwidth="-260">
             <div id="toolbarcontainer">
                 <div id="toolbar1">
 
@@ -404,9 +401,15 @@
                 <a href="#" ng-click="ctrl.view('none', $event)">
                     <i class="ion-monitor"></i>
                 </a>
-                <a href="#" ng-click="reloadSiteView()" class="pull-right">
-                    <i class="ion-ios-reload"></i>
-                </a>
+
+                <div class="pull-right">
+                    {{currentUrl}}
+
+                    <a href="#" ng-click="reloadSiteView()">
+                        <i class="ion-ios-reload"></i>
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>

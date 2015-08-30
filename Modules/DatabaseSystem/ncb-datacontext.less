@@ -62,7 +62,6 @@
             right: 0;
             bottom: 0;
             pointer-events: none;
-            opacity: 0.5;
 
             transition: all ease 0.5s;
         }
@@ -78,6 +77,10 @@
             i {
                 color: lighten( @foreground, 20% );
             }
+        }
+
+        div[sv-handle] {
+            display: none;
         }
     }
 }

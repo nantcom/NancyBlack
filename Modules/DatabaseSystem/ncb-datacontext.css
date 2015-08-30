@@ -50,7 +50,6 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-  opacity: 0.5;
   transition: all ease 0.5s;
 }
 .filelist li:hover img {
@@ -60,6 +59,9 @@
 }
 .filelist li:hover i {
   color: #717171;
+}
+.filelist li div[sv-handle] {
+  display: none;
 }
 .attachmentView img {
   width: 100% !important;

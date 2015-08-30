@@ -148,7 +148,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 Action<string> createProduct = (url) =>
                 {
-                    var newUrl = product.Url + url;
+                    var newUrl = (product.Url + url).ToLowerInvariant();
 
                     // copy all information from current product to replace the variation product
                     var newProduct = JObject.FromObject(product).ToObject<Product>();
@@ -169,7 +169,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     newProduct.IsVariation = true;
                     newProduct.HasVariation = false;
                     newProduct.VariationAttributes = null;
-                    newProduct.Url = newUrl.ToLowerInvariant();
+                    newProduct.Url = newUrl;
 
                     var parts = url.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                     var newProductAttributes = new JObject();

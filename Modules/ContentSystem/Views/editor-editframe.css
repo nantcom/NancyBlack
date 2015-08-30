@@ -34,9 +34,11 @@ a.success:hover {
   display: table-cell;
 }
 #editframe #menu {
-  width: 250px;
-  border-left: 10px solid #bfbfbf;
-  padding: 0 20px 0 20px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  border-left: 5px solid #bfbfbf;
+  padding: 0 0 0 10px;
 }
 #editframe #siteContent {
   padding: 15px;
@@ -44,9 +46,10 @@ a.success:hover {
   /* table layout */
 }
 #editframe #siteContent > div {
-  width: 100%;
+  width: inherit;
   height: 100%;
   display: table;
+  position: fixed;
 }
 #editframe #siteContent > div > div {
   display: table-row;
@@ -102,6 +105,8 @@ a.success:hover {
   -o-transition: all ease-out 0.2s;
   -webkit-transition: all ease-out 0.2s;
   transition: all ease-out 0.2s;
+  position: relative;
+  z-index: 1;
 }
 #editframe #working {
   position: absolute;
@@ -193,6 +198,7 @@ a.success:hover {
   font-size: 12pt;
   font-weight: bold;
   text-transform: uppercase;
+  white-space: normal;
 }
 #menu h2 > a {
   font-weight: normal;
