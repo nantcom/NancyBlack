@@ -1,4 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -46,9 +47,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         public PaySbuyModule()
         {
-            Get["/__commerce/paysbuy/settings"] = this.HandleRequest(this.GetPaySbuySettings);
+            Get["/__commerce/paysbuy/settings"] = this.HandleRequest(this.GetPaySbuySettings);            
 
-            Post["/__commerce/paysbuy/postback"] = this.HandleRequest(this.HandlePaySbuyPostback);
+            Post["/__commerce/paysbuy/postback"] = this.HandleViewRequest("commerce-thankyoupage", this.HandlePaySbuyPostback);            
         }
 
         private dynamic GetPaySbuySettings(dynamic arg)
@@ -57,7 +58,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             if (this.Request.Url.HostName == "localhost")
             {
-                settings.postUrl = "http://nant.co/__commerce/paysbuy/postback";
+                settings.postUrl = "http://nant.co/__commerce/paysbuy/postback";                
             }
             else
             {
@@ -67,7 +68,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return settings;
         }
 
-        private dynamic HandlePaySbuyPostback(dynamic arg)
+        private StandardModel HandlePaySbuyPostback(dynamic arg)
         {
             JObject postback = JObject.FromObject(this.Request.Form.ToDictionary());
             PaySbuyPostback paysbuyPostback = postback.ToObject<PaySbuyPostback>();
@@ -79,7 +80,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             CommerceModule.HandlePayment(this.SiteDatabase, log, paysbuyPostback.result);
 
-            return 201;
+            var data = new { };
+
+            var dummyPage = new Page()
+            {
+                Title = "Thank you",
+                ContentParts = JObject.FromObject(new
+                {
+                    SaleOrderIdentification = paysbuyPostback.result,                    
+                }),
+
+            };
+
+            return new StandardModel(this, dummyPage, data);
         }
 
     }

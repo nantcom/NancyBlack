@@ -1,0 +1,58 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+}
+
+@section Head
+{
+    <style>
+        body {            
+            width: 100%;
+            height: 100%;            
+        }
+    </style>
+}
+
+<div class="container">
+
+    
+    @this.Model.Data;
+    @this.Model.Content;
+    <div class="page-header">
+        <h1 style="font-family: 'Century Gothic'">
+            THANK YOU
+            @*<small>Subtext for header</small>*@
+        </h1>
+    </div>
+
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-xs-12">
+                <p>Your Order ID is: <b>#@this.Model.Content.ContentParts.SaleOrderIdentification</b></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <p>An email receipt containing information about your order will soon folllow. Please keep it for your records.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <p>Thank you for shopping at http://gohub.biz/ </p>
+            </div>
+        </div>
+
+        <p><a class="btn btn-primary btn-lg" href="/" role="button">Home page</a></p>
+
+    </div>
+
+    <div class="jumbotron lg">
+
+    </div>
+
+    <div style="text-align:center; color:lightgray;">
+        <small>All rights reserved. &copy; 2015 gohub</small>
+    </div>
+
+</div>
