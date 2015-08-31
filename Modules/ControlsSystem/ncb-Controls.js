@@ -507,6 +507,13 @@
                 }
             }
 
+
+            if ($(window).width() < 400) {
+
+                element.find("input[placeholder='Date']").attr("type", "date");
+                return;
+            }
+
             scope.isopen = false;
             scope.opendatepicker = function ($event) {
 
@@ -515,6 +522,7 @@
 
                 scope.isopen = !scope.isopen;
             };
+
         }
 
         return {

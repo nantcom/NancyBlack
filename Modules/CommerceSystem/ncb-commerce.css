@@ -19,6 +19,9 @@ table.saleorder td:nth-child(2) img {
   width: 100%;
   border: 1px solid silver;
 }
+table.saleorder td:nth-child(3) ul {
+  padding-left: 15px;
+}
 table.saleorder th:nth-child(4),
 table.saleorder td:nth-child(4) {
   text-align: center;
@@ -34,23 +37,26 @@ table.saleorder td:nth-child(6) {
   text-align: right;
   width: 15%;
 }
-#cartmodal {
+#cartForm {
   font-style: normal;
   font-family: 'Leelawadee UI', Leelawadee, Tahoma;
   font-weight: 100;
 }
-#cartmodal .carousel {
+#cartForm .carousel {
   min-height: 300px;
   margin-bottom: 60px;
 }
-#cartmodal .carousel h2 {
+#cartForm .carousel h2 {
   margin-top: 0;
   font-size: 150%;
 }
-#cartmodal .carousel .carousel-inner .item {
+#cartForm .carousel .carousel-inner .item {
   text-align: left !important;
 }
-#cartmodal .carousel .carousel-control {
+#cartForm .carousel .carousel-inner > .item:nth-child(4) .btn {
+  margin-bottom: 10px;
+}
+#cartForm .carousel .carousel-control {
   background-image: none !important;
   height: 50px !important;
   color: green;
@@ -61,55 +67,55 @@ table.saleorder td:nth-child(6) {
   padding: 20px;
   cursor: pointer;
 }
-#cartmodal .carousel .carousel-control:hover {
+#cartForm .carousel .carousel-control:hover {
   opacity: 1;
 }
-#cartmodal .carousel .carousel-control.left {
+#cartForm .carousel .carousel-control.left {
   color: white;
 }
-#cartmodal .carousel .carousel-control.right {
+#cartForm .carousel .carousel-control.right {
   opacity: 0.2;
   pointer-events: none;
   cursor: not-allowed;
 }
-#cartmodal .carousel .carousel-indicators {
+#cartForm .carousel .carousel-indicators {
   bottom: -50px;
   pointer-events: none;
 }
-#cartmodal .carousel .carousel-indicators li {
+#cartForm .carousel .carousel-indicators li {
   border-radius: 0;
   border-color: transparent;
   background-color: silver;
   margin-right: 5px;
 }
-#cartmodal .carousel .carousel-indicators li.active {
+#cartForm .carousel .carousel-indicators li.active {
   background-color: green;
 }
-#cartmodal .next-enabled .right {
+#cartForm .next-enabled .right {
   opacity: 1 !important;
   pointer-events: all !important;
   cursor: pointer !important;
 }
-#cartmodal #memberPage > div {
+#cartForm #memberPage > div {
   width: 40%;
   margin: auto;
 }
-#cartmodal #profilePage {
+#cartForm #profilePage {
   height: 550px;
 }
-#cartmodal form {
+#cartForm form {
   margin-top: 20px;
 }
-#cartmodal .disabled {
+#cartForm .disabled {
   opacity: 0.2;
   pointer-events: none;
   cursor: not-allowed;
 }
-#cartmodal .paymentpage .row {
+#cartForm .paymentpage .row {
   margin-top: 20px;
   padding: 10px;
 }
-#cartmodal .paymentpage .col-sm-3 button {
+#cartForm .paymentpage .col-sm-3 button {
   width: 100%;
 }
 #working {
@@ -314,4 +320,74 @@ table.saleorder td:nth-child(6) {
   height: 297mm;
   background-color: white;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+@media only screen and (max-device-width: 400px) {
+  #cartForm #memberPage > div {
+    width: 100% !important;
+  }
+  #cartForm .form-group {
+    padding-left: 20px;
+  }
+  #cartForm .form-group .col-xs-3 {
+    width: 100%;
+  }
+  #cartForm .form-group .col-xs-9 {
+    width: 100%;
+  }
+  #cartForm .btn[btn-radio] {
+    width: 100%;
+    margin-bottom: 0 !important;
+  }
+  #cartForm .carousel-inner > .item:last-child .col-sm-4 {
+    text-align: center;
+  }
+  #cartForm .carousel-inner > .item:last-child .col-sm-8 {
+    margin-top: 20px;
+    text-align: center;
+  }
+  #cartForm .carousel-indicators {
+    bottom: -65px !important;
+  }
+}
+@media only screen and (max-device-width: 640px) {
+  table.saleorder thead {
+    display: none;
+  }
+  table.saleorder tr {
+    width: 100%;
+    display: block;
+    border-bottom: 1px solid;
+    clear: both;
+    padding-bottom: 10px;
+  }
+  table.saleorder td {
+    display: inline-block;
+    border: none !important;
+    vertical-align: top;
+  }
+  table.saleorder tr > td:nth-child(1) {
+    width: 5%;
+  }
+  table.saleorder tr > td:nth-child(2) {
+    width: 115px;
+  }
+  table.saleorder tr > td:nth-child(3) {
+    width: 50%;
+  }
+  table.saleorder tr > td:nth-child(4) {
+    display: block;
+    padding-left: 28px;
+  }
+  table.saleorder tr > td:nth-child(5) {
+    width: 40%;
+    text-align: left;
+    padding-left: 28px;
+    opacity: 0.3;
+  }
+  table.saleorder tr > td:nth-child(6) {
+    width: 50%;
+    text-align: right;
+    float: right;
+    font-size: 150%;
+  }
 }
