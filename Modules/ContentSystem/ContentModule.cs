@@ -217,11 +217,11 @@ namespace NantCom.NancyBlack.Modules
 
 
         /// <summary>
-        /// Get child content of given url
+        /// Get content of given url and optionally creates the content
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static Page GetPage(NancyBlackDatabase db, string url)
+        public static Page GetPage(NancyBlackDatabase db, string url, bool create = false)
         {
             if (url.StartsWith("/") == false)
             {
@@ -229,9 +229,16 @@ namespace NantCom.NancyBlack.Modules
             }
             url = url.ToLowerInvariant();
 
-            return db.Query<Page>()
+            var page = db.Query<Page>()
                     .Where(p => p.Url == url)
                     .FirstOrDefault();
+
+            if (page == null && create == true)
+            {
+                page = ContentModule.CreatePage(db, url);
+            }
+
+            return page;
         }
 
         /// <summary>

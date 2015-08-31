@@ -15,6 +15,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
     {
         static CommerceModule()
         {
+            // Maps Variation to master
             ContentModule.MapPage += (ctx, content) =>
             {
                 if (content is Product)
@@ -36,8 +37,33 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             };
         }
 
+        private static bool _Triggered = false;
+
         public CommerceModule()
         {
+            if (_Triggered == false)
+            {
+                // ensure that we have thank you page
+                ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
+                _Triggered = true;
+            }
+
+            // testing thankyou page by nancy white
+            Get["/__/commerce/thankyou"] = this.HandleViewRequest("commerce-thankyoupage", (arg) =>
+            {
+                if (this.CurrentUser.HasClaim("admin") == false)
+                {
+                    return new StandardModel(404);
+                }
+                
+                var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
+                return new StandardModel(this, page, JObject.FromObject( new SaleOrder()
+                {
+                    SaleOrderIdentifier = "SO20990909-999999",
+                }));
+            });
+
+
             Get["/__commerce/cart"] = this.HandleViewRequest("commerce-shoppingcart", (arg) =>
             {
                 return new StandardModel(this, "Checkout");

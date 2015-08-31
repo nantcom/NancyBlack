@@ -63,6 +63,11 @@
                 </a>
             </li>
             <li>
+                <a ng-click="globals.activecollection={ url: '/__/', table: 'page', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">
+                    System Pages
+                </a>
+            </li>
+            <li>
                 <a ng-click="switchMenu( $event, 'editframe-siteseo.html')">SEO</a>
             </li>
             <li>
@@ -247,7 +252,9 @@
             <span ng-show="rootUrl != '/'"
                   class="text-muted">
                 <br />
-                {{rootUrl}}
+                <span ng-repeat="part in rootUrl.substring(1).split('/')">
+                    /{{part}}<br/>
+                </span>
             </span>
         </h1>
         <h2 ng-show="collection != null">
@@ -273,7 +280,7 @@
             <li ng-repeat="item in pages" sv-element="opts">
                 <div>
                     <a ng-click="ctrl.delete($event, item)"
-                       ng-show="item.Url != '/'"
+                       ng-show="item.Url != '/' && item.Url.indexOf('/__/') != 0"
                        class="leftaction">
                         <i class="ion ion-ios-trash-outline"></i>
                     </a>

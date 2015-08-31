@@ -223,7 +223,7 @@
 
                 menu.removeClass("loading");
             }, 1500);
-            
+
 
             // Link to CSS for edit area
             siteView.contents()
@@ -272,7 +272,7 @@
         $scope.editing = {};
 
         $me.getContent = function (callback) {
-            
+
             var query = String.format("$filter=Id eq {0}", $scope.currentContent.Id);
             $scope.data.query(query,
             function (results) {
@@ -401,8 +401,7 @@
 
         $me.reset = function () {
 
-            if (confirm( "Do you want to reset this content block to it's original value? (Usually provided with Template)") == false )
-            {
+            if (confirm("Do you want to reset this content block to it's original value? (Usually provided with Template)") == false) {
                 return;
             }
 
@@ -450,7 +449,7 @@
 
         $scope.currentTable = model.Content.TableName;
 
-        $scope.object = JSON.parse( JSON.stringify( model.Content ) );
+        $scope.object = JSON.parse(JSON.stringify(model.Content));
         $scope.menu.backbuttonText = "save";
         $scope.menu.altbuttonText = "discard";
 
@@ -538,7 +537,7 @@
                 alert("Cannot get information about page's model");
                 return;
             }
-            
+
             $scope.currentTable = model.Content.TableName;
 
             $scope.object = JSON.parse(JSON.stringify(model.Content));
@@ -621,7 +620,7 @@
 
         var $me = this;
         var siteView = $("#siteview");
-                
+
         $me.hoverarea = function (item) {
 
             if (item == null) {
@@ -690,7 +689,7 @@
 
                 throw "$scope.globals.activecollection cannot be null";
             }
-            
+
             $scope.rootUrl = $scope.globals.activecollection.url;
             $scope.collection = $scope.globals.activecollection;
             $scope.globals.activecollection = null;
@@ -709,20 +708,39 @@
 
                 //special query for root case
                 query = "$filter=startswith(Url,'/') and (indexof(substring(Url,2),'/') eq 0 )";
-            } else {
+
+            } else if ($scope.rootUrl == "/__/") {
+
+                //special query for system pages
+                query = "$filter=startswith(Url,'/__/')";
+            }
+            else {
 
                 // url already starts with rootUrl
-                if ($scope.rootUrl.indexOf( "/" + $scope.collection.table + "s" ) == 0 ) {
+                if ($scope.rootUrl.indexOf("/" + $scope.collection.table + "s") == 0) {
+
+                    // TEST:
+                    /* Idea: if the url is sub of given url ('/collections') it must
+                     * 1) starts with '/collectoins'
+                     * 2) if /collections/ was removed - there must be no '/' 
+                     * SELECT
+                            Instr( Url, '/collections' ),
+                            Substr( Url, Length('/collections') + 2),
+                            Instr( Substr( Url, Length('/collections') + 2), '/' )
+                         FROM Collection
+                     */
 
                     query = String.format(
-                        "$filter=startswith(Url,'{0}/')",
-                        $scope.rootUrl);
+                        "$filter=startswith(Url,'{0}/') and (indexof(substring(Url,{1}),'/') eq 0 )",
+                        $scope.rootUrl,
+                        $scope.rootUrl.length + 2);
                 } else {
 
                     query = String.format(
-                        "$filter=startswith(Url,'/{0}s{1}/')",
+                        "$filter=startswith(Url,'/{0}s{1}/') and (indexof(substring(Url,{2}),'/') eq 0 )",
                         $scope.collection.table,
-                        $scope.rootUrl);
+                        $scope.rootUrl,
+                        $scope.rootUrl.length + 2);
                 }
 
                 if ($scope.collection.table.toLowerCase() == "product") {
@@ -840,10 +858,10 @@
             var index = 0;
             var fileList = files;
 
-            var continueNextFile = function ( updated ) {
+            var continueNextFile = function (updated) {
 
                 $scope.pages[$scope.pages.length - 1] = updated;
-                
+
                 index++;
                 if (index >= fileList.length) {
 
@@ -854,7 +872,7 @@
                 createNewItem();
             };
 
-            var uploadFile = function ( newItem ) {
+            var uploadFile = function (newItem) {
 
                 $scope.object = newItem;
                 var file = fileList[index];
@@ -865,7 +883,7 @@
             var createNewItem = function () {
 
                 $scope.newItem.Title = "" + ($scope.pages.length + 1); //use numerical name
-                $me.commitAdd( uploadFile ); // commit add then upload file
+                $me.commitAdd(uploadFile); // commit add then upload file
             };
 
             createNewItem();
@@ -880,7 +898,7 @@
                 refreshCollection();
             }
         });
-        
+
         $scope.$on("siteView-reloaded", function () {
 
             // check that this page still contains the same collection

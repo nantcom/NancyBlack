@@ -663,6 +663,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 var db = new SQLiteConnection(fileName, true);
                 cached = new NancyBlackDatabase(db);
 
+                // touch all data types to trigger table generation/migrations
+                cached.DataType.RegisteredTypes.ToList();
+
                 // cache in memory for 1 hour
                 MemoryCache.Default.Add(key, cached, DateTimeOffset.Now.AddHours(1));
 

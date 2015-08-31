@@ -1,5 +1,6 @@
 ﻿using Nancy;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System;
@@ -21,7 +22,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/tables/inventorymovement"] = this.HandleViewRequest("/Admin/Inventorymanager", null);
 
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
-            
+
             Post["/admin/commerce/api/uploadlogo"] = this.HandleRequest((arg) =>
             {
                 var file = this.Request.Files.First();
@@ -52,7 +53,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         private dynamic CopyStock(dynamic arg)
         {
             TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);
-            
+
             this.SiteDatabase.Transaction(() =>
             {
                 foreach (var item in this.SiteDatabase.Query<Product>()
@@ -81,7 +82,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             this.SiteDatabase.Transaction(() =>
             {
                 foreach (var item in this.SiteDatabase.Query<Product>()
-                                        .Where( p => p.IsVariation == false )
+                                        .Where(p => p.IsVariation == false)
                                         .AsEnumerable())
                 {
                     item.HasVariation = true;
@@ -111,7 +112,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var input = arg.body.Value as JObject;
             var product = input.ToObject<Product>();
-            
+
             var dupe = this.SiteDatabase.Query<Product>()
                 .Where(p => p.Url == product.Url)
                 .FirstOrDefault();

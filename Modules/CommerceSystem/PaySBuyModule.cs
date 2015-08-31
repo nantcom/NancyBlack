@@ -47,9 +47,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         public PaySbuyModule()
         {
-            Get["/__commerce/paysbuy/settings"] = this.HandleRequest(this.GetPaySbuySettings);            
+            Get["/__commerce/paysbuy/settings"] = this.HandleRequest(this.GetPaySbuySettings);
 
-            Post["/__commerce/paysbuy/postback"] = this.HandleViewRequest("commerce-thankyoupage", this.HandlePaySbuyPostback);            
+            Post["/__commerce/paysbuy/postback"] = this.HandleViewRequest("commerce-thankyoupage", this.HandlePaySbuyPostback);
         }
 
         private dynamic GetPaySbuySettings(dynamic arg)
@@ -58,7 +58,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             if (this.Request.Url.HostName == "localhost")
             {
-                settings.postUrl = "http://nant.co/__commerce/paysbuy/postback";                
+                settings.postUrl = "http://nant.co/__commerce/paysbuy/postback";
             }
             else
             {
@@ -80,19 +80,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             CommerceModule.HandlePayment(this.SiteDatabase, log, paysbuyPostback.result);
 
-            var data = new { };
+            var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
 
-            var dummyPage = new Page()
+            return new StandardModel(this, page, JObject.FromObject(new
             {
-                Title = "Thank you",
-                ContentParts = JObject.FromObject(new
-                {
-                    SaleOrderIdentification = paysbuyPostback.result,                    
-                }),
-
-            };
-
-            return new StandardModel(this, dummyPage, data);
+                SaleOrderIdentification = paysbuyPostback.result,
+            }));
         }
 
     }
