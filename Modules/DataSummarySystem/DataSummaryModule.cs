@@ -54,7 +54,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         /// <param name="valueProperty"></param>
         /// <param name="fn"></param>
         /// <returns></returns>
-        public static dynamic Create<TSource>(IEnumerable<TSource> source, TimePeriod period, string timeProperty, string valueProperty, Function fn)
+        public static dynamic Create<TSource>(IEnumerable<TSource> source, TimePeriod period, string timeProperty, string valueProperty, Function fn, DateTime? minDate)
         {
             var pe = Expression.Parameter(typeof(TSource));
 
@@ -70,6 +70,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             summarizerInstance.Period = period;
             summarizerInstance.SummaryKind = fn;
             summarizerInstance.Source = source;
+            summarizerInstance.MinDate = minDate;
 
             return summarizerInstance;
         }
@@ -80,6 +81,17 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public IEnumerable<TSource> Source { get; set; }
+
+        /// <summary>
+        /// Minimum date to get data, if not specified the defaults for each periods are:
+        /// Previous 1 Hour for Minute,
+        /// Previous 1 Day for Hour,
+        /// Previous 7 days for Day,
+        /// Previous 30 days for Week
+        /// Previous 12 Months for Month,
+        /// Previous 3 Years for year
+        /// </summary>
+        public DateTime? MinDate { get; set; }
 
         /// <summary>
         /// Property to be selected out for summarization
@@ -186,7 +198,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         /// Create the period step from given date range
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<string> GetPeriods(Func<DateTime, string> periodGrouper)
+        private IEnumerable<string> GetPeriods(Func<DateTime, string> periodGrouper, DateTime? min = null, bool includesFuture = false)
         {
             Func<DateTime, DateTime> stepper = null;
             switch (this.Period)
@@ -213,48 +225,51 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                     break;
             }
 
-            DateTime min;
             DateTime now = DateTime.Now;
-            switch (this.Period)
+            if (min == null)
             {
-                case TimePeriod.minute:
-                    min = now.AddHours(-1);
-                    break;
-                case TimePeriod.hour:
-                    min = now.AddHours(-24);
-                    break;
-                case TimePeriod.day:
-                    min = now.Date.AddDays(-7);
-                    break;
-                case TimePeriod.week:
-                    min = now.Date.AddDays(-30);
-                    break;
-                case TimePeriod.month:
-                    min = now.Date.AddMonths(-12);
-                    break;
-                case TimePeriod.year:
-                    min = now.Date.AddYears(-3);
-                    break;
-                default:
-                    throw new InvalidOperationException("TimePeriod is not supported: " + this.Period);
+                switch (this.Period)
+                {
+                    case TimePeriod.minute:
+                        min = now.AddHours(-1);
+                        break;
+                    case TimePeriod.hour:
+                        min = now.AddHours(-24);
+                        break;
+                    case TimePeriod.day:
+                        min = now.Date.AddDays(-7);
+                        break;
+                    case TimePeriod.week:
+                        min = now.Date.AddDays(-30);
+                        break;
+                    case TimePeriod.month:
+                        min = now.Date.AddMonths(-12);
+                        break;
+                    case TimePeriod.year:
+                        min = now.Date.AddYears(-3);
+                        break;
+                    default:
+                        throw new InvalidOperationException("TimePeriod is not supported: " + this.Period);
+                }
             }
-
-
-            DateTime current = min;
-            string last = periodGrouper(min);
+            
+            DateTime current = min.Value;
+            string last = periodGrouper(min.Value);
             yield return last;
 
             while (true)
             {
                 current = stepper(current);
-                if (current > now)
+                if (current >= now)
                 {
-                    var lastGroup = periodGrouper(current);
-                    if (lastGroup != last)
+                    if (includesFuture == true)
                     {
-                        yield return lastGroup;
+                        var lastGroup = periodGrouper(current);
+                        if (lastGroup != last)
+                        {
+                            yield return lastGroup;
+                        }
                     }
-
                     break;
                 }
 
@@ -383,7 +398,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                          group item by grouper(timeSelector(item)) into g
                          select g;
             
-            var allseries = this.GetPeriods(grouper).ToDictionary(
+            var allseries = this.GetPeriods(grouper, this.MinDate ).ToDictionary(
                                 k => k,
                                 v => new Series() { Key = v, Value = 0 }
                             );
@@ -424,6 +439,16 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             var select = (string)this.Request.Query.select;
             var function = (string)this.Request.Query.fn;
             var timeselect = (string)this.Request.Query.time;
+            var filter = (string)this.Request.Query["$filter"];
+            var minTimeString = (string)this.Request.Query.mindate;
+
+            DateTime? minTime = null;
+            if (minTimeString != null)
+            {
+                minTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                           .AddMilliseconds(long.Parse(minTimeString))
+                           .ToLocalTime();
+            }
 
             if (timeselect == null)
             {
@@ -448,11 +473,19 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             }
 
             var type = dt.GetCompiledType();
-            var getTable = typeof(NancyBlackDatabase)
-                            .GetMethods().Single(m => m.Name == "Query" && m.GetParameters().Length == 0)
-                            .MakeGenericMethod(type); // calling this.Query<T>
+            var sourceTable = this.SiteDatabase.Query(table, filter);
+            
+            if (minTimeString == "0")
+            {
+                var min = this.SiteDatabase.QueryAsJObject(table, oDataSort: timeselect).FirstOrDefault();
+                if (min == null)
+                {
+                    return 400;
+                }
 
-            var sourceTable = getTable.Invoke( this.SiteDatabase, null );
+                minTime = min.Value<DateTime>(timeselect);
+            }
+
 
             var createSummarizer = typeof(SummarizeTimeSeriesFactory)
                             .GetMethods().Single(m => m.Name == "Create" && m.IsStatic)
@@ -463,7 +496,8 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                 Enum.Parse( typeof(TimePeriod), timeperiod ),
                 timeselect,
                 select,
-                Enum.Parse(typeof(Function), function)
+                Enum.Parse(typeof(Function), function),
+                minTime
             });
 
             return summarizer.GetSummarySeries();

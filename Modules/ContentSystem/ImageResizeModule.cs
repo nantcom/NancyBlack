@@ -15,7 +15,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 {
     public class ImageResizeModule : BaseModule
     {
-        public const int MAX_PER_FILE = 10;
+        public const int MAX_PER_FILE = 20;
 
         public enum ImageResizeMode
         {
@@ -364,57 +364,82 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
         private static Dictionary<string, int> _FraudCount = new Dictionary<string, int>();
 
+        private static Dictionary<string, string> _FileList = new Dictionary<string, string>();
+
+        static ImageResizeModule()
+        {
+            BaseDataModule.AttachmentDeleted += BaseDataModule_AttachmentDeleted;
+        }
+
+        private static void BaseDataModule_AttachmentDeleted(NancyContext ctx, string tableName, dynamic contentItem, string filePath)
+        {
+            var resizeDirectory = Path.Combine(ctx.GetRootPath(), filePath + "-imageresize");
+
+            if (Directory.Exists( resizeDirectory ))
+            {
+                Directory.Delete(resizeDirectory, true);
+            }
+        }
+
         public ImageResizeModule()
         {
-            Get["/__resize/{path*}"] = this.HandleRequest((arg) =>
-            {
-                var file = Path.Combine(this.RootPath, (string)arg.path);
-                if (File.Exists(file) == false)
-                {
-                    return 404;
-                }
-
-                var parameter = new ImageFiltrationParameters(this.Context, file);
-                var key = "ImageResize-" + parameter.GetHashCode();
-                var cached = ImageResizeModule.ImageResizeCache[key] as ResizeResult;
-                
-                if (cached == null)
-                {
-                    if (_FraudCount.ContainsKey(file) == false)
-                    {
-                        _FraudCount.Add( file, 0 );
-                    }
-
-                    int current = _FraudCount[file]++;
-                    if (current > MAX_PER_FILE)
-                    {
-                        // this file has too many image size
-                        // which may be an attack
-                        return 400;
-                    }
-
-                    cached = ImageResizeModule.ResizeAndFilterImage(file, parameter);
-                    ImageResizeModule.ImageResizeCache.Add(key, cached, new CacheItemPolicy()
-                    {
-                        SlidingExpiration = TimeSpan.FromMinutes(60),
-                        RemovedCallback = (args) =>
-                        {
-                            var item = args.CacheItem.Value as ResizeResult;
-                            _FraudCount[item.SourceFile] = _FraudCount[item.SourceFile] - 1;
-                        }
-                    });
-                }
-
-                var response = new Response();
-                response.Contents = (s) =>
-                {
-                    cached.Output.Position = 0;
-                    cached.Output.CopyTo(s);
-                };
-
-                return response;
-            });
+            Get["/__resize/{path*}"] = this.ResizeImage;
             
+        }
+
+        private dynamic ResizeImage(dynamic arg)
+        {
+            var file = Path.Combine(this.RootPath, (string)arg.path);
+            if (File.Exists(file) == false)
+            {
+                return 404;
+            }
+
+            if (this.Request.Url.Query == string.Empty)
+            {
+                return 400;
+            }
+
+            var parameter = new ImageResizeModule.ImageFiltrationParameters(this.Context, file);
+            var parameterKey = parameter.GetHashCode().ToString();
+            var key = file + parameterKey;
+            string resizeRelativePath;
+
+            if (_FileList.TryGetValue( key, out resizeRelativePath) == true)
+            {
+                return this.Response.AsRedirect(resizeRelativePath, Nancy.Responses.RedirectResponse.RedirectType.Permanent);
+            }
+
+            resizeRelativePath = (string)arg.path + "-imageresize/" + parameterKey + Path.GetExtension( file );
+            var resizeDirectory = Path.Combine(this.RootPath, (string)arg.path + "-imageresize");
+            Directory.CreateDirectory(resizeDirectory);
+
+            var resizeFile = Path.Combine(this.RootPath, resizeRelativePath);
+
+            lock (resizeFile)
+            {
+                if (File.Exists(resizeFile) == true)
+                {
+                    _FileList[key] = "/" + resizeRelativePath;
+                    return this.Response.AsRedirect("/" + resizeRelativePath, Nancy.Responses.RedirectResponse.RedirectType.Permanent);
+                }
+
+                if (Directory.GetFiles(resizeDirectory).Length + 1 > MAX_PER_FILE)
+                {
+                    return 400;
+                }
+                
+                var result = ImageResizeModule.ResizeAndFilterImage(file, parameter);
+
+                using (var resized = File.OpenWrite( resizeFile ))
+                {
+                    result.Output.CopyTo(resized);
+                }
+
+                _FileList[key] = "/" + resizeRelativePath;
+                return this.Response.AsRedirect("/" + resizeRelativePath, Nancy.Responses.RedirectResponse.RedirectType.Permanent);
+            }
+
         }
 
         /// <summary>

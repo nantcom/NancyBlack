@@ -82,6 +82,9 @@
     @RenderBody()
 
     <script>
+        // Make :hover works on ipad
+        document.addEventListener("touchstart", function(){}, true);
+	
         @if (this.CurrentUser != null)
         {
             // automatically set current user info into window variable

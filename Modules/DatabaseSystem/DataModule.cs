@@ -19,6 +19,12 @@ namespace NantCom.NancyBlack.Modules
 
     public abstract class BaseDataModule : BaseModule
     {
+        public delegate void NewAttachmentsEventHandler(NancyContext ctx, string tableName, dynamic contentItem, List<dynamic> newFiles);
+        public delegate void AttachmentDeletedEventHandler(NancyContext ctx, string tableName, dynamic contentItem, string filePath);
+
+        public static event NewAttachmentsEventHandler NewAttachments = delegate { };
+        public static event AttachmentDeletedEventHandler AttachmentDeleted = delegate { };
+
         /// <summary>
         /// Handles getting item by it's id
         /// </summary>
@@ -300,6 +306,8 @@ namespace NantCom.NancyBlack.Modules
 
             this.SiteDatabase.UpsertRecord(tableName, contentItem);
 
+            BaseDataModule.NewAttachments(this.Context, tableName, contentItem, newFiles);
+
             return contentItem;
         }
 
@@ -335,6 +343,7 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
+            BaseDataModule.AttachmentDeleted(this.Context, tableName, contentItem, path);
 
             return contentItem;
         }
@@ -362,7 +371,6 @@ namespace NantCom.NancyBlack.Modules
     public sealed class DataModule : BaseDataModule
     {
 
-        public static event Action<NancyBlackDatabase, string, dynamic> NewAttachments = delegate { };
 
         public DataModule()
         {
@@ -384,14 +392,7 @@ namespace NantCom.NancyBlack.Modules
 
             // Files
 
-            Post["/tables/{table_name}/{item_id:int}/files"] = (arg) =>
-            {
-                var result = this.HandleFileUploadRequest(arg);
-
-                DataModule.NewAttachments(this.SiteDatabase, arg.table_name, result);
-
-                return result;
-            };            
+            Post["/tables/{table_name}/{item_id:int}/files"] = this.HandleFileUploadRequest;
 
             Delete["/tables/{table_name}/{item_id:int}/files/{file_name}"] = this.HandleFileDeleteRequest;
         }

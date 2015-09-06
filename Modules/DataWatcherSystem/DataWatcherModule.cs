@@ -148,8 +148,8 @@ namespace NantCom.NancyBlack.Modules
 
             NancyBlackDatabase.ObjectCreated += (a, b, c) => genericHandler("create", a, b, c);
             NancyBlackDatabase.ObjectUpdated += (a, b, c) => genericHandler("update", a, b, c);
-            NancyBlackDatabase.ObjectDeleted += (a, b, c) => genericHandler("deleted", a, b, c);            
-            DataModule.NewAttachments += (db, entityName, row) => {
+            NancyBlackDatabase.ObjectDeleted += (a, b, c) => genericHandler("deleted", a, b, c);
+            BaseDataModule.NewAttachments += (ctx, entityName, row, newFiles) => {
 
                 JObject ContentObject = JObject.Parse(row.ToString());
 
@@ -157,7 +157,7 @@ namespace NantCom.NancyBlack.Modules
                               orderby Attachment["CreateDate"] descending
                               select Attachment["Url"]).FirstOrDefault().ToString();
 
-                genericHandler("newAttachments", db, entityName, result);
+                genericHandler("newAttachments", ctx.GetSiteDatabase(), entityName, result);
 
             };
         }
@@ -194,6 +194,7 @@ namespace NantCom.NancyBlack.Modules
                 {
                     foreach (var item in events)
                     {
+                        
                         var datatype = watcher.Property( item.DataTypeName.ToLowerInvariant() );
                         if (datatype == null)
                         {
@@ -201,6 +202,19 @@ namespace NantCom.NancyBlack.Modules
                         }
 
                         var config = datatype.Value.ToObject<WatcherConfig>();
+
+                        if (item.Action == "newAttachments")
+                        {
+                            if (config.autoPrintAttachment == true)
+                            {
+                                new DataWatcherHub().PrintDocument(item.AffectedRow);
+                            }
+
+                            continue;
+                        }
+
+
+
                         if (config.version == true)
                         {
                             item.Database.UpsertRecord(new RowVersion()
@@ -224,15 +238,6 @@ namespace NantCom.NancyBlack.Modules
                                 data = item.AffectedRow,
                             };
                             new DataWatcherHub().GenPDFandUpload(dataToClient);
-                        }
-
-
-                        if (item.Action == "newAttachments")
-                        {                            
-                            if ( config.autoPrintAttachment == true )
-                            {
-                                new DataWatcherHub().PrintDocument(item.AffectedRow);
-                            }                            
                         }
 
                         emailConfig = config[item.Action];
