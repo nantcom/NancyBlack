@@ -19,6 +19,9 @@
   z-index: 1000;
   height: 100%;
   background-color: #6b84ba;
+  -moz-transition: width ease-out 0.1s;
+  -o-transition: width ease-out 0.1s;
+  -webkit-transition: width ease-out 0.1s;
   transition: width ease-out 0.1s;
 }
 .uploader.hintdrop,
@@ -50,10 +53,17 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
+  -moz-transition: all ease 0.5s;
+  -o-transition: all ease 0.5s;
+  -webkit-transition: all ease 0.5s;
   transition: all ease 0.5s;
 }
 .filelist li:hover img {
   opacity: 1;
+  -moz-transform: scale(3);
+  -ms-transform: scale(3);
+  -o-transform: scale(3);
+  -webkit-transform: scale(3);
   transform: scale(3);
   z-index: 9999;
 }

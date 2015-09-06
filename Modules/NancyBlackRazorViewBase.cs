@@ -338,7 +338,7 @@ namespace NantCom.NancyBlack
                 content = this.Content;
             }
 
-            var jarray = content.Attachments as JArray;
+            var jarray = content.Attachments as object[];
             if (jarray == null)
             {
                 return new dynamic[] { };
@@ -346,12 +346,11 @@ namespace NantCom.NancyBlack
 
             if (type == null)
             {
-                return from dynamic item in jarray
-                       select item;
+                return jarray.AsEnumerable<dynamic>();
             }
 
             return from dynamic item in jarray
-                   where item.Type == type
+                   where item.AttachmentType == type
                    select item;
         }
 
@@ -368,18 +367,38 @@ namespace NantCom.NancyBlack
                 content = this.Content;
             }
 
-            var jarray = content.Attachments as JArray;
+            var jarray = content.Attachments as object[];
             if (jarray == null)
             {
                 return null;
             }
 
-            if (index >= jarray.Count)
+            if (index >= jarray.Length)
             {
                 return null;
             }
 
-            return jarray[index]["Url"].ToString();
+            var item = jarray[index] as JObject;
+            return item["Url"].ToString();
+        }
+
+
+        /// <summary>
+        /// Get attachment url
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetAttachmentUrl(dynamic content = null, string type = null)
+        {
+            IEnumerable<dynamic> result = this.GetAttachments(content, type);
+            var first = result.FirstOrDefault();
+            if (first == null)
+            {
+                return string.Empty;
+            }
+
+            return first.Url;
         }
 
         #endregion

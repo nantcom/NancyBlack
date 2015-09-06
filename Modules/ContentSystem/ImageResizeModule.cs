@@ -373,7 +373,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
         private static void BaseDataModule_AttachmentDeleted(NancyContext ctx, string tableName, dynamic contentItem, string filePath)
         {
-            var resizeDirectory = Path.Combine(ctx.GetRootPath(), filePath + "-imageresize");
+            if (filePath.StartsWith("/"))
+            {
+                filePath = filePath.Substring(1);
+            }
+
+            var resizeDirectory = Path.Combine(ctx.GetRootPath(), filePath.Replace("/", "\\" ) + "-imageresize");
 
             if (Directory.Exists( resizeDirectory ))
             {

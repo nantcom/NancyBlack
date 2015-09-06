@@ -368,6 +368,34 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             return user;
         }
+
+        /// <summary>
+        /// Registers
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="registerParameters"></param>
+        /// <returns></returns>
+        public NcbUser Reset(NancyBlackDatabase db, string email, string passwordHash, string code)
+        {
+            var existing = db.Query<NcbUser>()
+                            .Where(u => u.Email == email)
+                            .FirstOrDefault();
+
+            if (existing == null)
+            {
+                throw new InvalidOperationException("Not a valid user");
+            }
+
+            if (existing.Code != code )
+            {
+                throw new InvalidOperationException("Invalid Code");
+            }
+
+            existing.PasswordHash = passwordHash;
+            db.UpsertRecord<NcbUser>(existing);
+
+            return existing;
+        }
     }
 
 }

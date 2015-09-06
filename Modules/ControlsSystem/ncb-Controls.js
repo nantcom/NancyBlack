@@ -1884,7 +1884,6 @@
         };
     });
 
-    
     module.directive('ncbSlidetoggle', function () {
 
         function link($scope, element, attrs) {

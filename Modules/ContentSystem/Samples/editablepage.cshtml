@@ -1,0 +1,38 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+}
+
+<div ncb-pagecontext
+     class="container">
+
+    <h1 ncb-editable
+         @this.MakeEditable("Title")>
+
+        @this.GetContent( @<text>This is a Title</text>)
+    </h1>
+
+    <div ncb-editable
+         @this.MakeEditable("Intro")>
+        @this.GetContent( @<text>This is an Intro</text>)
+    </div>
+
+    <div ncb-editable         
+         @this.MakeEditable("Body")>
+
+        @this.GetContent( @<text>This is a Body</text>)
+    </div>
+
+    <div ncb-editable-picture type="hero"
+         style="width: 100%; height: 100px; background-image: url('@this.GetAttachmentUrl(type:"hero")')">
+
+    </div>
+    <div>
+        {{object.ContentParts}}
+    </div>
+    <button class="btn btn-primary"
+            ncb-savebutton>
+        Save Button
+    </button>
+</div>

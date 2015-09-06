@@ -34,5 +34,9 @@
   {
     "outputFile": "Modules/CommerceSystem/Views/Admin/saleordermanager.css",
     "inputFile": "Modules/CommerceSystem/Views/Admin/saleordermanager.less"
+  },
+  {
+    "outputFile": "Modules/ContentSystem/ncb-content.css",
+    "inputFile": "Modules/ContentSystem/ncb-content.less"
   }
 ]

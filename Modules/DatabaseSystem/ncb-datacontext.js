@@ -460,7 +460,7 @@
         // file upload
         $scope.data.uploadProgress = 0;
         $scope.data.uploading = false;
-        $scope.data.upload = function (file, callback, id) {
+        $scope.data.upload = function (file, callback, id, type, unique) {
 
             if (id == null) {
 
@@ -475,11 +475,22 @@
                 throw "Id parameter is required or $scope.object must be set";
             }
 
+            if (type == null) {
+
+                type = "UserUpload";
+            }
+
+            if (unique == null) {
+
+                unique = false;
+            }
+
             var targetUrl = String.format("/tables/{0}/{1}/files", attrs.table, id);
 
             var fd = new FormData();
             fd.append("fileToUpload", file);
-            fd.append("attachmentType", "UserUpload");
+            fd.append("attachmentType", type);
+            fd.append("attachmentIsUnique", unique);
 
             $scope.data.uploadProgress = 0;
             $scope.data.uploadStatus = "uploading";
@@ -654,6 +665,21 @@
             scope: false // integrate into current scope
         };
     }]);
+
+    // Service version of data context
+    ncb.factory('$datacontext', function($http) {
+        
+        return function ($scope, tableName) {
+
+            var attrs = {};
+            attrs.table = tableName;
+            dataContext($scope, null, attrs, $http);
+
+            // get method from scope
+            var instance = $scope.data;
+            return instance;
+        };
+    });
 
     var saveinsertButton = function ($scope, element, attrs, $compile) {
 

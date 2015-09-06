@@ -75,6 +75,16 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public dynamic Profile { get; set; }
 
         /// <summary>
+        /// Current Code for verify and register password
+        /// </summary>
+        public string Code { get; set; }
+
+        /// <summary>
+        /// Date/Time which code was generated
+        /// </summary>
+        public DateTime CodeRequestDate { get; set; }
+
+        /// <summary>
         /// Whether this is an anonymous user
         /// </summary>
         [JsonIgnore]

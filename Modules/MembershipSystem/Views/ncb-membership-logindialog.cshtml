@@ -52,9 +52,9 @@
                 </a>
             </p>
             <p class="form-control-static"
-               ng-show="mode == 'login'">
+               ng-show="mode == 'login' && login.email != null">
 
-                <a href="#">
+                <a href ng-click="ctrl.forget()">
                     forget password?
                 </a>
             </p>

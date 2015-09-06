@@ -32,6 +32,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             /// Whether to always log-in user
             /// </summary>
             public bool RememberMe { get; set; }
+
+            /// <summary>
+            /// Password Reset Code
+            /// </summary>
+            public string Code { get; set; }
         }
 
         /// <summary>
@@ -42,7 +47,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         private Nancy.Response ProcessLogin(NcbUser user)
         {
             user.PasswordHash = null;
-            
+
             var response = this.LoginWithoutRedirect(user.Guid);
             response.Contents = (s) =>
             {
@@ -61,10 +66,15 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public MembershipModule()
         {
             this.GenerateFailSafeKey();
-            
+
             Get["/__membership/login"] = p =>
             {
                 return View["membership-login", new StandardModel(this)];
+            };
+
+            Get["/__membership/resetpassword"] = p =>
+            {
+                return View["membership-resetpassword", new StandardModel(this)];
             };
 
             Get["/__membership/logout"] = p =>
@@ -88,10 +98,20 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Post["/__membership/register"] = p =>
             {
                 var registerParams = this.Bind<LoginParams>();
-                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Password );
+                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Password);
 
                 return this.ProcessLogin(user);
             };
+
+            Post["/__membership/reset"] = p =>
+            {
+                var registerParams = this.Bind<LoginParams>();
+                var user = UserManager.Current.Reset(this.SiteDatabase, registerParams.Email, registerParams.Password, registerParams.Code);
+
+                return this.ProcessLogin(user);
+            };
+
+            Post["/__membership/resetrequest"] = this.HandleRequest(this.HandlePasswordRequest);
 
             Get["/__membership/myclaims"] = _ =>
             {
@@ -112,6 +132,28 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Post["/__membership/enroll"] = this.HandleRequest(this.HandleEnroll);
 
             Post["/__membership/api/updateprofile"] = this.HandleRequest(this.UpdateProfile);
+        }
+
+        private dynamic HandlePasswordRequest(dynamic arg)
+        {
+            var registerParams = this.Bind<LoginParams>();
+
+            var code = Guid.NewGuid().ToString();
+            var user = this.SiteDatabase.Query<NcbUser>()
+                            .Where(u => u.Email == registerParams.Email)
+                            .FirstOrDefault();
+
+            user.CodeRequestDate = DateTime.Now;
+            user.Code = code;
+            this.SiteDatabase.UpsertRecord<NcbUser>(user);
+
+            MailSenderModule.SendEmail(registerParams.Email,
+                "Password Reset Request from: " + this.Request.Url.HostName,
+                string.Format( @"Please click here to reset your password:<br/>
+                      <a href=""http://{0}/__membership/resetpassword?code={1}"">http://{0}/__membership/resetpassword?code={1}</a>" + code
+                , this.Request.Url.HostName, code));
+
+            return 200;
         }
 
         /// <summary>

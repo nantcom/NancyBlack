@@ -253,11 +253,19 @@ namespace NantCom.NancyBlack.Modules
             var path = this.GetAttachmentFolder(tableName, id);
 
             dynamic contentItem = this.SiteDatabase.GetByIdAsJObject(tableName, int.Parse(id));
+            
+            var newFiles = new List<dynamic>();
 
-            List<dynamic> newFiles = new List<dynamic>();
+            var attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"];
+            var CreateDate = DateTime.Now;
 
-            String attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"];
-            DateTime CreateDate = DateTime.Now;
+            if ((bool)this.Request.Form.attachmentIsUnique == true)
+            {
+                if (this.Request.Files.Count() > 1)
+                {
+                    throw new InvalidOperationException("Cannot upload multiple file if attachmentIsUnique is true");
+                }
+            }
 
             foreach (var item in this.Request.Files)
             {
@@ -298,11 +306,36 @@ namespace NantCom.NancyBlack.Modules
             }
             else
             {
-                foreach (var item in newFiles)
+
+                if ((bool)this.Request.Form.attachmentIsUnique == true)
                 {
-                    contentItem.Attachments.Add(JObject.FromObject(item));
+                    foreach (JObject item in contentItem.Attachments as JArray)
+                    {
+                        if ( item["AttachmentType"] == attachmentType )
+                        {
+                            // same type with current type
+                            item["CreateDate"] = newFiles[0].CreateDate;
+
+                            // delete the one being replaced
+                            var directory = this.GetAttachmentFolder(tableName, id);
+                            var toDelete = Path.Combine(directory, Path.GetFileName( item["Url"].ToString() ));
+                            File.Delete(toDelete);
+                            BaseDataModule.AttachmentDeleted(this.Context, tableName, contentItem, item["Url"].ToString());
+
+                            // set to new one
+                            item["Url"] = newFiles[0].Url;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var item in newFiles)
+                    {
+                        contentItem.Attachments.Add(JObject.FromObject(item));
+                    }
                 }
             }
+
 
             this.SiteDatabase.UpsertRecord(tableName, contentItem);
 
