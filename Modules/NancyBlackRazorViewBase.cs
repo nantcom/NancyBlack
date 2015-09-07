@@ -71,7 +71,7 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                return this.RenderContext.Context.Items["CurrentSite"];
+                return this.Context.GetSiteSettings();
             }
         }
 
@@ -99,11 +99,7 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                if (this.Model == null)
-                {
-                    return null;
-                }
-                return this.Model.Database;
+                return this.Context.GetSiteDatabase();
             }
         }
         
