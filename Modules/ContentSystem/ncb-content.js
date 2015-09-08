@@ -126,11 +126,19 @@
 
                 throw "Require type attribute";
             }
+            $me.type = attrs.type;
+            $scope.$watch(attrs.type, function (newVal, oldVal) {
+                console.log("OneImage Change:", newVal)
+                
+                $me.type = newVal;
+                console.log("OneImage Change1:", $me.type)
+                
+            });
 
             // set css/href to ensure that picture is shown
             var updateAttachment = function (newObject) {
 
-                var attachment = findAttachment(newObject, attrs.type).Url
+                var attachment = findAttachment(newObject, $me.type).Url
 
                 if (element[0].tagName != "IMG") {
 
@@ -170,12 +178,12 @@
                     $me.input.on("change", function (e) {
 
                         var files = $me.input[0].files;
-                        $scope.data.upload(files[0], updateAttachment, null, attrs.type, true);
+                        $scope.data.upload(files[0], updateAttachment, null, $me.type, true);
                     });
                 }
 
                 $me.input.trigger('click');
-            });
+            });            
 
             return false;
         };

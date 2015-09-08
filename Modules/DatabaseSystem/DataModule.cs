@@ -286,7 +286,7 @@ namespace NantCom.NancyBlack.Modules
                     newFiles.Add(new
                     {
                         CreateDate = CreateDate,
-                        AttachmentType = attachmentType,
+                        AttachmentType = attachmentType.Value,
                         DisplayOrder = 0,
                         Caption = string.Empty,
                         Url =
@@ -309,9 +309,10 @@ namespace NantCom.NancyBlack.Modules
 
                 if ((bool)this.Request.Form.attachmentIsUnique == true)
                 {
+                    bool _IsReplace = false;
                     foreach (JObject item in contentItem.Attachments as JArray)
                     {
-                        if ( item["AttachmentType"] == attachmentType )
+                        if ( item["AttachmentType"].ToString() == attachmentType.Value.ToString())
                         {
                             // same type with current type
                             item["CreateDate"] = newFiles[0].CreateDate;
@@ -324,8 +325,18 @@ namespace NantCom.NancyBlack.Modules
 
                             // set to new one
                             item["Url"] = newFiles[0].Url;
+                            _IsReplace = true;
                         }
                     }
+
+                    if (_IsReplace == false)
+                    {
+                        foreach (var item in newFiles)
+                        {
+                            contentItem.Attachments.Add(JObject.FromObject(item));
+                        }
+                    }
+
                 }
                 else
                 {

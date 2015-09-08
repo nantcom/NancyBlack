@@ -964,7 +964,11 @@
 
         function link(scope, element, attrs) {
 
-            element.css("background-image", "url('" + attrs.ncbBackground + "')");
+            // Watch for background's change 
+            scope.$watch(attrs.ncbBackground, function (newVal, oldVal) {                
+                element.css("background-image", "url('" + newVal + "')");
+            })
+
         }
 
         return {

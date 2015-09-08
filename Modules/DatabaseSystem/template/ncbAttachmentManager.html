@@ -1,15 +1,17 @@
 ﻿<div>
+    
     <div class="uploader"
          ng-show="attachmentManager.readonly == false">
         <div class="uploadprogress"
              ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
         <i class="ion-ios-plus-outline"></i>
     </div>
+    
     <ul class="filelist"
         sv-root sv-part="object.Attachments"
         sv-on-sort="attachmentManager.reorder()">
-
-        <li ng-repeat="item in object.Attachments"
+        
+        <li ng-repeat="item in object.Attachments | filter: { AttachmentType: attachmentManager.attachmentType}"
             ng-click="attachmentManager.view(item)"
             sv-element>
 
