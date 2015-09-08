@@ -28,6 +28,31 @@
         return areas;
     };
 
+    util.listthemeeditable = function (siteView) {
+
+        if (siteView == null) {
+
+            siteView = $("#siteview");
+        }
+
+        var areas = [];
+
+        siteView.contents().find("[data-themeeditable]").each(function (index, item) {
+
+            var editable = $(item);
+            var area =
+            {
+                index: areas.length,
+                element: editable,
+                name: editable.data("propertyname"),
+            };
+            areas.push(area);
+            areas[area.name] = area;
+        });
+
+        return areas;
+    };
+
     util.listcollections = function (siteView) {
 
         if (siteView == null) {
@@ -236,6 +261,7 @@
                 $scope.currentContent = document.getElementById("siteview").contentWindow.model.Content;
 
                 $scope.siteView.areas = util.listeditable(siteView);
+                $scope.siteView.themeareas = util.listthemeeditable(siteView);
                 $scope.siteView.collections = util.listcollections(siteView);
 
             });
@@ -265,16 +291,68 @@
 
     });
 
-    ncbEditor.controller("NcbContentEditor", function ($scope, $rootScope, $timeout, $location) {
+    ncbEditor.controller("NcbThemeContent", function ($scope, $rootScope, $timeout, $location) {
 
         var $me = this;
         var siteView = $("#siteview");
+
+        $scope.menu.goback = function () {
+
+            // restore the currentContent back to original when going back
+            $scope.reloadSiteView();
+        };
+
+        // hilight editable areas of the page
+        $me.hoverarea = function (item) {
+
+            item.element.toggleClass("editable-hover");
+        };
+
+        $me.edit = function (e, item) {
+
+            item.IsTheme = true;
+
+            $scope.globals.editing = item;
+            $scope.switchMenu(e, "editframe-editcontent.html");
+        };
+
+    });
+
+    ncbEditor.controller("NcbContentEditor", function ($scope, $rootScope, $timeout, $location, $datacontext) {
+
+        var $me = this;
+        var siteView = $("#siteview");
+        var datacontext = null;
+
         $scope.editing = {};
+
+        if ($scope.globals.editing.IsTheme == true) {
+
+            $rootScope.$broadcast("working");
+
+            // hijack the currentContent - change it into '/' content of Page Table
+            datacontext = new $datacontext($scope, "Page");
+            datacontext.query("$filter=(Url eq '/')", function (data) {
+
+                $rootScope.$broadcast("working-done");
+                $scope.currentContent = data[0];
+
+                $me.initializeEditor($scope.globals.editing);
+            });
+        } else {
+
+            datacontext = new $datacontext($scope, $scope.currentContent.TableName);
+        }
 
         $me.getContent = function (callback) {
 
-            var query = String.format("$filter=Id eq {0}", $scope.currentContent.Id);
-            $scope.data.query(query,
+            var id = $scope.currentContent.Id;
+            if (id == null) {
+                id = $scope.currentContent.id;
+            }
+
+            var query = String.format("$filter=Id eq {0}", id);
+            datacontext.query(query,
             function (results) {
 
                 var content = results[0];
@@ -363,7 +441,7 @@
                     content.ContentParts[$scope.editing.name] = $scope.editing.element.html();
 
                     // replace
-                    $scope.data.save(content, function () {
+                    datacontext.save(content, function () {
 
                         resetEditable();
 
@@ -411,7 +489,7 @@
 
                 delete content[$scope.editing.name]
                 // replace
-                $scope.data.save(content, function () {
+                datacontext.save(content, function () {
 
                     // after save is completed
                     $rootScope.$broadcast("working-done");
@@ -426,13 +504,6 @@
             return false; // we will handle going back ourselves
         };
 
-        $scope.$on("ncb-datacontext.loaded", function (e, args) {
-
-            if (args.sender == $scope) {
-
-                $me.initializeEditor($scope.globals.editing);
-            }
-        });
     });
 
     ncbEditor.controller("NcbPagePropertyEdit", function ($scope, $rootScope, $timeout, $http) {
