@@ -113,6 +113,32 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
 
             Post["/__commerce/api/resolvevariation"] = this.HandleRequest(this.HandleVariationRequest);
+
+            Get["/__commerce/banner"] = this.HandleRequest(this.HandleBannerRequest);
+        }
+
+        private dynamic HandleBannerRequest(dynamic arg)
+        {
+            var bannerList = this.SiteDatabase.Query<Banner>()                            
+                            .Take(5)                           
+                            .ToList();
+
+            this.SaveDisplayedBanner(bannerList);
+
+            return bannerList;
+        }
+
+        private dynamic SaveDisplayedBanner(dynamic arg)
+        {
+            foreach(var Banner in arg)
+            {
+                var Impression = new Impression()
+                {
+                    BannerId = Banner.Id
+                };
+                this.SiteDatabase.UpsertRecord("Impression", Impression);
+            }
+            return true;
         }
 
         private dynamic HandleVariationRequest(dynamic arg)
