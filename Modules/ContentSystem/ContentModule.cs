@@ -3,12 +3,13 @@ using NantCom.NancyBlack.Modules.ContentSystem;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
+using NantCom.NancyBlack.Modules.SitemapSystem;
+using NantCom.NancyBlack.Modules.SitemapSystem.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -38,6 +39,17 @@ namespace NantCom.NancyBlack.Modules
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
 
             _RootPath = this.RootPath;
+
+            SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
+        }
+
+        private void SiteMapModule_SiteMapRequested(NancyContext ctx, SiteMap sitemap)
+        {
+            var db = ctx.GetSiteDatabase();
+            foreach (var item in db.Query<Page>().AsEnumerable())
+            {
+                sitemap.RegisterUrl( "http://" + ctx.Request.Url.HostName + item.Url, item.__updatedAt);
+            }
         }
 
         /// <summary>
@@ -291,6 +303,7 @@ namespace NantCom.NancyBlack.Modules
         }
         
         #endregion
+        
     }
 
 }
