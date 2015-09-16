@@ -45,6 +45,27 @@ namespace NantCom.NancyBlack
             }
         }
 
+
+        private IContent _ThemeContent;
+
+        /// <summary>
+        /// Get the theme content, theme content is stored inside Item with Url "/" of Page Table
+        /// </summary>
+        public IContent ThemeContent
+        {
+            get
+            {
+                if (_ThemeContent == null)
+                {
+                    _ThemeContent = this.Context.GetSiteDatabase().Query<Page>()
+                        .Where(p => p.Url == "/")
+                        .FirstOrDefault();
+                }
+
+                return _ThemeContent;
+            }
+        }
+
         /// <summary>
         /// Currently accessing user
         /// </summary>
@@ -128,6 +149,21 @@ namespace NantCom.NancyBlack
         private string _LastPropertyName;
 
         /// <summary>
+        /// Define that the element contains list of items from a table
+        /// </summary>
+        /// <param name="rootUrl">Base URL of the items</param>
+        /// <param name="table">Table to get items from</param>
+        /// <param name="name">name of the collection (displayed in editor)</param>
+        /// <param name="defaultLayout">default layout name for new items</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString MakeEditableCollection( string rootUrl, string table = null, string name = null, string defaultLayout = null)
+        {
+            return new NonEncodedHtmlString(string.Format(
+                @"ncw-collection=""true"" rooturl=""{0}"" table=""{1}"" name=""{2}"" layout=""{3}"" ",
+                rootUrl, table, name, defaultLayout));
+        }
+
+        /// <summary>
         /// Get Edit Attributes for given property name
         /// </summary>
         /// <param name="propertyName"></param>
@@ -136,6 +172,28 @@ namespace NantCom.NancyBlack
         {
             _LastPropertyName = propertyName;
             return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\"", propertyName));
+        }
+
+        /// <summary>
+        /// Get Edit Attributes for given property name of given content
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString MakeEditableForPage(IContent content, string propertyName)
+        {
+            _LastPropertyName = propertyName;
+            return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\" data-id=\"{1}\" data-table=\"{2}\"", propertyName, content.Id, content.TableName));
+        }
+
+        /// <summary>
+        /// Get Edit Attributes for given property name of given content
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString MakeEditableForItem(dynamic content, string propertyName)
+        {
+            _LastPropertyName = propertyName;
+            return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\" data-id=\"{1}\" data-table=\"{2}\"", propertyName, content.Id, content.TableName));
         }
 
         /// <summary>
@@ -171,12 +229,43 @@ namespace NantCom.NancyBlack
         {
             if (_LastPropertyName == null)
             {
-                throw new InvalidOperationException("GetEditAttribute was not used prior to calling this method.");
+                throw new InvalidOperationException("MakeEditable was not used prior to calling this method.");
             }
 
             return this.GetContent(_LastPropertyName, defaultContent);
         }
-        
+
+
+        /// <summary>
+        /// Get Contents of the specified property name from specified item
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetContent(IContent content, Func<dynamic, object> defaultContent)
+        {
+            if (_LastPropertyName == null)
+            {
+                throw new InvalidOperationException("MakeEditable was not used prior to calling this method.");
+            }
+
+            string value = null;
+            var contentParts = content.ContentParts as JObject;
+            if (contentParts != null)
+            {
+                value = (string)contentParts[_LastPropertyName];
+            }
+
+            _LastPropertyName = null;
+
+            if (value == null)
+            {
+                return new NonEncodedHtmlString(defaultContent(null).ToString());
+            }
+
+            return value;
+        }
+
+
         #endregion
 
         #region Content Hierachy
@@ -279,7 +368,7 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="url">Base Url </param>
         /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
-        public object ListChildContents(string url, Func<dynamic, object> contentTemplate)
+        public object ListChildContents(string url, Func<IContent, object> contentTemplate)
         {
 
 #if DEBUG
@@ -351,33 +440,34 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
-        /// Get attachment url
+        /// Get First attachment url of given content
         /// </summary>
         /// <param name="content"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string GetAttachmentUrl(dynamic content = null, int index = 0)
+        public string GetAttachmentUrl(dynamic content)
         {
-            if (content == null)
-            {
-                content = this.Content;
-            }
 
             var jarray = content.Attachments as object[];
             if (jarray == null)
             {
                 return null;
             }
-
-            if (index >= jarray.Length)
-            {
-                return null;
-            }
-
-            var item = jarray[index] as JObject;
+            
+            var item = jarray[0] as JObject;
             return item["Url"].ToString();
         }
 
+        /// <summary>
+        /// Get First attachment url
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetAttachmentUrl()
+        {
+            return this.GetAttachmentUrl(this.Content);
+        }
 
         /// <summary>
         /// Get attachment url
@@ -385,7 +475,7 @@ namespace NantCom.NancyBlack
         /// <param name="content"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string GetAttachmentUrl(dynamic content = null, string type = null)
+        public string GetAttachmentUrl(dynamic content, string type = null)
         {
             IEnumerable<dynamic> result = this.GetAttachments(content, type);
             var first = result.FirstOrDefault();
@@ -395,6 +485,17 @@ namespace NantCom.NancyBlack
             }
 
             return first.Url;
+        }
+
+        /// <summary>
+        /// Get attachment url
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetAttachmentUrl(string type)
+        {
+            return this.GetAttachmentUrl(this.Content, type);
         }
 
         #endregion

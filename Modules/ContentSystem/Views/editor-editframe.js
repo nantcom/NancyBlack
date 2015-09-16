@@ -73,7 +73,7 @@
                 layout: collection.attr("layout") == null ? "" : collection.attr("layout").toLowerCase(),
             };
 
-            if (collectionItem.table == null) {
+            if (collectionItem.table == null || collectionItem.table == "") {
 
                 collectionItem.url = collection.attr("rooturl");
                 collectionItem.name = collectionItem.url.substring(1);
@@ -285,6 +285,9 @@
 
         $me.edit = function (e, item) {
 
+            item.id = item.element.data("id");
+            item.table = item.element.data("table");
+
             $scope.globals.editing = item;
             $scope.switchMenu(e, "editframe-editcontent.html");
         };
@@ -325,24 +328,6 @@
         var datacontext = null;
 
         $scope.editing = {};
-
-        if ($scope.globals.editing.IsTheme == true) {
-
-            $rootScope.$broadcast("working");
-
-            // hijack the currentContent - change it into '/' content of Page Table
-            datacontext = new $datacontext($scope, "Page");
-            datacontext.query("$filter=(Url eq '/')", function (data) {
-
-                $rootScope.$broadcast("working-done");
-                $scope.currentContent = data[0];
-
-                $me.initializeEditor($scope.globals.editing);
-            });
-        } else {
-
-            datacontext = new $datacontext($scope, $scope.currentContent.TableName);
-        }
 
         $me.getContent = function (callback) {
 
@@ -503,6 +488,27 @@
 
             return false; // we will handle going back ourselves
         };
+
+        if ($scope.globals.editing.id != null) {
+
+            $rootScope.$broadcast("working");
+
+            // hijack the currentContent - change it into '/' content of Page Table
+            datacontext = new $datacontext($scope, "Page");
+            datacontext.getById($scope.globals.editing.id, function (data) {
+
+                $rootScope.$broadcast("working-done");
+                $scope.currentContent = data;
+                $scope.object = data;
+
+                $me.initializeEditor($scope.globals.editing);
+            });
+
+        } else {
+
+            datacontext = new $datacontext($scope, $scope.currentContent.TableName);
+            $me.initializeEditor($scope.globals.editing);
+        }
 
     });
 
@@ -766,7 +772,7 @@
             $scope.globals.activecollection = null;
 
             $scope.itemwording = "page";
-            if ($scope.collection.table != "Page") {
+            if ($scope.collection.table.toLowerCase() != "page") {
 
                 $scope.itemwording = "item";
             }
@@ -805,6 +811,14 @@
                         "$filter=startswith(Url,'{0}/') and (indexof(substring(Url,{1}),'/') eq 0 )",
                         $scope.rootUrl,
                         $scope.rootUrl.length + 2);
+                }
+                if ($scope.collection.table.toLowerCase() == "page") {
+
+                    query = String.format(
+                        "$filter=startswith(Url,'{0}/') and (indexof(substring(Url,{1}),'/') eq 0 )",
+                        $scope.rootUrl,
+                        $scope.rootUrl.length + 2);
+
                 } else {
 
                     query = String.format(

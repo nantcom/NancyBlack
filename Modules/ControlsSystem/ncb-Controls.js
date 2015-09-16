@@ -1325,14 +1325,25 @@
             var offset = parseFloat(attrs.offset);
             var last = $window.scrollTop();
 
-            $window.on("scroll", function () {
+            if (isNaN(ratio)) {
+                ratio = 0.5;
+            }
+
+            if (isNaN(offset)) {
+                offset = 0;
+            }
+
+            var update = function () {
 
                 var top = $window.scrollTop();
                 var diff = top - last;
 
                 element.css("background-position", "center " + (offset - (diff * ratio)) + "px");
 
-            });
+            };
+
+            $window.on("scroll", update);
+            update();
         }
 
         return {
@@ -1354,6 +1365,10 @@
             var scale = 1;
             if (attrs.scale != null) {
                 scale = parseFloat(attrs.scale);
+            }
+
+            if (attrs.ncbFillheight != "") {
+                scale = parseFloat(attrs.ncbFillheight);
             }
 
             var offset = 0;
@@ -1405,22 +1420,30 @@
 
     module.directive('ncbFixedmenu', function ($window) {
 
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = '.ncb-fixedmenu-fixed { width: 100%; position: fixed; top: 0; left: 0; z-index: 9999 }';
+        document.getElementsByTagName('head')[0].appendChild(style);
+        
         function link(scope, element, attrs) {
 
             if (attrs.fixedclass == null) {
-                throw "fixedclass attribute is required";
+                attrs.fixedclass = "ncb-fixedmenu-fixed";
             }
 
             var $window = $(window);
             var myHeight = element.offset().top;
+            var nextElement = element.next();
 
             $window.on("scroll", function () {
 
                 var top = $window.scrollTop();
                 if (top > myHeight) {
                     element.addClass(attrs.fixedclass);
+                    nextElement.css("margin-top", element.height() + "px");
                 } else {
                     element.removeClass(attrs.fixedclass);
+                    nextElement.css("margin-top", "0px");
                 }
             });
         }
@@ -1473,7 +1496,7 @@
                 return;
 
             var targetOffset = 0;
-            if (attrs.href = "#top") {
+            if (attrs.href == "#top") {
                 // offset is 0
             }
             else {
@@ -1918,4 +1941,46 @@
         };
     });
 
+    module.directive('ncbGooglemap', function ($timeout) {
+
+        function link($scope, element, attrs) {
+            
+            var key = "AIzaSyBukXJXrbWiLKMB2Hgo5AqxYKPTatB9iH0";
+            if (attrs.key != null) {
+                key = attrs.key;
+            }
+
+            if (attrs.place == null) {
+                throw "Require place parameter";
+            }
+
+            var iframe = $('<iframe></iframe>');
+            var url = String.format( 'https://www.google.com/maps/embed/v1/place?q={0}&key={1}',
+                attrs.place,
+                key);
+
+            iframe.css( "width", "100%" );
+            iframe.css( "height", element.height() );
+            iframe.attr( "frameborder", "0");
+            
+            if (attrs.fullscreen) {
+                iframe.attr("allowfullscreen", "allowfullscreen");
+            }
+
+            iframe.appendTo(element);
+            $timeout(function () {
+
+                iframe.attr("src", url);
+
+            }, 1000);
+        };
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false,
+        };
+    });
+
+    
 })();

@@ -256,7 +256,7 @@ namespace NantCom.NancyBlack.Modules
             
             var newFiles = new List<dynamic>();
 
-            var attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"];
+            var attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"].ToString();
             var CreateDate = DateTime.Now;
 
             if ((bool)this.Request.Form.attachmentIsUnique == true)
@@ -309,6 +309,7 @@ namespace NantCom.NancyBlack.Modules
 
                 if ((bool)this.Request.Form.attachmentIsUnique == true)
                 {
+                    bool wasSet = false;
                     foreach (JObject item in contentItem.Attachments as JArray)
                     {
                         if ( item["AttachmentType"] == attachmentType )
@@ -324,7 +325,14 @@ namespace NantCom.NancyBlack.Modules
 
                             // set to new one
                             item["Url"] = newFiles[0].Url;
+                            wasSet = true;
+                            break;
                         }
+                    }
+
+                    if (wasSet == false)
+                    {
+                        contentItem.Attachments.Add(JObject.FromObject(newFiles.First()));
                     }
                 }
                 else

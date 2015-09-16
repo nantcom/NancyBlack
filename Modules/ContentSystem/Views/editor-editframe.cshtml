@@ -281,11 +281,11 @@
                 </span>
             </span>
         </h1>
-        <h2 ng-show="collection != null">
-            Type: {{collection.name}}
+        <h2 ng-show="collection != null && collection.table.toLowerCase() != 'page'">
+            Type: {{collection.table}}
         </h2>
-        <h3 ng-show="collection != null">
-            the item is created in {{collection.name}} table.
+        <h3 ng-show="collection != null && collection.table.toLowerCase() != 'page'">
+            the item is created in {{collection.table}} table.
             which can be accessed by: <a ng-href="/Admin/tables/{{collection.name}}" target="_blank">Admin Interface</a>
         </h3>
 
