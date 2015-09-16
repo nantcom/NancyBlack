@@ -177,8 +177,7 @@
 
         // focus on the given object
         $scope.data.view = function (item) {
-            $scope.object = item;
-            console.log("view2", $scope)
+            $scope.object = item;            
         };
 
         // Insert is, unlike save, always create new object in the backend
@@ -307,7 +306,7 @@
             delete toSave.id;
             delete toSave.__createdAt;
             delete toSave.__updatedAt;
-            console.log("COPY:", $scope);
+            
             $scope.data.save(toSave, callback);
         };
 
@@ -461,7 +460,7 @@
         $scope.data.uploadProgress = 0;
         $scope.data.uploading = false;
         $scope.data.upload = function (file, callback, id, type, unique) {
-
+            
             if (id == null) {
 
                 id = $scope.object.id;
@@ -485,8 +484,7 @@
                 unique = false;
             }
 
-            var targetUrl = String.format("/tables/{0}/{1}/files", attrs.table, id);
-
+            var targetUrl = String.format("/tables/{0}/{1}/files", attrs.table, id);            
             var fd = new FormData();
             fd.append("fileToUpload", file);
             fd.append("attachmentType", type);
@@ -971,7 +969,7 @@
     ncb.directive('ncbAttachmentmanager', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
-
+            
             if ($scope.attachmentManager == null) {
                 $scope.attachmentManager = {};
             } else {
@@ -1001,6 +999,14 @@
                     $me.readonly = newValue;
                 });
             }
+            $me.attachmentType = "UserUpload";
+            $scope.$watch(attrs.attachmentType, function (newVal, oldVal) {                
+                if (newVal != null) {
+                    $me.attachmentType = newVal;
+                    console.log("ATTR:", $me.attachmentType)
+                }
+            });
+            
 
             //#region Drag Upload
 
@@ -1025,8 +1031,8 @@
 
                 e.preventDefault();
                 var files = e.originalEvent.dataTransfer.files;
-
-                $scope.data.upload(files[0]);
+                
+                $scope.data.upload(files[0], null, null, $me.attachmentType, false);
             });
             uploader.on('dragleave', function (e) {
 
@@ -1052,8 +1058,8 @@
                     uploader.input.attr("type", "file");
                     uploader.input.on("change", function (e) {
 
-                        var files = uploader.input[0].files;
-                        $scope.data.upload(files[0]);
+                        var files = uploader.input[0].files;                        
+                        $scope.data.upload(files[0], null, null, $me.attachmentType, false);
                     });
                 }
 

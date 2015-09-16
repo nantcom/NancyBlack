@@ -286,7 +286,7 @@ namespace NantCom.NancyBlack.Modules
                     newFiles.Add(new
                     {
                         CreateDate = CreateDate,
-                        AttachmentType = attachmentType,
+                        AttachmentType = attachmentType.Value,
                         DisplayOrder = 0,
                         Caption = string.Empty,
                         Url =
@@ -312,7 +312,7 @@ namespace NantCom.NancyBlack.Modules
                     bool wasSet = false;
                     foreach (JObject item in contentItem.Attachments as JArray)
                     {
-                        if ( item["AttachmentType"] == attachmentType )
+                        if ( item["AttachmentType"].ToString() == attachmentType.Value.ToString())
                         {
                             // same type with current type
                             item["CreateDate"] = newFiles[0].CreateDate;

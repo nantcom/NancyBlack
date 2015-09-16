@@ -190,7 +190,7 @@
                 }
 
                 $me.input.trigger('click');
-            });
+            });            
 
             var datacontext = null;
             if (attrs.itemscope != null) {
