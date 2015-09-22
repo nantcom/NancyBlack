@@ -67,7 +67,9 @@
         }
     </style>
 </head>
-<body ncb-membership>
+<body ncb-membership
+      ng-module="BaseModule"
+      ng-controller="BaseController as bCtrl">
 
 
     @if (this.Site.lockdown != null &&
@@ -96,7 +98,6 @@
         // automatically set current content into window variable
         window.model = { };
         window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
-
     </script>
 
     <script src="/Content/Scripts/ncb-dependencies.js"></script>
@@ -114,6 +115,15 @@
     @RenderSection("Script", false)
 
     <script>
+        
+        (function() {
+
+            var module = angular.module('BaseModule', []);
+            module.controller( "BaseController", function() {
+
+            });
+
+        })();
 
         window.loaded = false;
         window.initialize = function() {

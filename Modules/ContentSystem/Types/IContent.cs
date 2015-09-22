@@ -13,6 +13,11 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
     public interface IContent
     {
         /// <summary>
+        /// Id of this Item
+        /// </summary>
+        int Id { get; set; }
+
+        /// <summary>
         /// Url to access this item
         /// </summary>
         string Url { get; set; }

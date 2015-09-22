@@ -126,5 +126,49 @@ namespace NantCom.NancyBlack
             return null;
         }
 
+
+        /// <summary>
+        /// Get Attachments based on item type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public IEnumerable<dynamic> GetAttachments(string type = null)
+        {
+            var jarray = this.ThemeContent.Attachments as object[];
+            if (jarray == null)
+            {
+                return new dynamic[] { };
+            }
+
+            if (type == null)
+            {
+                return jarray.AsEnumerable<dynamic>();
+            }
+
+            return from dynamic item in jarray
+                   where item.AttachmentType == type
+                   select item;
+        }
+
+
+        /// <summary>
+        /// Get attachment url
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetAttachmentUrl(string type = null)
+        {
+            IEnumerable<dynamic> result = this.GetAttachments(type);
+            var first = result.FirstOrDefault();
+            if (first == null)
+            {
+                return string.Empty;
+            }
+
+            return first.Url;
+        }
+
+
     }
 }

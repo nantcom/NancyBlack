@@ -113,18 +113,13 @@ namespace NantCom.NancyBlack.Configuration
             // Theme view location (views/_theme) can override _theme of the Theme folder
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                if (viewName != "_theme")
-                {
-                    return string.Empty;
-                }
-
                 var theme = context.Context.GetSiteSettings().Theme;
                 if (theme == null)
                 {
                     return string.Empty;
                 }
 
-                return "Themes/" + theme + "/_theme";
+                return "Themes/" + theme + "/" + viewName;
             });
 
             // NancyBlack's View Location

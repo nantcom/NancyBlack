@@ -1,5 +1,5 @@
 ﻿(function () {
-    
+
     var ncb = angular.module("ncb-content", []);
 
     ncb.directive('ncbPagecontext', function ($http, $datacontext) {
@@ -97,9 +97,9 @@
         };
     });
 
-    ncb.directive('ncbEditablePicture', function () {
+    ncb.directive('ncbEditablePicture', function ($datacontext) {
 
-        var findAttachment = function(source, type) {
+        var findAttachment = function (source, type) {
 
             var found = {};
             if (source.Attachments == null) {
@@ -126,36 +126,35 @@
 
                 throw "Require type attribute";
             }
-            $me.type = attrs.type;
-            $scope.$watch(attrs.type, function (newVal, oldVal) {
-                console.log("OneImage Change:", newVal)
-                
-                $me.type = newVal;
-                console.log("OneImage Change1:", $me.type)
-                
-            });
+
+            if (parent = null ||
+                parent.location.pathname != "/__editor" ) {
+
+                if (attrs.always != "true") {
+
+                    return;
+                }
+            }
 
             // set css/href to ensure that picture is shown
             var updateAttachment = function (newObject) {
 
-                var attachment = findAttachment(newObject, $me.type).Url
+                var attachment = findAttachment(newObject, attrs.type).Url
 
                 if (element[0].tagName != "IMG") {
 
                     element.css("background-image", "url('" + attachment + "')");
                 } else {
 
-                    element.attr("href", attachment);
+                    element.attr("src", attachment);
                 }
             };
 
-            updateAttachment(window.model.Content);
-
             var button = $('<a class="changepicturebutton"><i class="ion-android-camera"></i></a>');
             button.css("opacity", 0);
-            button.css("pointer-events", "none");
+            button.css("position", "absolute");
             button.appendTo($("body"));
-            
+
             element.on("mouseenter", function () {
 
                 var offset = element.offset();
@@ -165,11 +164,19 @@
             });
 
             element.on("mouseleave", function () {
-
                 button.css("opacity", 0);
             });
 
-            element.on("click", function () {
+            button.on("mouseenter", function () {
+
+                button.css("opacity", 0.9);
+            });
+
+            button.on("mouseleave", function () {
+                button.css("opacity", 0);
+            });
+
+            button.on("click", function () {
 
                 if ($me.input == null) {
 
@@ -178,14 +185,34 @@
                     $me.input.on("change", function (e) {
 
                         var files = $me.input[0].files;
-                        $scope.data.upload(files[0], updateAttachment, null, $me.type, true);
+                        datacontext.upload(files[0], updateAttachment, null, attrs.type, true);
                     });
                 }
 
                 $me.input.trigger('click');
             });            
 
-            return false;
+            var datacontext = null;
+            if (attrs.itemscope != null) {
+
+                datacontext = new $datacontext($scope, attrs.itemtype);
+                datacontext.getById(attrs.itemid, function (data) {
+
+                    $scope.object = data;
+                    updateAttachment($scope.object);
+                });
+            } else {
+
+                datacontext = $scope.data;
+                if (datacontext == null) {
+
+                    datacontext = new $datacontext($scope, window.model.Content.TableName);
+                    $scope.object = window.model.Content;
+                    updateAttachment(window.model.Content);
+                }
+            }
+
+
         };
 
         return {

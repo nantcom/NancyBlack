@@ -29,6 +29,13 @@
 
         <img ncb-resize="viewing.Url" width="500" />
 
+        <div>
+
+            <input type="text" placeholder="type"
+                   ncb-textbox ng-model="viewing.AttachmentType"/>
+
+        </div>
+
         <ncb-footer>
             <button ng-show="selecttext != null" 
                     ng-click="onattachmentselect(viewing)"
