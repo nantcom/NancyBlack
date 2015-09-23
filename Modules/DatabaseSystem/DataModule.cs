@@ -286,7 +286,7 @@ namespace NantCom.NancyBlack.Modules
                     newFiles.Add(new
                     {
                         CreateDate = CreateDate,
-                        AttachmentType = attachmentType.Value,
+                        AttachmentType = attachmentType,
                         DisplayOrder = 0,
                         Caption = string.Empty,
                         Url =

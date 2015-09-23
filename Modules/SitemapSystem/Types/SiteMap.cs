@@ -10,7 +10,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
     public class SiteMap
     {
 
-        private static Dictionary<string, SiteMapUrl> _Urls = new Dictionary<string, SiteMapUrl>();
+        private static LinkedList<SiteMapUrl> _Urls = new LinkedList<SiteMapUrl>();
 
         /// <summary>
         /// Registers the URL into sitemap
@@ -21,15 +21,8 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
         /// <param name="priority"></param>
         public void RegisterUrl(string url, DateTime? lastModified = null, SiteMapUrl.ChangeFreq changeFreq = SiteMapUrl.ChangeFreq.daily, double priority = 0.5)
         {
-            SiteMapUrl sitemapUrl;
-            if (_Urls.TryGetValue( url, out sitemapUrl) == false)
-            {
-                sitemapUrl = new SiteMapUrl();
-                _Urls.Add(url, sitemapUrl);
-
-                sitemapUrl.loc = url;
-            }
-
+            SiteMapUrl sitemapUrl = new SiteMapUrl();
+            sitemapUrl.loc = url;
             sitemapUrl.changefreq = changeFreq;
             sitemapUrl.priority = priority;
 
@@ -37,6 +30,8 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             {
                 sitemapUrl.lastmod = DateTime.Now;
             }
+
+            _Urls.AddLast(sitemapUrl);
         }
 
         /// <summary>
@@ -94,7 +89,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             writer.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
 
             var pagesize = 50000;
-            foreach (var url in _Urls.Values.Skip( page * pagesize ).Take(pagesize))
+            foreach (var url in _Urls.Skip( page * pagesize ).Take(pagesize))
             {
                 writer.WriteStartElement("url");
 

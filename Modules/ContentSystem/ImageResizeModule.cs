@@ -267,10 +267,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                     g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
                     
-                    g.DrawImage(b,  parameters.ImageOffsetAndSize.Left - 2,
-                                    parameters.ImageOffsetAndSize.Top - 2,
-                                    parameters.ImageOffsetAndSize.Width + 5,
-                                    parameters.ImageOffsetAndSize.Height + 5);
+                    g.DrawImage(b,  parameters.ImageOffsetAndSize.Left,
+                                    parameters.ImageOffsetAndSize.Top,
+                                    parameters.ImageOffsetAndSize.Width,
+                                    parameters.ImageOffsetAndSize.Height);
                     g.Dispose();
                 }
                 else
