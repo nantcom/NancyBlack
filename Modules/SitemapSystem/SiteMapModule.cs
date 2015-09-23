@@ -23,7 +23,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem
                 SiteMapModule.SiteMapRequested(this.Context, sitemap);
 
                 // Cache for a day
-                MemoryCache.Default.Add("SiteMap", sitemap, DateTimeOffset.Now.AddMinutes(5));
+                MemoryCache.Default.Add("SiteMap", sitemap, DateTimeOffset.Now.AddDays(1));
             }
 
             return sitemap;

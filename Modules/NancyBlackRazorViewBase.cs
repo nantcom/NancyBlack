@@ -214,7 +214,14 @@ namespace NantCom.NancyBlack
 
             if (value == null)
             {
-                return new NonEncodedHtmlString(defaultContent(null).ToString());
+                try
+                {
+                    return new NonEncodedHtmlString(defaultContent(null).ToString());
+                }
+                catch (Exception ex)
+                {
+                    return "Error: " + ex.Message;
+                }
             }
 
             return value;
