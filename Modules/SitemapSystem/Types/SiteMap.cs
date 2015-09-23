@@ -67,6 +67,9 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
                 writer.WriteStartElement("lastmod");
                 writer.WriteValue(DateTime.Now);
                 writer.WriteEndElement();
+
+
+                writer.WriteEndElement();
             }
 
             writer.WriteEndElement();
