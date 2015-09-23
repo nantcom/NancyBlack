@@ -26,7 +26,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             sitemapUrl.changefreq = changeFreq;
             sitemapUrl.priority = priority;
 
-            if (lastModified != null)
+            if (lastModified == null)
             {
                 sitemapUrl.lastmod = DateTime.Now;
             }
