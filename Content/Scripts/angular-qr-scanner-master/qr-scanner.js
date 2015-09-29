@@ -54,7 +54,12 @@ angular.module('qrScanner', []).directive('qrScanner', ['$interval', '$window', 
         $window.localMediaStream = stream;
 
         scope.video = video;
-        video.play();
+        //video.play();
+        video.onloadedmetadata = function (e) {
+
+            video.play();
+
+        };
         stopScan = $interval(scan, 500);
       }
 
