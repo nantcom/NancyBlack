@@ -1043,10 +1043,23 @@
 
         function link(scope, element, attrs) {
 
-            // Watch for background's change 
-            scope.$watch(attrs.ncbBackground, function (newVal, oldVal) {                
-                element.css("background-image", "url('" + newVal + "')");
-            })
+            element.css("background-image", "url('" + attrs.ncbBackground + "')");
+
+            try {
+
+                scope.$eval(attrs.ncbBackground);
+
+                // Watch for background's change 
+                scope.$watch(attrs.ncbBackground, function (newVal, oldVal) {
+                    element.css("background-image", "url('" + newVal + "')");
+                })
+
+            } catch (e) {
+
+                // if expression is error...
+                console.warn("ncbBackground : Expression is not watchable. So I won't watch it");
+            }
+
 
         }
 

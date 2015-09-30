@@ -472,7 +472,8 @@
 
             $me.getContent(function (content) {
 
-                delete content[$scope.editing.name]
+                delete content.ContentParts[$scope.editing.name];
+
                 // replace
                 datacontext.save(content, function () {
 
