@@ -91,7 +91,7 @@ table.saleorder td:nth-child(6) {
 #cartForm .carousel .carousel-indicators li.active {
   background-color: green;
 }
-#cartForm .next-enabled .right {
+#cartForm.next-enabled .carousel .carousel-control.right {
   opacity: 1 !important;
   pointer-events: all !important;
   cursor: pointer !important;

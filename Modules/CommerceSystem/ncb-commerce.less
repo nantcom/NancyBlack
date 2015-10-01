@@ -116,15 +116,18 @@ table.saleorder {
             li.active {
                 background-color: green;
             }
-        }
+        }        
     }
 
-    .next-enabled {
-
-        .right {
-            opacity: 1 !important;
-            pointer-events: all !important;
-            cursor: pointer !important;
+    &.next-enabled {
+            .carousel {
+                .carousel-control {
+                    &.right {
+                        opacity: 1 !important;
+                        pointer-events: all !important;
+                        cursor: pointer !important;
+                    }
+                }            
         }
     }
 

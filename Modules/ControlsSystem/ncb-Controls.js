@@ -1422,7 +1422,7 @@
             var last = $window.scrollTop();
 
             if (isNaN(ratio)) {
-                ratio = 0.5;
+                ratio = 0.2;
             }
 
             if (isNaN(offset)) {
@@ -1434,7 +1434,7 @@
                 var top = $window.scrollTop();
                 var diff = top - last;
 
-                element.css("background-position", "center " + (offset - (diff * ratio)) + "px");
+                element.css("background-position", "center " + (offset - (diff * ratio * -1)) + "px");
 
             };
 

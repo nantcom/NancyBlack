@@ -28,7 +28,7 @@
     "outputFileName": "Content/ncb-dependencies.css",
     "inputFiles": [
       "Content/bootstrap.min.css",
-      "Content/font-awesome.min.css",
+      "Content/fontawesome/css/font-awesome.min.css",
       "Content/ionicons/css/ionicons.min.css",
       "Content/Scripts/angular-ui-select/select.min.css",
       "Content/scripts/ng-table/ng-table.min.css"
@@ -40,4 +40,5 @@
     "includeInProject": true,
     "sourceMaps": false
   }
+
 ]

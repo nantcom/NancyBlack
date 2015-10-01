@@ -218,7 +218,12 @@
 
         $scope.globals = {};
 
-        $scope.reloadSiteView = function () {
+        $scope.reloadSiteView = function (url) {
+
+            if (url != null) {
+                siteView.contents()[0].location.href = url;
+                return;
+            }
 
             siteView.contents()[0].location.reload();
         };
