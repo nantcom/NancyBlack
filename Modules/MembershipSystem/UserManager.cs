@@ -402,6 +402,16 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             return existing;
         }
+
+
+        public static void GenerateUserCode(NancyBlackDatabase db, NcbUser user)
+        {
+            user.Code = Guid.NewGuid().ToString();
+            user.CodeRequestDate = DateTime.Now;
+
+            db.UpsertRecord<NcbUser>(user);            
+        }
+    
     }
 
 }
