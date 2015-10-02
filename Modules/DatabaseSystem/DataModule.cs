@@ -256,7 +256,7 @@ namespace NantCom.NancyBlack.Modules
             
             var newFiles = new List<dynamic>();
 
-            var attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"].ToString();
+            string attachmentType = this.Request.Form["attachmentType"] == null ? string.Empty : this.Request.Form["attachmentType"].ToString();
             var CreateDate = DateTime.Now;
 
             if ((bool)this.Request.Form.attachmentIsUnique == true)
@@ -311,8 +311,8 @@ namespace NantCom.NancyBlack.Modules
                 {
                     bool wasSet = false;
                     foreach (JObject item in contentItem.Attachments as JArray)
-                    {
-                        if ( item["AttachmentType"].ToString() == attachmentType.Value.ToString())
+                    {                                                
+                        if ( item["AttachmentType"].ToString() == attachmentType.ToString())
                         {
                             // same type with current type
                             item["CreateDate"] = newFiles[0].CreateDate;
