@@ -127,6 +127,12 @@
                 throw "Require type attribute";
             }
 
+            // The chanage able option for display only mode.
+            var changeAble = true;
+            if (attrs.changeAble != null) {
+                changeAble = attrs.changeAble;
+            }            
+
             if (parent = null ||
                 parent.location.pathname != "/__editor" ) {
 
@@ -153,7 +159,11 @@
             var button = $('<a class="changepicturebutton"><i class="ion-android-camera"></i></a>');
             button.css("opacity", 0);
             button.css("position", "absolute");
-            button.appendTo($("body"));
+
+            console.log("CHANGE", changeAble)
+            if (changeAble == 'true') {                
+                button.appendTo($("body"));
+            }            
 
             element.on("mouseenter", function () {
 

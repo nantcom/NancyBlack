@@ -489,7 +489,7 @@
             fd.append("fileToUpload", file);
             fd.append("attachmentType", type);
             fd.append("attachmentIsUnique", unique);
-
+            
             $scope.data.uploadProgress = 0;
             $scope.data.uploadStatus = "uploading";
 
@@ -1002,8 +1002,7 @@
             $me.attachmentType = "UserUpload";
             $scope.$watch(attrs.attachmentType, function (newVal, oldVal) {                
                 if (newVal != null) {
-                    $me.attachmentType = newVal;
-                    console.log("ATTR:", $me.attachmentType)
+                    $me.attachmentType = newVal;                    
                 }
             });
             
