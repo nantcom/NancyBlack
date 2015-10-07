@@ -635,6 +635,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     {
                         NancyBlackDatabase.BZip(fileName, backupFile);
                     }
+                    else
+                    {
+                        // check modified date
+                        if ( File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date )
+                        {
+                            // it was the yesterday's file, replace it
+                            NancyBlackDatabase.BZip(fileName, backupFile);
+                        }
+                    }
 
                     // create daily backup
                     var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));

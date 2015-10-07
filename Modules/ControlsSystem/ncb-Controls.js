@@ -1043,10 +1043,23 @@
 
         function link(scope, element, attrs) {
 
-            // Watch for background's change 
-            scope.$watch(attrs.ncbBackground, function (newVal, oldVal) {                
-                element.css("background-image", "url('" + newVal + "')");
-            })
+            element.css("background-image", "url('" + attrs.ncbBackground + "')");
+
+            try {
+
+                scope.$eval(attrs.ncbBackground);
+
+                // Watch for background's change 
+                scope.$watch(attrs.ncbBackground, function (newVal, oldVal) {
+                    element.css("background-image", "url('" + newVal + "')");
+                })
+
+            } catch (e) {
+
+                // if expression is error...
+                console.warn("ncbBackground : Expression is not watchable. So I won't watch it");
+            }
+
 
         }
 
@@ -1409,7 +1422,7 @@
             var last = $window.scrollTop();
 
             if (isNaN(ratio)) {
-                ratio = 0.5;
+                ratio = 0.2;
             }
 
             if (isNaN(offset)) {
@@ -1421,7 +1434,7 @@
                 var top = $window.scrollTop();
                 var diff = top - last;
 
-                element.css("background-position", "center " + (offset - (diff * ratio)) + "px");
+                element.css("background-position", "center " + (offset - (diff * ratio * -1)) + "px");
 
             };
 

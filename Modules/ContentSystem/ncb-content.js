@@ -51,10 +51,10 @@
 
             }
 
-            var property = element.data("propertyname");
+            var property = attrs.itemprop;
             if (property == null) {
 
-                throw "require 'data-propertyname' to be defined. Use @this.MakeEditable to do so";
+                throw "require itemprop to specify the content part to edit";
             }
 
             var original = element.html();

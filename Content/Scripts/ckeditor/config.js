@@ -6,7 +6,10 @@
 CKEDITOR.editorConfig = function( config ) {
 	// Define changes to default configuration here. For example:
 	// config.language = 'fr';
-	// config.uiColor = '#AADC6E';
+    // config.uiColor = '#AADC6E';
+
+    config.allowedContent = true;
+
     config.toolbar = [
         [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ],
         [ 'Bold', 'Italic', 'Subscript', 'Superscript', '-', 'Format', 'FontSize', 'TextColor' ],

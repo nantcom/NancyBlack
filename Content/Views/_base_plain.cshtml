@@ -1,0 +1,243 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+<!DOCTYPE html>
+<html>
+<head>
+
+    @if (this.Model != null && this.Model.Content != null)
+    {
+        <title>
+            @if (this.Model.Content.Title != null)
+            {
+                @this.Model.Content.Title
+            }
+            @RenderSection("Title", false)
+        </title>
+
+        @if (this.Model.Content.MetaKeywords != null)
+        {
+            <meta name="keywords" content="@(this.Model.Content.MetaKeywords)">
+        }
+
+        @if (this.Model.Content.MetaDescription != null)
+        {
+            <meta name="description" content="@(this.Model.Content.MetaDescription)">
+        }
+    }
+    else
+    {
+        <title>
+            @RenderSection("Title", false)
+        </title>
+    }
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/__favicon/57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/__favicon/60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/__favicon/72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/__favicon/76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/__favicon/114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/__favicon/120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/__favicon/144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/__favicon/152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/__favicon/180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/__favicon/192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/__favicon/32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/__favicon/96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/__favicon/16x16.png">
+    <link rel="icon" type="image/png" href="/__favicon/16x16.png">
+    <link rel="shortcut icon" href="/__favicon/16x16.ico" />
+    <link rel="manifest" href="/__favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    @this.RenderSection("Style", false)
+    @this.RenderSection("Head", false)
+
+</head>
+<body ncb-membership
+      ng-module="BaseModule"
+      ng-controller="BaseController as bCtrl">
+
+
+    @if (this.Site.lockdown != null &&
+                         this.Site.lockdown.enable == true &&
+                         this.Request.Url.Path != "/__editor")
+    {
+        <i class="fa fa-lock"
+           style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
+    }
+
+
+    @RenderBody()
+
+    <script>
+        // Make :hover works on ipad
+        document.addEventListener("touchstart", function(){}, true);
+
+        @if (this.CurrentUser != null)
+        {
+            // automatically set current user info into window variable
+            <text>
+        window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
+        </texT>
+        }
+
+        // automatically set current content into window variable
+        window.model = { };
+        window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
+    </script>
+
+    <script src="/Content/Scripts/ncb-dependencies.js"></script>
+
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+
+    @{
+        foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
+        {
+            @this.Html.Partial(item, this.Model);
+        }
+    }
+
+    @RenderSection("Scripts", false)
+    @RenderSection("Script", false)
+
+    <script>
+
+        (function() {
+
+            var module = angular.module('BaseModule', []);
+            module.controller( "BaseController", function() {
+
+            });
+
+        })();
+
+        window.loaded = false;
+        window.initialize = function() {
+
+            if (window.loaded == true) {
+
+                return;
+            }
+
+            // base modules
+            var modules = [
+                "LocalStorageModule",
+                "ui.bootstrap",
+                "ui.validate",
+                "ui.select",
+                "ngAnimate",
+                "ngSanitize",
+                "ngCookies",
+            ];
+
+            // ncb modules
+            var systemModules = @this.Html.Raw( this.GetJson( NantCom.NancyBlack.Configuration.ModuleResource.AngularModules) );
+            modules = modules.concat( systemModules );
+
+            $("*[ng-module]").each(function () {
+                var me = $(this);
+                modules.push(me.attr("ng-module"));
+                me.removeAttr("ng-module");
+            });
+
+            angular.bootstrap($("body"), modules);
+            window.loaded = true;
+        };
+
+        window.addEventListener( "load", window.initialize );
+
+        $(document).ready( function() {
+
+            window.setTimeout( window.initialize, 400 );
+
+            //#region Helper to support drag and drop and prevent dropping file to document
+
+            var handleEnter = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                $("[dropable]").addClass("hintdrop");
+            };
+            var cancel = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            };
+
+            $(document).on('dragenter', cancel);
+            $(document).on('dragover', handleEnter);
+            $(document).on('drop', cancel);
+
+            //#endregion
+
+        });
+    </script>
+
+    @if (this.Site.Application != null)
+    {
+        @if (this.Site.Application.FacebookAppId != null)
+        {
+            <script>
+                window.fbAsyncInit = function () {
+                    FB.init({
+                        appId: '@(this.Site.Application.FacebookAppId)',
+                        xfbml: true,
+                        version: 'v2.2'
+                    });
+                };
+
+                (function (d, s, id) {
+                    var js, fjs = d.getElementsByTagName(s)[0];
+                    if (d.getElementById(id)) { return; }
+                    js = d.createElement(s); js.id = id;
+                    js.src = "//connect.facebook.net/en_US/sdk.js";
+                    fjs.parentNode.insertBefore(js, fjs);
+                }(document, 'script', 'facebook-jssdk'));
+            </script>
+        }
+
+        @if (this.Site.Application.GoogleAnalyticsId != null)
+        {
+            <script>
+                (function (i, s, o, g, r, a, m) {
+                    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                        (i[r].q = i[r].q || []).push(arguments)
+                    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+                })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                ga('create', '@(this.Site.Application.GoogleAnalyticsId)', 'auto');
+                ga('send', 'pageview');
+
+            </script>
+
+        }
+
+        <script>
+            window.twttr = (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0],
+                  t = window.twttr || {};
+                if (d.getElementById(id)) return t;
+                js = d.createElement(s);
+                js.id = id;
+                js.src = "https://platform.twitter.com/widgets.js";
+                fjs.parentNode.insertBefore(js, fjs);
+
+                t._e = [];
+                t.ready = function(f) {
+                    t._e.push(f);
+                };
+
+                return t;
+            }(document, "script", "twitter-wjs"));
+        </script>
+    }
+
+</body>
+
+
+
+</html>

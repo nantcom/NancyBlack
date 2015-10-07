@@ -434,11 +434,16 @@
                 </a>
 
                 <div class="pull-right">
-                    {{currentUrl}}
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="currentUrl">
+                        <span class="input-group-btn">
 
-                    <a href="#" ng-click="reloadSiteView()">
-                        <i class="ion-ios-reload"></i>
-                    </a>
+                            <button class="btn btn-default" ng-click="reloadSiteView(currentUrl)">
+                                <i class="fa fa-refresh"></i>
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+
                 </div>
 
             </div>
