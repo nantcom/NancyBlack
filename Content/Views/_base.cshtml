@@ -73,8 +73,8 @@
 
 
     @if (this.Site.lockdown != null &&
-                 this.Site.lockdown.enable == true &&
-                 this.Request.Url.Path != "/__editor")
+                         this.Site.lockdown.enable == true &&
+                         this.Request.Url.Path != "/__editor")
     {
         <i class="fa fa-lock"
            style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
@@ -86,7 +86,7 @@
     <script>
         // Make :hover works on ipad
         document.addEventListener("touchstart", function(){}, true);
-	
+
         @if (this.CurrentUser != null)
         {
             // automatically set current user info into window variable
@@ -115,7 +115,7 @@
     @RenderSection("Script", false)
 
     <script>
-        
+
         (function() {
 
             var module = angular.module('BaseModule', []);
@@ -224,7 +224,27 @@
             </script>
 
         }
+
     }
+
+    <script>
+        window.twttr = (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0],
+              t = window.twttr || {};
+            if (d.getElementById(id)) return t;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://platform.twitter.com/widgets.js";
+            fjs.parentNode.insertBefore(js, fjs);
+
+            t._e = [];
+            t.ready = function(f) {
+                t._e.push(f);
+            };
+
+            return t;
+        }(document, "script", "twitter-wjs"));
+    </script>
 
 </body>
 

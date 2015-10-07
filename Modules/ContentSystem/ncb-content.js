@@ -127,13 +127,13 @@
                 throw "Require type attribute";
             }
 
-            // The chanage able option for display only mode.
-            var changeAble = true;
-            if (attrs.changeAble != null) {
-                changeAble = attrs.changeAble;
-            }            
+            //// The chanage able option for display only mode.
+            //var changeAble = true;
+            //if (attrs.changeAble != null) {
+            //    changeAble = attrs.changeAble;
+            //}            
 
-            if (parent = null ||
+            if (parent == null ||
                 parent.location.pathname != "/__editor" ) {
 
                 if (attrs.always != "true") {
@@ -159,18 +159,16 @@
             var button = $('<a class="changepicturebutton"><i class="ion-android-camera"></i></a>');
             button.css("opacity", 0);
             button.css("position", "absolute");
-
-            console.log("CHANGE", changeAble)
-            if (changeAble == 'true') {                
-                button.appendTo($("body"));
-            }            
+            button.appendTo($("body"));
+       
 
             element.on("mouseenter", function () {
-
+                
                 var offset = element.offset();
                 button.css("left", offset.left);
                 button.css("top", offset.top);
                 button.css("opacity", 0.9);
+                button.css("z-index", 99999);
             });
 
             element.on("mouseleave", function () {
@@ -178,8 +176,9 @@
             });
 
             button.on("mouseenter", function () {
-
+                
                 button.css("opacity", 0.9);
+                
             });
 
             button.on("mouseleave", function () {
@@ -187,7 +186,7 @@
             });
 
             button.on("click", function () {
-
+                
                 if ($me.input == null) {
 
                     $me.input = $(document.createElement('input'));
