@@ -81,6 +81,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 return role;
             }
+            
+            this.RefreshRoleInCache(siteDb);
 
             throw new InvalidOperationException("Invalid Role Name: " + name );
         }
@@ -101,12 +103,47 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             }
 
             NcbRole role;
-            if (roles.TryGetValue( id, out role))
+            int _CountRetry = 0;
+
+            try
             {
-                return role;
+                
+                if (roles.TryGetValue(id, out role))
+                {
+                    return role;
+                }
+
+                _CountRetry++;
+
+                throw new InvalidOperationException("Invalid Role Id:" + id);
+
+            }
+            catch (InvalidOperationException e)
+            {
+                // Retry only one time
+                if ( _CountRetry > 1) {
+                    throw e;
+                }
+
+                this.RefreshRoleInCache(siteDb);
             }
 
-            throw new InvalidOperationException("Invalid Role Id:" + id);
+            return new NcbRole();
+
+        }    
+            
+        /// <summary>
+        /// Re-add role from DB to MemCache
+        /// </summary>
+        private void RefreshRoleInCache(NancyBlackDatabase siteDb)
+        {
+            MemoryCache.Default.Remove("Membership-RolesByName");            
+            var roleByName = siteDb.Query<NcbRole>().ToDictionary(r => r.Name.ToLowerInvariant());
+            MemoryCache.Default.Add("Membership-RolesByName", roleByName, DateTimeOffset.Now.AddMinutes(5));
+
+            MemoryCache.Default.Remove("Membership-Roles");
+            var roleById = siteDb.Query<NcbRole>().ToDictionary(r => r.Id);
+            MemoryCache.Default.Add("Membership-Roles", roleById, DateTimeOffset.Now.AddMinutes(5));
         }
 
         /// <summary>
