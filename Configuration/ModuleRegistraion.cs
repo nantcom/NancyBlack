@@ -38,6 +38,22 @@ namespace NantCom.NancyBlack.Configuration
         }
 
         /// <summary>
+        /// List of All JS Files
+        /// </summary>
+        public static string[] AllJS
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// List of all Css Files
+        /// </summary>
+        public static string[] AllCss
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// List of Angular Modules to Load
         /// </summary>
         public static string[] AngularModules
@@ -101,6 +117,10 @@ namespace NantCom.NancyBlack.Configuration
             _AngularModules = (from js in alljs
                                select Path.GetFileNameWithoutExtension(js).ToLowerInvariant()).ToArray();
 
+            ModuleResource.AllCss = (from item in allCss
+                                     select rootPath + item.Replace('/', '\\')).ToArray();
+            ModuleResource.AllJS = (from item in alljs
+                                    select rootPath + item.Replace('/', '\\')).ToArray();
         }
     }
 }

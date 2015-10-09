@@ -4,22 +4,28 @@
 }
 
 @section Head {
-    
-    <link href="~/Content/font-awesome.min.css" rel="stylesheet" />
-    <link href="/Content/ncb-dependencies.css" rel="stylesheet" />
 
     @this.RenderSection("Head", false)
 }
 
 @section Style {
     
+    <link href="/Content/ncb-dependencies.css" rel="stylesheet" />
+
     <style>
         .modal-backdrop {
             position: fixed;
         }
     </style>
     
-    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
+    @if (this.Request.Url.HostName == "localhost")
+    {
+        @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
+    }
+    else
+    {
+        <link href="/__bundle/css" rel="stylesheet" />
+    }
 
     @this.RenderSection("Style", false)
 }

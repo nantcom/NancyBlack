@@ -575,7 +575,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
-        private static void BZip(string inputFile, string outputFile )
+        private static void BZip(string inputFile, string outputFile, int level = 1 )
         {
             var temp = outputFile + ".tmp";
             File.Copy(inputFile, temp, true);
@@ -586,8 +586,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 try
                 {
+                    // not using parallel because it will slow down the entire server
                     using (var fs = File.Open(temp, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    using (var bz = new Ionic.BZip2.ParallelBZip2OutputStream(File.OpenWrite(outputFile), 9))
+                    using (var bz = new Ionic.BZip2.BZip2OutputStream(File.OpenWrite(outputFile), level))
                     {
                         fs.CopyTo(bz);
                     }
@@ -649,18 +650,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));
                     if (File.Exists(dailybackupFile) == false)
                     {
-                        NancyBlackDatabase.BZip(fileName, dailybackupFile);
+                        NancyBlackDatabase.BZip(fileName, dailybackupFile, 9); // max compression for daily backup
                     }
 
                     var backupFiles = Directory.GetFiles(backupPath, "dailybackup-*.sqlite.bz2");
                     var now = DateTime.Now;
                     foreach (var file in backupFiles)
                     {
-                        if (now.Subtract(File.GetCreationTime(file)).TotalDays > 15)
+                        if (now.Subtract(File.GetCreationTime(file)).TotalDays > 30)
                         {
                             try
                             {
-                                File.Delete(file); // delete backup older than 15 days
+                                File.Delete(file); // delete backup older than 30 days
                             }
                             catch (Exception)
                             {
