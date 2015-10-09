@@ -32,7 +32,7 @@ namespace NantCom.NancyBlack.Modules.TrackingSystem
             var imageAtSitePath = this.RootPath + "/Site/trackingimage.png";
 
             if ( File.Exists(imageAtSitePath) )
-            {
+            {                
                 return this.Response.AsImage(imageAtSitePath);
             }
             return this.Response.AsImage("Modules/MailingTrackingSystem/images/transparent.png");

@@ -1,0 +1,21 @@
+﻿<ul class="list-group">
+
+    <li class="list-group-item">
+        <a class="list-group-item-heading" href="/">
+            <span class="glyphicon glyphicon-home"></span>
+            Home
+        </a>
+    </li>
+    <li class="list-group-item">
+        <a class="list-group-item-heading" href="/{{membership.currentUser.Claims[0]}}">
+            <span class="glyphicon glyphicon-globe"></span>
+            My Hub
+        </a>
+    </li>
+    <li class="list-group-item">
+        <a href="/__membership/logout">
+            <span class="glyphicon glyphicon glyphicon-off" aria-hidden="true"></span>
+            Log out
+        </a>
+    </li>
+</ul>       
