@@ -66,8 +66,8 @@
 
 
     @if (this.Site.lockdown != null &&
-                         this.Site.lockdown.enable == true &&
-                         this.Request.Url.Path != "/__editor")
+                                                 this.Site.lockdown.enable == true &&
+                                                 this.Request.Url.Path != "/__editor")
     {
         <i class="fa fa-lock"
            style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
@@ -80,22 +80,33 @@
         // Make :hover works on ipad
         document.addEventListener("touchstart", function(){}, true);
 
-        @if (this.CurrentUser != null)
+        @if (this.CurrentUser.IsAnonymous == false)
         {
             // automatically set current user info into window variable
             <text>
         window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
-        </texT>
+        </text>
         }
 
-        // automatically set current content into window variable
+        @if (this.CurrentUser.HasClaim("Admin") || this.CurrentUser.HasClaim("Editor"))
+        {
+            <text>
         window.model = { };
         window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
+        </text>
+        }
     </script>
 
     <script src="/Content/Scripts/ncb-dependencies.js"></script>
 
-    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+    @if (this.Request.Url.HostName == "localhost")
+    {
+        @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+    }
+    else
+    {
+        <script src="/__bundle/js"></script>
+    }
 
     @{
         foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
@@ -178,7 +189,9 @@
         });
     </script>
 
-    @if (this.Site.Application != null)
+    @if (this.Site.Application != null &&
+                         this.Request.Url.Path.StartsWith("/Admin") == false &&
+                         this.Request.Url.Path.StartsWith("/__editor") == false)
     {
         @if (this.Site.Application.FacebookAppId != null)
         {

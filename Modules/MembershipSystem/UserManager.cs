@@ -190,11 +190,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         {
             // cache will never collide because the guid should be unique among all sites
             var key = "User-" + guid;
-            var cached = MemoryCache.Default[key];
-            if (cached != null)
-            {
-                return cached as NcbUser;
-            }
+            //var cached = MemoryCache.Default[key];
+            //if (cached != null)
+            //{
+            //    return cached as NcbUser;
+            //}
 
             var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
             var user = siteDb.Query<NcbUser>()
@@ -210,8 +210,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             this.AssignClaims(siteDb, user);
 
             // cache, expires every 15 minutes
-            MemoryCache.Default.Add(key, user,
-                new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(15) });
+            //MemoryCache.Default.Add(key, user,
+            //    new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(15) });
 
             return user;
         }

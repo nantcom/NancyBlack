@@ -96,8 +96,10 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             {
                 writer.WriteStartElement("url");
 
+                var lastMod = url.lastmod == DateTime.MinValue ? DateTime.Now : url.lastmod;              
+
                 this.WriteValueElement(writer, "loc", url.loc);
-                this.WriteValueElement(writer, "lastmod", url.lastmod);
+                this.WriteValueElement(writer, "lastmod", lastMod);
                 this.WriteValueElement(writer, "changefreq", url.changefreq.ToString());
                 this.WriteValueElement(writer, "priority", url.priority);
 
