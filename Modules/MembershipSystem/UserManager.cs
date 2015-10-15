@@ -443,7 +443,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
         public static void GenerateUserCode(NancyBlackDatabase db, NcbUser user)
         {
-            user.Code = Guid.NewGuid().ToString();
+            user.Code = Guid.NewGuid().ToString().Substring(0, 5).ToUpper();
             user.CodeRequestDate = DateTime.Now;
 
             db.UpsertRecord<NcbUser>(user);            
