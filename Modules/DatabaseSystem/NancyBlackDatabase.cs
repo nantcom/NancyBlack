@@ -676,8 +676,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 // touch all data types to trigger table generation/migrations
                 cached.DataType.RegisteredTypes.ToList();
 
-                // cache in memory for 1 hour
-                MemoryCache.Default.Add(key, cached, DateTimeOffset.Now.AddHours(1));
+                // cache in memory for 1 hour, dispose after removed
+                var policy = new CacheItemPolicy();
+                policy.AbsoluteExpiration = DateTimeOffset.Now.AddHours(1);
+                policy.RemovedCallback = (arg) =>
+                {
+                    var ncbdb = arg.CacheItem.Value as NancyBlackDatabase;
+                    ncbdb._db.Dispose();
+                };
+                MemoryCache.Default.Add(key, cached, policy);
 
 
                 return cached;
