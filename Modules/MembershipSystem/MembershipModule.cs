@@ -136,7 +136,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
         private dynamic HandlePasswordRequest(dynamic arg)
         {
-            var registerParams = this.Bind<LoginParams>();
+            var registerParams = (arg.body.Value as JObject).ToObject<LoginParams>();            
 
             var code = Guid.NewGuid().ToString();
             var user = this.SiteDatabase.Query<NcbUser>()
