@@ -46,9 +46,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <returns></returns>
         private Nancy.Response ProcessLogin(NcbUser user)
         {
-            user.PasswordHash = null;
+            user.PasswordHash = null;            
 
-            var response = this.LoginWithoutRedirect(user.Guid);
+            DateTime nextDay = DateTime.Now.AddDays(+1);
+
+            var response = this.LoginWithoutRedirect(user.Guid, nextDay);
             response.Contents = (s) =>
             {
                 var json = JsonConvert.SerializeObject(user);
@@ -136,7 +138,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
         private dynamic HandlePasswordRequest(dynamic arg)
         {
-            var registerParams = this.Bind<LoginParams>();
+            var registerParams = (arg.body.Value as JObject).ToObject<LoginParams>();            
 
             var code = Guid.NewGuid().ToString();
             var user = this.SiteDatabase.Query<NcbUser>()

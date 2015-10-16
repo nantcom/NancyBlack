@@ -399,7 +399,7 @@
             }, $me.handleError);
         };
 
-        $scope.data.delete = function (object, callback) {
+        $scope.data.delete = function (object, callback, showConfirm) {
 
             if ($scope.object != null) {
 
@@ -411,8 +411,14 @@
                 object.id = object.Id;
             }
 
-            if (confirm("are you completely sure about this?") == false) {
-                return;
+            if (showConfirm == null) {
+                showConfirm = true;
+            }
+
+            if (showConfirm === true) {            
+                if (confirm("are you completely sure about this?") == false) {
+                    return;
+                }
             }
 
             $scope.table.del(object)
