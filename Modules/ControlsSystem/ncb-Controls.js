@@ -2052,7 +2052,7 @@
 
             var iframe = $('<iframe></iframe>');
             var url = String.format( 'https://www.google.com/maps/embed/v1/place?q={0}&key={1}',
-                attrs.place,
+                encodeURIComponent(attrs.place),
                 key);
 
             iframe.css( "width", "100%" );

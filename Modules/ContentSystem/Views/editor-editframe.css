@@ -6,7 +6,7 @@ html {
   height: 100%;
 }
 body {
-  background-color: #f2f2f2;
+  background-color: #F2F2F2;
 }
 a {
   color: #3e3e3e;
@@ -255,7 +255,7 @@ a.success:hover {
   text-transform: uppercase;
 }
 #menu .modal .modal-content {
-  background-color: #f2f2f2;
+  background-color: #F2F2F2;
   border-radius: 2px !important;
   box-shadow: 0 0 40px silver;
 }

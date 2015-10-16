@@ -6,12 +6,11 @@
              ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
         <i class="ion-ios-plus-outline"></i>
     </div>
-    
     <ul class="filelist"
         sv-root sv-part="object.Attachments"
         sv-on-sort="attachmentManager.reorder()">
         
-        <li ng-repeat="item in object.Attachments | filter: { AttachmentType: attachmentManager.attachmentType}"
+        <li ng-repeat="item in object.Attachments | filter:attachmentManager.includes"
             ng-click="attachmentManager.view(item)"
             sv-element>
 
@@ -32,6 +31,7 @@
         <div>
 
             <input type="text" placeholder="type"
+                   ng-change="attachmentManager.save(viewing)"
                    ncb-textbox ng-model="viewing.AttachmentType"/>
 
         </div>

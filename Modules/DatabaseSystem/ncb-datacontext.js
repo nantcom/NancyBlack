@@ -999,12 +999,22 @@
                     $me.readonly = newValue;
                 });
             }
-            $me.attachmentType = "UserUpload";
+
+            $me.attachmentType = attrs.attachmentType;
             $scope.$watch(attrs.attachmentType, function (newVal, oldVal) {                
                 if (newVal != null) {
                     $me.attachmentType = newVal;                    
                 }
             });
+
+            $me.includes = function (item) {
+
+                if ($me.attachmentType == null) {
+                    return true;
+                }
+
+                return (item.AttachmentType == $me.attachmentType);
+            };
             
 
             //#region Drag Upload
@@ -1090,6 +1100,11 @@
             };
 
             $me.reorder = function () {
+
+                $scope.data.save($scope.object);
+            };
+
+            $me.save = function (item) {
 
                 $scope.data.save($scope.object);
             };
