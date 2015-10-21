@@ -9,8 +9,29 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
 {
     public class SiteMap
     {
+        private List<SiteMapUrl> _Urls = new List<SiteMapUrl>();
 
-        private static LinkedList<SiteMapUrl> _Urls = new LinkedList<SiteMapUrl>();
+        /// <summary>
+        /// Date/Time the sitemap was created
+        /// </summary>
+        public DateTime CreatedDate { get; set; }
+
+        public List<SiteMapUrl> Urls
+        {
+            get
+            {
+                return _Urls;
+            }
+            set
+            {
+                _Urls = value;
+            }
+        }
+
+        public SiteMap()
+        {
+            this.CreatedDate = DateTime.UtcNow;
+        }
 
         /// <summary>
         /// Registers the URL into sitemap
@@ -31,7 +52,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
                 sitemapUrl.lastmod = DateTime.Now;
             }
 
-            _Urls.AddLast(sitemapUrl);
+            _Urls.Add(sitemapUrl);
         }
 
         /// <summary>
@@ -65,7 +86,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
                 writer.WriteEndElement();
 
                 writer.WriteStartElement("lastmod");
-                writer.WriteValue(DateTime.Now);
+                writer.WriteValue(this.CreatedDate);
                 writer.WriteEndElement();
 
 
