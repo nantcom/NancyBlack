@@ -229,24 +229,27 @@ namespace NantCom.NancyBlack.Modules
                             });
                         }
 
-                        var emailConfig = config[item.Action];                        
-                        var autoGenPdfConfig = emailConfig.autoGeneratePDF;
-                        if (autoGenPdfConfig != null && autoGenPdfConfig.enable == true )
+                        var emailConfig = config[item.Action];
+                        if (emailConfig != null)
                         {
-                            Object dataToClient = new {
-                                config = autoGenPdfConfig,
-                                data = item.AffectedRow,
-                            };
-                            new DataWatcherHub().GenPDFandUpload(dataToClient);
-                        }
+                            var autoGenPdfConfig = emailConfig.autoGeneratePDF;
+                            if (autoGenPdfConfig != null && autoGenPdfConfig.enable == true)
+                            {
+                                Object dataToClient = new
+                                {
+                                    config = autoGenPdfConfig,
+                                    data = item.AffectedRow,
+                                };
+                                new DataWatcherHub().GenPDFandUpload(dataToClient);
+                            }
 
-                        emailConfig = config[item.Action];
-                        if (emailConfig.enable)
-                        {
-                            var subject = Razor.Parse<DatabaseEvent>(emailConfig.emailSubject, item);
-                            var body = Razor.Parse<DatabaseEvent>(emailConfig.emailTemplate, item);
+                            if (emailConfig.enable)
+                            {
+                                var subject = Razor.Parse<DatabaseEvent>(emailConfig.emailSubject, item);
+                                var body = Razor.Parse<DatabaseEvent>(emailConfig.emailTemplate, item);
 
-                            MailSenderModule.SendEmail(emailConfig.sendTo, subject, body);
+                                MailSenderModule.SendEmail(emailConfig.sendTo, subject, body);
+                            }
                         }
 
 

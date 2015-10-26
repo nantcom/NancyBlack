@@ -751,7 +751,7 @@
 
             if (attrs.onshow != "") {
 
-                element.on('shown', function () {
+                element.on('shown.bs.modal', function () {
 
                     scope.$eval(attrs.onshow);
                 })
@@ -759,7 +759,7 @@
 
             if (attrs.onhidden != "") {
 
-                element.on('hidden', function () {
+                element.on('hidden.bs.modal', function () {
 
                     scope.$eval(attrs.onhidden);
                 })
