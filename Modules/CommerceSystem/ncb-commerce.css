@@ -197,7 +197,7 @@ table.saleorder td:nth-child(6) {
   margin-top: 40px;
 }
 .printform table th {
-  background-color: #eee;
+  background-color: #eeeeee;
 }
 .printform table td,
 .printform table th {
@@ -208,7 +208,7 @@ table.saleorder td:nth-child(6) {
   height: 30px;
   width: 100%;
   margin: 20px 0;
-  background: #222;
+  background: #222222;
   text-align: center;
   color: white;
   font: bold 15px Sans-Serif;
@@ -244,7 +244,7 @@ table.saleorder td:nth-child(6) {
 }
 .printform #meta td.meta-head {
   text-align: left;
-  background: #eee;
+  background: #eeeeee;
 }
 .printform #meta td textarea {
   width: 100%;

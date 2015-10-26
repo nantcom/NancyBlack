@@ -39,8 +39,4 @@
     "outputFile": "Modules/ContentSystem/ncb-content.css",
     "inputFile": "Modules/ContentSystem/ncb-content.less"
   },
-  {
-    "outputFile": "Site/styles/less/hub-edit.css",
-    "inputFile": "Site/styles/less/hub-edit.less"
-  }
 ]
