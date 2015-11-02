@@ -13,6 +13,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
     public class CommerceModule : BaseDataModule
     {
+
+        public static event Action<SaleOrder, NancyBlackDatabase> PaymentCompleted = delegate { };
+
         static CommerceModule()
         {
             // Maps Variation to master
@@ -177,17 +180,27 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic Checkout(dynamic arg)
         {
+
             if (this.CurrentUser.IsAnonymous)
             {
                 return 400;
             }
 
-            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
+            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();            
 
             saleorder.NcbUserId = this.CurrentUser.Id;
             saleorder.Status = "WaitingForPayment";
             saleorder.Customer = this.CurrentUser.Profile;
-            saleorder.Customer.Email = this.CurrentUser.Email; // sets email
+            if (saleorder.Customer == null)
+            {
+                saleorder.Customer = new {
+                    Email = this.CurrentUser.Email
+                };
+            }
+            else
+            {
+                saleorder.Customer.Email = this.CurrentUser.Email; // sets email
+            }            
 
             // Update Total
             saleorder.TotalAmount = 0;
@@ -405,6 +418,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 db.UpsertRecord<PaymentLog>(log);
 
                 db.UpsertRecord<SaleOrder>(so);
+
+                CommerceModule.PaymentCompleted(so, db);
             }
 
         }

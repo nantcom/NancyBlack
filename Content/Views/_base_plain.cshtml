@@ -113,7 +113,9 @@
         (function() {
 
             var module = angular.module('BaseModule', []);
-            module.controller( "BaseController", function() {
+            module.controller( "BaseController", function($scope) {
+                
+                $scope.PAGE_URL = window.location.href;
 
             });
 
