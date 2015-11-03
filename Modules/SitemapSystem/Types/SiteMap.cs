@@ -46,11 +46,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             sitemapUrl.loc = url;
             sitemapUrl.changefreq = changeFreq;
             sitemapUrl.priority = priority;
-
-            if (lastModified == null)
-            {
-                sitemapUrl.lastmod = DateTime.Now;
-            }
+            sitemapUrl.lastmod = lastModified ?? DateTime.Now;
 
             _Urls.Add(sitemapUrl);
         }
@@ -113,14 +109,12 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             writer.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
 
             var pagesize = 50000;
-            foreach (var url in _Urls.Skip( page * pagesize ).Take(pagesize))
+            foreach (var url in _Urls.Skip(page * pagesize).Take(pagesize))
             {
                 writer.WriteStartElement("url");
 
-                var lastMod = url.lastmod == DateTime.MinValue ? DateTime.Now : url.lastmod;              
-
                 this.WriteValueElement(writer, "loc", url.loc);
-                this.WriteValueElement(writer, "lastmod", lastMod);
+                this.WriteValueElement(writer, "lastmod", url.lastmod.ToUniversalTime());
                 this.WriteValueElement(writer, "changefreq", url.changefreq.ToString());
                 this.WriteValueElement(writer, "priority", url.priority);
 
@@ -141,6 +135,12 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             writer.WriteEndElement();
         }
 
+        private void WriteValueElement(XmlWriter writer, string name, DateTime value)
+        {
+            writer.WriteStartElement(name);
+            writer.WriteValue(value);
+            writer.WriteEndElement();
+        }
     }
 
 }

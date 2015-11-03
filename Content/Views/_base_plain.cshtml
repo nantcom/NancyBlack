@@ -96,15 +96,7 @@
     </script>
 
     <script src="/Content/Scripts/ncb-dependencies.js"></script>
-
-    @if (this.Request.Url.HostName == "localhost")
-    {
-        @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
-    }
-    else
-    {
-        <script src="/__bundle/js"></script>
-    }
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
 
     @{
         foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
