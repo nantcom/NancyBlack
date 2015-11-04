@@ -26,7 +26,7 @@ namespace NantCom.NancyBlack
                 return this.RenderContext.Context.Request;
             }
         }
-
+        
         /// <summary>
         /// Gets the content being rendered
         /// </summary>
@@ -143,6 +143,14 @@ namespace NantCom.NancyBlack
         {
             return JsonConvert.SerializeObject(input);
         }
+
+        public string GetJsonWithoutContentParts( IContent input )
+        {
+            var copy = JObject.FromObject(input);
+            copy.Remove("ContentParts");
+
+            return copy.ToString();
+        }
         
         #region Content Editing
 
@@ -207,9 +215,20 @@ namespace NantCom.NancyBlack
 
             string value = null;
             var contentParts = (this.Content as IContent).ContentParts as JObject;
+            
             if (contentParts != null)
             {
-                value = (string)contentParts[propertyName];
+                // use the localized one if the localized content is requested
+                if (this.Context.Items.ContainsKey("Language") == true)
+                {
+                    value = (string)contentParts[propertyName + "-" + this.Context.Items["Language"]];
+                }
+
+                // try to get the non-localized version
+                if (value == null)
+                {
+                    value = (string)contentParts[propertyName];
+                }
             }
 
             if (value == null)
@@ -259,7 +278,17 @@ namespace NantCom.NancyBlack
             var contentParts = content.ContentParts as JObject;
             if (contentParts != null)
             {
-                value = (string)contentParts[_LastPropertyName];
+                // use the localized one if the localized content is requested
+                if (this.Context.Items.ContainsKey("Language") == true)
+                {
+                    value = (string)contentParts[_LastPropertyName + "-" + this.Context.Items["Language"]];
+                }
+
+                // try to get the non-localized version
+                if (value == null)
+                {
+                    value = (string)contentParts[_LastPropertyName];
+                }
             }
 
             _LastPropertyName = null;
@@ -482,13 +511,28 @@ namespace NantCom.NancyBlack
         /// <param name="content"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string GetAttachmentUrl(dynamic content, string type = null)
+        public string GetAttachmentUrl(dynamic content, string type = null, bool fullPath = false)
         {
             IEnumerable<dynamic> result = this.GetAttachments(content, type);
             var first = result.FirstOrDefault();
             if (first == null)
             {
                 return string.Empty;
+            }
+
+            if (fullPath == true)
+            {
+                var url = this.Request.Url.Scheme;
+                url += "://" + this.Request.Url.HostName;
+
+                if (this.Request.Url.Port != 80)
+                {
+                    url += ":" + this.Request.Url.Port;
+                }
+
+                url += first.Url;
+
+                return url;
             }
 
             return first.Url;
@@ -500,9 +544,9 @@ namespace NantCom.NancyBlack
         /// <param name="content"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string GetAttachmentUrl(string type)
+        public string GetAttachmentUrl(string type, bool fullPath = false)
         {
-            return this.GetAttachmentUrl(this.Content, type);
+            return this.GetAttachmentUrl(this.Content, type, fullPath);
         }
 
         #endregion
