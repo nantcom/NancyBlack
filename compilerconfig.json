@@ -39,4 +39,8 @@
     "outputFile": "Modules/ContentSystem/ncb-content.css",
     "inputFile": "Modules/ContentSystem/ncb-content.less"
   },
+  {
+    "outputFile": "Site/color.css",
+    "inputFile": "Site/color.less"
+  }
 ]
