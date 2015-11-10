@@ -40,7 +40,9 @@
     </script>
 }
 <div class="printform"
-     ng-module="Page" ng-controller="PageController as ctrl">
+     ng-cloak
+     ng-module="Page" 
+     ng-controller="PageController as ctrl">
 
     <div id="page-wrap">
 
@@ -53,8 +55,8 @@
         <div class="row">
 
             <div class="col-xs-8">
-                <b>{{billing.name}}</b><br/>
-                {{billing.regid}}<br/>
+                <b>{{billing.name}}</b><br />
+                {{billing.regid}}<br />
                 <span ng-bind-html="billing.address | newline"></span>
             </div>
 
@@ -98,7 +100,8 @@
                     </tr>
 
                     @{
-                        if (type == "receipt") {
+                        if (type == "receipt")
+                        {
                             <tr>
                                 <td class="meta-head">
                                     <div class="editabe" id="receiptnumber">
@@ -122,7 +125,7 @@
                                 {{so.__updatedAt | date:'dd MMMM yyyy'}}
                             </div>
                         </td>
-                    </tr>
+                    </tr>                    
                     <tr>
                         <td class="meta-head">
                             <div class="editabe" id="amountpaid">
@@ -181,13 +184,22 @@
                 <td>
 
                     <div class="form-control-static">
-                        {{products[productid].Price | number:2}}
+                        {{getPriceBeforeVat(products[productid].Price) | number:2}}
                     </div>
                 </td>
                 <td>
                     <div class="form-control-static">
-                        {{(products[productid].Price * values.length) | number:2}}
+                        {{getPriceBeforeVat((products[productid].Price * values.length)) | number:2}}
                     </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="blank" colspan="3"> </td>
+                <td class="total-line">
+                    Vat 7 %
+                </td>
+                <td class="total-value">
+                    {{getVat() | number:2 }}
                 </td>
             </tr>
             <tr>
@@ -200,6 +212,45 @@
                 </td>
             </tr>
         </table>
+
+
+        <div class="row">&nbsp;</div>
+
+            <div class="row"
+                 ng-controller="PaysbuyBySaleOrderController as psbCtrl">
+
+                
+                @*<div class="col-sm-4">
+                    ชำระค่าบริการผ่าน <b>PAYSBUY</b>
+                </div>*@
+                <div class="col-sm-4">
+                    <a class="btn btn-md btn-primary"
+                       ng-click="psbCtrl.pay()">
+                        <i class="fa fa-shopping-cart"></i>
+                        ชำระค่าบริการด้วย Paysbuy
+                    </a>
+                </div>
+                <div class="col-sm-4 pull-right">
+
+                    <a href ng-click="psbCtrl.pay()" class="pull-right">
+                        <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
+                    </a>
+                    <form id="paysbuy_form" name="formpaysbuy" method="post"
+                          action=""
+                          style="display: none;">
+                        <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                        <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                        <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                        <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                        <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
+                        <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                    </form>
+                </div>
+
+                
+            </div>
+
+        
     </div>
 
 </div>

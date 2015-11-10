@@ -506,7 +506,7 @@
     ncg.controller("CheckoutModal", function ($scope, $http, $timeout) {
 
         var $me = this;
-
+        
         $scope.profileForm = null;
         $scope.shipToForm = null;
         $scope.billToForm = null;
@@ -762,6 +762,60 @@
 
     });
 
+    ncg.controller("PaysbuyBySaleOrderController", function ($scope, $http, $timeout) {
+
+        //$scope.so = {};
+
+        var $me = this;
+
+        $me.pay = function () {
+
+            $("#working").addClass("show");
+
+            var submitForm = function () {
+
+                $("#paysbuy_form").attr("action",
+                    "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
+
+                $timeout(function () {
+
+                    $("#paysbuy_form").submit();
+                }, 1000);
+
+            };
+
+            var getPaysbuySettings = function () {
+
+                $http.get("/__commerce/paysbuy/settings")
+                    .success(function (data) {
+
+                        $scope.paysbuy = data;
+                        submitForm();
+                    })
+            };
+
+            //$scope.so = data;
+
+            getPaysbuySettings();
+
+            //$scope.shoppingcart.checkout(function (data, arg) {
+
+            //    if (data.error == true) {
+
+            //        $("#working").removeClass("show");
+            //        alert("Cannot Process your request, please try again.");
+            //        return;
+            //    }
+
+            //    $scope.so = data;
+
+            //    getPaysbuySettings();
+            //});
+
+        };
+
+    });
+
     ncg.controller("NotifyMoneyTransfer", function ($scope, $timeout) {
 
         $scope.products = {};
@@ -945,6 +999,20 @@
                 });
 
                 return total;
+            };
+
+            $scope.getVat = function () {
+                var vatRatio = 0.07;
+                var vatAmt = 0;
+
+                var total = $scope.getTotal();
+                var vatAmt = total * vatRatio;
+
+                return vatAmt;
+            };
+
+            $scope.getPriceBeforeVat = function (Price) {
+                return Price * 0.93;
             };
 
         }

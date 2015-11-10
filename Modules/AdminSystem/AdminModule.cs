@@ -138,6 +138,25 @@ namespace NantCom.NancyBlack.Modules
                     });
                 }
 
+                // automatcially enable rowversion for page and product
+
+                if (settingsObject["watcher"] == null)
+                {
+                    settingsObject["watcher"] = JObject.FromObject(new
+                    {
+                        product = new
+                        {
+                            name = "Product",
+                            version = true
+                        },
+                        page = new
+                        {
+                            name = "Page",
+                            version = true
+                        }
+                    });
+                }
+
                 if (settingsObject["commerce"] == null)
                 {
                     settingsObject["commerce"] = JObject.FromObject(new
