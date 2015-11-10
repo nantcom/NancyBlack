@@ -192,7 +192,8 @@
             password: null,
             passwordConfirm: '',
         };
-        $scope.mode = 'login';
+        //$scope.mode = 'login';
+        $scope.mode = 'register';
 
         this.login = function () {
 
