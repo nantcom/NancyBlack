@@ -94,6 +94,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public dynamic ShippingDetails { get; set; }
 
         /// <summary>
+        /// Custom Data for this Sale Order
+        /// </summary>
+        public dynamic CustomData { get; set; }
+
+        /// <summary>
         /// Snapshot of product that is related to this sale order.
         /// (Just in case there is a change)
         /// </summary>

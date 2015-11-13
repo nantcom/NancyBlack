@@ -992,23 +992,11 @@
             }
 
             $scope.viewing = null;
-            $scope.viewingOriginal = null;
             $me.view = function (item) {
 
                 $scope.viewing = item;
-                $scope.viewingOriginal = JSON.parse(JSON.stringify(item));
                 element.find(".attachmentView").modal("show");
             };
-
-            $me.update = function (item) {
-
-                if ($scope.viewingOriginal != null && $scope.viewingOriginal.AttachmentType != item.AttachmentType) {
-
-                    $scope.data.save($scope.object);
-                }
-
-            };
-
 
             $me.readonly = false;
             if (attrs.readonly != null) {
@@ -1018,11 +1006,22 @@
                 });
             }
 
+            $me.attachmentType = attrs.attachmentType;
             $scope.$watch(attrs.attachmentType, function (newVal, oldVal) {                
                 if (newVal != null) {
                     $me.attachmentType = newVal;                    
                 }
             });
+
+            $me.includes = function (item) {
+
+                if ($me.attachmentType == null) {
+                    return true;
+                }
+
+                return (item.AttachmentType == $me.attachmentType);
+            };
+            
 
             //#region Drag Upload
 
@@ -1108,29 +1107,12 @@
 
             $me.reorder = function () {
 
-                $scope.object.Attachments.forEach(function (item, index) {
-
-                    item.DisplayOrder = index;
-                });
-
                 $scope.data.save($scope.object);
             };
 
-            $me.filter = function (value, index, array) {
+            $me.save = function (item) {
 
-                if ($me.attachmentType == null || $me.attachmentType == "") {
-                    return true;
-                }
-
-                if (value.AttachmentType == $me.attachmentType) {
-                    return true;
-                }
-
-                if (value.AttachmentType == null) {
-                    return true;
-                }
-
-                return false;
+                $scope.data.save($scope.object);
             };
         }
 
