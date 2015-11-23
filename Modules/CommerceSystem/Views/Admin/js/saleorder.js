@@ -12,9 +12,21 @@
         var vm = this;
 
         vm.viewOrderDetail = _viewOrderDetail;
+        vm.createSaleOrder = _createSaleOrder;
 
         function _viewOrderDetail(id) {                           
             $window.location = "/Admin/saleorder/" + id;
+        };
+
+        $scope.object = {}; 
+
+        function _createSaleOrder(object) {
+
+            $http.post('/__commerce/api/checkout', object).then(function (response) {
+                alert("สร้าง SO สำเร็จ");
+            }, function () {
+
+            });
         };
         
     }
