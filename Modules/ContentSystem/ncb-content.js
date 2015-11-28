@@ -199,28 +199,36 @@
                 }
 
                 $me.input.trigger('click');
-            });            
-
+            });
             var datacontext = null;
-            if (attrs.itemscope != null) {
+            attrs.$observe('itemid', function (val) {                
+                
+                updateDataContext();
 
-                datacontext = new $datacontext($scope, attrs.itemtype);
-                datacontext.getById(attrs.itemid, function (data) {
+            });
 
-                    $scope.object = data;
-                    updateAttachment($scope.object);
-                });
-            } else {
+            updateDataContext();
 
-                datacontext = $scope.data;
-                if (datacontext == null) {
+            function updateDataContext() {
+                if (attrs.itemscope != null) {
 
-                    datacontext = new $datacontext($scope, window.model.Content.TableName);
-                    $scope.object = window.model.Content;
-                    updateAttachment(window.model.Content);
+                    datacontext = new $datacontext($scope, attrs.itemtype);
+                    datacontext.getById(attrs.itemid, function (data) {
+
+                        $scope.object = data;
+                        updateAttachment($scope.object);
+                    });
+                } else {
+
+                    datacontext = $scope.data;
+                    if (datacontext == null) {
+
+                        datacontext = new $datacontext($scope, window.model.Content.TableName);
+                        $scope.object = window.model.Content;
+                        updateAttachment(window.model.Content);
+                    }
                 }
             }
-
 
         };
 

@@ -12,7 +12,7 @@ using System.Linq;
 namespace NantCom.NancyBlack
 {
     public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<StandardModel>
-    {   
+    {
         /// <summary>
         /// Gets the information about current request.
         /// </summary>
@@ -109,7 +109,7 @@ namespace NantCom.NancyBlack
                 return true;
             }
         }
-        
+
         /// <summary>
         /// Gets the database access for this request.
         /// </summary>
@@ -123,13 +123,13 @@ namespace NantCom.NancyBlack
                 return this.Context.GetSiteDatabase();
             }
         }
-        
+
         /// <summary>
         /// Create Razor Compatible dynamic from anonymous type
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public dynamic GetDynamicModel( object input )
+        public dynamic GetDynamicModel(object input)
         {
             return JObject.FromObject(input);
         }
@@ -139,7 +139,7 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public string GetJson( object input )
+        public string GetJson(object input)
         {
             return JsonConvert.SerializeObject(input);
         }
@@ -164,7 +164,7 @@ namespace NantCom.NancyBlack
         /// <param name="name">name of the collection (displayed in editor)</param>
         /// <param name="defaultLayout">default layout name for new items</param>
         /// <returns></returns>
-        public NonEncodedHtmlString MakeEditableCollection( string rootUrl, string table = null, string name = null, string defaultLayout = null)
+        public NonEncodedHtmlString MakeEditableCollection(string rootUrl, string table = null, string name = null, string defaultLayout = null)
         {
             return new NonEncodedHtmlString(string.Format(
                 @"ncw-collection=""true"" rooturl=""{0}"" table=""{1}"" name=""{2}"" layout=""{3}"" ",
@@ -241,6 +241,30 @@ namespace NantCom.NancyBlack
                 {
                     return "Error: " + ex.Message;
                 }
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Get Contents of the specified property name.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetContent(string propertyName)
+        {
+            _LastPropertyName = null;
+
+            string value = null;
+            var contentParts = (this.Content as IContent).ContentParts as JObject;
+            if (contentParts != null)
+            {
+                value = (string)contentParts[propertyName];
+            }
+
+            if (value == null)
+            {
+                return new NonEncodedHtmlString(value);
             }
 
             return value;
@@ -330,7 +354,7 @@ namespace NantCom.NancyBlack
 
             return null;
         }
-        
+
         /// <summary>
         /// Querys
         /// </summary>
@@ -414,7 +438,7 @@ namespace NantCom.NancyBlack
             }
 #endif
             var list = ContentModule.GetChildPages(this.Database, url);
-                
+
             foreach (var item in list)
             {
                 var output = contentTemplate(item);
@@ -431,7 +455,7 @@ namespace NantCom.NancyBlack
         /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
         public object ListRootContents(Func<dynamic, object> contentTemplate)
         {
-            
+
             var list = ContentModule.GetRootPages(this.Database);
 
             foreach (var item in list)
@@ -452,7 +476,7 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public IEnumerable<dynamic> GetAttachments( dynamic content = null, string type = null )
+        public IEnumerable<dynamic> GetAttachments(dynamic content = null, string type = null)
         {
             if (content == null)
             {
@@ -489,7 +513,7 @@ namespace NantCom.NancyBlack
             {
                 return null;
             }
-            
+
             var item = jarray[0] as JObject;
             return item["Url"].ToString();
         }

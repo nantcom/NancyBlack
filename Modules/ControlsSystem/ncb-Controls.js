@@ -751,7 +751,7 @@
 
             if (attrs.onshow != "") {
 
-                element.on('shown.bs.modal', function () {
+                element.on('shown', function () {
 
                     scope.$eval(attrs.onshow);
                 })
@@ -759,7 +759,7 @@
 
             if (attrs.onhidden != "") {
 
-                element.on('hidden.bs.modal', function () {
+                element.on('hidden', function () {
 
                     scope.$eval(attrs.onhidden);
                 })
@@ -2052,7 +2052,7 @@
 
             var iframe = $('<iframe></iframe>');
             var url = String.format( 'https://www.google.com/maps/embed/v1/place?q={0}&key={1}',
-                attrs.place,
+                encodeURIComponent(attrs.place),
                 key);
 
             iframe.css( "width", "100%" );

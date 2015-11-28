@@ -57,6 +57,8 @@
     @this.RenderSection("Style", false)
     @this.RenderSection("Head", false)
 
+    <link href="~/Modules/ContentSystem/ncb-content.min.css" rel="stylesheet" />
+
 </head>
 <body ncb-membership
       ng-module="BaseModule"
@@ -96,7 +98,15 @@
     </script>
 
     <script src="/Content/Scripts/ncb-dependencies.js"></script>
-    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+
+    @if (this.Request.Url.HostName == "localhost")
+    {
+        @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
+    }
+    else
+    {
+        <script src="/__bundle/js"></script>
+    }
 
     @{
         foreach (var item in NantCom.NancyBlack.Configuration.ModuleResource.Includes)
@@ -114,9 +124,7 @@
 
             var module = angular.module('BaseModule', []);
             module.controller( "BaseController", function($scope) {
-                
                 $scope.PAGE_URL = window.location.href;
-
             });
 
         })();

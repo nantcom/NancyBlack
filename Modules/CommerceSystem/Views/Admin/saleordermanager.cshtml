@@ -14,7 +14,7 @@
             overflow-x: scroll;
         }
     </style>
-<link href="~/Modules/CommerceSystem/Views/Admin/saleordermanager.min.css" rel="stylesheet" />
+    <link href="~/Modules/CommerceSystem/Views/Admin/saleordermanager.min.css" rel="stylesheet" />
     <link href="/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
 }
 
@@ -67,6 +67,13 @@
     <div class="page-header">
         <h3>Sale Orders</h3>
     </div>
+    <div class="pull-right">
+        <button class="btn btn-success"
+                data-toggle="modal" data-target="#NewSaleOrderModal">
+            <i class="fa fa-plus"></i>
+            New SO            
+        </button>
+    </div>
     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
                  edit-fn="ctrl.viewOrderDetail(id)">
     </ncb-ngtable>
@@ -105,7 +112,7 @@
                     {{item.Customer.LastName}}
 
                     <p class="text-muted">
-                        <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br/>
+                        <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br />
                         <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
                     </p>
 
@@ -152,8 +159,8 @@
                         <span class="icon ion-printer"></span> IV
                     </a>
                     <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
-                            class="btn btn-success"
-                            ng-disabled="object.Status != 'PaymentReceived'">
+                       class="btn btn-success"
+                       ng-disabled="object.Status != 'PaymentReceived'">
                         <span class="icon ion-printer"></span> R
                     </a>
                 </td>
@@ -161,5 +168,70 @@
         </table>
 
     </script>
+
+    <ncb-modal id="NewSaleOrderModal"
+               title="{{object.id == null ? 'Create SaleOrder' : 'Edit SaleOrder'}}"
+               closebutton deletebutton>
+        <form role="form" name="SaleOrderForm">
+
+            <tabset>
+                @*<tab heading="General">
+                    
+                    <input type="text" name="SaleOrderIdentifier" title="SaleOrderIdentifier"
+                           ncb-textbox
+                           ng-model="object.SaleOrderIdentifier" />                                        
+                </tab>*@
+                <tab heading="Items">
+                    <table class="table table-hover"
+                           ncb-listeditor
+                           target="object.Items">
+                        <thead>
+                            <tr>
+                                <th>Items</th>
+                                <th width="16px"></th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="element in target">
+                            <td>
+                                <input class="form-control"
+                                       placeholder="Items" disabled
+                                       ng-model="element" />
+                            </td>
+                            <td>
+                                <button class="btn btn-danger"
+                                        ng-click="remove(element)">
+                                    <i class="glyphicon glyphicon-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="form-control"
+                                       placeholder="Items"
+                                       ng-model="newItem" />
+                            </td>
+                            <td>
+                                <button class="btn btn-success"
+                                        ng-click="add()">
+                                    <i class="glyphicon glyphicon-plus"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                </tab>
+
+            </tabset>
+
+        </form>
+
+        <ncb-footer>
+            <button class="btn btn-primary btn-lg"
+                    ng-click="ctrl.createSaleOrder(object)">
+                <span ng-show="object.id == null">Create</span>
+                <span ng-show="object.id != null">Save</span>
+            </button>
+        </ncb-footer>
+    </ncb-modal>
 
 </div>
