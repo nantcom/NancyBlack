@@ -103,5 +103,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// (Just in case there is a change)
         /// </summary>
         public List<Product> ItemsDetail { get; set; }
+
+        /// <summary>
+        /// Attachments
+        /// </summary>
+        public dynamic[] Attachments { get; set; }
+
+        /// <summary>
+        /// Notes
+        /// </summary>
+        public dynamic Notes { get; set; }
+
     }
 }

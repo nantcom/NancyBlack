@@ -39,6 +39,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);
 
+            Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);
+
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
 
             #region Quick Actions
@@ -48,6 +50,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/copystock"] = this.HandleRequest(this.CopyStock);
 
             #endregion
+        }
+
+        private dynamic GetSaleorderStatusList(dynamic arg)
+        {
+            SaleOrderStatus SOStatus = new SaleOrderStatus();
+
+            var SOStatusList = SOStatus.GetType().GetMembers()
+                .Where(w => w.MemberType == System.Reflection.MemberTypes.Field)
+                .Select(s => new { title = s.Name } )
+                .ToList();
+
+            return SOStatusList;
         }
 
         private dynamic CopyStock(dynamic arg)

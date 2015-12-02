@@ -9,9 +9,9 @@
         editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'
     });
 
-    saleorderdetailview.$inject = ['$location', '$scope', '$window'];
+    saleorderdetailview.$inject = ['$location', '$scope', '$window', '$http'];
    
-    function saleorderdetailview($location, $scope, $window) {
+    function saleorderdetailview($location, $scope, $window, $http) {
         
         var vm = this;        
         
@@ -20,7 +20,8 @@
         var _stopWatchData = $scope.$watch('data', function (newVal, oldVal) {
             if (newVal != undefined) {
                 _stopWatchData();
-                _loadOrderDetail();
+                _initData();
+                //_loadOrderDetail();
             }
         });
 
@@ -30,6 +31,8 @@
             { id: 3, title: "Other" },
         ];
 
+        $scope.soStatusList = [];
+
         $scope.loadOrderDetail = _loadOrderDetail;
         $scope.saveSaleOrderDetail = _saveSaleOrderDetail;
         $scope.printDocument = _printDocument;
@@ -37,6 +40,20 @@
 
         $scope.copyAddressShippingToBilling = _copyAddressShippingToBilling;
         
+        function _initData() {
+            _getSOStatusList();
+            _loadOrderDetail();
+        };
+
+        function _getSOStatusList() {
+            $http.get("/admin/commerce/api/sostatus")
+                .then(function (success) {
+                    $scope.soStatusList = success.data;                    
+                }, function (error) {
+                    console.error("_getSOStatusList:", error);
+                });
+        };
+
         function _getSOIdFromAbsUrl() {
 
             var _absUrl = $location.absUrl();
@@ -62,9 +79,10 @@
             
         };
 
-        function _saveSaleOrderDetail() {
+        function _saveSaleOrderDetail() {            
             $scope.data.save($scope.object, function (response) {
-                console.log(response);
+                console.log("success");
+                //console.log(response.Status);
             });
         };
 
