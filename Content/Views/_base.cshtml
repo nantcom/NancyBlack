@@ -9,7 +9,7 @@
 }
 
 @section Style {
-    
+
     <link href="/Content/ncb-dependencies.css" rel="stylesheet" />
 
     <style>
@@ -17,15 +17,8 @@
             position: fixed;
         }
     </style>
-    
-    @if (this.Request.Url.HostName == "localhost")
-    {
-        @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
-    }
-    else
-    {
-        <link href="/__bundle/css" rel="stylesheet" />
-    }
+
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
 
     @this.RenderSection("Style", false)
 }

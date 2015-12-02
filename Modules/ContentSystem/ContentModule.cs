@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -111,14 +112,29 @@ namespace NantCom.NancyBlack.Modules
             {
                 return 404;
             }
-
+            
             IContent requestedContent = null;
-
-            //
-            url = ContentModule.RewriteUrl(this.Context, arg, url);
-
+            
             // see if the url is collection request or content request
             var parts = url.Split('/');
+
+            if (ContentModule.LanguageCodes.Contains(parts.Last()))
+            {
+                this.Context.Items["Language"] = parts.Last();
+
+                if (parts.Length == 2)
+                {
+                    url = "/";
+                }
+                else
+                {
+                    url = string.Join("/", parts.Take(parts.Length - 1));
+                }
+            }
+
+            url = ContentModule.RewriteUrl(this.Context, arg, url);
+
+
             if (parts.Length > 2 && parts[1].EndsWith("s"))
             {
                 // seems to be a collection
@@ -192,7 +208,7 @@ namespace NantCom.NancyBlack.Modules
 
             ContentModule.ProcessPage(this.Context, requestedContent);
 
-            return View[(string)requestedContent.Layout, new StandardModel( this, requestedContent )];
+            return View[(string)requestedContent.Layout, new StandardModel( this, requestedContent, requestedContent)];
         }
 
         #region All Logic Related to Content
@@ -212,7 +228,8 @@ namespace NantCom.NancyBlack.Modules
 
             return db.Query<Page>()
                     .Where(p => p.Url.StartsWith(url))
-                    .OrderBy(p => p.DisplayOrder);
+                    .OrderBy(p => p.DisplayOrder)
+                    .OrderByDescending(p=> p.__createdAt);
         }
 
         /// <summary>
@@ -301,9 +318,16 @@ namespace NantCom.NancyBlack.Modules
 
             return createdContent;
         }
-        
+
         #endregion
-        
+
+        private static string[] LanguageCodes =
+        {
+            "th",
+            "en",
+            "jp",
+            "cn"
+        };
     }
 
 }
