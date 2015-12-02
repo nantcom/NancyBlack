@@ -379,6 +379,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .Where(row => row.SaleOrderIdentifier == saleOrderIdentifier)
                             .FirstOrDefault();
 
+                // Since before 02 Dec, 2015. Paysbuy had been sending SO with prefix 00.              
+                if ( so == null)
+                {
+                    string soWithoutDoubleZeroPrefix = saleOrderIdentifier.Substring(2);
+                    so = db.Query<SaleOrder>()
+                            .Where(row => row.SaleOrderIdentifier == soWithoutDoubleZeroPrefix)
+                            .FirstOrDefault();
+                }
+
                 log.SaleOrderId = so.Id;
 
                 JArray exceptions = new JArray();
