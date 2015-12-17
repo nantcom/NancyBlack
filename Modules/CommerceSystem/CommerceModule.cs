@@ -93,6 +93,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // Save User's cart
             Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
 
+            // Save User's cart
+            Post["/__commerce/api/checkoutanonymous"] = this.HandleRequest(this.CheckoutByAnonymous);
+
             Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", (arg) =>
             {
                 var id = (string)arg.so_id;
@@ -232,6 +235,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             });
 
 
+            return saleorder;
+        }
+
+        private dynamic CheckoutByAnonymous(dynamic arg)
+        {
+            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
+            
+            saleorder.Status = "WaitingForPayment";
+
+            this.SiteDatabase.Transaction(() =>
+            {
+                // need to insert to get ID
+                this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+
+                saleorder.SaleOrderIdentifier = string.Format(CultureInfo.InvariantCulture,
+                        "SO{0:yyyyMMdd}-{1:000000}",
+                        saleorder.__createdAt,
+                        saleorder.Id);
+
+                // save the SO ID again
+                this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
+            });
+            
             return saleorder;
         }
 
