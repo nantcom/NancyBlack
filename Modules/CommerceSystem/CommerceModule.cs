@@ -211,10 +211,34 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // so that if there is a change in product info later
                 // we still have the one that customer sees
                 saleorder.ItemsDetail = new List<Product>();
+
+                //lookupItemDetail is used for provent duplication
+                var lookupItemDetail = new Dictionary<int, Product>();
+
                 foreach (var item in saleorder.Items)
                 {
                     var product = this.SiteDatabase.GetById<Product>(item);
-                    saleorder.ItemsDetail.Add(product);
+                    
+                    // check for duplication
+                    if (lookupItemDetail.ContainsKey(product.Id))
+                    {
+                        var existProduct = lookupItemDetail[product.Id];
+                        JObject attr = existProduct.Attributes;
+                        attr["Qty"] = attr.Value<int>("Qty") + 1;
+                    }
+                    else
+                    {
+                        JObject attr = product.Attributes;
+                        if (attr == null)
+                        {
+                            attr = new JObject();
+                            product.Attributes = attr;
+                        }
+                        attr["Qty"] = 1;
+                        saleorder.ItemsDetail.Add(product);
+                        lookupItemDetail.Add(product.Id, product);
+                    }
+
 
                     saleorder.TotalAmount += product.Price;
                 }

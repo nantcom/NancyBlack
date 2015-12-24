@@ -519,7 +519,7 @@
                         <th>Line Total</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="(productid, values) in cartView">
+                <tr ng-repeat="item in object.ItemsDetail">
                     <td>
                         <div class="form-control-static">
                             {{$index + 1}}
@@ -527,33 +527,63 @@
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{products[productid].Title}}
+                            {{item.Title}}
                         </div>
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{values.length}}
+                            {{item.Attributes.Qty}}
                         </div>
                     </td>
                     <td>
 
                         <div class="form-control-static">
-                            {{products[productid].Price | number:2}}
+                            {{item.Price | number:2}} บาท
                         </div>
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{(products[productid].Price * values.length) | number:2}}
+                            {{(item.Price * item.Attributes.Qty) | number:2}} บาท
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="3"> </td>
+                    <td>
+                        <div class="form-control-static">
+                            Total (net)
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{object.TotalAmount | number:2 }} บาท
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="3"> </td>
+                    <td>
+                        <div class="form-control-static">
+                            Plus VAT 7 %
+                        </div>
+                    </td>
+                    <td class="total-value">
+                        <div class="form-control-static">
+                            {{object.TotalAmount * 0.07 | number:2 }} บาท
                         </div>
                     </td>
                 </tr>
                 <tr>
                     <td class="blank" colspan="3"> </td>
                     <td class="total-line">
-                        Total
+                        <div class="form-control-static">
+                            Grand Total
+                        </div>
                     </td>
                     <td class="total-value">
-                        {{getTotal() | number:2 }}
+                        <div class="form-control-static">
+                            {{object.TotalAmount * 1.07 | number:2 }} บาท
+                        </div>
                     </td>
                 </tr>
             </table>
