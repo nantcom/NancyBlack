@@ -23,7 +23,7 @@
 
                     var lumpsum = object.TotalPrice + object.ShippingFee + object.HandlingFee + object.Tax;
 
-                    object.PricePerUnit = lumpsum / object.Change;
+                    object.PricePerUnit = lumpsum / object.InboundAmount;
                 };
 
                 $scope.adjustSHT = function (object) {
@@ -41,7 +41,6 @@
 
                     $("#InventoryMovementModal").modal("show");
                     $scope.object = {
-                        IsInBound: true,
                         MovementDate: new Date()
                     };
                 };
@@ -101,7 +100,7 @@
                 ng-click="ctrl.create()">
             <span class="glyphicon glyphicon-plus-sign"></span>
             <span>
-                Inventory Change
+                Add Items
             </span>
         </button>
     </div>
@@ -117,24 +116,11 @@
         <form role="form" name="InventoryMovementForm">
 
             <tabset>
-                <tab heading="General">
+                <tab heading="Inbound">
 
                     <div class="form-group row">
 
-                        <div class="col-xs-6">
-                            <label>Type</label>
-                            <div>
-                                <button class="btn btn-default" ng-model="object.IsInBound" btn-radio="true">
-                                    Inbound (Buy)
-                                </button>
-
-                                <button class="btn btn-success" ng-model="object.IsInBound" btn-radio="false">
-                                    Outbound (Sell)
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="col-xs-6">
+                        <div class="col-xs-12">
                             <ncb-datepicker model="object.MovementDate" title="Movement Date" format="'dd MMMM yyyy'"></ncb-datepicker>
                         </div>
                     </div>
@@ -183,13 +169,12 @@
                         </div>
                     </div>
 
-                    <div class="form-group row"
-                         ng-show="object.IsInBound == true">
+                    <div class="form-group row">
 
                         <div class="col-xs-6">
 
-                            <input type="number" name="SerialNumber" title="Serial#"
-                                   ng-disabled="object.Change != 1 && object.Change != -1"
+                            <input type="text" name="SerialNumber" title="Serial#"
+                                   ng-disabled="object.InboundAmount != 1 && object.InboundAmount != -1"
                                    ncb-textbox
                                    ng-model="object.SerialNumber" />
                         </div>
@@ -198,7 +183,7 @@
 
                             <input type="number" name="Change" title="Quantity"
                                    ncb-textbox
-                                   ng-model="object.Change"
+                                   ng-model="object.InboundAmount"
                                    ng-change="calculatePrice(object)" />
                         </div>
 
@@ -218,14 +203,14 @@
 
                 </tab>
 
-                <tab heading="Price Calculator">
+                <tab heading="Inbound Price Calculator">
 
                     <div class="row">
 
                         <div class="col-xs-6">
 
                             <div class="form-group">
-                                
+
                                 <label>Total goods in same invoice</label>
                                 <div class="input-group">
 
@@ -233,10 +218,12 @@
                                            ng-model="object.ItemsInInvoice" />
 
                                     <span class="input-group-btn">
-                                        <button class="btn btn-default"                                                
+                                        <button class="btn btn-default"
                                                 ng-click="adjustSHT(object)"
                                                 ng-disabled="object.ItemsInInvoice == ''"
-                                                type="button">Adjust</button>
+                                                type="button">
+                                            Adjust
+                                        </button>
                                     </span>
                                 </div>
                             </div>
@@ -250,7 +237,7 @@
 
 
                         </div>
-                        
+
                         <div class="col-xs-6">
 
                             <div class="form-group">
@@ -261,12 +248,10 @@
                             </div>
 
                             <div class="form-group">
-                                <div class="form-group">
-                                    <label>Shipping Fee</label>
-                                    <input type="number" name="TotalPrice" class="form-control"
-                                           ng-model="object.ShippingFee"
-                                           ng-change="calculatePrice(object)" />
-                                </div>
+                                <label>Shipping Fee</label>
+                                <input type="number" name="TotalPrice" class="form-control"
+                                       ng-model="object.ShippingFee"
+                                       ng-change="calculatePrice(object)" />
                             </div>
 
 
@@ -288,6 +273,64 @@
                     </div>
 
                 </tab>
+
+                <tab heading="Outbound">
+
+                    <div class="form-group row">
+
+                        <div class="col-xs-6">
+
+                            <input type="number" title="Inbound Amount"
+                                   ncb-textbox disabled="disabled"
+                                   ng-model="object.InboundAmount" />
+                        </div>
+
+
+                        <div class="col-xs-6">
+
+                            <div class="form-group">
+
+                                <input type="number" title="Current Amount"
+                                       ncb-textbox disabled="disabled"
+                                       ng-model="object.CurrentAmount" />
+                            </div>
+
+                        </div>
+
+                        <div class="col-xs-12">
+                            <div class="form-group">
+                                <label>Outbound Transaction</label>
+                                <table class="table table-striped table-hover"
+                                       style="width: 100%">
+
+                                    <tr>
+                                        <th>SaleOrderIdentifier</th>
+                                        <th>Qty</th>
+                                    </tr>
+
+                                    <tr ng-repeat="transaction in object.OutBoundLogs">
+
+                                        <td style="width: 250px; text-align:left">
+
+                                            <div ncb-vlookup="SaleOrder" key="{{transaction.SaleOrderId}}" label="SaleOrderIdentifier">
+
+                                            </div>
+
+                                        </td>
+                                        <td>
+                                            {{transaction.Qty}}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </tab>
+
             </tabset>
 
         </form>
@@ -321,7 +364,6 @@
                     {{item.__updatedAt | date:'dd/MM/yyyy HH:mm' }}
                 </td>
                 <td data-title="'Product'"
-                    sortable="'ProductId'"
                     style="width: 250px; text-align:left">
 
                     <div ncb-vlookup="product" key="{{item.ProductId}}">
@@ -347,7 +389,7 @@
                 <td data-title="'Unit Change'"
                     sortable="'Change'"
                     style="width: 120px; text-align:right">
-                    {{item.Change }}
+                    {{item.InboundAmount }}
                 </td>
                 <td data-title="'Unit Price'"
                     sortable="'PricePerUnit'"

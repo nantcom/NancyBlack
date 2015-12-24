@@ -79,7 +79,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                                         .Where(mv => mv.ProductId == item.Id)
                                         .ToList();
 
-                    item.Stock = movements.Sum(mv => mv.Change);
+                    item.Stock = movements.Sum(mv => mv.InboundAmount);
                     this.SiteDatabase.UpsertRecord<Product>(item);
                 }
             });
