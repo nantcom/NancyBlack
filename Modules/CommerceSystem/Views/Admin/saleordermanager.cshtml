@@ -121,24 +121,12 @@
                     </div>
 
                 </td>
-                <td data-title="'S&H'"
-                    sortable="'ShippingDetails'">
-                    {{item.ShippingDetails.method}}
-                </td>
 
                 <td data-title="'Products'">
-                    <div ng-repeat="id in item.Items">
-
-                        <div ncb-vlookup="Product" key="{{id}}" scope>
-                            <a href="{{data.Url}}" target="_blank">
-                                {{data.Title}}
-                            </a>
-                            <ul>
-                                <li ng-repeat="(k,v) in data.Attributes">
-                                    <b>{{k}}</b> : {{v}}
-                                </li>
-                            </ul>
-                        </div>
+                    <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
+                        <a href="{{product.Url}}" target="_blank">
+                            {{product.Title}}
+                        </a>
                     </div>
                 </td>
 
