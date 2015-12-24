@@ -386,10 +386,15 @@
                     filter="{ 'ReceiptNumber': 'text' }">
                     {{item.ReceiptNumber }}
                 </td>
-                <td data-title="'Unit Change'"
-                    sortable="'Change'"
+                <td data-title="'SerialNumber'"
+                    sortable="'SerialNumber'"
+                    filter="{ 'SerialNumber': 'text' }">
+                    {{item.SerialNumber }}
+                </td>
+                <td data-title="'Current Qty'"
+                    sortable="'CurrentAmount'"
                     style="width: 120px; text-align:right">
-                    {{item.InboundAmount }}
+                    {{item.CurrentAmount }}
                 </td>
                 <td data-title="'Unit Price'"
                     sortable="'PricePerUnit'"
