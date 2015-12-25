@@ -514,9 +514,9 @@
                     <tr>
                         <th>#</th>
                         <th>Product</th>
-                        <th>Qty.</th>
-                        <th>Unit Price</th>
-                        <th>Line Total</th>
+                        <th><div class="text-right">Qty.</div></th>
+                        <th><div class="text-right">Unit Price</div></th>
+                        <th><div class="text-right">Line Total</div></th>
                     </tr>
                 </thead>
                 <tr ng-repeat="item in object.ItemsDetail">
@@ -531,18 +531,18 @@
                         </div>
                     </td>
                     <td>
-                        <div class="form-control-static">
+                        <div class="form-control-static text-right">
                             {{item.Attributes.Qty}}
                         </div>
                     </td>
                     <td>
 
-                        <div class="form-control-static">
+                        <div class="form-control-static text-right">
                             {{item.Price | number:2}} บาท
                         </div>
                     </td>
                     <td>
-                        <div class="form-control-static">
+                        <div class="form-control-static text-right">
                             {{(item.Price * item.Attributes.Qty) | number:2}} บาท
                         </div>
                     </td>
@@ -555,7 +555,7 @@
                         </div>
                     </td>
                     <td>
-                        <div class="form-control-static">
+                        <div class="form-control-static text-right">
                             {{object.TotalAmount | number:2 }} บาท
                         </div>
                     </td>
@@ -568,7 +568,7 @@
                         </div>
                     </td>
                     <td class="total-value">
-                        <div class="form-control-static">
+                        <div class="form-control-static text-right">
                             {{object.TotalAmount * 0.07 | number:2 }} บาท
                         </div>
                     </td>
@@ -581,7 +581,7 @@
                         </div>
                     </td>
                     <td class="total-value">
-                        <div class="form-control-static">
+                        <div class="form-control-static text-right">
                             {{object.TotalAmount * 1.07 | number:2 }} บาท
                         </div>
                     </td>
