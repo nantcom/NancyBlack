@@ -165,7 +165,7 @@
                     <th>Line Total</th>
                 </tr>
             </thead>
-            <tr ng-repeat="(productid, values) in cartView">
+            <tr ng-repeat="item in so.ItemsDetail">
                 <td>
                     <div class="form-control-static">
                         {{$index + 1}}
@@ -173,23 +173,23 @@
                 </td>
                 <td>
                     <div class="form-control-static">
-                        {{products[productid].Title}}
+                        {{item.Title}}
                     </div>
                 </td>
                 <td>
                     <div class="form-control-static">
-                        {{values.length}}
+                        {{item.Attributes.Qty}}
                     </div>
                 </td>
                 <td>
 
                     <div class="form-control-static">
-                        {{getPriceBeforeVat(products[productid].Price) | number:2}}
+                        {{getPriceBeforeVat(item.Price) | number:2}}
                     </div>
                 </td>
                 <td>
                     <div class="form-control-static">
-                        {{getPriceBeforeVat((products[productid].Price * values.length)) | number:2}}
+                        {{getPriceBeforeVat((item.Price * item.Attributes.Qty)) | number:2}}
                     </div>
                 </td>
             </tr>
@@ -208,13 +208,13 @@
                     Total
                 </td>
                 <td class="total-value">
-                    {{getTotal() | number:2 }}
+                    {{so.TotalAmount | number:2 }}
                 </td>
             </tr>
         </table>
 
-
-        <div class="row">&nbsp;</div>
+        <div class="row"
+             style="margin-top: 20px"></div>
 
             <div class="row"
                  ng-controller="PaysbuyBySaleOrderController as psbCtrl">
@@ -227,7 +227,7 @@
                     <a class="btn btn-md btn-primary"
                        ng-click="psbCtrl.pay()">
                         <i class="fa fa-shopping-cart"></i>
-                        ชำระค่าบริการด้วย Paysbuy
+                        ชำระด้วย Paysbuy
                     </a>
                 </div>
                 <div class="col-sm-4 pull-right">
@@ -250,6 +250,14 @@
                 
             </div>
 
+        <div class="row">
+            <div class="col-sm-6">
+                <b>ชำระโดยการโอนเงิน:</b><br />
+                ธนาคารกสิกรไทย ชื่อบัญชี บจก. นันคอม<br />
+                เลขที่บัญชี 004-2-45167-3<br />
+                กรุณาแจ้งเลขที่คำสั่งซื้อ (SOXXXX) พร้อมถ่ายภาพ หรือแสกนสลิปมาทาง Email ที่ <b>company@nant.co</b>
+            </div>
+        </div>
         
     </div>
 
