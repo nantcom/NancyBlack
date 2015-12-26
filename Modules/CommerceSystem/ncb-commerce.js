@@ -985,20 +985,7 @@
 
             $scope.getTotal = function () {
 
-                var total = 0;
-                if ($scope.so == null) {
-
-                    return 0;
-                }
-                $scope.so.Items.forEach(function (productid) {
-
-                    if ($scope.products[productid] != null) {
-
-                        total += $scope.products[productid].Price;
-                    }
-                });
-
-                return total;
+                return $scope.so.TotalAmount;
             };
 
             $scope.getVat = function () {
