@@ -45,7 +45,8 @@
                      title="'Revenue'"
                      table="'SaleOrder'"
                      fn="'sum'"
-                     select="'TotalAmount'">
+                     select="'TotalAmount'"
+                     filter="Status eq 'PaymentReceived'">
                 </div>
 
                 <div class="col-md-6"
@@ -53,7 +54,8 @@
                      title="'Sale Volume'"
                      table="'SaleOrder'"
                      fn="'count'"
-                     select="'TotalAmount'">
+                     select="'TotalAmount'"
+                     filter="Status eq 'PaymentReceived'">
                 </div>
             </div>
 

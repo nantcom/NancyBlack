@@ -28,6 +28,26 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int SaleOrderId { get; set; }
 
         /// <summary>
+        /// Sale Order Identifier
+        /// </summary>
+        public string SaleOrderIdentifier { get; set; }
+
+        /// <summary>
+        /// Error Codes
+        /// </summary>
+        public string ResponseCode { get; set; }
+
+        /// <summary>
+        /// Whether the received code is error
+        /// </summary>
+        public bool IsErrorCode { get; set; }
+
+        /// <summary>
+        /// Payment Source
+        /// </summary>
+        public string PaymentSource { get; set; }
+
+        /// <summary>
         /// Amount Logged
         /// </summary>
         public Decimal Amount { get; set; }
@@ -66,6 +86,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Any Exception from this Payment Request
         /// </summary>
         public dynamic Exception { get; set; }
+
+        /// <summary>
+        /// Whether the payment is success
+        /// </summary>
+        public bool IsPaymentSuccess { get; set; }
 
         /// <summary>
         /// Creates new instance of payment log from context

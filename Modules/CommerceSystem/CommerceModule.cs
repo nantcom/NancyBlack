@@ -201,61 +201,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             else
             {
                 saleorder.Customer.Email = this.CurrentUser.Email; // sets email
-            }            
+            }
 
-            // Update Total
-            saleorder.TotalAmount = 0;
-
-            this.SiteDatabase.Transaction(() =>
-            {
-                // snapshot the products into this sale order
-                // so that if there is a change in product info later
-                // we still have the one that customer sees
-                saleorder.ItemsDetail = new List<Product>();
-
-                //lookupItemDetail is used for provent duplication
-                var lookupItemDetail = new Dictionary<int, Product>();
-
-                foreach (var item in saleorder.Items)
-                {
-                    var product = this.SiteDatabase.GetById<Product>(item);
-                    
-                    // check for duplication
-                    if (lookupItemDetail.ContainsKey(product.Id))
-                    {
-                        var existProduct = lookupItemDetail[product.Id];
-                        JObject attr = existProduct.Attributes;
-                        attr["Qty"] = attr.Value<int>("Qty") + 1;
-                    }
-                    else
-                    {
-                        JObject attr = product.Attributes;
-                        if (attr == null)
-                        {
-                            attr = new JObject();
-                            product.Attributes = attr;
-                        }
-                        attr["Qty"] = 1;
-                        saleorder.ItemsDetail.Add(product);
-                        lookupItemDetail.Add(product.Id, product);
-                    }
-
-
-                    saleorder.TotalAmount += product.Price;
-                }
-
-                // need to insert to get ID
-                this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
-
-                saleorder.SaleOrderIdentifier = string.Format(CultureInfo.InvariantCulture,
-                        "SO{0:yyyyMMdd}-{1:000000}",
-                        saleorder.__createdAt,
-                        saleorder.Id);
-
-                // save the SO ID again
-                this.SiteDatabase.UpsertRecord<SaleOrder>(saleorder);
-            });
-
+            saleorder.UpdateSaleOrder(this.SiteDatabase);
 
             return saleorder;
         }
@@ -395,30 +343,43 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return tree.Values.FirstOrDefault();
         }
 
-        public static void HandlePayment(NancyBlackDatabase db, PaymentLog log, string saleOrderIdentifier)
+        public static void HandlePayment(NancyBlackDatabase db, PaymentLog log)
         {
             // ensure only one thread is processing this so
-            lock (saleOrderIdentifier)
+            lock (log.SaleOrderIdentifier)
             {
                 // find the sale order
                 var so = db.Query<SaleOrder>()
-                            .Where(row => row.SaleOrderIdentifier == saleOrderIdentifier)
+                            .Where(row => row.SaleOrderIdentifier == log.SaleOrderIdentifier)
                             .FirstOrDefault();
 
-                // Since before 02 Dec, 2015. Paysbuy had been sending SO with prefix 00.              
-                if ( so == null)
+                JArray exceptions = new JArray();
+
+                if (so == null)
                 {
-                    string soWithoutDoubleZeroPrefix = saleOrderIdentifier.Substring(2);
-                    so = db.Query<SaleOrder>()
-                            .Where(row => row.SaleOrderIdentifier == soWithoutDoubleZeroPrefix)
-                            .FirstOrDefault();
+                    exceptions.Add(JObject.FromObject(new
+                    {
+                        type = "Wrong SO Number",
+                        description = "Wrong SO Number"
+                    }));
+
+                    goto EndPayment;
                 }
 
                 log.SaleOrderId = so.Id;
 
-                JArray exceptions = new JArray();
+                // Error code received
+                if (log.IsErrorCode == true)
+                {
+                    so.Status = SaleOrderStatus.WaitingForPayment;
+                    exceptions.Add(JObject.FromObject(new
+                    {
+                        type = "Error Code",
+                        description = "Error Code Received from Payment Processor: " + log.ResponseCode
+                    }));
+                }
 
-                // Wrong Payment Status, Exit now.
+                // Wrong Payment Status
                 if (so.Status != SaleOrderStatus.WaitingForPayment)
                 {
                     so.Status = SaleOrderStatus.DuplicatePayment;
@@ -441,9 +402,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
                     }));
                 }
-
+                
                 if (exceptions.Count == 0)
                 {
+                    log.IsPaymentSuccess = true;
+
                     so.Status = SaleOrderStatus.PaymentReceived;
                     so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
                         "RC{0:yyyyMMdd}-{1:000000}", so.__createdAt, so.Id);
@@ -451,6 +414,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     // temporary use
                     CommerceModule.SetN15Price(db, so);
                 }
+
+                EndPayment:
 
                 log.Exception = exceptions;
                 db.UpsertRecord<PaymentLog>(log);

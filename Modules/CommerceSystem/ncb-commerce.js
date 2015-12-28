@@ -1042,7 +1042,16 @@
             /* Function declarable */
             function _getDataByPeriod(period) {
 
-                var criteria = "/tables/" + scope.table + "/summarize?period=" + period + "&fn=" + scope.fn + "&select=" + scope.select + "&time=__createdAt";
+                var criteria = "/tables/" + scope.table + "/summarize?period=" + period +
+                                                          "&fn=" + scope.fn +
+                                                          "&select=" + scope.select +
+                                                          "&time=__createdAt";
+
+                if (attrs.filter != "") {
+
+                    criteria += "&$filter=" + attrs.filter;
+                }
+
                 $http.get(criteria).
                       then(function (response) {
 

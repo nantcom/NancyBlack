@@ -1,6 +1,9 @@
-﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 
@@ -114,5 +117,67 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public dynamic Notes { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="db"></param>
+        public void UpdateSaleOrder( NancyBlackDatabase db )
+        {
+
+            // Update Total
+            this.TotalAmount = 0;
+            
+            // snapshot the products into this sale order
+            // so that if there is a change in product info later
+            // we still have the one that customer sees
+            this.ItemsDetail = new List<Product>();
+
+            //lookupItemDetail is used for provent duplication
+            var lookupItemDetail = new Dictionary<int, Product>();
+
+            foreach (var item in this.Items)
+            {
+                var product = db.GetById<Product>(item);
+
+                // check for duplication
+                if (lookupItemDetail.ContainsKey(product.Id))
+                {
+                    var existProduct = lookupItemDetail[product.Id];
+                    JObject attr = existProduct.Attributes;
+                    attr["Qty"] = attr.Value<int>("Qty") + 1;
+                }
+                else
+                {
+                    JObject attr = product.Attributes;
+                    if (attr == null)
+                    {
+                        attr = new JObject();
+                        product.Attributes = attr;
+                    }
+                    attr["Qty"] = 1;
+                    this.ItemsDetail.Add(product);
+                    lookupItemDetail.Add(product.Id, product);
+                }
+                
+                this.TotalAmount += product.Price;
+            }
+            
+            db.Transaction(() =>
+            {
+
+                // need to insert to get ID
+                db.UpsertRecord<SaleOrder>(this);
+
+                this.SaleOrderIdentifier = string.Format(CultureInfo.InvariantCulture,
+                        "SO{0:yyyyMMdd}-{1:000000}",
+                        this.__createdAt,
+                        this.Id);
+
+                // save the SO ID again
+                db.UpsertRecord<SaleOrder>(this);
+            });
+
+
+        }
     }
 }

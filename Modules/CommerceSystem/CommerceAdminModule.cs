@@ -19,7 +19,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/admin/tables/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
             Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
-            Get["/admin/tables/inventorymovement"] = this.HandleViewRequest("/Admin/Inventorymanager", null);
 
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
 
@@ -37,6 +36,42 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/saleorder/{id}"] = this.HandleViewRequest("/Admin/saleorderdetailmanager", null);
 
+            Get["/admin/saleorder/{id}/add/{productId}"] = this.HandleRequest((arg) =>
+            {
+                var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+
+                var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
+                if (product == null)
+                {
+                    return 400;
+                }
+
+                so.Items = so.Items.Concat(new int[] { (int)arg.productId } ).ToArray();
+                so.UpdateSaleOrder(this.SiteDatabase);
+
+                return 200;
+            });
+
+
+            Get["/admin/saleorder/{id}/remove/{productId}"] = this.HandleRequest((arg) =>
+            {
+                var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+
+                var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
+                if (product == null)
+                {
+                    return 400;
+                }
+
+                var items = so.Items.ToList();
+                items.Remove((int)arg.ProductId);
+
+                so.Items = items.ToArray();
+                so.UpdateSaleOrder(this.SiteDatabase);
+
+                return 200;
+            });
+
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);
 
             Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);
@@ -46,8 +81,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             #region Quick Actions
 
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
-
-            Post["/admin/commerce/api/copystock"] = this.HandleRequest(this.CopyStock);
 
             #endregion
         }
@@ -62,29 +95,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 .ToList();
 
             return SOStatusList;
-        }
-
-        private dynamic CopyStock(dynamic arg)
-        {
-            TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);
-
-            this.SiteDatabase.Transaction(() =>
-            {
-                foreach (var item in this.SiteDatabase.Query<Product>()
-                                        .Where(p => p.IsVariation == true)
-                                        .AsEnumerable())
-                {
-
-                    var movements = this.SiteDatabase.Query<InventoryMovement>()
-                                        .Where(mv => mv.ProductId == item.Id)
-                                        .ToList();
-
-                    item.Stock = movements.Sum(mv => mv.InboundAmount);
-                    this.SiteDatabase.UpsertRecord<Product>(item);
-                }
-            });
-
-            return 200;
         }
 
         private dynamic EnableSizingVariations(dynamic arg)
