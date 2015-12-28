@@ -72,19 +72,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             JObject postback = JObject.FromObject(this.Request.Form.ToDictionary());
             PaySbuyPostback paysbuyPostback = postback.ToObject<PaySbuyPostback>();
+            
+            // Since before 02 Dec, 2015. Paysbuy had been sending SO with prefix 00.     
+            var soId = paysbuyPostback.result.Substring(2);
+            var code = paysbuyPostback.result.Substring(0, 2);
 
             var log = PaymentLog.FromContext(this.Context);
 
+            log.PaymentSource = "PaySbuy";
             log.Amount = paysbuyPostback.amt;
             log.Fee = paysbuyPostback.fee;
-
-            CommerceModule.HandlePayment(this.SiteDatabase, log, paysbuyPostback.result);
+            log.SaleOrderIdentifier = soId;
+            log.IsErrorCode = code != "00";
+            log.ResponseCode = code;
+            log.IsPaymentSuccess = false;
+            
+            CommerceModule.HandlePayment(this.SiteDatabase, log);
 
             var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
 
             return new StandardModel(this, page, JObject.FromObject(new
             {
-                SaleOrderIdentification = paysbuyPostback.result,
+                SaleOrderIdentification = soId,
+                Log = log
             }));
         }
 
