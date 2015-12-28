@@ -28,20 +28,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int ProductId { get; set; }
 
         /// <summary>
-        /// Inbound Amount
+        /// Change of inventory
         /// </summary>
-        public int InboundAmount { get; set; }
+        public int Change { get; set; }
 
         /// <summary>
-        /// Outbound Amount
+        /// Whether this is inbound record
         /// </summary>
-        public int CurrentAmount { get; set; }
+        public bool IsInBound { get; set; }
 
-        /// <summary>
-        /// Outbound logs
-        /// </summary>
-        public List<OutBoundLog> OutBoundLogs { get; set; }
-        
         /// <summary>
         /// Total Price buy or sell
         /// </summary>
