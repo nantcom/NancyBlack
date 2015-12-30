@@ -231,7 +231,7 @@
                     <th>Line Total</th>
                 </tr>
             </thead>
-            <tr ng-repeat="item in so.ItemsDetail">
+            <tr ng-repeat="item in so.ItemsDetail | orderBy: 'Price' : true">
                 <td>
                     <div class="form-control-static">
                         {{$index + 1}}
