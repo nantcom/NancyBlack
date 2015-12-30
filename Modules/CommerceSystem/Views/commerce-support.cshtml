@@ -1,0 +1,310 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+}
+
+@section Head
+{
+    <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+
+    <style>
+        .user-profile-image {
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+        }
+
+        .simeple-block {
+            display: inline-block;
+            margin-left: 20px;
+            vertical-align: top;
+        }
+
+        .simple-inline-block {
+            vertical-align: top;
+            display: inline-block;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        #meta {
+            float: none;
+        }
+    </style>
+}
+@section Script
+{
+    <script>
+
+        window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
+        window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
+        window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
+
+        (function () {
+
+            var mod = angular.module('Page', []);
+            mod.controller('PageController', function ($scope, $http) {
+
+                var me = this;
+
+                $scope.object = window.allData.SaleOrder;
+                $scope.branding = window.branding;
+                $scope.isAdmin = window.isAdmin == "True" ? true : false;
+                $scope.allStatus = window.allData.StatusList;
+
+                $scope.laptopStatus = [];
+                var status = ["Deploy Keyword", "Deadpicel checking"];
+
+                me.getAtteByType = function (type) {
+
+                    //var newAttr = {CreateDate: new Date().toISOString(), AttachmentType: type, Url: "", DisplayOrder: 0};
+                    //var found = false;
+
+                    //for (var i = 0; i < $scope.object.Attachments.length; i++) {
+                    //    if ($scope.object.Attachments[i].AttachmentType == type){
+                    //        $scope.object.Attachments[i] = newAttr;
+                    //        found = true;
+                    //    }
+                    //}
+
+                    //if (!found) {
+                    //    $scope.object.Attachments.push(newAttr);
+                    //}
+
+                    //return newAttr;
+
+                    for (var i = 0; i < $scope.object.Attachments.length; i++) {
+                        if ($scope.object.Attachments[i].AttachmentType == type){
+                            return $scope.object.Attachments[i];
+                        }
+                    }
+
+                    var newAttr = {CreateDate: Date.parse(Date()), AttachmentType: type, Url: "", DisplayOrder: 0};
+                    $scope.object.Attachments.push(newAttr);
+                    return newAttr;
+                }
+
+                if ($scope.isAdmin) {
+                    var init = function(){
+                        for (var i = 0; i < status.length; i++) {
+                            $scope.laptopStatus.push(me.getAtteByType(status[i]));
+                        }
+
+                        setTimeout(function(){ $scope.data.save($scope.object); }, 15000);
+                    }
+
+                    init();
+                }
+
+
+            });
+
+            mod.filter('newline', function($sce) {
+
+                return function(input) {
+                    return $sce.trustAsHtml(input.replace(/\n/g, "<br/>"));
+                }
+            });
+
+
+        })();
+    </script>
+}
+
+<div ng-cloak
+     ng-module="Page"
+     ng-controller="PageController as ctrl"
+     ncb-datacontext-integrated
+     table="SaleOrder">
+
+    <div class="printform">
+
+        <div class="container">
+
+            <div id="header"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                Support
+            </div>
+
+            <div class="row">
+
+                <div class="col-xs-6">
+                    <img class="user-profile-image" ng-src="~/Modules/CommerceSystem/images/UserProfileImage.png" />
+
+                    <div class="simeple-block">
+                        <b>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</b><br />
+                        Phone: {{object.Customer.PhoneNumber}}<br />
+                        Email: {{object.Customer.Email}}
+                    </div>
+
+                </div>
+
+                <div id="logo" class="col-xs-6">
+                    <div class="simeple-block">
+
+                        <table id="meta">
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="saleordernumber">
+                                        Sale Order #
+                                    </div>
+                                </td>
+                                <td>{{object.SaleOrderIdentifier}}</td>
+                            </tr>
+
+                            <tr>
+
+                                <td class="meta-head">
+                                    <div class="editabe" id="date">
+                                        Last Update
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="date">
+                                        {{object.__updatedAt | date:'dd MMMM yyyy'}}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+
+                                <td class="meta-head">
+                                    <div class="editabe" id="date">
+                                        Status
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="date">
+                                        {{object.Status}}
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                    <img class="simeple-block" ng-src="{{branding.logo}}" />
+
+                    <div ng-show="isAdmin" style="margin-top: 20px;">
+                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                            <option ng-repeat="status in allStatus">{{status}}</option>
+                        </select> 
+                        <button class="btn btn-success" ng-click="data.save(object)"><span class="glyphicon glyphicon-floppy-saved"></span></button>
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <div class="container">
+        <div class="row" style="margin-top: 20px">
+            <div class="col-md-12">
+                <tabset>
+
+                    <tab heading="Step">
+                        <br />
+                        <div class="panel panel-info" ng-repeat="atta in laptopStatus">
+                            <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy HH.mm'}}</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="simple-inline-block">
+
+                                        <div ng-show="isAdmin">
+                                            <img ncb-editable-picture
+                                                 type="{{atta.AttachmentType}}"
+                                                 ncb-background="'{{atta.Url}}'" width="300" style="background-size: contain"
+                                                 always="true" />
+                                        </div>
+
+                                        <div ng-hide="isAdmin">
+                                            <img width="300" style="background-size: contain; background-image: url({{atta.Url}})"
+                                                 always="true" />
+                                        </div>
+
+                                    </div>
+
+                                    <div class="simple-inline-block" ng-hide="isAdmin">
+                                        <pre style="width: 700px; font-family: Leelawadee"><b>ขั้นตอน :&ensp;</b>{{atta.AttachmentType}}<br /><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
+                                    </div>
+
+                                    <div class="simple-inline-block" ng-show="isAdmin" style="width: 700px">
+                                        <p><b>{{atta.AttachmentType}}</b></p>
+                                        <p>
+                                            <label>ข้อความ</label>
+                                            <textarea class="form-control" style="min-height: 150px"
+                                                      ng-model="atta.Caption"></textarea>
+                                        </p>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </tab>
+
+                    <tab heading="Note">
+                        <br />
+                        <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
+                            <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="simple-inline-block">
+                                        <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
+                                    </div>
+                                    <div class="simple-inline-block" ng-hide="isAdmin">
+                                        <pre style="width: 700px; font-family: Leelawadee"><b>สถานะ :&ensp;</b>{{atta.Status}}<br /><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
+                                    </div>
+                                    <div class="simple-inline-block" ng-show="isAdmin" style="width: 700px">
+                                        <p>
+                                            <label>สถานะ</label>
+                                            <input class="form-control"
+                                                   ng-model="atta.Status" />
+                                        </p>
+                                        <p>
+                                            <label>ข้อความ</label>
+                                            <textarea class="form-control" style="min-height: 150px"
+                                                      ng-model="atta.Caption"></textarea>
+                                        </p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="alert alert-danger" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
+
+                        @if (this.CurrentUser.HasClaim("admin"))
+                        {
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">New Image</div>
+                                <div class="panel-body">
+                                    <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                                </div>
+                            </div>
+                        }
+
+
+                    </tab>
+
+                    <tab heading="Support">
+                        <br />
+                        <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-default">Invoice</a>
+                        <button type="button" class="btn btn-default">Driver</button>
+                    </tab>
+
+                </tabset>
+            </div>
+        </div>
+    </div>
+
+
+</div>
