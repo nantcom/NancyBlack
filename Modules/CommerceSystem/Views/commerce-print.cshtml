@@ -6,12 +6,68 @@
     var type = this.Model.Content.ContentParts.Type;
 }
 
-@section Head
-{
+@section Head{
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+
+    <style>
+        .collector{
+            border-top: 1px solid black;
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            text-align: center;
+            width: 130px;
+            font-size: 12px;
+        }
+
+        .collect-date{
+            position: absolute;
+            width: 60px;
+            right: 10px;
+            font-size: 12px;
+            bottom: 10px;
+        }
+
+        .authorized-signature{
+            border-top: 1px solid black;
+            position: absolute;
+            bottom: 10px;
+            text-align: center;
+            width: 204px;
+            left: 6px;
+            font-size: 12px;
+        }
+
+        .by-name{
+            font-size: 10px;
+            position: absolute;
+            left: 10px;
+            top: 6px;
+        }
+
+        .company-name{
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .fitted{
+            display: block;
+            height: 100%;
+            position: relative;
+        }
+
+        .eoe{
+            position: absolute;
+            font-size: 10px;
+            left: 5px;
+        }
+    </style>
 }
-@section Script
-{
+@section Script{
     <script>
 
         window.saleorder = @this.Html.Raw(this.GetJson(this.Model.Data));
@@ -46,17 +102,27 @@
 
     <div id="page-wrap">
 
-        <div id="header"
-             ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+        @if (type == "receipt")
+        {
+            <div id="header" style="height: auto; line-height: 30px; letter-spacing: normal"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                ใบเสร็จรับเงิน / ใบกำกับภาษี<br />receipt / tax invoice
+            </div>
+        }
+        else
+        {
+            <div id="header"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                @type
+            </div>
+        }
 
-            @type
-        </div>
 
         <div class="row">
 
             <div class="col-xs-8">
                 <b>{{billing.name}}</b><br />
-                {{billing.regid}}<br />
+                เลขประจำตัวผู้เสียภาษี/ Tax ID {{billing.regid}}<br />
                 <span ng-bind-html="billing.address | newline"></span>
             </div>
 
@@ -194,7 +260,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="blank" colspan="3"> </td>
+                <td class="blank" colspan="3"></td>
                 <td class="total-line">
                     Vat 7 %
                 </td>
@@ -203,7 +269,16 @@
                 </td>
             </tr>
             <tr>
-                <td class="blank" colspan="3"> </td>
+                <td class="blank" colspan="3">
+                    @if (type == "receipt")
+                    {
+                        <div class="fitted">
+                            <div class="eoe">
+                                ผิด ตก ยกเว้น E. & O.E.
+                            </div>
+                        </div>
+                    }
+                </td>
                 <td class="total-line">
                     Total
                 </td>
@@ -216,13 +291,15 @@
         <div class="row"
              style="margin-top: 20px"></div>
 
+        @if (type == "invoice")
+        {
             <div class="row"
                  ng-controller="PaysbuyBySaleOrderController as psbCtrl">
 
-                
+
                 @*<div class="col-sm-4">
-                    ชำระค่าบริการผ่าน <b>PAYSBUY</b>
-                </div>*@
+                        ชำระค่าบริการผ่าน <b>PAYSBUY</b>
+                    </div>*@
                 <div class="col-sm-4">
                     <a class="btn btn-md btn-primary"
                        ng-click="psbCtrl.pay()">
@@ -247,18 +324,47 @@
                     </form>
                 </div>
 
-                
+
             </div>
 
-        <div class="row">
-            <div class="col-sm-6">
-                <b>ชำระโดยการโอนเงิน:</b><br />
-                ธนาคารกสิกรไทย ชื่อบัญชี บจก. นันคอม<br />
-                เลขที่บัญชี 004-2-45167-3<br />
-                กรุณาแจ้งเลขที่คำสั่งซื้อ (SOXXXX) พร้อมถ่ายภาพ หรือแสกนสลิปมาทาง Email ที่ <b>company@nant.co</b>
+            <div class="row">
+                <div class="col-sm-6">
+                    <b>ชำระโดยการโอนเงิน:</b><br />
+                    ธนาคารกสิกรไทย ชื่อบัญชี บจก. นันคอม<br />
+                    เลขที่บัญชี 004-2-45167-3<br />
+                    กรุณาแจ้งเลขที่คำสั่งซื้อ (SOXXXX) พร้อมถ่ายภาพ หรือแสกนสลิปมาทาง Email ที่ <b>company@nant.co</b>
+                </div>
             </div>
-        </div>
-        
+        }
+        else if (type == "receipt")
+        {
+            <div class="row">
+                <div class="col-md-12">
+                    <table style="width: 100%; margin-top: 0; margin-bottom: 40px; height: 120px">
+                        <tr>
+                            <td>
+                                <div class="fitted">
+                                    <div class="collector">ผู้รับเงิน / Collector</div>
+                                    <div class="collect-date"><b>{{so.__updatedAt | date:'dd/MM/yy'}}</b><br />วันที่/Date</div>
+                                </div>
+                            </td>
+                            <td>
+                                
+                            </td>
+                            <td>
+                                <div class="fitted">
+                                    <div class="by-name">ในนาม</div>
+                                    <div class="company-name">{{billing.name}}</div>
+                                    <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        }
+
+
     </div>
 
 </div>
