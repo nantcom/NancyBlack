@@ -220,12 +220,12 @@
                                         <div ng-show="isAdmin">
                                             <img ncb-editable-picture
                                                  type="{{atta.AttachmentType}}"
-                                                 ncb-background="'{{atta.Url}}'" width="300" style="background-size: contain"
+                                                 ncb-background="'{{atta.Url}}'" width="300" style="background-size: cover; height: 300px;"
                                                  always="true" />
                                         </div>
 
                                         <div ng-hide="isAdmin">
-                                            <img width="300" style="background-size: contain; background-image: url({{atta.Url}})"
+                                            <img width="300" style="background-size: cover; height: 300px; background-image: url({{atta.Url}})"
                                                  always="true" />
                                         </div>
 
