@@ -401,6 +401,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         description = string.Format(
                             "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
                     }));
+
+                    //check last payment
                 }
                 
                 if (exceptions.Count == 0)
@@ -410,9 +412,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     so.Status = SaleOrderStatus.PaymentReceived;
                     so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
                         "RC{0:yyyyMMdd}-{1:000000}", so.__createdAt, so.Id);
-
-                    // temporary use
-                    CommerceModule.SetN15Price(db, so);
+                    
                 }
 
                 EndPayment:
@@ -425,26 +425,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 CommerceModule.PaymentCompleted(so, db);
             }
 
-        }
-
-        /// <summary>
-        /// this function use for reset promotion price to normal price (temporary use)
-        /// </summary>
-        public static void SetN15Price(NancyBlackDatabase db, SaleOrder so)
-        {
-            var matchedProduct = (from product in so.ItemsDetail where product.Id == 6 select product).FirstOrDefault();
-
-            if (matchedProduct != null)
-            {
-                db.UpsertRecord<ProductPromotionTransaction>(new ProductPromotionTransaction() { SaleOrderId = so.Id, ProductId = matchedProduct.Id });
-                var pptCount = db.Query<ProductPromotionTransaction>().Where(ppt => ppt.ProductId == 6).Count();
-                if (pptCount == 5)
-                {
-                    var n15 = db.GetById<Product>(6);
-                    n15.Price = 35610;
-                    db.UpsertRecord<Product>(n15);
-                }
-            }
         }
 
         public static void SetPackingStatus(NancyBlackDatabase db, SaleOrder so)

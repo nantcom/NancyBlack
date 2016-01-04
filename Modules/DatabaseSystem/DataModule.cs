@@ -320,7 +320,12 @@ namespace NantCom.NancyBlack.Modules
                             // delete the one being replaced
                             var directory = this.GetAttachmentFolder(tableName, id);
                             var toDelete = Path.Combine(directory, Path.GetFileName( item["Url"].ToString() ));
-                            File.Delete(toDelete);
+
+                            // delete when url is not null
+                            if (!string.IsNullOrEmpty(item["Url"].ToString()))
+                            {
+                                File.Delete(toDelete);
+                            }
                             BaseDataModule.AttachmentDeleted(this.Context, tableName, contentItem, item["Url"].ToString());
 
                             // set to new one

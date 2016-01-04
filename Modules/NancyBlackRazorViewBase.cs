@@ -144,12 +144,12 @@ namespace NantCom.NancyBlack
             return JsonConvert.SerializeObject(input);
         }
 
-        public string GetJsonWithoutContentParts( IContent input )
+        public string GetJsonWithoutContentParts( object input )
         {
             var copy = JObject.FromObject(input);
             copy.Remove("ContentParts");
 
-            return copy.ToString();
+            return copy.ToString( Formatting.None );
         }
         
         #region Content Editing

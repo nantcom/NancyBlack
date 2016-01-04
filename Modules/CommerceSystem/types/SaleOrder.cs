@@ -17,6 +17,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// <summary>
         /// Prepares product for packing - stock will now deduct
         /// </summary>
+        public const string WaitingForOrder = "WaitingForOrder";
         public const string Packing = "Packing";
         public const string Shipped = "Shipped";
         public const string Delivered = "Delivered";
