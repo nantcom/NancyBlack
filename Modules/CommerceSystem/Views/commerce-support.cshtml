@@ -93,22 +93,24 @@
                             $scope.object.CustomData = {};
                         }
 
-                        $scope.object.CustomData.SerialNumbers = [];
-                        for (var i = 0; i < $scope.object.Items.length; i++) {
-                            var id = $scope.object.Items[i];
-                            var product = lookup[id];
+                        if ($scope.object.CustomData.SerialNumbers == null) {
+                            $scope.object.CustomData.SerialNumbers = [];
+                            for (var i = 0; i < $scope.object.Items.length; i++) {
+                                var id = $scope.object.Items[i];
+                                var product = lookup[id];
 
-                            if (product.Url.indexOf( "/products/parts/os" ) == 0 ||
-                                product.Url.indexOf( "/promotions" ) == 0) {
+                                if (product.Url.indexOf( "/products/parts/os" ) == 0 ||
+                                    product.Url.indexOf( "/promotions" ) == 0) {
     
-                                continue;
-                            }
+                                    continue;
+                                }
 
-                            $scope.object.CustomData.SerialNumbers.push( { index : i, Title : product.Title, Serial : "(not specified)"});
+                                $scope.object.CustomData.SerialNumbers.push( { index : i, Title : product.Title, Serial : "(not specified)"});
+                            }
                         }
 
 
-                        setTimeout(function(){ $scope.data.save($scope.object); }, 15000);
+                        setTimeout(function(){ $scope.data.save($scope.object); }, 1500);
                     }
 
                     init();
