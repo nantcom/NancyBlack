@@ -2,6 +2,8 @@
 
 @{
     Layout = "_base";
+
+    var IsAdmin = this.CurrentUser.HasClaim("admin");
 }
 
 @section Head
@@ -74,48 +76,74 @@
                     return newAttr;
                 }
 
-                if ($scope.isAdmin) {
-                    var init = function(){
 
-                        // Create Deploy Step for first time
-                        for (var i = 0; i < status.length; i++) {
-                            $scope.laptopStatus.push(me.getAtteByType(status[i]));
-                        }
+				@if( IsAdmin )
+				{
+				<text>
+					// Create Deploy Step for first time
+					for (var i = 0; i < status.length; i++) {
+						$scope.laptopStatus.push(me.getAtteByType(status[i]));
+					}
 
-                        var lookup = [];
-                        for (var i = 0; i < $scope.object.ItemsDetail.length; i++) {
-                            var item = $scope.object.ItemsDetail[i];
+					var lookup = [];
+					for (var i = 0; i < $scope.object.ItemsDetail.length; i++) {
+						var item = $scope.object.ItemsDetail[i];
 
-                            lookup[item.Id] = item;
-                        }
+						lookup[item.Id] = item;
+					}
 
-                        if ($scope.object.CustomData == null) {
-                            $scope.object.CustomData = {};
-                        }
+					if ($scope.object.CustomData == null) {
+						$scope.object.CustomData = {};
+					}
 
-                        if ($scope.object.CustomData.SerialNumbers == null) {
-                            $scope.object.CustomData.SerialNumbers = [];
-                            for (var i = 0; i < $scope.object.Items.length; i++) {
-                                var id = $scope.object.Items[i];
-                                var product = lookup[id];
+					// Delete Unneccessary data from Custom Data
+					delete $scope.object.CustomData.ram1;
+					delete $scope.object.CustomData.ram2;
+					delete $scope.object.CustomData.ram3;
+					delete $scope.object.CustomData.ram4;
+					delete $scope.object.CustomData.m21;
+					delete $scope.object.CustomData.m22;
+					delete $scope.object.CustomData.hdd1;
+					delete $scope.object.CustomData.hdd2;
+					delete $scope.object.CustomData.cpu1;
+					delete $scope.object.CustomData.gpu1;
+					delete $scope.object.CustomData.body1;
 
-                                if (product.Url.indexOf( "/products/parts/os" ) == 0 ||
-                                    product.Url.indexOf( "/promotions" ) == 0) {
-    
-                                    continue;
-                                }
+					if ($scope.object.CustomData.SerialNumbers == null) {
+						$scope.object.CustomData.SerialNumbers = [];
+					}
 
-                                $scope.object.CustomData.SerialNumbers.push( { index : i, Title : product.Title, Serial : "(not specified)"});
-                            }
-                        }
+					for (var i = 0; i < $scope.object.Items.length; i++) {
+						var id = $scope.object.Items[i];
+						var product = lookup[id];
 
+						if (product.Url.indexOf( "/products/parts/os" ) == 0 ||
+							product.Url.indexOf( "/promotions" ) == 0) {
 
-                        setTimeout(function(){ $scope.data.save($scope.object); }, 1500);
-                    }
+							continue;
+						}
 
-                    init();
-                }
+						// Add only the missing parts
+						var dupes = false;
+						for  (var j = 0; j < $scope.object.CustomData.SerialNumbers.length; j++) {
 
+							var existing = $scope.object.CustomData.SerialNumbers[j];
+							if ( existing.index == i && existing.Title == product.Title )
+							{
+								dupes = true;
+								break;
+							}
+						}
+
+						if ( dupes )
+						{
+							continue;
+						}
+						$scope.object.CustomData.SerialNumbers.push( { index : i, Title : product.Title, Serial : ""});
+					}
+
+				</text>
+				}
 
             });
 
@@ -294,7 +322,7 @@
                     {
 
                         <tab heading="Serial Number">
-                            
+
                             <table class="table">
                                 <thead>
                                     <tr>
