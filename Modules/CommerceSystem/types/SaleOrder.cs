@@ -25,6 +25,41 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string Cancel = "Cancel";
     }
 
+    /// <summary>
+    /// Promotion Apply Result
+    /// </summary>
+    public class PromotionApplyResult
+    {
+        public const string ERROR_NO_CODE = "NO_CODE";
+        public const string ERROR_MIN_AMOUNT = "MIN_AMOUT";
+        public const string ERROR_REQUIRE_PRODUCT = "REQUIRE_PRODUCT";
+
+        /// <summary>
+        /// Promotion Code
+        /// </summary>
+        public string code { get; set; }
+
+        /// <summary>
+        /// Amount of discount
+        /// </summary>
+        public decimal discount { get; set; }
+
+        /// <summary>
+        /// Attributes of the promotion
+        /// </summary>
+        public dynamic attributes { get; set; }
+
+        /// <summary>
+        /// Whether promotion can be applied
+        /// </summary>
+        public bool success { get; set; }
+
+        /// <summary>
+        /// Error Code
+        /// </summary>
+        public string error { get; set; }
+    }
+
     public class SaleOrder : IStaticType
     {
         
@@ -122,7 +157,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// 
         /// </summary>
         /// <param name="db"></param>
-        public void UpdateSaleOrder( NancyBlackDatabase db )
+        public void UpdateSaleOrder( NancyBlackDatabase db, bool save = true )
         {
 
             // Update Total
@@ -162,6 +197,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 
                 this.TotalAmount += product.Price;
             }
+
+            if (save == false)
+            {
+                return; // Just update the details for calculation
+            }
             
             db.Transaction(() =>
             {
@@ -179,6 +219,70 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             });
 
 
+        }
+
+        /// <summary>
+        /// Apply promotion code
+        /// </summary>
+        /// <param name="code"></param>
+        public PromotionApplyResult ApplyPromotion( NancyBlackDatabase db, string code )
+        {
+            // Sale order
+            this.UpdateSaleOrder(db, false);
+            
+            string codeUrl = "/promotions/code/" + code;
+
+            var codeProduct = db.Query<Product>()
+                                .Where(p => p.Url == codeUrl)
+                                .FirstOrDefault();
+
+            if (codeProduct == null)
+            {
+                return new PromotionApplyResult()
+                {
+                    code = code,
+                    success = false,
+                    error = PromotionApplyResult.ERROR_NO_CODE
+                };
+            }
+
+            if (codeProduct.Attributes.min != null)
+            {
+                if ((Decimal)codeProduct.Attributes.min > this.TotalAmount)
+                {
+                    return new PromotionApplyResult()
+                    {
+                        code = code,
+                        success = false,
+                        attributes = codeProduct.Attributes,
+                        error = PromotionApplyResult.ERROR_MIN_AMOUNT
+                    };
+                }
+            }
+
+            if (codeProduct.Attributes.require != null)
+            {
+                if (this.Items.Contains((int)codeProduct.Attributes.require) == false)
+                {
+                    return new PromotionApplyResult()
+                    {
+                        code = code,
+                        success = false,
+                        attributes = codeProduct.Attributes,
+                        error = PromotionApplyResult.ERROR_REQUIRE_PRODUCT
+                    };
+                }
+            }
+
+            this.Items = this.Items.Concat(new int[] { codeProduct.Id }).ToArray();
+
+            return new PromotionApplyResult()
+            {
+                code = code,
+                success = true,
+                attributes = codeProduct.Attributes,
+                discount = codeProduct.Price
+            };
         }
     }
 }
