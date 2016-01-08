@@ -274,6 +274,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
+            if (codeProduct.Attributes.until != null)
+            {
+                var expire = new DateTime((long)codeProduct.Attributes.until);
+                
+                if (DateTime.Now > expire.AddMinutes(15)) // give 10 minutes gap
+                {
+                    return new PromotionApplyResult()
+                    {
+                        code = code,
+                        success = false,
+                        attributes = codeProduct.Attributes,
+                        error = PromotionApplyResult.ERROR_NO_CODE
+                    };
+                }
+            }
+
             this.Items = this.Items.Concat(new int[] { codeProduct.Id }).ToArray();
 
             return new PromotionApplyResult()
