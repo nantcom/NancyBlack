@@ -764,9 +764,10 @@
 
     ncg.controller("PaysbuyBySaleOrderController", function ($scope, $http, $timeout) {
 
-        //$scope.so = {};
 
         var $me = this;
+
+        $scope.splitValue = null;
 
         $me.pay = function () {
 
@@ -794,23 +795,42 @@
                     })
             };
 
-            //$scope.so = data;
-
             getPaysbuySettings();
 
-            //$scope.shoppingcart.checkout(function (data, arg) {
+        };
 
-            //    if (data.error == true) {
+        $me.splitPay = function () {
 
-            //        $("#working").removeClass("show");
-            //        alert("Cannot Process your request, please try again.");
-            //        return;
-            //    }
+            if ($scope.splitValue > $scope.paymentDetail.PaymentRemaining) {
+                alert("ขอโทษค่ะ จำนวนเงินเกินยอดที่ต้องชำระค่ะ");
+                return;
+            }
 
-            //    $scope.so = data;
+            $("#working").addClass("show");
 
-            //    getPaysbuySettings();
-            //});
+            var submitForm = function () {
+
+                $("#paysbuy_split_form").attr("action",
+                    "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
+
+                $timeout(function () {
+
+                    $("#paysbuy_split_form").submit();
+                }, 1000);
+
+            };
+
+            var getPaysbuySettings = function () {
+
+                $http.get("/__commerce/paysbuy/settings")
+                    .success(function (data) {
+
+                        $scope.paysbuy = data;
+                        submitForm();
+                    })
+            };
+
+            getPaysbuySettings();
 
         };
 

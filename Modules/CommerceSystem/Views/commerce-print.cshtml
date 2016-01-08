@@ -70,7 +70,7 @@
 @section Script{
     <script>
 
-        window.saleorder = @this.Html.Raw(this.GetJson(this.Model.Data));
+        window.data = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.billing = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.billing));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
 
@@ -79,9 +79,18 @@
             var mod = angular.module('Page', []);
             mod.controller('PageController', function ($scope, $http) {
 
-                $scope.so = window.saleorder;
+                $scope.so = window.data.SaleOrder;
+                $scope.paymentDetail = window.data.PaymentDetail;
                 $scope.billing = window.billing;
                 $scope.branding = window.branding;
+
+
+                if ($scope.paymentDetail.WasPaidButNotAll) {
+                    $scope.paymentType = 'Slip Payment';
+                }
+                else {
+                    $scope.paymentType = 'Pay All';
+                }
             });
 
             mod.filter('newline', function($sce) {
@@ -297,20 +306,77 @@
                 <div class="row"
                      ng-controller="PaysbuyBySaleOrderController as psbCtrl">
 
-
-                    @*<div class="col-sm-4">
-                            ชำระค่าบริการผ่าน <b>PAYSBUY</b>
-                        </div>*@
-                    <div class="col-sm-4">
-                        <a class="btn btn-md btn-primary"
-                           ng-click="psbCtrl.pay()">
-                            <i class="fa fa-shopping-cart"></i>
-                            ชำระด้วย Paysbuy
-                        </a>
+                    <div class="col-md-6">
+                        ชำระค่าบริการผ่าน <b>PAYSBUY</b>
+                        <div style="margin-bottom: 10px;"></div>
+                        <div class="btn-group" role="group" aria-label="..." ng-show="paymentType != 'Slip Payment'">
+                            <button class="btn btn-md btn-primary"
+                                    ng-click="psbCtrl.pay()">
+                                ชำระเงินทั้งหมด
+                            </button>
+                            <button class="btn btn-md btn-primary"
+                                    ng-click="paymentType = 'Slip Payment'">
+                                แบ่งชำระ
+                            </button>
+                        </div>
+                        <div ng-show="paymentType == 'Slip Payment'">
+                            <div ng-show="paymentDetail.TransactionLog.length > 0">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>วันที่ชำระ</th>
+                                            <th class="text-center">จำนวนเงินที่ชำระ</th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
+                                        <td>{{paymentLog.__createdAt | date:'dd MMMM yyyy HH:mm'}}</td>
+                                        <td>
+                                            <div class="text-right">
+                                                {{paymentLog.Amount | number:2}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="total-line">
+                                            <div class="text-right" style="font-weight: bold">
+                                                ชำระแล้วทั้งสิ้น
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-right">
+                                                {{paymentDetail.TotalPaid | number:2}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="total-line">
+                                            <div class="text-right" style="font-weight: bold">
+                                                ยอดคงเหลือ
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-right">
+                                                {{paymentDetail.PaymentRemaining | number:2}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ..." ng-model="splitValue">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-primary" type="button" ng-click="psbCtrl.splitPay()">
+                                        <i class="fa fa-shopping-cart"></i> ชำระตามจำนวน
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row"
+                             style="margin-top: 20px"></div>
                     </div>
-                    <div class="col-sm-4 pull-right">
+                    <div class="col-md-6 pull-right">
 
-                        <a href ng-click="psbCtrl.pay()" class="pull-right">
+                        <a class="pull-right">
                             <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
                         </a>
                         <form id="paysbuy_form" name="formpaysbuy" method="post"
@@ -321,6 +387,16 @@
                             <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
                             <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
                             <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
+                            <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                        </form>
+                        <form id="paysbuy_split_form" name="formpaysbuy" method="post"
+                              action=""
+                              style="display: none;">
+                            <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                            <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                            <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                            <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                            <input Type="Hidden" Name="amt" ng-value="splitValue" />
                             <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
                         </form>
                     </div>

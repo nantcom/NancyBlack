@@ -101,6 +101,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .Where(row => row.SaleOrderIdentifier == id)
                             .FirstOrDefault();
 
+                var paymentlogs = this.SiteDatabase.Query<PaymentLog>()
+                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier)
+                            .ToList();
+
+                var splitPaymentLogs = from log in paymentlogs
+                                       where log.Exception.Count > 0 && log.Exception.Last.type == "Split Payment"
+                                       select log;
+
+                var totalPaid = splitPaymentLogs.Sum(log => log.Amount);
+
+                var paymentDetail = new
+                {
+                    WasPaidButNotAll = splitPaymentLogs.Count() > 0,
+                    TransactionLog = splitPaymentLogs,
+                    PaymentRemaining = so.TotalAmount - totalPaid,
+                    TotalPaid = totalPaid
+                };
+
                 var dummyPage = new Page()
                 {
                     Title = arg.form + " for " + so.SaleOrderIdentifier,
@@ -111,12 +129,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 };
 
-                return new StandardModel(this, dummyPage, so);
+                return new StandardModel(this, dummyPage, new { SaleOrder = so, PaymentDetail = paymentDetail });
             });
 
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
 
             Post["/__commerce/api/resolvevariation"] = this.HandleRequest(this.HandleVariationRequest);
+
 
             Get["/__commerce/banner"] = this.HandleRequest(this.HandleBannerRequest);
         }
@@ -168,6 +187,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             return 404;
         }
+
 
         private dynamic HandleSalorderSaveRequest(dynamic arg)
         {
@@ -353,6 +373,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .Where(row => row.SaleOrderIdentifier == log.SaleOrderIdentifier)
                             .FirstOrDefault();
 
+                bool isPaymentReceived = false;
+
                 JArray exceptions = new JArray();
 
                 if (so == null)
@@ -380,7 +402,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 // Wrong Payment Status
-                if (so.Status != SaleOrderStatus.WaitingForPayment)
+                if (so.Status != SaleOrderStatus.WaitingForPayment || so.Status != SaleOrderStatus.PaymentReceivedWithException)
                 {
                     so.Status = SaleOrderStatus.DuplicatePayment;
                     exceptions.Add(JObject.FromObject(new
@@ -394,18 +416,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 if (log.Amount != so.TotalAmount)
                 {
+                    log.IsPaymentSuccess = true;
                     so.Status = SaleOrderStatus.PaymentReceivedWithException;
                     exceptions.Add(JObject.FromObject(new
                     {
-                        type = "Wrong Amount",
+                        type = "Split Payment",
                         description = string.Format(
                             "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
                     }));
+                    if (so.TotalAmount > log.Amount)
+                    {
+                        var paymentlogs = db.Query<PaymentLog>()
+                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier)
+                            .ToList();
 
-                    //check last payment
+                        var splitPaymentLogs = (from sPLog in paymentlogs
+                                               where sPLog.Exception.Count > 0 && sPLog.Exception.Last.type == "Split Payment"
+                                               select sPLog).ToList();
+
+                        isPaymentReceived = isPaymentReceived || so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
+                    }
                 }
                 
-                if (exceptions.Count == 0)
+                if (exceptions.Count == 0 || isPaymentReceived)
                 {
                     log.IsPaymentSuccess = true;
 
