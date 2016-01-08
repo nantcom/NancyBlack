@@ -138,6 +138,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
 
             Get["/__commerce/banner"] = this.HandleRequest(this.HandleBannerRequest);
+
+            Post["/__commerce/api/checkpromotion"] = this.HandleRequest(this.HandlePromotionCheckRequest);
+
+        }
+
+        private dynamic HandlePromotionCheckRequest(dynamic arg)
+        {
+            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
+            return saleorder.ApplyPromotion(this.SiteDatabase, this.Request.Query.code);
         }
 
         private dynamic HandleBannerRequest(dynamic arg)
