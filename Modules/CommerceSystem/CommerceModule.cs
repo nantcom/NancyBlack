@@ -452,6 +452,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     log.IsPaymentSuccess = true;
 
                     so.Status = SaleOrderStatus.PaymentReceived;
+                    so.PaymentReceivedDate = DateTime.Now;
                     so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
                         "RC{0:yyyyMMdd}-{1:000000}", so.__createdAt, so.Id);
                     

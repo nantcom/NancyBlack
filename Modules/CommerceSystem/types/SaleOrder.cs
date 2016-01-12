@@ -1,5 +1,6 @@
 ﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -68,6 +69,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __createdAt { get; set; }
 
         public DateTime __updatedAt { get; set; }
+
+        public DateTime PaymentReceivedDate { get; set; }
         
         /// <summary>
         /// Sale Order Identifier
