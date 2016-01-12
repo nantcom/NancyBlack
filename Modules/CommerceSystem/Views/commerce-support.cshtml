@@ -54,6 +54,7 @@
                 $scope.branding = window.branding;
                 $scope.isAdmin = window.isAdmin == "True" ? true : false;
                 $scope.allStatus = window.allData.StatusList;
+                $scope.paymentLogs = window.allData.PaymentLogs;
 
                 $scope.laptopStatus = [];
                 var status = ["Deploy Keyword", "Deadpicel checking"];
@@ -262,6 +263,8 @@
 
                     <tab heading="รายละเอียดคำสั่งซื้อ">
 
+                        <h3>ข้อมูลกสินค้า</h3>
+
                         <table id="items" class="table"
                                ncg-productresolver saleorder="object">
                             <thead>
@@ -315,6 +318,47 @@
                                 </td>
                             </tr>
                         </table>
+
+                        <div ng-show="paymentLogs != null && paymentLogs.length > 0">
+
+                            <h3>ข้อมูลการชำระเงิน</h3>
+
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>วันที่ชำระเงิน</th>
+                                        <th>รหัสอนุมัติ</th>
+                                        <th>สถานะ</th>
+                                        <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
+                                    </tr>
+                                </thead>
+                                <tr ng-repeat="item in paymentLogs">
+                                    <td>
+                                        <div class="form-control-static">
+                                            {{$index + 1}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{item.ApCode}}
+                                    </td>
+                                    <td>
+                                        {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            {{item.Amount | number:2}} บาท
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
 
                     </tab>
 
@@ -411,10 +455,14 @@
                                                  always="true" />
                                         </div>
 
-                                        <div ng-hide="isAdmin">
-                                            <img width="300" style="background-size: cover; height: 300px; background-image: url({{atta.Url}})"
-                                                 always="true" />
-                                        </div>
+                                        @if (!this.CurrentUser.HasClaim("admin"))
+                                        {
+                                            <div>
+                                                <img width="300" style="background-size: cover; height: 300px; background-image: url({{atta.Url}})"
+                                                     always="true" />
+                                            </div>
+                                        }
+
 
                                     </div>
 

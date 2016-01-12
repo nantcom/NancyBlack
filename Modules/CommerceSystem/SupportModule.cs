@@ -24,8 +24,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         .Where(row => row.SaleOrderIdentifier == id)
                         .FirstOrDefault();
 
-            //return View["commerce-login-support", new StandardModel(200)];
-
+            if (so == null)
+            {
+                return 404;
+            }
 
             var statusList = (typeof(SaleOrderStatus)
                         .GetFields(BindingFlags.Public | BindingFlags.Static)
@@ -33,7 +35,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var dummyPage = new Page();
 
-            var data = new { StatusList = statusList, SaleOrder = so };
+            var data = new
+            {
+                StatusList = statusList,
+                SaleOrder = so,
+                PaymentLogs = so.GetPaymentLogs(this.SiteDatabase)
+            };
 
             return View["commerce-support", new StandardModel(this, dummyPage, data)];
         }

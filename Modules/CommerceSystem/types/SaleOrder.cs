@@ -303,5 +303,36 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 discount = codeProduct.Price
             };
         }
+
+        public IEnumerable<object> GetRowVersions(NancyBlackDatabase db)
+        {
+            return db.Query<RowVersion>()
+                .Where(row => row.DataType == "SaleOrder" && row.RowId == this.Id)
+                .OrderByDescending(row => row.__createdAt)
+                .Select(row => JsonConvert.DeserializeObject(row.js_Row));
+        }
+
+        public IEnumerable<object> GetPaymentLogs(NancyBlackDatabase db)
+        {
+            var query = db.Query<PaymentLog>()
+                .Where(log => log.SaleOrderId == this.Id)
+                .OrderBy(log => log.__createdAt);
+
+            if (query.Count() == 0)
+            {
+                yield break;
+            }
+            
+            foreach (var log in query)
+            {
+                yield return new
+                {
+                    PaymentDate = log.__createdAt,
+                    Amount = log.Amount,
+                    ApCode = (string)log.FormResponse.apCode,
+                    IsPaymentSuccess = log.IsPaymentSuccess
+                };
+            }
+        }
     }
 }
