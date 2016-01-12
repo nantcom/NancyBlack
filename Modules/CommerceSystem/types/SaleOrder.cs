@@ -306,10 +306,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public IEnumerable<object> GetRowVersions(NancyBlackDatabase db)
         {
-            return db.Query<RowVersion>()
+            var rows = db.Query<RowVersion>()
                 .Where(row => row.DataType == "SaleOrder" && row.RowId == this.Id)
-                .OrderByDescending(row => row.__createdAt)
-                .Select(row => JsonConvert.DeserializeObject(row.js_Row));
+                .ToList();
+
+            return rows.Select(row => JsonConvert.DeserializeObject(row.js_Row));
         }
 
         public IEnumerable<object> GetPaymentLogs(NancyBlackDatabase db)

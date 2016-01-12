@@ -68,14 +68,12 @@
             
             var _soId = _getSOIdFromAbsUrl();
 
-            $scope.data.getById(_soId, function (data) {
+            $scope.object = window.allData.SaleOrder;
+            $scope.paymentLogs = window.allData.PaymentLogs;
+            $scope.rowVerions = window.allData.RowVerions;
 
-                $scope.object = data;
-
-                // To avoid that object in shipping cart is null
-                $scope.productResolverTmpId = "saleorder_detail_productresolver.html";
-
-            });
+            // To avoid that object in shipping cart is null
+            $scope.productResolverTmpId = "saleorder_detail_productresolver.html";
             
         };
 

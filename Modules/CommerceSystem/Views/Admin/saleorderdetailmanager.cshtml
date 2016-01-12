@@ -5,6 +5,7 @@
 
 @section Head{
     <link href="/Content/Scripts/angular-xeditable/css/xeditable.css" rel="stylesheet" />
+    <link href="/Content/Scripts/jsoneditor/jsoneditor.css" rel="stylesheet" />
     <style>
         .ncb-editable-span {
             display: block;
@@ -22,7 +23,11 @@
 }
 
 @section Scripts{
+    <script src="/Content/Scripts/jsoneditor/jsoneditor.js"></script>
     <script src="/Content/Scripts/angular-xeditable/js/xeditable.js"></script>
+    <script>
+        window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
+    </script>
     <script src="/Modules/CommerceSystem/Views/Admin/js/saleorderdetail.js"></script>
 }
 
@@ -94,6 +99,64 @@
 
         <tab heading="Attachments">            
             <ncb-attachmentmanager attachment-type="'so'"></ncb-attachmentmanager>
+        </tab>
+
+        <tab heading="PaymentLogs">
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>วันที่ชำระเงิน</th>
+                        <th>รหัสอนุมัติ</th>
+                        <th>สถานะ</th>
+                        <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="item in paymentLogs">
+                    <td>
+                        <div class="form-control-static">
+                            {{$index + 1}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
+                        </div>
+                    </td>
+                    <td>
+                        {{item.ApCode}}
+                    </td>
+                    <td>
+                        {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
+                    </td>
+                    <td>
+                        <div class="form-control-static text-right">
+                            {{item.Amount | number:2}} บาท
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </tab>
+
+        <tab heading="RowVerions">
+
+            <div id="jsoneditor" style="width: 100%; height: 500px;"></div>
+            <script type="text/javascript">
+
+                $( document ).ready(function() {
+
+                    // create the editor
+                    var container = document.getElementById("jsoneditor");
+                    var editor = new JSONEditor(container);
+
+                    // set json
+                    editor.set(window.allData.RowVerions);
+
+                });
+
+            </script>
         </tab>
 
     </tabset>

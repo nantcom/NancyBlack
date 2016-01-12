@@ -34,7 +34,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return "/" + filePath;
             });
 
-            Get["/admin/saleorder/{id}"] = this.HandleViewRequest("/Admin/saleorderdetailmanager", null);
+            Get["/admin/saleorder/{id}"] = this.HandleRequest(this.HandleSaleorderDetailPage);
 
             Get["/admin/saleorder/{id}/add/{productId}"] = this.HandleRequest((arg) =>
             {
@@ -83,6 +83,23 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
             #endregion
+        }
+
+        private dynamic HandleSaleorderDetailPage(dynamic arg)
+        {
+            var id = (int)arg.id;
+            var so = this.SiteDatabase.GetById<SaleOrder>(id);
+
+            var dummyPage = new Page();
+
+            var data = new
+            {
+                SaleOrder = so,
+                PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
+                RowVerions = so.GetRowVersions(this.SiteDatabase)
+            };
+
+            return View["/Admin/saleorderdetailmanager", new StandardModel(this, dummyPage, data)];
         }
 
         private dynamic GetSaleorderStatusList(dynamic arg)
