@@ -45,16 +45,16 @@
         <tab heading="Details">
 
             <div class="col-md-12" style="padding-bottom: 10px;">
-                
+
                 <button ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"
-                   class="btn btn-primary"
-                   ng-disabled="object.Status == 'PaymentReceived'">
+                        class="btn btn-primary"
+                        ng-disabled="object.Status == 'PaymentReceived'">
                     <span class="icon ion-printer"></span> Invoice
                 </button>
                 @*  *@
                 <button ng-click="printDocument(object.SaleOrderIdentifier, 'receipt')"
-                   class="btn btn-success"
-                   ng-disabled="object.Status != 'PaymentReceived'">
+                        class="btn btn-success"
+                        ng-disabled="object.Status != 'PaymentReceived'">
                     <span class="icon ion-printer"></span> Receipt
                 </button>
 
@@ -87,7 +87,7 @@
                            ng-model="newitem">
                     <span class="input-group-btn">
                         <a class="btn btn-default"
-                           ng-href="/Admin/saleorder/{{object.id}}/add/{{newitem}}">
+                           ng-href="/Admin/saleorder/{{object.Id}}/add/{{newitem}}">
 
                             <i class="fa fa-plus-circle"></i> Add Product to Sale Order
 
@@ -97,7 +97,7 @@
             </div>
         </tab>
 
-        <tab heading="Attachments">            
+        <tab heading="Attachments">
             <ncb-attachmentmanager attachment-type="'so'"></ncb-attachmentmanager>
         </tab>
 
@@ -185,51 +185,51 @@
                     </span>
                 </h3>
             </div>
-            <div class="panel-body">                
-                    <div class="form-group">
-                        <label for="SaleOrderIdentifier" class="col-sm-4 control-label">SaleOrderIdentifier</label>
-                        <div class="col-sm-8">
-                            <span class="ncb-editable-span"
-                                  id="SaleOrderIdentifier">
-                                {{object.SaleOrderIdentifier}}
-                            </span>
-                        </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="SaleOrderIdentifier" class="col-sm-4 control-label">SaleOrderIdentifier</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="SaleOrderIdentifier">
+                            {{object.SaleOrderIdentifier}}
+                        </span>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
-                        <div class="col-sm-8">
-                            <span class="ncb-editable-span"
-                                  id="CreatedAt">
-                                {{object.__createdAt | date: 'medium'}}
-                            </span>
-                        </div>
+                <div class="form-group">
+                    <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="CreatedAt">
+                            {{object.__createdAt | date: 'medium'}}
+                        </span>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="Status" class="col-sm-4 control-label">Status</label>
-                        <div class="col-sm-8">                            
-                            <span class="ncb-editable-span"
-                                  id="Status"
-                                  e-name="Status"
-                                  editable-select="object.Status"
-                                  e-ng-options="s.title as s.title for s in soStatusList">
-                                {{object.Status || 'empty'}}
-                            </span>
-                        </div>
-                    </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="TotalAmount" class="col-sm-4 control-label">TotalAmount</label>
-                        <div class="col-sm-8">
-                            <span class="ncb-editable-span"
-                                  id="TotalAmount">
-                                {{object.TotalAmount}}
-                            </span>
-                        </div>
+                <div class="form-group">
+                    <label for="Status" class="col-sm-4 control-label">Status</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="Status"
+                              e-name="Status"
+                              editable-select="object.Status"
+                              e-ng-options="s.title as s.title for s in soStatusList">
+                            {{object.Status || 'empty'}}
+                        </span>
                     </div>
+                </div>
 
-                
+                <div class="form-group">
+                    <label for="TotalAmount" class="col-sm-4 control-label">TotalAmount</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="TotalAmount">
+                            {{object.TotalAmount}}
+                        </span>
+                    </div>
+                </div>
+
+
             </div>
         </div>
     </form>
@@ -305,10 +305,10 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="Gender" class="col-sm-4 control-label">Gender</label>
-                    <div class="col-sm-8">                        
+                    <div class="col-sm-8">
                         <span class="ncb-editable-span"
                               id="Gender"
                               e-name="Gender"
@@ -617,7 +617,7 @@
                         <div class="form-control-static">
                             {{item.Title}}
                             <div>
-                                <a ng-href="/Admin/saleorder/{{object.id}}/remove/{{item.Id}}">(remove)</a>
+                                <a ng-href="/Admin/saleorder/{{object.Id}}/remove/{{item.Id}}">(remove)</a>
                             </div>
                         </div>
                     </td>
