@@ -89,7 +89,7 @@
                ng-table="tableParams"
                show-filter="true">
 
-            <tr ng-repeat="item in tableParams.data">
+            <tr ng-repeat="item in tableParams.data" ng-hide="item.Status == 'WaitingForPayment'">
                 <td data-title="'Order#'"
                     sortable="'SaleOrderIdentifier'"
                     filter="{ 'SaleOrderIdentifier': 'text' }">
@@ -110,6 +110,11 @@
                     sortable="'Status'"
                     filter="{ 'Status': 'text' }">
                     {{item.Status }}
+                </td>
+                <td data-title="'PaymentStatus'"
+                    sortable="'PaymentStatus'"
+                    filter="{ 'PaymentStatus': 'text' }">
+                    {{item.PaymentStatus }}
                 </td>
                 <td data-title="'Customer, S&H'"
                     sortable="'Customer'"

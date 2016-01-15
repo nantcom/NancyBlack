@@ -5,6 +5,7 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -46,7 +47,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return 400;
                 }
 
-                so.Items = so.Items.Concat(new int[] { (int)arg.productId } ).ToArray();
+                so.Items = so.Items.Concat(new int[] { (int)arg.productId }).ToArray();
                 so.UpdateSaleOrder(this.SiteDatabase);
 
                 return 200;
@@ -83,6 +84,40 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
             #endregion
+
+            //Post["/admin/reset/receivenumber"] = this.HandleRequest(this.ResetReceiveNumber);
+        }
+
+        private dynamic ResetReceiveNumber(dynamic arg)
+        {
+            var index = this.SiteDatabase.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
+
+            if (index == null)
+            {
+                index = new Index
+                {
+                    Type = "Recieve",
+                    Value = 0
+                };
+            }
+
+            var paidSaleOrders = this.SiteDatabase.Query<SaleOrder>()
+                .Where(s => s.ReceiptIdentifier != null)
+                .OrderBy(s => s.ReceiptIdentifier).ToList().Where(s => s.ReceiptIdentifier[0] != 'X');
+
+            foreach (var saleOrder in paidSaleOrders)
+            {
+                index.Value++;
+                var year = saleOrder.ReceiptIdentifier.Substring(2, 4);
+                saleOrder.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
+                        "RC{0}-{1:000000}", year, index.Value);
+
+                this.SiteDatabase.UpsertRecord<SaleOrder>(saleOrder);
+            }
+
+            this.SiteDatabase.UpsertRecord<Index>(index);
+
+            return 200;
         }
 
         private dynamic HandleSaleorderDetailPage(dynamic arg)
@@ -108,7 +143,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var SOStatusList = SOStatus.GetType().GetMembers()
                 .Where(w => w.MemberType == System.Reflection.MemberTypes.Field)
-                .Select(s => new { title = s.Name } )
+                .Select(s => new { title = s.Name })
                 .ToList();
 
             return SOStatusList;

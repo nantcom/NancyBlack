@@ -12,18 +12,21 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
     public sealed class SaleOrderStatus
     {
-        public const string WaitingForPayment = "WaitingForPayment";
-        public const string PaymentReceived = "PaymentReceived";
-        public const string PaymentReceivedWithException = "PaymentReceivedWithException";
-        /// <summary>
-        /// Prepares product for packing - stock will now deduct
-        /// </summary>
+        public const string New = "New";
         public const string WaitingForOrder = "WaitingForOrder";
         public const string Packing = "Packing";
         public const string Shipped = "Shipped";
         public const string Delivered = "Delivered";
-        public const string DuplicatePayment = "DuplicatePayment";
         public const string Cancel = "Cancel";
+    }
+
+    public sealed class PaymentStatus
+    {
+        public const string WaitingForPayment = "WaitingForPayment";
+        public const string PaymentReceived = "PaymentReceived";
+        public const string PaymentReceivedWithException = "PaymentReceivedWithException";
+        public const string DuplicatePayment = "DuplicatePayment";
+        public const string Refunded = "Refunded";
     }
 
     /// <summary>
@@ -94,6 +97,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Status of this Sale Order
         /// </summary>
         public string Status { get; set; }
+
+        /// <summary>
+        /// Payment Status of this Sale Order
+        /// </summary>
+        public string PaymentStatus { get; set; }
 
         /// <summary>
         /// User Id that made the purchase

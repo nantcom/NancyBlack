@@ -91,10 +91,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
 
+            var so = this.SiteDatabase.Query<SaleOrder>().Where(s => s.SaleOrderIdentifier == soId).FirstOrDefault();
+
             return new StandardModel(this, page, JObject.FromObject(new
             {
                 SaleOrderIdentification = soId,
-                Log = log
+                Log = log,
+                IsSplitPayment = so.Status == PaymentStatus.PaymentReceivedWithException || so.PaymentStatus == PaymentStatus.PaymentReceivedWithException
             }));
         }
 

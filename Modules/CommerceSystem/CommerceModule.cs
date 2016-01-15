@@ -219,7 +219,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();            
 
             saleorder.NcbUserId = this.CurrentUser.Id;
-            saleorder.Status = "WaitingForPayment";
+            saleorder.PaymentStatus = PaymentStatus.WaitingForPayment;
             saleorder.Customer = this.CurrentUser.Profile;
             if (saleorder.Customer == null)
             {
@@ -402,7 +402,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // Error code received
                 if (log.IsErrorCode == true)
                 {
-                    so.Status = SaleOrderStatus.WaitingForPayment;
+                    so.PaymentStatus = PaymentStatus.WaitingForPayment;
                     exceptions.Add(JObject.FromObject(new
                     {
                         type = "Error Code",
@@ -411,22 +411,21 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 // Wrong Payment Status
-                if (so.Status != SaleOrderStatus.WaitingForPayment || so.Status != SaleOrderStatus.PaymentReceivedWithException)
+                if (so.PaymentStatus == PaymentStatus.PaymentReceived)
                 {
-                    so.Status = SaleOrderStatus.DuplicatePayment;
+                    so.PaymentStatus = PaymentStatus.DuplicatePayment;
                     exceptions.Add(JObject.FromObject(new
                     {
                         type = "Wrong Status",
                         description = string.Format(
-                            "Current status of SO is: {0}", so.Status)
+                            "Current payment status of SO is: {0}", so.PaymentStatus)
                     }));
-
                 }
 
-                if (log.Amount != so.TotalAmount)
+                if (so.PaymentStatus != PaymentStatus.PaymentReceived && log.Amount != so.TotalAmount)
                 {
                     log.IsPaymentSuccess = true;
-                    so.Status = SaleOrderStatus.PaymentReceivedWithException;
+                    so.PaymentStatus = PaymentStatus.PaymentReceivedWithException;
                     exceptions.Add(JObject.FromObject(new
                     {
                         type = "Split Payment",
@@ -443,7 +442,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                                                where sPLog.Exception.Count > 0 && sPLog.Exception.Last.type == "Split Payment"
                                                select sPLog).ToList();
 
-                        isPaymentReceived = isPaymentReceived || so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
+                        isPaymentReceived = so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
                     }
                 }
                 
@@ -451,11 +450,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 {
                     log.IsPaymentSuccess = true;
 
-                    so.Status = SaleOrderStatus.PaymentReceived;
+                    var index = db.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
+                    index.Value++;
+
+                    so.PaymentStatus = PaymentStatus.PaymentReceived;
                     so.PaymentReceivedDate = DateTime.Now;
                     so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
-                        "RC{0:yyyyMMdd}-{1:000000}", so.__createdAt, so.Id);
-                    
+                        "RC{0:yyyy}-{1:000000}", so.PaymentReceivedDate, index.Value);
+
+                    db.UpsertRecord<Index>(index);
+
                 }
 
                 EndPayment:
