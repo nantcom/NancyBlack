@@ -42,6 +42,7 @@
         
         function _initData() {
             _getSOStatusList();
+            _getPaymentStatusList();
             _loadOrderDetail();
         };
 
@@ -51,6 +52,15 @@
                     $scope.soStatusList = success.data;                    
                 }, function (error) {
                     console.error("_getSOStatusList:", error);
+                });
+        };
+
+        function _getPaymentStatusList() {
+            $http.get("/admin/commerce/api/paymentstatus")
+                .then(function (success) {
+                    $scope.paymentStatusList = success.data;
+                }, function (error) {
+                    console.error("_getPaymentStatusList:", error);
                 });
         };
 

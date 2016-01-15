@@ -220,6 +220,19 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="PaymentStatus" class="col-sm-4 control-label">PaymentStatus</label>
+                    <div class="col-sm-8">
+                        <span class="ncb-editable-span"
+                              id="PaymentStatus"
+                              e-name="PaymentStatus"
+                              editable-select="object.PaymentStatus"
+                              e-ng-options="s.title as s.title for s in paymentStatusList">
+                            {{object.PaymentStatus || 'empty'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label for="TotalAmount" class="col-sm-4 control-label">TotalAmount</label>
                     <div class="col-sm-8">
                         <span class="ncb-editable-span"

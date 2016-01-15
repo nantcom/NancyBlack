@@ -77,6 +77,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);
 
+            Get["/admin/commerce/api/paymentstatus"] = this.HandleRequest(this.GetPaymentStatusList);
+
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
 
             #region Quick Actions
@@ -147,6 +149,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 .ToList();
 
             return SOStatusList;
+        }
+
+        private dynamic GetPaymentStatusList(dynamic arg)
+        {
+            PaymentStatus paymentStatus = new PaymentStatus();
+
+            var paymentStatusList = paymentStatus.GetType().GetMembers()
+                .Where(w => w.MemberType == System.Reflection.MemberTypes.Field)
+                .Select(s => new { title = s.Name })
+                .ToList();
+
+            return paymentStatusList;
         }
 
         private dynamic EnableSizingVariations(dynamic arg)
