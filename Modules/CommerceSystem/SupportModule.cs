@@ -33,11 +33,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         .GetFields(BindingFlags.Public | BindingFlags.Static)
                         .Where(f => f.FieldType == typeof(string)).Select(f => (string)f.GetValue(null))).ToList();
 
+            var paymentStatusList = (typeof(PaymentStatus)
+                        .GetFields(BindingFlags.Public | BindingFlags.Static)
+                        .Where(f => f.FieldType == typeof(string)).Select(f => (string)f.GetValue(null))).ToList();
+
             var dummyPage = new Page();
 
             var data = new
             {
                 StatusList = statusList,
+                PaymentStatusList = paymentStatusList,
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase)
             };

@@ -8,80 +8,7 @@
 
 @section Head{
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
-
-    <style>
-        .collector {
-            border-top: 1px solid black;
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            text-align: center;
-            width: 130px;
-            font-size: 12px;
-        }
-
-		#items {
-			font-size: 11px;
-			
-		}
-				
-		#items td
-		{
-			padding: 2px 10px !important;
-		}
-		
-		#items .total-value {
-			font-size: 12px;
-			font-weight: bold;
-			padding: 10px !important;
-		}
-		
-        .collect-date {
-            position: absolute;
-            width: 60px;
-            right: 10px;
-            font-size: 12px;
-            bottom: 10px;
-        }
-
-        .authorized-signature {
-            border-top: 1px solid black;
-            position: absolute;
-            bottom: 10px;
-            text-align: center;
-            width: 204px;
-            left: 6px;
-            font-size: 12px;
-        }
-
-        .by-name {
-            font-size: 10px;
-            position: absolute;
-            left: 10px;
-            top: 6px;
-        }
-
-        .company-name {
-            font-weight: bold;
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 12px;
-        }
-
-        .fitted {
-            display: block;
-            height: 100%;
-            position: relative;
-        }
-
-        .eoe {
-            position: absolute;
-            font-size: 10px;
-            left: 5px;
-        }
-    </style>
+    <link href="/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
 }
 @section Script{
     <script>
@@ -89,36 +16,8 @@
         window.data = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.billing = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.billing));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
-
-        (function () {
-
-            var mod = angular.module('Page', []);
-            mod.controller('PageController', function ($scope, $http) {
-
-                $scope.so = window.data.SaleOrder;
-                $scope.paymentDetail = window.data.PaymentDetail;
-                $scope.billing = window.billing;
-                $scope.branding = window.branding;
-
-
-                if ($scope.paymentDetail.WasPaidButNotAll) {
-                    $scope.paymentType = 'Slip Payment';
-                }
-                else {
-                    $scope.paymentType = 'Pay All';
-                }
-            });
-
-            mod.filter('newline', function($sce) {
-
-                return function(input) {
-                    return $sce.trustAsHtml(input.replace(/\n/g, "<br/>"));
-                }
-            });
-
-
-        })();
     </script>
+    <script src="/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
 }
 <div class="printform"
      ng-cloak
@@ -206,7 +105,6 @@
                         }
 
                         <tr>
-
                             <td class="meta-head">
                                 <div class="editabe" id="date">
                                     Date
@@ -217,28 +115,56 @@
                                     {{so.__createdAt | date:'dd MMMM yyyy'}}
                                 </div>
                             </td>
+
                         </tr>
-                        <tr>
-                            <td class="meta-head">
-                                <div class="editabe" id="amountpaid">
-                                    @{
-                                        if (type == "invoice")
-                                        {
-                                            <span>Amount Due</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Amount Paid</span>
-                                        }
-                                    }
-                                </div>
-                            </td>
-                            <td>
-                                <div class="due">
-                                    {{so.TotalAmount | number:2 }}
-                                </div>
-                            </td>
-                        </tr>
+
+                        @if (type == "invoice")
+                        {
+                            <text>
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="amountpaid">
+                                        <span>Amount Paid</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="paid">
+                                        {{(so.TotalAmount - paymentDetail.PaymentRemaining) | number:2 }}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="amountpaid">
+                                        <span>Amount Due</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="due">
+                                        {{paymentDetail.PaymentRemaining | number:2 }}
+                                    </div>
+                                </td>
+                            </tr>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="amountpaid">
+                                        <span>Amount Paid</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="paid">
+                                        {{so.TotalAmount | number:2 }}
+                                    </div>
+                                </td>
+                            </tr>
+                            </text>
+                        }
+
 
                     </table>
 
@@ -323,19 +249,22 @@
                      ng-controller="PaysbuyBySaleOrderController as psbCtrl">
 
                     <div class="col-md-6">
-                        ชำระค่าบริการผ่าน <b>PAYSBUY</b>
-                        <div style="margin-bottom: 10px;"></div>
-                        <div class="btn-group" role="group" aria-label="..." ng-show="paymentType != 'Slip Payment'">
+                        <div style="margin-bottom: 10px">
+                            ชำระผ่าน <b>PAYSBUY</b>
+                        </div>
+
+                        <div class="btn-group" role="group" aria-label="..."
+                             ng-show="paymentType != 'Split'">
                             <button class="btn btn-md btn-primary"
                                     ng-click="psbCtrl.pay()">
                                 ชำระเงินทั้งหมด
                             </button>
                             <button class="btn btn-md btn-primary"
-                                    ng-click="paymentType = 'Slip Payment'">
+                                    ng-click="paymentType = 'Split'">
                                 แบ่งชำระ
                             </button>
                         </div>
-                        <div ng-show="paymentType == 'Slip Payment'">
+                        <div ng-show="paymentType == 'Split'">
                             <div ng-show="paymentDetail.TransactionLog.length > 0">
                                 <table class="table">
                                     <thead>
@@ -359,7 +288,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="text-right">
+                                            <div class="text-right" style="color:green">
                                                 {{paymentDetail.TotalPaid | number:2}}
                                             </div>
                                         </td>
@@ -367,11 +296,11 @@
                                     <tr>
                                         <td class="total-line">
                                             <div class="text-right" style="font-weight: bold">
-                                                ยอดคงเหลือ
+                                                ชำระเพิ่ม
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="text-right">
+                                            <div class="text-right" style="font-weight: bold">
                                                 {{paymentDetail.PaymentRemaining | number:2}}
                                             </div>
                                         </td>
@@ -379,9 +308,12 @@
                                 </table>
                             </div>
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ..." ng-model="splitValue">
+                                <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ..."
+                                       ng-model="toPay">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-primary" type="button" ng-click="psbCtrl.splitPay()">
+                                    <button class="btn btn-primary" type="button"
+                                            ng-click="psbCtrl.splitPay(toPay)"
+                                            ng-disabled="ctrl.checkAmount(toPay) == false">
                                         <i class="fa fa-shopping-cart"></i> ชำระตามจำนวน
                                     </button>
                                 </span>

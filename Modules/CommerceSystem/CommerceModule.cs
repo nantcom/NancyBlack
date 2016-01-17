@@ -101,20 +101,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .Where(row => row.SaleOrderIdentifier == id)
                             .FirstOrDefault();
 
+                if (arg.form == "receipt")
+                {
+                    if (so.PaymentStatus != PaymentStatus.PaymentReceived)
+                    {
+                        return new StandardModel(400);
+                    }
+                }
+
                 var paymentlogs = this.SiteDatabase.Query<PaymentLog>()
-                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier)
+                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier &&
+                                p.IsErrorCode == false)
                             .ToList();
-
-                var splitPaymentLogs = from log in paymentlogs
-                                       where log.Exception.Count > 0 && log.Exception.Last.type == "Split Payment"
-                                       select log;
-
-                var totalPaid = splitPaymentLogs.Sum(log => log.Amount);
+                
+                var totalPaid = paymentlogs.Sum(log => log.Amount);
 
                 var paymentDetail = new
                 {
-                    WasPaidButNotAll = splitPaymentLogs.Count() > 0,
-                    TransactionLog = splitPaymentLogs,
+                    TransactionLog = paymentlogs,
                     PaymentRemaining = so.TotalAmount - totalPaid,
                     TotalPaid = totalPaid
                 };
@@ -413,12 +417,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // Wrong Payment Status
                 if (so.PaymentStatus == PaymentStatus.PaymentReceived)
                 {
-                    so.PaymentStatus = PaymentStatus.DuplicatePayment;
+                    so.IsDuplicatePayment = true;
                     exceptions.Add(JObject.FromObject(new
                     {
                         type = "Wrong Status",
                         description = string.Format(
-                            "Current payment status of SO is: {0}", so.PaymentStatus)
+                            "Current payment status of SO is: {0}", PaymentStatus.DuplicatePayment)
                     }));
                 }
 

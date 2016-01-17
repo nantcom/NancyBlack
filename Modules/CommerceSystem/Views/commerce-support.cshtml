@@ -9,155 +9,16 @@
 @section Head
 {
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
-
-    <style>
-        .user-profile-image {
-            width: 100px;
-            height: 100px;
-            display: inline-block;
-        }
-
-        .simeple-block {
-            display: inline-block;
-            margin-left: 20px;
-            vertical-align: top;
-        }
-
-        .simple-inline-block {
-            vertical-align: top;
-            display: inline-block;
-            padding-left: 15px;
-            padding-right: 15px;
-        }
-
-        #meta {
-            float: none;
-        }
-    </style>
+    <link href="/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
 }
 @section Script
 {
     <script>
-
         window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
         window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
-
-        (function () {
-
-            var mod = angular.module('Page', []);
-            mod.controller('PageController', function ($scope, $http) {
-
-                var me = this;
-
-                $scope.object = window.allData.SaleOrder;
-                $scope.branding = window.branding;
-                $scope.isAdmin = window.isAdmin == "True" ? true : false;
-                $scope.allStatus = window.allData.StatusList;
-                $scope.paymentLogs = window.allData.PaymentLogs;
-
-                $scope.laptopStatus = [];
-                var status = ["Deploy Keyword", "Deadpicel checking"];
-
-                me.getAtteByType = function (type) {
-
-                    if ($scope.object.Attachments == null) {
-
-                        $scope.object.Attachments = [];
-                    }
-
-                    for (var i = 0; i < $scope.object.Attachments.length; i++) {
-                        if ($scope.object.Attachments[i].AttachmentType == type){
-                            return $scope.object.Attachments[i];
-                        }
-                    }
-
-                    var newAttr = {CreateDate: Date.parse(Date()), AttachmentType: type, Url: "", DisplayOrder: 0};
-                    $scope.object.Attachments.push(newAttr);
-                    return newAttr;
-                }
-
-
-				@if( IsAdmin )
-				{
-				<text>
-					// Create Deploy Step for first time
-					for (var i = 0; i < status.length; i++) {
-						$scope.laptopStatus.push(me.getAtteByType(status[i]));
-					}
-
-					var lookup = [];
-					for (var i = 0; i < $scope.object.ItemsDetail.length; i++) {
-						var item = $scope.object.ItemsDetail[i];
-
-						lookup[item.Id] = item;
-					}
-
-					if ($scope.object.CustomData == null) {
-						$scope.object.CustomData = {};
-					}
-
-					// Delete Unneccessary data from Custom Data
-					delete $scope.object.CustomData.ram1;
-					delete $scope.object.CustomData.ram2;
-					delete $scope.object.CustomData.ram3;
-					delete $scope.object.CustomData.ram4;
-					delete $scope.object.CustomData.m21;
-					delete $scope.object.CustomData.m22;
-					delete $scope.object.CustomData.hdd1;
-					delete $scope.object.CustomData.hdd2;
-					delete $scope.object.CustomData.cpu1;
-					delete $scope.object.CustomData.gpu1;
-					delete $scope.object.CustomData.body1;
-
-					if ($scope.object.CustomData.SerialNumbers == null) {
-						$scope.object.CustomData.SerialNumbers = [];
-					}
-
-					for (var i = 0; i < $scope.object.Items.length; i++) {
-						var id = $scope.object.Items[i];
-						var product = lookup[id];
-
-						if (product.Url.indexOf( "/products/parts/os" ) == 0 ||
-							product.Url.indexOf( "/promotions" ) == 0) {
-
-							continue;
-						}
-
-						// Add only the missing parts
-						var dupes = false;
-						for  (var j = 0; j < $scope.object.CustomData.SerialNumbers.length; j++) {
-
-							var existing = $scope.object.CustomData.SerialNumbers[j];
-							if ( existing.index == i && existing.Title == product.Title )
-							{
-								dupes = true;
-								break;
-							}
-						}
-
-						if ( dupes )
-						{
-							continue;
-						}
-						$scope.object.CustomData.SerialNumbers.push( { index : i, Title : product.Title, Serial : ""});
-					}
-
-				</text>
-				}
-
-            });
-
-            mod.filter('newline', function($sce) {
-
-                return function(input) {
-                    return $sce.trustAsHtml(input.replace(/\n/g, "<br/>"));
-                }
-            });
-
-
-        })();
     </script>
+    <script src="/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
 }
 
 <div ng-cloak
@@ -185,8 +46,20 @@
                         Phone: {{object.Customer.PhoneNumber}}<br />
                         Email: {{object.Customer.Email}}
 
-                        <p style="margin-top: 20px">
+                        <p style="margin-top: 20px" ng-show="object.PaymentStatus=='PaymentReceived'">
                             <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt" target="_blank" class="btn btn-default">พิมพ์ใบเสร็จรับเงิน</a>
+                        </p>
+
+                        <p style="margin-top: 20px" ng-show="object.PaymentStatus=='WaitingForPayment'">
+                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-default">
+                                ชำระเงิน
+                            </a>
+                        </p>
+
+                        <p style="margin-top: 20px" ng-show="object.PaymentStatus=='Deposit'">
+                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-default">
+                                ชำระเงินเพิ่ม
+                            </a>
                         </p>
                     </div>
 
@@ -227,24 +100,59 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div id="date">
+                                    <div ng-show="isAdmin == false">
                                         {{object.Status}}
+                                    </div>
+                                    <div ng-show="isAdmin">
+                                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                                            <option ng-repeat="status in allStatus">{{status}}</option>
+                                        </select>
                                     </div>
                                 </td>
                             </tr>
 
+                            <tr>
+
+                                <td class="meta-head">
+                                    <div class="editabe" id="date">
+                                        การชำระเงิน
+                                    </div>
+                                </td>
+                                <td>
+                                    <div ng-show="isAdmin == false">
+                                        {{object.PaymentStatus}}
+                                    </div>
+
+                                    <div ng-show="isAdmin">
+
+                                        <select class="form-control" ng-model="object.PaymentStatus" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                                            <option ng-repeat="status in allPaymentStatus">{{status}}</option>
+                                        </select>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                            <tr ng-show="isAdmin">
+                                <td></td>
+                                <td>
+
+                                    <button class="btn btn-success"
+                                            ng-click="data.save(object)">
+                                        <span class="fa fa-circle-o-notch fa-spin"
+                                              ng-show="isBusy == true"></span>
+                                        <span class="fa fa-save"></span>
+                                        Save Changes
+                                    </button>
+
+
+                                </td>
+                            </tr>
                         </table>
 
                     </div>
 
                     <img class="simeple-block" ng-src="{{branding.logo}}" />
-
-                    <div ng-show="isAdmin" style="margin-top: 20px;">
-                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
-                            <option ng-repeat="status in allStatus">{{status}}</option>
-                        </select>
-                        <button class="btn btn-success" ng-click="data.save(object)"><span class="glyphicon glyphicon-floppy-saved"></span></button>
-                    </div>
 
 
                 </div>

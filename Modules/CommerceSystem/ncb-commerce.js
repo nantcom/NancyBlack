@@ -799,8 +799,9 @@
 
         };
 
-        $me.splitPay = function () {
+        $me.splitPay = function (amount) {
 
+            $scope.splitValue = amount;
             if ($scope.splitValue > $scope.paymentDetail.PaymentRemaining) {
                 alert("ขอโทษค่ะ จำนวนเงินเกินยอดที่ต้องชำระค่ะ");
                 return;

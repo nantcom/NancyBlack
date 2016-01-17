@@ -15,7 +15,7 @@
         vm.createSaleOrder = _createSaleOrder;
 
         function _viewOrderDetail(id) {                           
-            $window.location = "/Admin/saleorder/" + id;
+            $window.location = "/Admin/tables/saleorder/" + id;
         };
 
         $scope.object = {}; 

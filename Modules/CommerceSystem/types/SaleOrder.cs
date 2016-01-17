@@ -24,6 +24,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     {
         public const string WaitingForPayment = "WaitingForPayment";
         public const string PaymentReceived = "PaymentReceived";
+        public const string Deposit = "Deposit";
         public const string PaymentReceivedWithException = "PaymentReceivedWithException";
         public const string DuplicatePayment = "DuplicatePayment";
         public const string Refunded = "Refunded";
@@ -102,6 +103,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Payment Status of this Sale Order
         /// </summary>
         public string PaymentStatus { get; set; }
+
+        /// <summary>
+        /// this boolean will be true when payment was made with PaymentReceived Status
+        /// </summary>
+        public bool IsDuplicatePayment { get; set; }
 
         /// <summary>
         /// User Id that made the purchase

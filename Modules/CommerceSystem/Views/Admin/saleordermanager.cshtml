@@ -76,7 +76,8 @@
             New SO            
         </button>
     </div>
-    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
+    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"                 
+                 alwaysfilter="(PaymentStatus ne 'WaitingForPayment') and (Status ne 'Delivered')"
                  edit-fn="ctrl.viewOrderDetail(id)">
     </ncb-ngtable>
 
@@ -89,11 +90,11 @@
                ng-table="tableParams"
                show-filter="true">
 
-            <tr ng-repeat="item in tableParams.data" ng-hide="item.Status == 'WaitingForPayment'">
+            <tr ng-repeat="item in tableParams.data">
                 <td data-title="'Order#'"
                     sortable="'SaleOrderIdentifier'"
                     filter="{ 'SaleOrderIdentifier': 'text' }">
-                    <a href="/Admin/saleorder/{{item.id}}" ng-click="editFn({id: item.id})">
+                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
                         {{item.SaleOrderIdentifier }}
                     </a>
                     <p class="text-muted">

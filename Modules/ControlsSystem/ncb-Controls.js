@@ -1246,7 +1246,13 @@
 
                 // Always filter...
                 if ($scope.alwaysfilter != null) {
-                    var filter = $scope.$eval($scope.alwaysfilter);
+
+                    var filter = null;
+                    try {
+                        filter = $scope.$eval($scope.alwaysfilter);
+                    } catch (e) {
+                        filter = $scope.alwaysfilter;
+                    }
 
                     if (filter == '' || filter == null) {
 

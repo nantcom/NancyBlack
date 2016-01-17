@@ -35,9 +35,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return "/" + filePath;
             });
 
-            Get["/admin/saleorder/{id}"] = this.HandleRequest(this.HandleSaleorderDetailPage);
+            Get["/admin/tables/saleorder/{id}"] = this.HandleRequest(this.HandleSaleorderDetailPage);
 
-            Get["/admin/saleorder/{id}/add/{productId}"] = this.HandleRequest((arg) =>
+            Get["/admin/tables/saleorder/{id}/add/{productId}"] = this.HandleRequest((arg) =>
             {
                 var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
@@ -54,7 +54,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             });
 
 
-            Get["/admin/saleorder/{id}/remove/{productId}"] = this.HandleRequest((arg) =>
+            Get["/admin/tables/saleorder/{id}/remove/{productId}"] = this.HandleRequest((arg) =>
             {
                 var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
@@ -88,6 +88,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             #endregion
 
             //Post["/admin/reset/receivenumber"] = this.HandleRequest(this.ResetReceiveNumber);
+
+            //Post["/admin/reset/saleorderstatus"] = this.HandleRequest(this.ResetSaleOrderStatus);
         }
 
         private dynamic ResetReceiveNumber(dynamic arg)
@@ -102,10 +104,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     Value = 0
                 };
             }
+            else
+            {
+                // incase really wanna reset
+                index.Value = 0;
+            }
 
             var paidSaleOrders = this.SiteDatabase.Query<SaleOrder>()
                 .Where(s => s.ReceiptIdentifier != null)
-                .OrderBy(s => s.ReceiptIdentifier).ToList().Where(s => s.ReceiptIdentifier[0] != 'X');
+                .OrderBy(s => s.SaleOrderIdentifier).ToList().Where(s => s.ReceiptIdentifier[0] != 'X');
 
             foreach (var saleOrder in paidSaleOrders)
             {
@@ -118,6 +125,30 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             this.SiteDatabase.UpsertRecord<Index>(index);
+
+            return 200;
+        }
+
+        private dynamic ResetSaleOrderStatus(dynamic arg)
+        {
+            var saleOrders = this.SiteDatabase.Query<SaleOrder>()
+                .Where(s => s.PaymentStatus == null && s.ReceiptIdentifier == null)
+                .OrderBy(s => s.ReceiptIdentifier).ToList();
+
+            foreach (var saleOrder in saleOrders)
+            {
+                if (saleOrder.Status == PaymentStatus.WaitingForPayment)
+                {
+                    saleOrder.PaymentStatus = PaymentStatus.WaitingForPayment;
+                    saleOrder.Status = SaleOrderStatus.New;
+                }
+                else if (saleOrder.Status == SaleOrderStatus.Delivered)
+                {
+                    saleOrder.PaymentStatus = PaymentStatus.PaymentReceived;
+                }
+
+                this.SiteDatabase.UpsertRecord<SaleOrder>(saleOrder);
+            }
 
             return 200;
         }

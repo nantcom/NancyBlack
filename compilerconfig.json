@@ -42,5 +42,13 @@
   {
     "outputFile": "Site/color.css",
     "inputFile": "Site/color.less"
+  },
+  {
+    "outputFile": "Modules/CommerceSystem/Views/css/commerce-print.css",
+    "inputFile": "Modules/CommerceSystem/Views/css/commerce-print.less"
+  },
+  {
+    "outputFile": "Modules/CommerceSystem/Views/css/commerce-support.css",
+    "inputFile": "Modules/CommerceSystem/Views/css/commerce-support.less"
   }
 ]
