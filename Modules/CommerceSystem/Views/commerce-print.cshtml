@@ -9,13 +9,18 @@
 @section Head{
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
     <link href="/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
+    <style>
+        .hide{
+            display:none;
+        }
+    </style>
 }
 @section Script{
     <script>
-
         window.data = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.billing = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.billing));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
+        window.formType = '@type';
     </script>
     <script src="/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
 }
@@ -28,7 +33,7 @@
 
         @if (type == "receipt")
         {
-            <div id="header" style="height: auto; line-height: 30px; letter-spacing: normal"
+            <div id="header" style="height: auto; line-height: 20px; letter-spacing: normal"
                  ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
                 ใบเสร็จรับเงิน / ใบกำกับภาษี<br />receipt / tax invoice
             </div>
@@ -61,7 +66,7 @@
             <div id="customer" class="row">
 
                 <div id="customer-title" class="col-xs-6">
-                    <div ng-show="so.UseBillingAddress == true">
+                    <div ng-class="{'hide': so.UseBillingAddress != true}">
                         <b>Bill To:</b>
                         <b>{{so.BillTo.To}}</b><br />
                         {{so.BillTo.Address}}<br />
@@ -69,7 +74,7 @@
                         {{so.BillTo.State}},{{so.BillTo.Country}}<br />
                         {{so.BillTo.PostalCode}}
                     </div>
-                    <div ng-show="so.UseBillingAddress == false">
+                    <div ng-class="{'hide': so.UseBillingAddress == true}">
                         <b>{{so.ShipTo.To}}</b><br />
                         {{so.ShipTo.Address}}<br />
                         {{so.ShipTo.SubDistrict}}, {{so.ShipTo.District}}<br />
@@ -112,7 +117,7 @@
                             </td>
                             <td>
                                 <div id="date">
-                                    {{so.__createdAt | date:'dd MMMM yyyy'}}
+                                    {{so.PaymentReceivedDate | date:'dd MMMM yyyy'}}
                                 </div>
                             </td>
 
@@ -183,7 +188,7 @@
                         <th>Line Total</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="item in so.ItemsDetail | orderBy: 'Price' : true">
+                <tr ng-repeat="item in ItemsDetail | orderBy: 'Price' : true">
                     <td>
                         <div class="form-control-static">
                             {{$index + 1}}
@@ -370,15 +375,33 @@
                                 <td>
                                     <div class="fitted">
                                         <div class="collector">ผู้รับเงิน / Collector</div>
-                                        <div class="collect-date"><b>{{so.__createdAt | date:'dd/MM/yy'}}</b><br />วันที่/Date</div>
+                                        <div class="collect-date"><b>{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b><br />วันที่/Date</div>
+                                        @if (this.Request.Url.ToString().StartsWith("http://localhost"))
+                                        {
+                                            <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"
+                                                 src="~/Modules/CommerceSystem/images/JP-Signature.png" />
+                                        }
                                     </div>
                                 </td>
-                                <td></td>
+                                <td>
+                                    <div class="fitted">
+                                        @if (this.Request.Url.ToString().StartsWith("http://localhost"))
+                                        {
+                                            <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
+                                                 src="~/Modules/CommerceSystem/images/Company-Stemp.png" />
+                                        }
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="fitted">
                                         <div class="by-name">ในนาม</div>
                                         <div class="company-name">{{billing.name}}</div>
                                         <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
+                                        @if (this.Request.Url.ToString().StartsWith("http://localhost"))
+                                        {
+                                            <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 46px;"
+                                                 src="~/Modules/CommerceSystem/images/JP-Signature.png" />
+                                        }
                                     </div>
                                 </td>
                             </tr>
