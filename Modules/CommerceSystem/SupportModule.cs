@@ -1,4 +1,5 @@
-﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+﻿using NantCom.NancyBlack.Configuration;
+using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using Newtonsoft.Json.Linq;
 using System;
@@ -29,13 +30,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 404;
             }
 
-            var statusList = (typeof(SaleOrderStatus)
-                        .GetFields(BindingFlags.Public | BindingFlags.Static)
-                        .Where(f => f.FieldType == typeof(string)).Select(f => (string)f.GetValue(null))).ToList();
+            var statusList = StatusList.GetAllStatus<SaleOrderStatus>();
 
-            var paymentStatusList = (typeof(PaymentStatus)
-                        .GetFields(BindingFlags.Public | BindingFlags.Static)
-                        .Where(f => f.FieldType == typeof(string)).Select(f => (string)f.GetValue(null))).ToList();
+            var paymentStatusList = StatusList.GetAllStatus<PaymentStatus>();
 
             var dummyPage = new Page();
 

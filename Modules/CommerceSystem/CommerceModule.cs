@@ -376,7 +376,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return tree.Values.FirstOrDefault();
         }
 
-        public static void HandlePayment(NancyBlackDatabase db, PaymentLog log)
+        public static void HandlePayment(NancyBlackDatabase db, PaymentLog log, DateTime paidWhen)
         {
             // ensure only one thread is processing this so
             lock (log.SaleOrderIdentifier)
@@ -402,17 +402,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 log.SaleOrderId = so.Id;
-
-                // Error code received
-                if (log.IsErrorCode == true)
-                {
-                    so.PaymentStatus = PaymentStatus.WaitingForPayment;
-                    exceptions.Add(JObject.FromObject(new
-                    {
-                        type = "Error Code",
-                        description = "Error Code Received from Payment Processor: " + log.ResponseCode
-                    }));
-                }
+                log.PaymentDate = paidWhen;
 
                 // Wrong Payment Status
                 if (so.PaymentStatus == PaymentStatus.PaymentReceived)
@@ -426,44 +416,57 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     }));
                 }
 
+                // Error code received
+                if (log.IsErrorCode)
+                {
+                    so.PaymentStatus = PaymentStatus.WaitingForPayment;
+                    exceptions.Add(JObject.FromObject(new
+                    {
+                        type = "Error Code",
+                        description = "Error Code Received from Payment Processor: " + log.ResponseCode
+                    }));
+
+                    goto EndPayment;
+                }
+
+                // this line will never be run when IsErrorCode == true
                 if (so.PaymentStatus != PaymentStatus.PaymentReceived && log.Amount != so.TotalAmount)
                 {
                     log.IsPaymentSuccess = true;
-                    so.PaymentStatus = PaymentStatus.PaymentReceivedWithException;
+                    so.PaymentStatus = PaymentStatus.Deposit;
                     exceptions.Add(JObject.FromObject(new
                     {
                         type = "Split Payment",
                         description = string.Format(
                             "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
                     }));
-                    if (so.TotalAmount > log.Amount)
-                    {
-                        var paymentlogs = db.Query<PaymentLog>()
-                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier)
-                            .ToList();
+                    
+                    var paymentlogs = db.Query<PaymentLog>()
+                        .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier);
 
-                        var splitPaymentLogs = (from sPLog in paymentlogs
-                                               where sPLog.Exception.Count > 0 && sPLog.Exception.Last.type == "Split Payment"
-                                               select sPLog).ToList();
+                    var splitPaymentLogs = (from sPLog in paymentlogs
+                                            where sPLog.IsErrorCode == false
+                                            select sPLog).ToList();
 
-                        isPaymentReceived = so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
-                    }
+                    isPaymentReceived = so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
                 }
                 
                 if (exceptions.Count == 0 || isPaymentReceived)
                 {
                     log.IsPaymentSuccess = true;
 
+                    so.PaymentStatus = PaymentStatus.PaymentReceived;
+                    so.PaymentReceivedDate = paidWhen;
+                }
+
+                if (string.IsNullOrEmpty(so.ReceiptIdentifier))
+                {
                     var index = db.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
                     index.Value++;
-
-                    so.PaymentStatus = PaymentStatus.PaymentReceived;
-                    so.PaymentReceivedDate = DateTime.Now;
                     so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
                         "RC{0:yyyy}-{1:000000}", so.PaymentReceivedDate, index.Value);
 
                     db.UpsertRecord<Index>(index);
-
                 }
 
                 EndPayment:

@@ -25,7 +25,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string WaitingForPayment = "WaitingForPayment";
         public const string PaymentReceived = "PaymentReceived";
         public const string Deposit = "Deposit";
-        public const string PaymentReceivedWithException = "PaymentReceivedWithException";
         public const string DuplicatePayment = "DuplicatePayment";
         public const string Refunded = "Refunded";
     }
@@ -79,20 +78,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// <summary>
         /// Sale Order Identifier
         /// </summary>
-        public string SaleOrderIdentifier
-        {
-            get;
-            set;
-        }
+        public string SaleOrderIdentifier { get; set; }
 
         /// <summary>
         /// Receipt Identifier
         /// </summary>
-        public string ReceiptIdentifier
-        {
-            get;
-            set;
-        }
+        public string ReceiptIdentifier { get; set; }
 
         /// <summary>
         /// Status of this Sale Order

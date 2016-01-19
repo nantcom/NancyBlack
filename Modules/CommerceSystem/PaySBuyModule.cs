@@ -79,15 +79,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var log = PaymentLog.FromContext(this.Context);
 
-            log.PaymentSource = "PaySbuy";
+            log.PaymentSource = PaymentMethod.PaySbuy;
             log.Amount = paysbuyPostback.amt;
             log.Fee = paysbuyPostback.fee;
             log.SaleOrderIdentifier = soId;
             log.IsErrorCode = code != "00";
             log.ResponseCode = code;
             log.IsPaymentSuccess = false;
+
             
-            CommerceModule.HandlePayment(this.SiteDatabase, log);
+            CommerceModule.HandlePayment(this.SiteDatabase, log, DateTime.Now);
 
             var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
 
@@ -97,7 +98,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 SaleOrderIdentification = soId,
                 Log = log,
-                IsSplitPayment = so.Status == PaymentStatus.PaymentReceivedWithException || so.PaymentStatus == PaymentStatus.PaymentReceivedWithException
+                IsSplitPayment = so.Status == PaymentStatus.Deposit || so.PaymentStatus == PaymentStatus.Deposit
             }));
         }
 

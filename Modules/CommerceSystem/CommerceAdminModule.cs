@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
@@ -81,6 +82,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
 
+            Post["/admin/commerce/api/pay"] = this.HandleRequest(this.HandlePayRequest);
+
             #region Quick Actions
 
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
@@ -88,12 +91,41 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             #endregion
 
             //Post["/admin/reset/receivenumber"] = this.HandleRequest(this.ResetReceiveNumber);
+        }
 
-            //Post["/admin/reset/saleorderstatus"] = this.HandleRequest(this.ResetSaleOrderStatus);
+        private dynamic HandlePayRequest(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            DateTime paidWhen = (DateTime)arg.body.Value.paidWhen;
+            string soIdentifier = (string)arg.body.Value.saleOrderIdentifier;
+
+            var paymentLog = new PaymentLog()
+            {
+                PaymentSource = (string)arg.body.Value.paymentMethod,
+                Amount = (decimal)arg.body.Value.amount,
+                IsErrorCode = false,
+                ResponseCode = "00",
+                IsPaymentSuccess = true,
+                SaleOrderIdentifier = soIdentifier
+            };
+
+            CommerceModule.HandlePayment(this.SiteDatabase, paymentLog, paidWhen);
+
+            return paymentLog;
+
         }
 
         private dynamic ResetReceiveNumber(dynamic arg)
         {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
             var index = this.SiteDatabase.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
 
             if (index == null)
@@ -112,12 +144,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var paidSaleOrders = this.SiteDatabase.Query<SaleOrder>()
                 .Where(s => s.ReceiptIdentifier != null)
-                .OrderBy(s => s.SaleOrderIdentifier).ToList().Where(s => s.ReceiptIdentifier[0] != 'X');
+                .OrderBy(s => s.PaymentReceivedDate)
+                .ThenBy(s => s.SaleOrderIdentifier)
+                .ToList().Where(s => s.ReceiptIdentifier[0] != 'X');
 
             foreach (var saleOrder in paidSaleOrders)
             {
                 index.Value++;
                 var year = saleOrder.ReceiptIdentifier.Substring(2, 4);
+                if (saleOrder.PaymentReceivedDate.Ticks != 0)
+                {
+                    year = saleOrder.PaymentReceivedDate.Year.ToString();
+                }
                 saleOrder.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
                         "RC{0}-{1:000000}", year, index.Value);
 
@@ -125,30 +163,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             this.SiteDatabase.UpsertRecord<Index>(index);
-
-            return 200;
-        }
-
-        private dynamic ResetSaleOrderStatus(dynamic arg)
-        {
-            var saleOrders = this.SiteDatabase.Query<SaleOrder>()
-                .Where(s => s.PaymentStatus == null && s.ReceiptIdentifier == null)
-                .OrderBy(s => s.ReceiptIdentifier).ToList();
-
-            foreach (var saleOrder in saleOrders)
-            {
-                if (saleOrder.Status == PaymentStatus.WaitingForPayment)
-                {
-                    saleOrder.PaymentStatus = PaymentStatus.WaitingForPayment;
-                    saleOrder.Status = SaleOrderStatus.New;
-                }
-                else if (saleOrder.Status == SaleOrderStatus.Delivered)
-                {
-                    saleOrder.PaymentStatus = PaymentStatus.PaymentReceived;
-                }
-
-                this.SiteDatabase.UpsertRecord<SaleOrder>(saleOrder);
-            }
 
             return 200;
         }
@@ -164,7 +178,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
-                RowVerions = so.GetRowVersions(this.SiteDatabase)
+                RowVerions = so.GetRowVersions(this.SiteDatabase),
+                PaymentMethods = StatusList.GetAllStatus<PaymentMethod>()
             };
 
             return View["/Admin/saleorderdetailmanager", new StandardModel(this, dummyPage, data)];

@@ -9,6 +9,14 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
+    public sealed class PaymentMethod
+    {
+        public const string PaySbuy = "PaySbuy";
+        public const string TransferringMoney = "TransferringMoney";
+        public const string Cash = "Cash";
+        public const string CreditCard = "CreditCard";
+    }
+
     public class PaymentLog : IStaticType
     {
         public int Id { get; set; }        
@@ -16,6 +24,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __createdAt { get; set; }
 
         public DateTime __updatedAt { get; set; }
+
+        public DateTime PaymentDate { get; set; }
 
         /// <summary>
         /// Payment Method
