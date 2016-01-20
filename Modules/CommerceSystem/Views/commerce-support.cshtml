@@ -236,6 +236,7 @@
                                     <tr>
                                         <th>#</th>
                                         <th>วันที่ชำระเงิน</th>
+                                        <th>ช่องทางการชำระเงิน</th>
                                         <th>รหัสอนุมัติ</th>
                                         <th>สถานะ</th>
                                         <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
@@ -251,6 +252,9 @@
                                         <div class="form-control-static">
                                             {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
                                         </div>
+                                    </td>
+                                    <td>
+                                        {{item.PaymentSource}}
                                     </td>
                                     <td>
                                         {{item.ApCode}}
@@ -272,7 +276,6 @@
 
                     @if (this.CurrentUser.HasClaim("admin"))
                     {
-
                         <tab heading="Serial Number">
 
                             <table class="table">
@@ -336,14 +339,58 @@
 
                         @if (this.CurrentUser.HasClaim("admin"))
                         {
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">New Image</div>
+                            <div class="panel-body">
+                                <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                            </div>
+                        </div>
+                        }
+
+
+                    </tab>
+
+                    <tab heading="หลักฐานการชำระเงิน">
+                        <br />
+                        <div class="text-right">
+                            <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
+                                <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
+                            </button>
+                        </div>
+                        <br />
+                        <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
+                            <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="simple-inline-block">
+                                        <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
+                                    </div>
+                                    <div class="simple-inline-block" ng-show="isAdmin == true">
+                                        <pre style="width: 700px; font-family: Leelawadee"><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
+                                    </div>
+                                    <div class="simple-inline-block" ng-hide="isAdmin == true" style="width: 700px">
+                                        <p>
+                                            <label>ข้อความ</label>
+                                            <textarea class="form-control" style="min-height: 150px"
+                                                      ng-model="atta.Caption"></textarea>
+                                        </p>
+                                        <div class="text-right">
+                                            <button class="btn btn-success" ng-click="ctrl.saveAttachmentMessage(atta.Url, atta.Caption)"><span class="glyphicon glyphicon-floppy-disk"></span> บันทึก</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!this.CurrentUser.HasClaim("admin"))
+                        {
                             <div class="panel panel-primary">
-                                <div class="panel-heading">New Image</div>
+                                <div class="panel-heading">เพิ่มรูปสลิป</div>
                                 <div class="panel-body">
-                                    <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                                    <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
                                 </div>
                             </div>
                         }
-
 
                     </tab>
 
@@ -365,10 +412,10 @@
 
                                         @if (!this.CurrentUser.HasClaim("admin"))
                                         {
-                                            <div>
-                                                <img width="300" style="background-size: cover; height: 300px; background-image: url({{atta.Url}})"
-                                                     always="true" />
-                                            </div>
+                                        <div>
+                                            <img width="300" style="background-size: cover; height: 300px; background-image: url({{atta.Url}})"
+                                                 always="true" />
+                                        </div>
                                         }
 
 

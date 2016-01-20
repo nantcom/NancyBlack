@@ -205,14 +205,13 @@
                         </div>
                     </td>
                     <td>
-
                         <div class="form-control-static">
-                            {{getPriceBeforeVat(item.Price) | number:2}}
+                            {{item.Price}}
                         </div>
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{getPriceBeforeVat((item.Price * item.Attributes.Qty)) | number:2}}
+                            {{item.LineTotal}}
                         </div>
                     </td>
                 </tr>
@@ -376,7 +375,7 @@
                                     <div class="fitted">
                                         <div class="collector">ผู้รับเงิน / Collector</div>
                                         <div class="collect-date"><b>{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b><br />วันที่/Date</div>
-                                        @if (this.Request.Url.ToString().StartsWith("http://localhost"))
+                                        @if (this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"
                                                  src="~/Modules/CommerceSystem/images/JP-Signature.png" />
@@ -385,7 +384,7 @@
                                 </td>
                                 <td>
                                     <div class="fitted">
-                                        @if (this.Request.Url.ToString().StartsWith("http://localhost"))
+                                        @if (this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
                                                  src="~/Modules/CommerceSystem/images/Company-Stemp.png" />
@@ -397,7 +396,7 @@
                                         <div class="by-name">ในนาม</div>
                                         <div class="company-name">{{billing.name}}</div>
                                         <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
-                                        @if (this.Request.Url.ToString().StartsWith("http://localhost"))
+                                        @if (this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 46px;"
                                                  src="~/Modules/CommerceSystem/images/JP-Signature.png" />

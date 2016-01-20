@@ -335,8 +335,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 {
                     PaymentDate = log.__createdAt,
                     Amount = log.Amount,
-                    ApCode = (string)log.FormResponse.apCode,
-                    IsPaymentSuccess = log.IsPaymentSuccess
+                    ApCode = log.FormResponse != null ? (string)log.FormResponse.apCode : null,
+                    IsPaymentSuccess = log.IsPaymentSuccess,
+                    PaymentMethod = log.PaymentMethod
                 };
             }
         }

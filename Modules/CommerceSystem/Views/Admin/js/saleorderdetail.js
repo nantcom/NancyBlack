@@ -79,11 +79,8 @@
             var _soId = _getSOIdFromAbsUrl();
 
             $scope.object = window.allData.SaleOrder;
-            $scope.paymentLogs = window.allData.PaymentLogs;
             $scope.rowVerions = window.allData.RowVerions;
 
-            // To avoid that object in shipping cart is null
-            $scope.productResolverTmpId = "saleorder_detail_productresolver.html";
             
         };
 
@@ -111,4 +108,42 @@
         
         };
     }
+
+    app.controller('PaymentController', function ($scope, $http) {
+
+        var me = this;
+
+        var so = window.allData.SaleOrder;
+        $scope.paymentLogs = window.allData.PaymentLogs;
+        $scope.paymentMethods = window.allData.PaymentMethods;
+        $scope.paymentDetail = {};
+
+        me.resetPaymentDetail = function () {
+            $scope.paymentDetail.paidWhen = new Date();
+            // TransferringMoney is the default
+            $scope.paymentDetail.paymentMethod = $scope.paymentMethods[1];
+            $scope.paymentDetail.amount = 0;
+            $scope.paymentTime = { Hour: "0", Min: "0" };
+        }
+
+        $scope.paymentDetail.saleOrderIdentifier = so.SaleOrderIdentifier;
+        me.resetPaymentDetail();
+
+        me.saveNewPayment = function () {
+
+            $scope.paymentDetail.paidWhen.setHours($scope.paymentTime.Hour, $scope.paymentTime.Min, 0, 0);
+
+            $http.post("/admin/commerce/api/pay", $scope.paymentDetail)
+                .then(function (success) {
+                    $scope.paymentLogs.push(success.data);
+                    me.resetPaymentDetail();
+                    alert("Payment Sucess!");
+                }, function (error) {
+                    alert(error.message);
+                });
+
+            return;
+        }
+
+    });
 })();

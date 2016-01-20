@@ -3,6 +3,7 @@ using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 
@@ -87,7 +88,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             log.ResponseCode = code;
             log.IsPaymentSuccess = false;
 
-            
+            var paymentDateString = log.FormResponse.Value<string>("payment_date");
+            DateTime paymentDate = DateTime.ParseExact(paymentDateString, "d/M/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+
             CommerceModule.HandlePayment(this.SiteDatabase, log, DateTime.Now);
 
             var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);

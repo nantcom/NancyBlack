@@ -38,8 +38,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/tables/saleorder/{id}"] = this.HandleRequest(this.HandleSaleorderDetailPage);
 
-            Get["/admin/tables/saleorder/{id}/add/{productId}"] = this.HandleRequest((arg) =>
+            Get["/admin/saleorder/{id}/add/{productId}"] = this.HandleRequest((arg) =>
             {
+                if (!this.CurrentUser.HasClaim("admin"))
+                {
+                    return 403;
+                }
+
                 var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
                 var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
@@ -55,8 +60,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             });
 
 
-            Get["/admin/tables/saleorder/{id}/remove/{productId}"] = this.HandleRequest((arg) =>
+            Get["/admin/saleorder/{id}/remove/{productId}"] = this.HandleRequest((arg) =>
             {
+                if (!this.CurrentUser.HasClaim("admin"))
+                {
+                    return 403;
+                }
+
                 var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
                 var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
@@ -100,13 +110,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 403;
             }
 
-            DateTime paidWhen = (DateTime)arg.body.Value.paidWhen;
-            string soIdentifier = (string)arg.body.Value.saleOrderIdentifier;
+            var param = ((JObject)arg.body.Value);
+
+            DateTime paidWhen = param.Value<DateTime>("paidWhen");
+            string soIdentifier = param.Value<string>("saleOrderIdentifier");
 
             var paymentLog = new PaymentLog()
             {
-                PaymentSource = (string)arg.body.Value.paymentMethod,
-                Amount = (decimal)arg.body.Value.amount,
+                PaymentSource = param.Value<string>("paymentMethod"),
+                Amount = param.Value<decimal>("amount"),
                 IsErrorCode = false,
                 ResponseCode = "00",
                 IsPaymentSuccess = true,
@@ -169,6 +181,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic HandleSaleorderDetailPage(dynamic arg)
         {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
             var id = (int)arg.id;
             var so = this.SiteDatabase.GetById<SaleOrder>(id);
 

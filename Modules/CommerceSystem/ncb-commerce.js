@@ -1005,22 +1005,26 @@
             $scope.$watchCollection(function () { return $scope.so.Items; }, updateView);
 
             $scope.getTotal = function () {
-
                 return $scope.so.TotalAmount;
             };
 
-            $scope.getVat = function () {
-                var vatRatio = 0.07;
-                var vatAmt = 0;
-
-                var total = $scope.getTotal();
-                var vatAmt = total * vatRatio;
-
-                return vatAmt;
+            $scope.getPriceBeforeVat = function (Price) {
+                return Price * 0.9345794392523364485981308411215;
             };
 
-            $scope.getPriceBeforeVat = function (Price) {
-                return Price * 0.93;
+            $scope.getPriceBeforeVatWithGap = function (Price) {
+                var result = $scope.getPriceBeforeVat(Price);
+                var total = $scope.getTotal();
+                var beforeVat = $scope.getPriceBeforeVat(total);
+                var vatPirce = total - beforeVat;
+                var margin = total - (beforeVat + vatPirce);
+
+                return result + margin;
+            };
+
+            $scope.getVat = function () {
+                var total = $scope.getTotal();
+                return total - $scope.getPriceBeforeVat(total);
             };
 
         }
