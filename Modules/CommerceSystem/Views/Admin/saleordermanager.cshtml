@@ -121,21 +121,23 @@
                     sortable="'Customer'"
                     filter="{ 'Customer': 'text' }">
 
-                    {{item.Customer.FirstName}}
-                    {{item.Customer.LastName}}
+                    <div class="text-left">
+                        {{item.Customer.FirstName}}
+                        {{item.Customer.LastName}}
 
-                    <p class="text-muted">
-                        <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br />
-                        <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
-                    </p>
+                        <p class="text-muted">
+                            <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br />
+                            <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
+                        </p>
 
-                    <div ng-repeat="(k,v) in item.ShippingDetails">
-                        <b>{{k}}</b>: {{v}}
+                        <div ng-repeat="(k,v) in item.ShippingDetails">
+                            <b>{{k}}</b>: {{v}}
+                        </div>
                     </div>
 
                 </td>
 
-                <td data-title="'Products'">
+                <td data-title="'Products'" style="min-width: 250px">
                     <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
                         <a href="{{product.Url}}" target="_blank">
                             {{product.Title}}
