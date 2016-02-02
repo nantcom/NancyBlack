@@ -89,9 +89,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             log.IsPaymentSuccess = false;
 
             var paymentDateString = log.FormResponse.Value<string>("payment_date");
-            DateTime paymentDate = DateTime.ParseExact(paymentDateString, "d/M/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            DateTime paymentDate;
 
-            CommerceModule.HandlePayment(this.SiteDatabase, log, DateTime.Now);
+            if (!log.IsErrorCode)
+            {
+                paymentDate = DateTime.ParseExact(paymentDateString, "d/M/yyyy H:m:s", new CultureInfo("th-TH"));
+            }
+            else
+            {
+                paymentDate = DateTime.Now;
+            }
+
+            CommerceModule.HandlePayment(this.SiteDatabase, log, paymentDate);
 
             var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
 
