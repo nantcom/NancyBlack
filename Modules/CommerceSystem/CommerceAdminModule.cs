@@ -47,14 +47,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
-                var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
-                if (product == null)
-                {
-                    return 400;
-                }
-
-                so.Items = so.Items.Concat(new int[] { (int)arg.productId }).ToArray();
-                so.UpdateSaleOrder(this.SiteDatabase);
+                so.AddItem(this.SiteDatabase, (int)arg.productId);
 
                 return 200;
             });
@@ -67,19 +60,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return 403;
                 }
 
-                var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+                //var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
-                var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
-                if (product == null)
-                {
-                    return 400;
-                }
+                //var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
+                //if (product == null)
+                //{
+                //    return 400;
+                //}
 
-                var items = so.Items.ToList();
-                items.Remove((int)arg.ProductId);
+                //var items = so.Items.ToList();
+                //items.Remove((int)arg.ProductId);
 
-                so.Items = items.ToArray();
-                so.UpdateSaleOrder(this.SiteDatabase);
+                //so.Items = items.ToArray();
+                //so.UpdateSaleOrder(this.SiteDatabase);
 
                 return 200;
             });
@@ -99,8 +92,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
             #endregion
-
-            //Post["/admin/reset/receivenumber"] = this.HandleRequest(this.ResetReceiveNumber);
         }
 
         private dynamic HandlePayRequest(dynamic arg)
@@ -129,54 +120,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             return paymentLog;
 
-        }
-
-        private dynamic ResetReceiveNumber(dynamic arg)
-        {
-            if (!this.CurrentUser.HasClaim("admin"))
-            {
-                return 403;
-            }
-
-            var index = this.SiteDatabase.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
-
-            if (index == null)
-            {
-                index = new Index
-                {
-                    Type = "Recieve",
-                    Value = 0
-                };
-            }
-            else
-            {
-                // incase really wanna reset
-                index.Value = 0;
-            }
-
-            var paidSaleOrders = this.SiteDatabase.Query<SaleOrder>()
-                .Where(s => s.ReceiptIdentifier != null)
-                .OrderBy(s => s.PaymentReceivedDate)
-                .ThenBy(s => s.SaleOrderIdentifier)
-                .ToList().Where(s => s.ReceiptIdentifier[0] != 'X');
-
-            foreach (var saleOrder in paidSaleOrders)
-            {
-                index.Value++;
-                var year = saleOrder.ReceiptIdentifier.Substring(2, 4);
-                if (saleOrder.PaymentReceivedDate.Ticks != 0)
-                {
-                    year = saleOrder.PaymentReceivedDate.Year.ToString();
-                }
-                saleOrder.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
-                        "RC{0}-{1:000000}", year, index.Value);
-
-                this.SiteDatabase.UpsertRecord<SaleOrder>(saleOrder);
-            }
-
-            this.SiteDatabase.UpsertRecord<Index>(index);
-
-            return 200;
         }
 
         private dynamic HandleSaleorderDetailPage(dynamic arg)

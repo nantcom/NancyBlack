@@ -170,10 +170,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             // Update Total
             this.TotalAmount = 0;
-            
+
             // snapshot the products into this sale order
             // so that if there is a change in product info later
             // we still have the one that customer sees
+            var oldItemsDetail = this.ItemsDetail;
             this.ItemsDetail = new List<Product>();
 
             //lookupItemDetail is used for provent duplication
@@ -182,6 +183,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             foreach (var item in this.Items)
             {
                 var product = db.GetById<Product>(item);
+
+                // in case some product no longer exist
+                if (product == null)
+                {
+                    var previousProduct = oldItemsDetail.Where(p => p.Id == item).FirstOrDefault();
+                    this.ItemsDetail.Add(previousProduct);
+                    continue;
+                }
 
                 // check for duplication
                 if (lookupItemDetail.ContainsKey(product.Id))
@@ -227,6 +236,41 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             });
 
 
+        }
+
+        public void AddItem(NancyBlackDatabase db, int itemId)
+        {
+            var list = this.Items.ToList();
+            list.Add(itemId);
+            this.Items = list.ToArray();
+
+            var newItem = db.GetById<Product>(itemId);
+            var existItem = this.ItemsDetail.Where(p => p.Id == itemId && p.Title == newItem.Title && p.Price == newItem.Price).FirstOrDefault();
+
+            if (existItem == null)
+            {
+                JObject attr = newItem.Attributes;
+                if (attr == null)
+                {
+                    attr = new JObject();
+                    newItem.Attributes = attr;
+                }
+                attr["Qty"] = 1;
+                this.ItemsDetail.Add(newItem);
+            }
+            else
+            {
+                JObject attr = existItem.Attributes;
+                attr["Qty"] = attr.Value<int>("Qty") + 1;
+            }
+
+            this.TotalAmount += newItem.Price;
+            db.UpsertRecord<SaleOrder>(this);
+        }
+
+        public void DeleteItem(NancyBlackDatabase db, int itemId)
+        {
+            // still thinking about how to do it
         }
 
         /// <summary>
