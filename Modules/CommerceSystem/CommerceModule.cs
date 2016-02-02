@@ -101,7 +101,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .Where(row => row.SaleOrderIdentifier == id)
                             .FirstOrDefault();
 
-                if (arg.form == "receipt")
+                if (arg.form == "receipt" && !this.CurrentUser.HasClaim("admin"))
                 {
                     if (so.PaymentStatus != PaymentStatus.PaymentReceived)
                     {
@@ -110,8 +110,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 var paymentlogs = this.SiteDatabase.Query<PaymentLog>()
-                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier &&
-                                p.IsErrorCode == false)
+                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier && p.IsErrorCode == false)
+                            .OrderBy(log => log.PaymentDate)
                             .ToList();
                 
                 var totalPaid = paymentlogs.Sum(log => log.Amount);
@@ -120,7 +120,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 {
                     TransactionLog = paymentlogs,
                     PaymentRemaining = so.TotalAmount - totalPaid,
-                    TotalPaid = totalPaid
+                    TotalPaid = totalPaid,
+                    SplitedPaymentIndex = this.Request.Query.index == null ? -1 : (int)this.Request.Query.index
                 };
 
                 var dummyPage = new Page()
@@ -129,8 +130,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     ContentParts = JObject.FromObject(new
                     {
                         Type = (string)arg.form
-                    }),
-
+                    })
                 };
 
                 return new StandardModel(this, dummyPage, new { SaleOrder = so, PaymentDetail = paymentDetail });
@@ -412,7 +412,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     {
                         type = "Wrong Status",
                         description = string.Format(
-                            "Current payment status of SO is: {0}", PaymentStatus.DuplicatePayment)
+                            "Current paymentlog status of SO is: {0}", PaymentStatus.DuplicatePayment)
                     }));
                 }
 

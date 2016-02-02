@@ -104,7 +104,9 @@
                                             Receipt #
                                         </div>
                                     </td>
-                                    <td>{{so.ReceiptIdentifier}}</td>
+                                    <td>
+                                        {{so.ReceiptIdentifier}}<span ng-show="paymentDetail.SplitedPaymentIndex > -1">-{{paymentDetail.SplitedPaymentIndex + 1}}</span>
+                                    </td>
                                 </tr>
                             }
                         }
@@ -117,7 +119,8 @@
                             </td>
                             <td>
                                 <div id="date">
-                                    {{so.PaymentReceivedDate | date:'dd MMMM yyyy'}}
+                                    <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd MMMM yyyy'}}</span>
+                                    <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd MMMM yyyy'}}</span>
                                 </div>
                             </td>
 
@@ -206,22 +209,33 @@
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{item.Price}}
+                            {{item.Price | number:2 }}
                         </div>
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{item.LineTotal}}
+                            {{item.LineTotal | number:2 }}
                         </div>
                     </td>
                 </tr>
                 <tr>
-                    <td class="blank" colspan="3"></td>
+                    <td class="blank" colspan="3">
+                        <div class="fitted">
+                            <div class="eoe" ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
+                                หมายเหตุ ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
+                            </div>
+                        </div>
+                    </td>
                     <td class="total-line">
                         Vat 7 %
                     </td>
                     <td class="total-value">
-                        {{getVat() | number:2 }}
+                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
+                            {{getVat() | number:2 }}
+                        </span>
+                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
+                            {{getVatFromSplitedPayment() | number:2 }}
+                        </span>
                     </td>
                 </tr>
                 <tr>
@@ -239,7 +253,12 @@
                         Total
                     </td>
                     <td class="total-value">
-                        {{so.TotalAmount | number:2 }}
+                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
+                            {{so.TotalAmount | number:2 }}
+                        </span>
+                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
+                            {{getTotalFromSplitedPayment() | number:2 }}
+                        </span>
                     </td>
                 </tr>
             </table>
@@ -278,7 +297,7 @@
                                         </tr>
                                     </thead>
                                     <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
-                                        <td>{{paymentLog.__createdAt | date:'dd MMMM yyyy HH:mm'}}</td>
+                                        <td>{{paymentLog.PaymentDate | date:'dd MMMM yyyy HH:mm'}}</td>
                                         <td>
                                             <div class="text-right">
                                                 {{paymentLog.Amount | number:2}}
@@ -374,7 +393,11 @@
                                 <td>
                                     <div class="fitted">
                                         <div class="collector">ผู้รับเงิน / Collector</div>
-                                        <div class="collect-date"><b>{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b><br />วันที่/Date</div>
+                                        <div class="collect-date">
+                                            <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b>
+                                            <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd/MM/yy'}}</b>
+                                            <br />วันที่/Date
+                                        </div>
                                         @if (this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"

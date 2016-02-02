@@ -35,6 +35,15 @@
             return total - $scope.getPriceBeforeVat(total);
         };
 
+        $scope.getVatFromSplitedPayment = function () {
+            var price = $scope.getTotalFromSplitedPayment();
+            return price - $scope.getPriceBeforeVat(price);
+        };
+
+        $scope.getTotalFromSplitedPayment = function () {
+            return $scope.paymentDetail.TransactionLog[$scope.paymentDetail.SplitedPaymentIndex].Amount;
+        };
+
         //#endregion
 
         var Round = function (price) {
@@ -49,6 +58,7 @@
         }
 
         $scope.ItemsDetail = [];
+        $scope.type = window.formType;
         if (window.formType == 'receipt') {
             for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
                 if ($scope.so.ItemsDetail[i].Price != 0) {
