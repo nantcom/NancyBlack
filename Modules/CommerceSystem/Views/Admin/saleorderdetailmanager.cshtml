@@ -39,14 +39,12 @@
             <div class="col-md-12" style="padding-bottom: 10px;">
 
                 <button ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"
-                        class="btn btn-primary"
-                        ng-disabled="object.Status != 'PaymentReceived'">
+                        class="btn btn-primary">
                     <span class="icon ion-printer"></span> Invoice
                 </button>
 
                 <button ng-click="printDocument(object.SaleOrderIdentifier, 'receipt')"
-                        class="btn btn-success"
-                        ng-disabled="object.Status == 'PaymentReceived'">
+                        class="btn btn-success">
                     <span class="icon ion-printer"></span> Receipt
                 </button>
 
