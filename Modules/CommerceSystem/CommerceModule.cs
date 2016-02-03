@@ -464,7 +464,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     var index = db.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
                     index.Value++;
                     so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
-                        "RC{0:yyyy}-{1:000000}", so.PaymentReceivedDate, index.Value);
+                        "RC{0:yyyy}-{1:000000}", paidWhen, index.Value);
 
                     db.UpsertRecord<Index>(index);
                 }

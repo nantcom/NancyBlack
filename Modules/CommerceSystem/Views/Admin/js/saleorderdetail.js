@@ -124,6 +124,7 @@
             $scope.paymentDetail.paymentMethod = $scope.paymentMethods[1];
             $scope.paymentDetail.amount = 0;
             $scope.paymentTime = { Hour: "0", Min: "0" };
+            $scope.paymentDetail.apCode = '';
         }
 
         $scope.paymentDetail.saleOrderIdentifier = so.SaleOrderIdentifier;

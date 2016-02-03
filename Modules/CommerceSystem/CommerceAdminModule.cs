@@ -3,6 +3,7 @@ using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -83,6 +84,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/commerce/api/paymentstatus"] = this.HandleRequest(this.GetPaymentStatusList);
 
+            Get["/admin/commerce/api/printing/saleorder/current/month/list"] = this.HandleRequest(this.GetSaleorderForPrintingReceiptList);
+
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
 
             Post["/admin/commerce/api/pay"] = this.HandleRequest(this.HandlePayRequest);
@@ -92,6 +95,55 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
             #endregion
+        }
+        private dynamic GetSaleorderForPrintingReceiptList(dynamic arg)
+        {
+            var currentMonth = DateTime.Now.Date.AddDays(-DateTime.Now.Day + 1);
+            var lastMonth = currentMonth.AddMonths(-1);
+
+            var saleOrders = this.SiteDatabase.Query<SaleOrder>()
+                .Where(so => so.PaymentReceivedDate >= lastMonth && so.PaymentReceivedDate < currentMonth)
+                .ToList();
+
+            var paymentLogs = this.SiteDatabase.Query<PaymentLog>()
+                .Where(log => log.IsPaymentSuccess && log.PaymentDate >= lastMonth && log.PaymentDate < currentMonth)
+                .ToList();
+
+            var saleOrdersWithAtta = this.SiteDatabase.Query<SaleOrder>()
+                .Where(so => so.PaymentReceivedDate >= lastMonth && so.__updatedAt >= lastMonth && so.__updatedAt < currentMonth && so.Attachments != null)
+                .ToList()
+                .Where(so =>
+                {
+                    bool isMatch = false;
+
+                    var alreadyCount = saleOrders.Where(item => so.Id == item.Id).FirstOrDefault() != null;
+
+                    if (alreadyCount)
+                    {
+                        return false;
+                    }
+
+                    foreach (JObject item in so.Attachments)
+                    {
+                        try
+                        {
+                            if (item.Value<DateTime>("CreateDate") >= lastMonth
+                            && item.Value<DateTime>("CreateDate") < currentMonth
+                            && (item.Value<string>("Caption").Contains("เงิน") || item.Value<string>("Status").Contains("เงิน")))
+                            {
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    return isMatch;
+                })
+                .ToList();
+
+            return new { SaleOrders = saleOrders, SaleOrdersWithAtta = saleOrdersWithAtta, PaymentLogs = paymentLogs };
         }
 
         private dynamic HandlePayRequest(dynamic arg)
@@ -103,8 +155,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var param = ((JObject)arg.body.Value);
 
-            DateTime paidWhen = param.Value<DateTime>("paidWhen");
+            DateTime paidWhen = param.Value<DateTime>("paidWhen").ToLocalTime();
             string soIdentifier = param.Value<string>("saleOrderIdentifier");
+            string apCode = param.Value<string>("apCode");
+            var form = new JObject();
+            form.Add("apCode", apCode);
 
             var paymentLog = new PaymentLog()
             {
@@ -113,7 +168,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 IsErrorCode = false,
                 ResponseCode = "00",
                 IsPaymentSuccess = true,
-                SaleOrderIdentifier = soIdentifier
+                SaleOrderIdentifier = soIdentifier,
+                PaymentDate = paidWhen,
+                FormResponse = form
             };
 
             CommerceModule.HandlePayment(this.SiteDatabase, paymentLog, paidWhen);

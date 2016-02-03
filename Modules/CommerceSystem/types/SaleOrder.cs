@@ -377,11 +377,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 yield return new
                 {
-                    PaymentDate = log.__createdAt,
+                    PaymentDate = log.PaymentDate,
                     Amount = log.Amount,
                     ApCode = log.FormResponse != null ? (string)log.FormResponse.apCode : null,
                     IsPaymentSuccess = log.IsPaymentSuccess,
-                    PaymentMethod = log.PaymentMethod
+                    PaymentMethod = log.PaymentSource
                 };
             }
         }

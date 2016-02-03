@@ -632,6 +632,11 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label>รหัสอนุมัติ (ใช้เมื่อจ่ายโดย PaySbuy)</label>
+                                    <input class="form-control" ng-model="paymentDetail.apCode" />
+                                </div>
+
+                                <div class="form-group">
                                     <label>จำนวนเงิน</label>
                                     <input class="form-control" ng-model="paymentDetail.amount" />
                                 </div>
@@ -676,7 +681,7 @@
                             </div>
                         </td>
                         <td>
-                            {{item.PaymentSource}}
+                            {{item.PaymentMethod}}
                         </td>
                         <td>
                             {{item.ApCode}}
