@@ -256,6 +256,33 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="blank" colspan="3"> </td>
+                    <td class="total-line">
+                        <div class="form-control-static">
+                            <b>ค่าจัดส่ง</b>
+                        </div>
+                    </td>
+                    <td class="total-value">
+                        <div class="form-control-static text-right">
+                            <b>{{so.ShippingFee | number:2 }} บาท</b>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="3"> </td>
+                    <td class="total-line">
+                        <div class="form-control-static">
+                            <b>ค่าประกันการจัดส่ง</b>
+                        </div>
+                    </td>
+                    <td class="total-value">
+                        <div class="form-control-static text-right">
+                            <b>{{so.ShippingInsuranceFee | number:2 }} บาท</b>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
                     <td class="blank" colspan="3">
                         @if (type == "receipt")
                         {

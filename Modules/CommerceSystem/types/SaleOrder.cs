@@ -99,6 +99,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string DHLTrackingNumber { get; set; }
 
         /// <summary>
+        /// Shipping fee
+        /// </summary>
+        public decimal ShippingFee { get; set; }
+
+        /// <summary>
+        /// Shipping Insurance Fee
+        /// </summary>
+        public decimal ShippingInsuranceFee { get; set; }
+
+        /// <summary>
         /// this boolean will be true when payment was made with PaymentReceived Status
         /// </summary>
         public bool IsDuplicatePayment { get; set; }
@@ -218,6 +228,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 return; // Just update the details for calculation
             }
             
+            if (this.ShippingDetails.insurance == true)
+            {
+                this.ShippingInsuranceFee = this.TotalAmount * 0.03M;
+            }
+
+            this.TotalAmount += this.ShippingInsuranceFee;
+
+
             db.Transaction(() =>
             {
 
