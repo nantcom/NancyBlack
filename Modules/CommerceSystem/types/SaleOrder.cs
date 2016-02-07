@@ -13,6 +13,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     public sealed class SaleOrderStatus
     {
         public const string New = "New";
+        public const string Confirmed = "Confirmed";
         public const string WaitingForOrder = "WaitingForOrder";
         public const string Packing = "Packing";
         public const string Shipped = "Shipped";
@@ -95,6 +96,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public string PaymentStatus { get; set; }
 
+        public string DHLTrackingNumber { get; set; }
+
         /// <summary>
         /// this boolean will be true when payment was made with PaymentReceived Status
         /// </summary>
@@ -155,11 +158,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Attachments
         /// </summary>
         public dynamic[] Attachments { get; set; }
-
-        /// <summary>
-        /// Notes
-        /// </summary>
-        public dynamic Notes { get; set; }
 
         /// <summary>
         /// 

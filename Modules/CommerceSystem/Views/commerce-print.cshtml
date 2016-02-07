@@ -10,8 +10,8 @@
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
     <link href="/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
     <style>
-        .hide{
-            display:none;
+        .hide {
+            display: none;
         }
     </style>
 }
@@ -119,8 +119,20 @@
                             </td>
                             <td>
                                 <div id="date">
-                                    <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd MMMM yyyy'}}</span>
-                                    <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd MMMM yyyy'}}</span>
+
+                                    @if (type == "invoice")
+                                    {
+                                        <text>
+                                            <span>{{so.__createdAt | date:'dd MMMM yyyy'}}</span>
+                                        </text>
+                                    }
+                                    else
+                                    {
+                                        <text>
+                                            <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd MMMM yyyy'}}</span>
+                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd MMMM yyyy'}}</span>
+                                        </text>
+                                    }
                                 </div>
                             </td>
 
@@ -129,52 +141,52 @@
                         @if (type == "invoice")
                         {
                             <text>
-                            <tr>
-                                <td class="meta-head">
-                                    <div class="editabe" id="amountpaid">
-                                        <span>Amount Paid</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="paid">
-                                        {{(so.TotalAmount - paymentDetail.PaymentRemaining) | number:2 }}
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="meta-head">
-                                    <div class="editabe" id="amountpaid">
-                                        <span>Amount Due</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="due">
-                                        {{paymentDetail.PaymentRemaining | number:2 }}
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>Amount Paid</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paid">
+                                            {{(so.TotalAmount - paymentDetail.PaymentRemaining) | number:2 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>Amount Due</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="due">
+                                            {{paymentDetail.PaymentRemaining | number:2 }}
+                                        </div>
+                                    </td>
+                                </tr>
                             </text>
                         }
                         else
                         {
                             <text>
-                            <tr>
-                                <td class="meta-head">
-                                    <div class="editabe" id="amountpaid">
-                                        <span>Amount Paid</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="paid">
-                                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                                            {{so.TotalAmount | number:2 }}
-                                        </span>
-                                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                                            {{getTotalFromSplitedPayment() | number:2 }}
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>Amount Paid</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paid">
+                                            <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
+                                                {{so.TotalAmount | number:2 }}
+                                            </span>
+                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
+                                                {{getTotalFromSplitedPayment() | number:2 }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
                             </text>
                         }
 
@@ -273,120 +285,124 @@
 
             @if (type == "invoice")
             {
-                <div class="row"
-                     ng-controller="PaysbuyBySaleOrderController as psbCtrl">
+                <div ng-hide="so.Status == 'New'">
 
-                    <div class="col-md-6">
-                        <div style="margin-bottom: 10px">
-                            ชำระผ่าน <b>PAYSBUY</b>
-                        </div>
+                    <div class="row"
+                         ng-controller="PaysbuyBySaleOrderController as psbCtrl">
 
-                        <div class="btn-group" role="group" aria-label="..."
-                             ng-show="paymentType != 'Split'">
-                            <button class="btn btn-md btn-primary"
-                                    ng-click="psbCtrl.pay()">
-                                ชำระเงินทั้งหมด
-                            </button>
-                            <button class="btn btn-md btn-primary"
-                                    ng-click="paymentType = 'Split'">
-                                แบ่งชำระ
-                            </button>
-                        </div>
-                        <div ng-show="paymentType == 'Split'">
-                            <div ng-show="paymentDetail.TransactionLog.length > 0">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>วันที่ชำระ</th>
-                                            <th class="text-center">จำนวนเงินที่ชำระ</th>
+                        <div class="col-md-6">
+                            <div style="margin-bottom: 10px">
+                                ชำระผ่าน <b>PAYSBUY</b>
+                            </div>
+
+                            <div class="btn-group" role="group" aria-label="..."
+                                 ng-show="paymentType != 'Split'">
+                                <button class="btn btn-md btn-primary"
+                                        ng-click="psbCtrl.pay()">
+                                    ชำระเงินทั้งหมด
+                                </button>
+                                <button class="btn btn-md btn-primary"
+                                        ng-click="paymentType = 'Split'">
+                                    แบ่งชำระ
+                                </button>
+                            </div>
+                            <div ng-show="paymentType == 'Split'">
+                                <div ng-show="paymentDetail.TransactionLog.length > 0">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>วันที่ชำระ</th>
+                                                <th class="text-center">จำนวนเงินที่ชำระ</th>
+                                            </tr>
+                                        </thead>
+                                        <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
+                                            <td>{{paymentLog.PaymentDate | date:'dd MMMM yyyy HH:mm'}}</td>
+                                            <td>
+                                                <div class="text-right">
+                                                    {{paymentLog.Amount | number:2}}
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
-                                        <td>{{paymentLog.PaymentDate | date:'dd MMMM yyyy HH:mm'}}</td>
-                                        <td>
-                                            <div class="text-right">
-                                                {{paymentLog.Amount | number:2}}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="total-line">
-                                            <div class="text-right" style="font-weight: bold">
-                                                ชำระแล้วทั้งสิ้น
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-right" style="color:green">
-                                                {{paymentDetail.TotalPaid | number:2}}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="total-line">
-                                            <div class="text-right" style="font-weight: bold">
-                                                ชำระเพิ่ม
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-right" style="font-weight: bold">
-                                                {{paymentDetail.PaymentRemaining | number:2}}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
+                                        <tr>
+                                            <td class="total-line">
+                                                <div class="text-right" style="font-weight: bold">
+                                                    ชำระแล้วทั้งสิ้น
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-right" style="color:green">
+                                                    {{paymentDetail.TotalPaid | number:2}}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="total-line">
+                                                <div class="text-right" style="font-weight: bold">
+                                                    ชำระเพิ่ม
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-right" style="font-weight: bold">
+                                                    {{paymentDetail.PaymentRemaining | number:2}}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ..."
+                                           ng-model="toPay">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-primary" type="button"
+                                                ng-click="psbCtrl.splitPay(toPay)"
+                                                ng-disabled="ctrl.checkAmount(toPay) == false">
+                                            <i class="fa fa-shopping-cart"></i> ชำระตามจำนวน
+                                        </button>
+                                    </span>
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ..."
-                                       ng-model="toPay">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-primary" type="button"
-                                            ng-click="psbCtrl.splitPay(toPay)"
-                                            ng-disabled="ctrl.checkAmount(toPay) == false">
-                                        <i class="fa fa-shopping-cart"></i> ชำระตามจำนวน
-                                    </button>
-                                </span>
-                            </div>
+                            <div class="row"
+                                 style="margin-top: 20px"></div>
                         </div>
-                        <div class="row"
-                             style="margin-top: 20px"></div>
+                        <div class="col-md-6 pull-right">
+
+                            <a class="pull-right">
+                                <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
+                            </a>
+                            <form id="paysbuy_form" name="formpaysbuy" method="post"
+                                  action=""
+                                  style="display: none;">
+                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                                <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
+                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                            </form>
+                            <form id="paysbuy_split_form" name="formpaysbuy" method="post"
+                                  action=""
+                                  style="display: none;">
+                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                                <input Type="Hidden" Name="amt" ng-value="splitValue" />
+                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                            </form>
+                        </div>
+
+
                     </div>
-                    <div class="col-md-6 pull-right">
 
-                        <a class="pull-right">
-                            <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
-                        </a>
-                        <form id="paysbuy_form" name="formpaysbuy" method="post"
-                              action=""
-                              style="display: none;">
-                            <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
-                            <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
-                            <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
-                            <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
-                            <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
-                            <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
-                        </form>
-                        <form id="paysbuy_split_form" name="formpaysbuy" method="post"
-                              action=""
-                              style="display: none;">
-                            <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
-                            <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
-                            <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
-                            <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
-                            <input Type="Hidden" Name="amt" ng-value="splitValue" />
-                            <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
-                        </form>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <b>ชำระโดยการโอนเงิน:</b><br />
+                            ธนาคารกสิกรไทย ชื่อบัญชี บจก. นันคอม<br />
+                            เลขที่บัญชี 004-2-45167-3<br />
+                            กรุณาแจ้งเลขที่คำสั่งซื้อ (SOXXXX) พร้อมถ่ายภาพ หรือแสกนสลิปมาทาง Email ที่ <b>company@nant.co</b>
+                        </div>
                     </div>
 
-
-                </div>
-
-                <div class="row">
-                    <div class="col-sm-6">
-                        <b>ชำระโดยการโอนเงิน:</b><br />
-                        ธนาคารกสิกรไทย ชื่อบัญชี บจก. นันคอม<br />
-                        เลขที่บัญชี 004-2-45167-3<br />
-                        กรุณาแจ้งเลขที่คำสั่งซื้อ (SOXXXX) พร้อมถ่ายภาพ หรือแสกนสลิปมาทาง Email ที่ <b>company@nant.co</b>
-                    </div>
                 </div>
             }
             else if (type == "receipt")
@@ -441,3 +457,4 @@
         </div>
 
     </div>
+</div>
