@@ -1573,15 +1573,36 @@
             var $window = $(window);
             var myHeight = element.offset().top;
 
-            $window.on("scroll", function () {
+            if (attrs.scrollbox != null) {
 
-                var top = $window.scrollTop();
-                if (top > myHeight) {
-                    target.addClass(attrs.ncbScrollpass);
-                } else {
-                    target.removeClass(attrs.ncbScrollpass);
-                }
-            });
+                $window = $(attrs.scrollbox);
+
+                $window.on("scroll", function () {
+
+                    var top = $window.scrollTop();
+                    if (top > myHeight) {
+                        target.addClass(attrs.ncbScrollpass);
+                        target.css("top", top - myHeight);
+
+                    } else {
+                        target.removeClass(attrs.ncbScrollpass);
+                        target.css("top", "0");
+                    }
+                });
+
+            } else {
+
+                $window.on("scroll", function () {
+
+                    var top = $window.scrollTop();
+                    if (top > myHeight) {
+                        target.addClass(attrs.ncbScrollpass);
+                    } else {
+                        target.removeClass(attrs.ncbScrollpass);
+                    }
+                });
+            }
+
         }
 
         return {

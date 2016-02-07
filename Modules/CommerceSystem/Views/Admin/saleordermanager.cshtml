@@ -77,7 +77,7 @@
         </button>
     </div>
     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"                 
-                 alwaysfilter="(PaymentStatus ne 'WaitingForPayment') and (Status ne 'Delivered')"
+                 alwaysfilter="(Status ne 'Delivered') and (Status ne 'Canceled')"
                  edit-fn="ctrl.viewOrderDetail(id)">
     </ncb-ngtable>
 

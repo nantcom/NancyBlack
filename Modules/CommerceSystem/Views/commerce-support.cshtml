@@ -10,6 +10,7 @@
 {
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
     <link href="/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
+    <title>คำสั่งซื้อ</title>
 }
 @section Script
 {
@@ -19,6 +20,23 @@
         window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
     </script>
     <script src="/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            $('#bookmarkme').click(function() {
+                if (window.sidebar && window.sidebar.addPanel) { // Mozilla Firefox Bookmark
+                    window.sidebar.addPanel(document.title,window.location.href,'');
+                } else if(window.external && ('AddFavorite' in window.external)) { // IE Favorite
+                    window.external.AddFavorite(location.href,document.title);
+                } else if(window.opera && window.print) { // Opera Hotlist
+                    this.title=document.title;
+                    return true;
+                } else { // webkit - safari/chrome
+                    alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != - 1 ? 'Command/Cmd' : 'CTRL') + ' + D to bookmark this page.');
+                }
+            });
+        });
+    </script>
 }
 
 <div ng-cloak
@@ -27,279 +45,92 @@
      ncb-datacontext-integrated
      table="SaleOrder">
 
-    <div class="printform">
+
+
+    <div class="supportpage">
 
         <div class="container">
 
             <div id="header"
                  ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
-                Support
+                TRACK YOUR ORDER
+            </div>
+
+            <div class="jumbotron" ng-show="object.Status == 'New'">
+                <h1>กรุณารอเราสักครู่...</h1>
+                <h2>หมายเลขคำสั่งซื้อของคุณคือ: {{object.SaleOrderIdentifier}}</h2>
+                เพื่อให้มั่นใจว่าคุณจะได้รับความพึงพอใจสูงสุดจาการซื้อสินค้าจากเรา เรากำลังตรวจสอบกับผู้ผลิตและตัวแทนจำหน่ายเกี่ยวกับสถานะสินค้าของคุณ
+                คุณจะได้รับอีเมลล์แจ้งอีกครั้ง เพื่อยืนยันคำสั่งซื้อของคุณและทำการชำระเงิน
+            </div>
+
+            <div class="jumbotron" ng-show="object.Status == 'Confirmed' && (object.PaymentStatus=='WaitingForPayment' || object.PaymentStatus=='Deposit')">
+                <h1 class="text-success">คำสั่งซื้อของคุณได้รับการยืนยันแล้ว</h1>
+                <h2>หมายเลขคำสั่งซื้อของคุณคือ: {{object.SaleOrderIdentifier}}</h2>
+                <p>
+                    การสั่งซื้อของคุณได้รับการยืนยันแล้ว กรุณาตรวจสอบข้อมูลอีกครั้งและทำการชำระเงิน เพื่อให้เราเริ่มดำเนินการคำสั่งซื้อของคุณ
+                </p>
+                <p>
+                    <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-success btn-lg">
+                        ชำระค่าสินค้า<span ng-show="object.PaymentStatus=='Deposit'">เพิ่ม</span>
+                    </a>
+                </p>
             </div>
 
             <div class="row">
 
-                <div class="col-xs-6">
-                    <img class="user-profile-image" ng-src="~/Modules/CommerceSystem/images/UserProfileImage.png" />
+                <div class="col-md-8">
 
-                    <div class="simeple-block">
-                        <b>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</b><br />
-                        Phone: {{object.Customer.PhoneNumber}}<br />
-                        Email: {{object.Customer.Email}}
+                    <tabset>
 
-                        <p style="margin-top: 20px" ng-show="object.PaymentStatus=='PaymentReceived'">
-                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt" target="_blank" class="btn btn-default">พิมพ์ใบเสร็จรับเงิน</a>
-                        </p>
+                        <tab heading="ข้อมูลทั่วไป">
 
-                        <p style="margin-top: 20px" ng-show="object.PaymentStatus=='WaitingForPayment'">
-                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-default">
-                                ชำระเงิน
-                            </a>
-                        </p>
+                            <div class="row">
 
-                        <p style="margin-top: 20px" ng-show="object.PaymentStatus=='Deposit'">
-                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-default">
-                                ชำระเงินเพิ่ม
-                            </a>
-                        </p>
-                    </div>
+                                <div class="col-md-6">
+                                    <h2>การเปลี่ยนแปลงล่าสุด</h2>
+                                    {{object.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
+                                </div>
 
-                </div>
+                                <div class="col-md-6">
+                                    <h2>วันที่ส่งคำสั่งซื้อ</h2>
+                                    {{object.__createdAt | date:'dd MMMM yyyy, HH:mm'}}
+                                </div>
 
-                <div id="logo" class="col-xs-6">
-                    <div class="simeple-block">
+                                <div class="col-md-6">
+                                    <h2>สถานะการชำระเงิน</h2>
+                                    {{object.PaymentStatus}}
+                                </div>
 
-                        <table id="meta">
-                            <tr>
-                                <td class="meta-head">
-                                    <div class="editabe" id="saleordernumber">
-                                        หมายเลขคำสั่งซื้อ
-                                    </div>
-                                </td>
-                                <td>{{object.SaleOrderIdentifier}}</td>
-                            </tr>
+                                <div class="col-md-6">
+                                    <h2>สถานะล่าสุด</h2>
+                                    {{object.Status}}
+                                </div>
+                            </div>
 
-                            <tr>
+                            <div class="row"
+                                 ng-if="object.Status == 'Shipped'">
+                                <div class="col-xs-12" id="dhltracking">
+                                    <h2>สถานะการจัดส่ง</h2>
+                                    <iframe ng-src="{{'http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + object.DHLTrackingNumber}}"></iframe>
+                                </div>
+                            </div>
 
-                                <td class="meta-head">
-                                    <div class="editabe" id="date">
-                                        การเปลี่ยนแปลงล่าสุด
-                                    </div>
-                                </td>
-                                <td>
-                                    <div id="date">
-                                        {{object.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
-                                    </div>
-                                </td>
-                            </tr>
+                        </tab>
 
-                            <tr>
+                        <tab heading="รายละเอียดสินค้า">
 
-                                <td class="meta-head">
-                                    <div class="editabe" id="date">
-                                        สถานะล่าสุด
-                                    </div>
-                                </td>
-                                <td>
-                                    <div ng-show="isAdmin == false">
-                                        {{object.Status}}
-                                    </div>
-                                    <div ng-show="isAdmin">
-                                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
-                                            <option ng-repeat="status in allStatus">{{status}}</option>
-                                        </select>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-
-                                <td class="meta-head">
-                                    <div class="editabe" id="date">
-                                        การชำระเงิน
-                                    </div>
-                                </td>
-                                <td>
-                                    <div ng-show="isAdmin == false">
-                                        {{object.PaymentStatus}}
-                                    </div>
-
-                                    <div ng-show="isAdmin">
-
-                                        <select class="form-control" ng-model="object.PaymentStatus" style="margin-right: 10px; max-width: 300px; display: inline-block">
-                                            <option ng-repeat="status in allPaymentStatus">{{status}}</option>
-                                        </select>
-
-                                    </div>
-
-                                </td>
-                            </tr>
-                            <tr ng-show="isAdmin">
-                                <td></td>
-                                <td>
-
-                                    <button class="btn btn-success"
-                                            ng-click="data.save(object)">
-                                        <span class="fa fa-circle-o-notch fa-spin"
-                                              ng-show="isBusy == true"></span>
-                                        <span class="fa fa-save"></span>
-                                        Save Changes
-                                    </button>
-
-
-                                </td>
-                            </tr>
-                        </table>
-
-                    </div>
-
-                    <img class="simeple-block" ng-src="{{branding.logo}}" />
-
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-    <div class="container">
-        <div class="row" style="margin-top: 20px">
-            <div class="col-md-12">
-                <tabset>
-
-                    <tab heading="รายละเอียดคำสั่งซื้อ">
-
-                        <h3>ข้อมูลสินค้า</h3>
-
-                        <table id="items" class="table"
-                               ncg-productresolver saleorder="object">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product</th>
-                                    <th><div class="text-right">Qty.</div></th>
-                                    <th><div class="text-right">Unit Price</div></th>
-                                    <th><div class="text-right">Line Total</div></th>
-                                </tr>
-                            </thead>
-                            <tr ng-repeat="item in object.ItemsDetail">
-                                <td>
-                                    <div class="form-control-static">
-                                        {{$index + 1}}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        {{item.Title}}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        {{item.Attributes.Qty}}
-                                    </div>
-                                </td>
-                                <td>
-
-                                    <div class="form-control-static text-right">
-                                        {{item.Price | number:2}} บาท
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        {{(item.Price * item.Attributes.Qty) | number:2}} บาท
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="3"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Total (net)</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.TotalAmount | number:2 }} บาท</b>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-
-                        <div ng-show="paymentLogs != null && paymentLogs.length > 0">
-
-                            <h3>ข้อมูลการชำระเงิน</h3>
-
-                            <table class="table">
+                            <table id="items" class="table"
+                                   ncg-productresolver saleorder="object">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>วันที่ชำระเงิน</th>
-                                        <th>รหัสใบเสร็จ</th>
-                                        <th>ช่องทางการชำระเงิน</th>
-                                        <th>รหัสอนุมัติ</th>
-                                        <th>สถานะ</th>
-                                        <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
+                                        <th>Product</th>
+                                        <th><div class="text-right">Qty.</div></th>
+                                        <th><div class="text-right">Unit Price</div></th>
+                                        <th><div class="text-right">Line Total</div></th>
                                     </tr>
                                 </thead>
-                                <tr ng-repeat="item in paymentLogs">
-                                    <td>
-                                        <div class="form-control-static">
-                                            {{$index + 1}}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-control-static">
-                                            {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-control-static">
-                                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt"
-                                               ng-show="paymentLogs.length == 1 && object.PaymentStatus == 'PaymentReceived'"
-                                               target="_blank">
-                                                {{object.ReceiptIdentifier}}
-                                            </a>
-                                            <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt?index={{$index}}" 
-                                               ng-show="paymentLogs.length > 1"
-                                               target="_blank">{{object.ReceiptIdentifier}}-{{$index + 1}}</a>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {{item.PaymentSource}}
-                                    </td>
-                                    <td>
-                                        {{item.ApCode}}
-                                    </td>
-                                    <td>
-                                        {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
-                                    </td>
-                                    <td>
-                                        <div class="form-control-static text-right">
-                                            {{item.Amount | number:2}} บาท
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-
-                        </div>
-
-                    </tab>
-
-                    @if (this.CurrentUser.HasClaim("admin"))
-                    {
-                        <tab heading="Serial Number">
-
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Item</th>
-                                        <th><div>Serial</div></th>
-                                    </tr>
-                                </thead>
-                                <tr ng-repeat="item in object.CustomData.SerialNumbers">
+                                <tr ng-repeat="item in object.ItemsDetail">
                                     <td>
                                         <div class="form-control-static">
                                             {{$index + 1}}
@@ -311,164 +142,293 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <input class="form-control" ng-model="item.Serial" />
+                                        <div class="form-control-static text-right">
+                                            {{item.Attributes.Qty}}
+                                        </div>
+                                    </td>
+                                    <td>
+
+                                        <div class="form-control-static text-right">
+                                            {{item.Price | number:2}} บาท
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            {{(item.Price * item.Attributes.Qty) | number:2}} บาท
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="blank" colspan="3"> </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            <b>Total (net)</b>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            <b>{{object.TotalAmount | number:2 }} บาท</b>
+                                        </div>
                                     </td>
                                 </tr>
                             </table>
 
                         </tab>
-                    }
 
-                    <tab heading="หมายเหตุ">
-                        <br />
-                        <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
-                            <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
-                            <div class="panel-body">
-                                <div class="row">
-                                    <div class="simple-inline-block">
-                                        <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
-                                    </div>
-                                    <div class="simple-inline-block" ng-hide="isAdmin">
-                                        <pre style="width: 700px; font-family: Leelawadee"><b>สถานะ :&ensp;</b>{{atta.Status}}<br /><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
-                                    </div>
-                                    <div class="simple-inline-block" ng-show="isAdmin" style="width: 700px">
-                                        <p>
-                                            <label>สถานะ</label>
-                                            <input class="form-control"
-                                                   ng-model="atta.Status" />
-                                        </p>
-                                        <p>
-                                            <label>ข้อความ</label>
-                                            <textarea class="form-control" style="min-height: 150px"
-                                                      ng-model="atta.Caption"></textarea>
-                                        </p>
-                                    </div>
-                                </div>
+                        <tab heading="บันทึกการชำระเงิน">
+
+                            <div ng-hide="paymentLogs != null && paymentLogs.length > 0"
+                                 class="alert alert-info">
+                                ยังไม่มีข้อมูล
+                            </div>
+
+                            <div ng-show="paymentLogs != null && paymentLogs.length > 0">
+
+                                <h3>ข้อมูลการชำระเงิน</h3>
+
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>วันที่ชำระเงิน</th>
+                                            <th>รหัสใบเสร็จ</th>
+                                            <th>ช่องทางการชำระเงิน</th>
+                                            <th>รหัสอนุมัติ</th>
+                                            <th>สถานะ</th>
+                                            <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in paymentLogs">
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{$index + 1}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt"
+                                                   ng-show="paymentLogs.length == 1 && object.PaymentStatus == 'PaymentReceived'"
+                                                   target="_blank">
+                                                    {{object.ReceiptIdentifier}}
+                                                </a>
+                                                <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt?index={{$index}}"
+                                                   ng-show="paymentLogs.length > 1"
+                                                   target="_blank">{{object.ReceiptIdentifier}}-{{$index + 1}}</a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{item.PaymentSource}}
+                                        </td>
+                                        <td>
+                                            {{item.ApCode}}
+                                        </td>
+                                        <td>
+                                            {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static text-right">
+                                                {{item.Amount | number:2}} บาท
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
 
                             </div>
-                        </div>
 
-                        <div class="alert alert-danger" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
+                        </tab>
+
+                        <tab heading="แจ้งการชำระเงิน"
+                             ng-if="object.Status == 'Confirmed' && object.PaymentStatus != 'PaymentReceived'">
+                            <br />
+                            <div class="text-right">
+                                <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
+                                    <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
+                                </button>
+                            </div>
+                            <br />
+                            <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
+                                <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="simple-inline-block">
+                                            <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
+                                        </div>
+                                        <div class="simple-inline-block" ng-show="isAdmin == true">
+                                            <pre style="width: 700px; font-family: Leelawadee"><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
+                                        </div>
+                                        <div class="simple-inline-block" ng-hide="isAdmin == true" style="width: 700px">
+                                            <p>
+                                                <label>ข้อความ</label>
+                                                <textarea class="form-control" style="min-height: 150px"
+                                                          ng-model="atta.Caption"></textarea>
+                                            </p>
+                                            <div class="text-right">
+                                                <button class="btn btn-success" ng-click="ctrl.saveAttachmentMessage(atta.Url, atta.Caption)"><span class="glyphicon glyphicon-floppy-disk"></span> บันทึก</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (!this.CurrentUser.HasClaim("admin"))
+                            {
+                                <div class="panel panel-primary">
+                                    <div class="panel-heading">เพิ่มรูปสลิป</div>
+                                    <div class="panel-body">
+                                        <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
+                                    </div>
+                                </div>
+                            }
+
+                        </tab>
+
+                        <tab heading="หมายเหตุ"
+                             ng-if="object.Status == 'Confirmed'">
+                            <br />
+                            <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
+                                <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="simple-inline-block">
+                                            <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
+                                        </div>
+                                        <div class="simple-inline-block" ng-hide="isAdmin">
+                                            <pre style="width: 700px; font-family: Leelawadee"><b>สถานะ :&ensp;</b>{{atta.Status}}<br /><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
+                                        </div>
+                                        <div class="simple-inline-block" ng-show="isAdmin" style="width: 700px">
+                                            <p>
+                                                <label>สถานะ</label>
+                                                <input class="form-control"
+                                                       ng-model="atta.Status" />
+                                            </p>
+                                            <p>
+                                                <label>ข้อความ</label>
+                                                <textarea class="form-control" style="min-height: 150px"
+                                                          ng-model="atta.Caption"></textarea>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="alert alert-danger" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
+
+                            @if (this.CurrentUser.HasClaim("admin"))
+                            {
+                                <div class="panel panel-primary">
+                                    <div class="panel-heading">New Image</div>
+                                    <div class="panel-body">
+                                        <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                                    </div>
+                                </div>
+                            }
+
+
+                        </tab>
 
                         @if (this.CurrentUser.HasClaim("admin"))
                         {
-                        <div class="panel panel-primary">
-                            <div class="panel-heading">New Image</div>
-                            <div class="panel-body">
-                                <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
-                            </div>
-                        </div>
+                            <tab heading="Serial Number">
+
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Item</th>
+                                            <th><div>Serial</div></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in object.CustomData.SerialNumbers">
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{$index + 1}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{item.Title}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input class="form-control" ng-model="item.Serial" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </tab>
                         }
 
+                    </tabset>
+                </div>
 
-                    </tab>
+                <div class="col-md-4 "
+                     id="side">
 
-                    <tab heading="หลักฐานการชำระเงิน">
-                        <br />
-                        <div class="text-right">
-                            <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
-                                <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
+                    <div class="well">
+                        <p>
+                            <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3><br />
+                            <div>
+                                <i class="fa fa-phone"></i> {{object.Customer.PhoneNumber}}
+                            </div>
+                            <div>
+                                <i class="fa fa-envelope"></i> <a href="mailto:{{object.Customer.Email}}">{{object.Customer.Email}}</a>
+                            </div>
+                        </p>
+
+                        <div ng-if="object.UseBillingAddress">
+                            <h2>รายละเอียดใบกำกับภาษี</h2>
+                            <b>{{object.BillTo.To}}</b><br />
+                            {{object.BillTo.Address}}<br />
+                            {{object.BillTo.SubDistrict}}, {{object.BillTo.District}}<br />
+                            {{object.BillTo.State}},{{object.BillTo.Country}}<br />
+                            {{object.BillTo.PostalCode}}
+                        </div>
+                        <div>
+                            <h2>ที่อยู่จัดส่ง</h2>
+                            <b>{{object.ShipTo.To}}</b><br />
+                            {{object.ShipTo.Address}}<br />
+                            {{object.ShipTo.SubDistrict}}, {{object.ShipTo.District}}<br />
+                            {{object.ShipTo.State}},{{object.ShipTo.Country}}<br />
+                            {{object.ShipTo.PostalCode}}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" ng-show="isAdmin">
+                        <h2>Admin</h2>
+                        <h3>Status:</h3>
+                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                            <option ng-repeat="status in allStatus">{{status}}</option>
+                        </select>
+                        <p>
+                            <h3>Payment:</h3>
+                            <select class="form-control" ng-model="object.PaymentStatus" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                                <option ng-repeat="status in allPaymentStatus">{{status}}</option>
+                            </select>
+                        </p>
+                        <p style="margin-top: 30px">
+                            <button class="btn btn-success btn-lg"
+                                    ng-click="data.save(object)">
+                                <span class="fa fa-circle-o-notch fa-spin"
+                                      ng-show="isBusy == true"></span>
+                                <span class="fa fa-save"></span>
+                                Save
                             </button>
-                        </div>
-                        <br />
-                        <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
-                            <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
-                            <div class="panel-body">
-                                <div class="row">
-                                    <div class="simple-inline-block">
-                                        <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
-                                    </div>
-                                    <div class="simple-inline-block" ng-show="isAdmin == true">
-                                        <pre style="width: 700px; font-family: Leelawadee"><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
-                                    </div>
-                                    <div class="simple-inline-block" ng-hide="isAdmin == true" style="width: 700px">
-                                        <p>
-                                            <label>ข้อความ</label>
-                                            <textarea class="form-control" style="min-height: 150px"
-                                                      ng-model="atta.Caption"></textarea>
-                                        </p>
-                                        <div class="text-right">
-                                            <button class="btn btn-success" ng-click="ctrl.saveAttachmentMessage(atta.Url, atta.Caption)"><span class="glyphicon glyphicon-floppy-disk"></span> บันทึก</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        </p>
+                    </div>
 
-                        @if (!this.CurrentUser.HasClaim("admin"))
-                        {
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">เพิ่มรูปสลิป</div>
-                                <div class="panel-body">
-                                    <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
-                                </div>
-                            </div>
-                        }
+                </div>
 
-                    </tab>
-
-
-                    <tab heading="Step">
-                        <br />
-                        <div class="panel panel-info" ng-repeat="atta in laptopStatus">
-                            <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy HH.mm'}}</div>
-                            <div class="panel-body">
-                                <div class="row">
-                                    <div class="simple-inline-block">
-
-                                        <div ng-show="isAdmin">
-                                            <img ncb-editable-picture
-                                                 type="{{atta.AttachmentType}}"
-                                                 ncb-background="'{{atta.Url}}'" width="300" style="background-size: cover; height: 300px;"
-                                                 always="true" />
-                                        </div>
-
-                                        @if (!this.CurrentUser.HasClaim("admin"))
-                                        {
-                                        <div>
-                                            <img width="300" style="background-size: cover; height: 300px; background-image: url({{atta.Url}})"
-                                                 always="true" />
-                                        </div>
-                                        }
-
-
-                                    </div>
-
-                                    <div class="simple-inline-block" ng-hide="isAdmin">
-                                        <pre style="width: 700px; font-family: Leelawadee"><b>ขั้นตอน :&ensp;</b>{{atta.AttachmentType}}<br /><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
-                                    </div>
-
-                                    <div class="simple-inline-block" ng-show="isAdmin" style="width: 700px">
-                                        <p><b>{{atta.AttachmentType}}</b></p>
-                                        <p>
-                                            <label>ข้อความ</label>
-                                            <textarea class="form-control" style="min-height: 150px"
-                                                      ng-model="atta.Caption"></textarea>
-                                        </p>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </tab>
-
-
-                    <tab heading="Support">
-                        <br />
-                        <a 
-                           href="http://www.dhl.co.th/th/express/tracking.html?AWB={{object.DHLTrackingNumber}}&brand=DHL" 
-                           target="_blank" 
-                           class="btn btn-default btn-primary" ng-class="{'disabled': object.DHLTrackingNumber == null}">
-                            DHL Tracking Site
-                        </a>
-
-                    </tab>
-
-                </tabset>
             </div>
+
+
         </div>
+
     </div>
 
 
