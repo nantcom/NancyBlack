@@ -1,0 +1,95 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head{
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        body {
+            overflow-x: scroll;
+        }
+    </style>
+}
+
+@section Scripts{
+
+    <script>
+        (function () {
+
+            var mod = angular.module("page", []);
+            mod.controller("PageController", function ($scope, $rootScope, $timeout) {
+
+                var $me = this;
+
+            });
+
+        })();
+    </script>
+
+}
+
+<div ng-module="page"
+     ng-controller="PageController as ctrl"
+     ncb-datacontext table="PurchaseOrder">
+
+    <div class="page-header">
+        <h1>Purchase Order</h1>
+    </div>
+
+    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'">
+    </ncb-ngtable>
+
+    <script type="text/ng-template" id="tablecustomtemplate.html">
+
+        <table id="sotable"
+               ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td data-title="'Order#'"
+                    sortable="'SaleOrderIdentifier'"
+                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    <a href="/Admin/tables/purchaseorder/{{item.id}}" target="_blank">
+                        {{item.PurchaseOrderIdentifier == null ? 'NotGeneratedYet' : item.PurchaseOrderIdentifier}}
+                    </a>
+                    <p class="text-muted">
+                        <i class="fa fa-clock-o"></i>
+                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                    </p>
+                </td>
+                <td data-title="'Status'"
+                    sortable="'Status'"
+                    filter="{ 'Status': 'text' }">
+                    {{item.Status}}
+                </td>
+                <td data-title="'WasGenerated'"
+                    sortable="'WasGenerated'"
+                    filter="{ 'WasGenerated': 'text' }">
+                    {{item.WasGenerated}}
+                </td>
+                <td data-title="'Supplier'">
+                    <div ncb-lookupscope
+                         table="Product" labelpath="Title" filter="$filter=startswith(Title,$key)">
+                        {{lookup[0].Title}}
+                    </div>
+                </td>
+                <td data-title="'Supplies'" style="min-width: 250px">
+                    <div ng-repeat="supply in item.Items" style="text-align: left">
+                        {{supply.Title}} x {{supply.Qty}}
+                        <ul>
+                            <li ng-repeat="part in supply.Parts">{{part}}</li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </script>
+</div>

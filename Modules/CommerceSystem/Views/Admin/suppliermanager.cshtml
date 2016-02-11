@@ -1,0 +1,317 @@
+@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Title{
+    Administration - Suppliers
+}
+
+@section Script
+{
+
+    <script>
+        (function () {
+
+            var mod = angular.module("page", []);
+            mod.controller("PageController", function ($scope, $rootScope, $timeout) {
+
+                var $me = this;
+
+                $me.create = function () {
+
+                    $("#SupplierModal").modal("show");
+                    $scope.object = {
+                        Address: {},
+                        OrderTime: 0
+                    };
+                    $scope.orderTime = { Hour: '00', Minute: '00' };
+                };
+
+                $scope.orderTime = { Hour: '00', Minute : '00'};
+
+                $me.updateOrderTime = function () {
+                    $scope.object.OrderTime = $scope.orderTime.Hour + ':' + $scope.orderTime.Minute + ':00';
+                };
+
+                $me.setOrderTime = function () {
+                    if ($scope.object == null || $scope.object.OrderTime == null) {
+                        return;
+                    }
+                    $scope.orderTime.Hour = $scope.object.OrderTime.substring(0, 2);
+                    $scope.orderTime.Minute = $scope.object.OrderTime.substring(3, 5);
+                };
+
+                $rootScope.$on("inserted", function (e, args) {
+
+                    $("#SupplierModal").modal("hide");
+
+
+                });
+
+            });
+
+        })();
+    </script>
+
+}
+
+<div ncb-datacontext table="Supplier"
+     ng-module="page" ng-controller="PageController as ctrl">
+
+    <h1 class="page-header">
+        Suppliers
+        <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+    </h1>
+
+    <div style="margin-bottom: 30px">
+        This page helps you manage supplier's info.
+    </div>
+
+    <div>
+        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">
+            {{alert.msg}}
+        </alert>
+    </div>
+
+    <div class="pull-right">
+        <button class="btn btn-success pull-right"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>
+                Add new supplier
+            </span>
+        </button>
+    </div>
+
+    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SupplierModal">
+    </ncb-ngtable>
+
+    <ncb-modal id="SupplierModal"
+               title="{{object.id == null ? 'Create Movement' : 'Edit Movement'}}"
+               closebutton
+               deletebutton="object.id != null"
+               ng-open="ctrl.setOrderTime()">
+
+        <form role="form" name="InventoryMovementForm">
+
+            <tabset>
+                <tab heading="General">
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="text" name="Name" title="Name"
+                                   ncb-textbox
+                                   ng-model="object.Name" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <label class="control-label" for="ProductId">
+                                Order Period
+                            </label>
+                            <select class="form-control" ng-model="object.OrderPeriod">
+                                <option>Daily</option>
+                                <option>Weekly</option>
+                                <option>Monthly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-6 form-group">
+                            <label>OrderTime</label>
+                            <select class="form-control" ng-change="ctrl.updateOrderTime()" ng-model="orderTime.Hour">
+                                @for (int i = 0; i < 24; i++)
+                                {
+                                    <option>@(string.Format("{0:00}", i))</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-6 form-group">
+                            <label>&ensp;</label>
+                            <select class="form-control" ng-change="ctrl.updateOrderTime()" ng-model="orderTime.Minute">
+                                @for (int i = 0; i < 60; i++)
+                                {
+                                    <option>@(string.Format("{0:00}", i))</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row" ng-show="object.OrderPeriod == 'Weekly'">
+                        <div class="col-xs-12 form-group">
+                            <label>Order when</label>
+                            <select class="form-control" ng-model="object.WeeklyOrderWhen">
+                                <option>Sunday</option>
+                                <option>Monday</option>
+                                <option>Tuesday</option>
+                                <option>Wednesday</option>
+                                <option>Thursday</option>
+                                <option>Friday</option>
+                                <option>Saturday</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row" ng-show="object.OrderPeriod == 'Monthly'">
+                        <div class="col-xs-12 form-group">
+                            <label>Order when</label>
+                            <select class="form-control" ng-model="orderTime.Minute">
+                                @for (int i = 1; i <= 31; i++)
+                                {
+                                    <option>@i</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                </tab>
+
+                <tab heading="Contact">
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="tel" name="Phone" title="Phone"
+                                   ncb-textbox
+                                   ng-model="object.Phone" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="url" name="Website" title="Website"
+                                   ncb-textbox
+                                   ng-model="object.Url" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="text" name="Address" title="Address"
+                                   ncb-textbox
+                                   ng-model="object.Address.Address" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="text" name="District" title="District"
+                                   ncb-textbox
+                                   ng-model="object.Address.District" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="text" name="SubDistrict" title="SubDistrict"
+                                   ncb-textbox
+                                   ng-model="object.Address.SubDistrict" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="text" name="Country" title="Country"
+                                   ncb-textbox
+                                   ng-model="object.Address.Country" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="url" name="PostalCode" title="PostalCode"
+                                   ncb-textbox
+                                   ng-model="object.Address.PostalCode" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="url" name="Phone" title="Website"
+                                   ncb-textbox
+                                   ng-model="object.Url" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="url" name="Phone" title="Website"
+                                   ncb-textbox
+                                   ng-model="object.Url" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="url" name="Phone" title="Website"
+                                   ncb-textbox
+                                   ng-model="object.Url" />
+                        </div>
+                    </div>
+
+                </tab>
+            </tabset>
+
+        </form>
+
+        <ncb-footer>
+            <button class="btn btn-primary btn-lg"
+                    ng-click="data.save(object);">
+                <span ng-show="object.id == null">Create</span>
+                <span ng-show="object.id != null">Save</span>
+            </button>
+        </ncb-footer>
+    </ncb-modal>
+
+    <script type="text/ng-template" id="tablecustomtemplate.html">
+
+        <table id="NcbNgTable"
+               ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+
+                <td data-title="'id'"
+                    sortable="'id'">
+                    {{item.id}}
+                </td>
+                <td data-title="'Name'"
+                    sortable="'Name'">
+                    {{item.Name}}
+                </td>
+                <td data-title="'OrderPeriod'"
+                    sortable="'OrderPeriod'">
+                    {{item.OrderPeriod}}
+                </td>
+                <td data-title="'OrderTime'"
+                    sortable="'OrderTime'">
+                    {{item.OrderTime}}
+                </td>
+                <td data-title="'WeeklyOrderWhen'"
+                    sortable="'WeeklyOrderWhen'">
+                    {{item.WeeklyOrderWhen}}
+                </td>
+                <td data-title="'MonthlyOrderWhen'"
+                    sortable="'MonthlyOrderWhen'">
+                    {{item.MonthlyOrderWhen}}
+                </td>
+
+                <td style="white-space: nowrap">
+                    <button class="btn btn-info"
+                            data-toggle="modal" data-target="#SupplierModal"
+                            ng-click="data.view(item)">
+                        <i class="fa fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+
+</div>

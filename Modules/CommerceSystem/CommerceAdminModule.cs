@@ -22,6 +22,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/admin/tables/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
             Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
+            Get["/admin/tables/suplier"] = this.HandleViewRequest("/Admin/suppliermanager", null);
+            Get["/admin/tables/purchaseorder"] = this.HandleViewRequest("/Admin/purchasemanager", null);
 
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
 

@@ -200,6 +200,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     continue;
                 }
 
+                product.ContentParts = null;
+
                 // check for duplication
                 if (lookupItemDetail.ContainsKey(product.Id))
                 {
@@ -272,6 +274,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     newItem.Attributes = attr;
                 }
                 attr["Qty"] = 1;
+                newItem.ContentParts = null;
                 this.ItemsDetail.Add(newItem);
             }
             else
