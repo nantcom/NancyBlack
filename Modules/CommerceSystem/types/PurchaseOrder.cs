@@ -19,6 +19,44 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
     public class PurchaseOrder : IStaticType
     {
+        public PurchaseOrder() { }
+
+        public PurchaseOrder(Supplier supplier)
+        {
+            this.Items = new List<PurchaseItem>();
+            this.Status = PurchaseOrderStatus.New;
+            this.SupplierId = supplier.Id;
+            this.WasGenerated = false;
+
+            if (supplier.OrderPeriod == "Daily")
+            {
+                var canOrderToday = DateTime.Today.AddTicks(supplier.OrderTime.Ticks).AddHours(-3) > DateTime.Now;
+                this.ExpectedOrderDate = canOrderToday ? DateTime.Today.AddTicks(supplier.OrderTime.Ticks) : DateTime.Today.AddTicks(supplier.OrderTime.Ticks).AddDays(1);
+            }
+            else if (supplier.OrderPeriod == "Weekly")
+            {
+                var expectedDay = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), supplier.WeeklyOrderWhen, true);
+
+                // get next week day
+                // The (... + 7) % 7 ensures we end up with a value in the range [0, 6]
+                int daysToAdd = ((int)expectedDay - (int)DateTime.Today.DayOfWeek + 7) % 7;
+
+                // example : next monday (depend on expectedDay)
+                var nextDayOfWeek = DateTime.Today.AddDays(daysToAdd).AddTicks(supplier.OrderTime.Ticks);
+                var canOrderThisWeek = nextDayOfWeek.AddHours(-3) > DateTime.Now;
+                this.ExpectedOrderDate = canOrderThisWeek ? nextDayOfWeek : nextDayOfWeek.AddDays(7);
+            }
+            else if (supplier.OrderPeriod == "Monthly")
+            {
+                var endOfLastMonth = DateTime.Today.AddDays(-DateTime.Today.Day);
+                var expectedOrderDate = endOfLastMonth
+                    .AddDays(supplier.MonthlyOrderWhen) // expectedOrderDate for this month
+                    .AddTicks(supplier.OrderTime.Ticks); // expectedOrderTime for this month
+                var canOrderThisMonth = expectedOrderDate.AddHours(-3) > DateTime.Now;
+                this.ExpectedOrderDate = canOrderThisMonth ? expectedOrderDate : expectedOrderDate.AddMonths(1);
+            }
+        }
+
         public int Id { get; set; }
 
         public DateTime __createdAt { get; set; }
@@ -26,9 +64,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __updatedAt { get; set; }
 
         /// <summary>
-        /// Date for order material
+        /// DateTime for order material (when being generated)
         /// </summary>
         public DateTime OrderDate { get; set; }
+
+        /// <summary>
+        /// DateTime which calulate from supplier's order period
+        /// </summary>
+        public DateTime ExpectedOrderDate { get; set; }
 
         public bool WasGenerated { get; set; }
 
@@ -63,27 +106,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             // separate item which require chasis and matched supplier's item
             foreach (var soItem in saleOrder.ItemsDetail.OrderBy(item => item.Id))
             {
-                var isChasisRequired = ((JObject)soItem.Attributes).Value<string>("chasis") != null;
-                if (isChasisRequired)
-                {
-                    chasisRequiredProducts.Add(soItem);
-                    continue;
-                }
-
                 var supplierInfoString = ((JObject)soItem.Attributes).Value<string>("supplier");
                 if (string.IsNullOrWhiteSpace(supplierInfoString))
                 {
                     continue;
                 }
 
+                var isChasisRequired = ((JObject)soItem.Attributes).Value<string>("chasis") != null;
                 var supplier = JsonConvert.DeserializeObject<JObject>(supplierInfoString);
-                var supplierPartName = supplier.Value<string>("part");
-                supplierPartName = supplierPartName == null ? soItem.Title : supplierPartName;
                 var isSupplierMatched = supplier.Value<int>("id") == this.SupplierId;
+                var isOrderSeparatedFromChasis = supplier.Value<bool>("isOrderSeparatedFromChasis");
+
                 if (!isSupplierMatched)
                 {
                     continue;
                 }
+                if (isChasisRequired && !isOrderSeparatedFromChasis)
+                {
+                    chasisRequiredProducts.Add(soItem);
+                    continue;
+                }
+
+                var supplierPartName = supplier.Value<string>("part");
+                supplierPartName = supplierPartName == null ? soItem.Title : supplierPartName;
 
                 newPItems.Add(new PurchaseItem()
                 {
@@ -133,6 +178,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 db.UpsertRecord(this);
             }
+        }
+
+        public void Generate()
+        {
+            this.WasGenerated = true;
+            this.OrderDate = DateTime.Now;
+            this.PurchaseOrderIdentifier = string.Format("PO{0:yyyyMMdd}-{1:000000}", this.OrderDate, this.Id);
         }
     }
 

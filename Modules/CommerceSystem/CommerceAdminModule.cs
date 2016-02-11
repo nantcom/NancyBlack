@@ -63,19 +63,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return 403;
                 }
 
-                //var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+                var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
-                //var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
-                //if (product == null)
-                //{
-                //    return 400;
-                //}
-
-                //var items = so.Items.ToList();
-                //items.Remove((int)arg.ProductId);
-
-                //so.Items = items.ToArray();
-                //so.UpdateSaleOrder(this.SiteDatabase);
+                so.RemoveItem(this.SiteDatabase, (int)arg.productId);
 
                 return 200;
             });

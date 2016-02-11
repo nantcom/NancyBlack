@@ -68,7 +68,7 @@
             <div ui-tree-handle class="tree-node tree-node-content">
 
                 <!-- Symbol -->
-                <a ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)">
+                <a ng-if="node.nodes && node.nodes.length > 0" data-nodrag ng-click="toggle(this)" style="cursor: pointer">
                     <span class="glyphicon"
                           ng-class="{
                                   'glyphicon-chevron-right': collapsed,
@@ -77,7 +77,7 @@
                     </span>
                 </a>
                 {{node.title}}
-                <a class="pull-right" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px;">
+                <a class="pull-right" data-nodrag ng-click="ctrl.filterbyurl(node)" style="margin-right: 8px; cursor: pointer">
                     <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>
             </div>

@@ -61,32 +61,41 @@
                     </a>
                     <p class="text-muted">
                         <i class="fa fa-clock-o"></i>
-                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                        Last Update: {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
                     </p>
                 </td>
                 <td data-title="'Status'"
                     sortable="'Status'"
-                    filter="{ 'Status': 'text' }">
+                    filter="{ 'Status': 'text' }" style="width: 100px;">
                     {{item.Status}}
                 </td>
                 <td data-title="'WasGenerated'"
-                    sortable="'WasGenerated'"
-                    filter="{ 'WasGenerated': 'text' }">
+                    sortable="'WasGenerated'" style="width: 120px;">
                     {{item.WasGenerated}}
                 </td>
+                <td data-title="'ExpectedOrderDate'"
+                    sortable="'ExpectedOrderDate'">
+                    {{item.ExpectedOrderDate | date:'dd MMMM yyyy, HH:mm' }}
+                </td>
+                <td data-title="'OrderDate'"
+                    sortable="'OrderDate'">
+                    <span ng-show="item.WasGenerated == true">{{item.OrderDate | date:'dd MMMM yyyy, HH:mm' }}</span>
+                    <span ng-hide="item.WasGenerated == true">Waiting for Order</span>
+                </td>
                 <td data-title="'Supplier'">
-                    <div ncb-lookupscope
-                         table="Product" labelpath="Title" filter="$filter=startswith(Title,$key)">
-                        {{lookup[0].Title}}
-                    </div>
+                    <span ncb-vlookup="supplier" key="{{item.SupplierId}}" label="Name">
+                    </span>
                 </td>
                 <td data-title="'Supplies'" style="min-width: 250px">
                     <div ng-repeat="supply in item.Items" style="text-align: left">
-                        {{supply.Title}} x {{supply.Qty}}
-                        <ul>
-                            <li ng-repeat="part in supply.Parts">{{part}}</li>
-                        </ul>
+                        {{supply.Qty}} x {{supply.Title}}<span ng-repeat="part in supply.Parts">-{{part}}</span>
                     </div>
+                </td>
+                <td style="white-space: nowrap">
+                    <button class="btn btn-info"
+                            ng-click="">
+                        <i class="fa fa-print"></i>
+                    </button>
                 </td>
             </tr>
         </table>
