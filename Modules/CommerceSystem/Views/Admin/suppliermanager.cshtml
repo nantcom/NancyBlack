@@ -88,7 +88,7 @@
     </ncb-ngtable>
 
     <ncb-modal id="SupplierModal"
-               title="{{object.id == null ? 'Create Movement' : 'Edit Movement'}}"
+               title="{{object.id == null ? 'Create Supplier' : 'Edit Supplier'}}"
                closebutton
                deletebutton="object.id != null"
                ng-open="ctrl.setOrderTime()">
@@ -119,6 +119,33 @@
                         </div>
                     </div>
 
+                    <div class="form-group row" ng-show="object.OrderPeriod == 'Weekly'">
+                        <div class="col-xs-12 form-group">
+                            <label>Order when</label>
+                            <select class="form-control" ng-model="object.WeeklyOrderWhen">
+                                <option>Sunday</option>
+                                <option>Monday</option>
+                                <option>Tuesday</option>
+                                <option>Wednesday</option>
+                                <option>Thursday</option>
+                                <option>Friday</option>
+                                <option>Saturday</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row" ng-show="object.OrderPeriod == 'Monthly'">
+                        <div class="col-xs-12 form-group">
+                            <label>Order when</label>
+                            <select class="form-control" ng-model="object.MonthlyOrderWhen">
+                                @for (int i = 1; i <= 31; i++)
+                                {
+                                    <option>@i</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="form-group row">
                         <div class="col-xs-6 form-group">
                             <label>OrderTime</label>
@@ -140,33 +167,6 @@
                         </div>
                     </div>
 
-                    <div class="form-group row" ng-show="object.OrderPeriod == 'Weekly'">
-                        <div class="col-xs-12 form-group">
-                            <label>Order when</label>
-                            <select class="form-control" ng-model="object.WeeklyOrderWhen">
-                                <option>Sunday</option>
-                                <option>Monday</option>
-                                <option>Tuesday</option>
-                                <option>Wednesday</option>
-                                <option>Thursday</option>
-                                <option>Friday</option>
-                                <option>Saturday</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group row" ng-show="object.OrderPeriod == 'Monthly'">
-                        <div class="col-xs-12 form-group">
-                            <label>Order when</label>
-                            <select class="form-control" ng-model="orderTime.Minute">
-                                @for (int i = 1; i <= 31; i++)
-                                {
-                                    <option>@i</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-
                 </tab>
 
                 <tab heading="Contact">
@@ -183,7 +183,15 @@
                         <div class="col-xs-12">
                             <input type="url" name="Website" title="Website"
                                    ncb-textbox
-                                   ng-model="object.Url" />
+                                   ng-model="object.WebSiteUrl" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-xs-12">
+                            <input type="email" name="Email" title="Email"
+                                   ncb-textbox
+                                   ng-model="object.Email" />
                         </div>
                     </div>
 
@@ -224,30 +232,6 @@
                             <input type="url" name="PostalCode" title="PostalCode"
                                    ncb-textbox
                                    ng-model="object.Address.PostalCode" />
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <div class="col-xs-12">
-                            <input type="url" name="Phone" title="Website"
-                                   ncb-textbox
-                                   ng-model="object.Url" />
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <div class="col-xs-12">
-                            <input type="url" name="Phone" title="Website"
-                                   ncb-textbox
-                                   ng-model="object.Url" />
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <div class="col-xs-12">
-                            <input type="url" name="Phone" title="Website"
-                                   ncb-textbox
-                                   ng-model="object.Url" />
                         </div>
                     </div>
 

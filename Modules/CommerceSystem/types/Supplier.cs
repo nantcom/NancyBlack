@@ -25,9 +25,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public string Phone { get; set; }
 
+        public string Email { get; set; }
+
         public NcgAddress Address { get; set; }
 
-        public string Url { get; set; }
+        public string WebSiteUrl { get; set; }
 
         public string WeeklyOrderWhen { get; set; }
 

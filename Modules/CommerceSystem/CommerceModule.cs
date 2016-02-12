@@ -429,7 +429,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     goto EndPayment;
                 }
 
-                // this line will never be run when IsErrorCode == true
+                // after this line will never be run until EndPayment when IsErrorCode == true
                 if (so.PaymentStatus != PaymentStatus.PaymentReceived && log.Amount != so.TotalAmount)
                 {
                     log.IsPaymentSuccess = true;
@@ -477,6 +477,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 db.UpsertRecord<SaleOrder>(so);
 
                 CommerceModule.PaymentCompleted(so, db);
+
+                // Automate change status to WaitingForOrder for add item to PO
+                if (exceptions.Count == 0 || isPaymentReceived)
+                {
+                    so.Status = SaleOrderStatus.WaitingForOrder;
+                    db.UpsertRecord<SaleOrder>(so);
+                }
             }
 
         }

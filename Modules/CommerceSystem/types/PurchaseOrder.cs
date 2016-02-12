@@ -9,10 +9,9 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
-    public static class PurchaseOrderStatus
+    public class PurchaseOrderStatus
     {
         public const string New = "New";
-        public const string Confirm = "Confirm";
         public const string Ordered = "Ordered";
         public const string Received = "Received";
     }
@@ -30,8 +29,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             if (supplier.OrderPeriod == "Daily")
             {
-                var canOrderToday = DateTime.Today.AddTicks(supplier.OrderTime.Ticks).AddHours(-3) > DateTime.Now;
-                this.ExpectedOrderDate = canOrderToday ? DateTime.Today.AddTicks(supplier.OrderTime.Ticks) : DateTime.Today.AddTicks(supplier.OrderTime.Ticks).AddDays(1);
+                var canOrderToday = DateTime.Today.AddTicks(supplier.OrderTime.Ticks) > DateTime.Now;
+                this.OrderDate = canOrderToday ? DateTime.Today.AddTicks(supplier.OrderTime.Ticks) : DateTime.Today.AddTicks(supplier.OrderTime.Ticks).AddDays(1);
             }
             else if (supplier.OrderPeriod == "Weekly")
             {
@@ -43,8 +42,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
                 // example : next monday (depend on expectedDay)
                 var nextDayOfWeek = DateTime.Today.AddDays(daysToAdd).AddTicks(supplier.OrderTime.Ticks);
-                var canOrderThisWeek = nextDayOfWeek.AddHours(-3) > DateTime.Now;
-                this.ExpectedOrderDate = canOrderThisWeek ? nextDayOfWeek : nextDayOfWeek.AddDays(7);
+                var canOrderThisWeek = nextDayOfWeek > DateTime.Now;
+                this.OrderDate = canOrderThisWeek ? nextDayOfWeek : nextDayOfWeek.AddDays(7);
             }
             else if (supplier.OrderPeriod == "Monthly")
             {
@@ -52,8 +51,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 var expectedOrderDate = endOfLastMonth
                     .AddDays(supplier.MonthlyOrderWhen) // expectedOrderDate for this month
                     .AddTicks(supplier.OrderTime.Ticks); // expectedOrderTime for this month
-                var canOrderThisMonth = expectedOrderDate.AddHours(-3) > DateTime.Now;
-                this.ExpectedOrderDate = canOrderThisMonth ? expectedOrderDate : expectedOrderDate.AddMonths(1);
+                var canOrderThisMonth = expectedOrderDate > DateTime.Now;
+                this.OrderDate = canOrderThisMonth ? expectedOrderDate : expectedOrderDate.AddMonths(1);
             }
         }
 
@@ -64,14 +63,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __updatedAt { get; set; }
 
         /// <summary>
-        /// DateTime for order material (when being generated)
-        /// </summary>
-        public DateTime OrderDate { get; set; }
-
-        /// <summary>
         /// DateTime which calulate from supplier's order period
         /// </summary>
-        public DateTime ExpectedOrderDate { get; set; }
+        public DateTime OrderDate { get; set; }
 
         public bool WasGenerated { get; set; }
 
@@ -107,37 +101,38 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             foreach (var soItem in saleOrder.ItemsDetail.OrderBy(item => item.Id))
             {
                 var supplierInfoString = ((JObject)soItem.Attributes).Value<string>("supplier");
-                if (string.IsNullOrWhiteSpace(supplierInfoString))
-                {
-                    continue;
-                }
-
                 var isChasisRequired = ((JObject)soItem.Attributes).Value<string>("chasis") != null;
-                var supplier = JsonConvert.DeserializeObject<JObject>(supplierInfoString);
-                var isSupplierMatched = supplier.Value<int>("id") == this.SupplierId;
-                var isOrderSeparatedFromChasis = supplier.Value<bool>("isOrderSeparatedFromChasis");
 
-                if (!isSupplierMatched)
-                {
-                    continue;
-                }
-                if (isChasisRequired && !isOrderSeparatedFromChasis)
+                if (string.IsNullOrWhiteSpace(supplierInfoString) && isChasisRequired)
                 {
                     chasisRequiredProducts.Add(soItem);
                     continue;
                 }
-
-                var supplierPartName = supplier.Value<string>("part");
-                supplierPartName = supplierPartName == null ? soItem.Title : supplierPartName;
-
-                newPItems.Add(new PurchaseItem()
+                else if (string.IsNullOrWhiteSpace(supplierInfoString))
                 {
-                    TrackngIds = soItem.Id.ToString(),
-                    Title = supplierPartName,
-                    ProductTitle = soItem.Title,
-                    Qty = ((JObject)soItem.Attributes).Value<int>("Qty"),
-                    Parts = new List<string>()
-                });
+                    continue;
+                }
+                else
+                {
+                    var supplier = JsonConvert.DeserializeObject<JObject>(supplierInfoString);
+                    // if supplier's id is not match, skip this item
+                    if (supplier.Value<int>("id") != this.SupplierId)
+                    {
+                        continue;
+                    }
+
+                    var supplierPartName = supplier.Value<string>("part");
+                    supplierPartName = supplierPartName == null ? soItem.Title : supplierPartName;
+
+                    newPItems.Add(new PurchaseItem()
+                    {
+                        TrackngIds = soItem.Id.ToString(),
+                        Title = supplierPartName,
+                        ProductTitle = soItem.Title,
+                        Qty = ((JObject)soItem.Attributes).Value<int>("Qty"),
+                        Parts = new List<string>()
+                    });
+                }
             }
 
             var pItemDict = this.Items.ToDictionary<PurchaseItem, string>(item => item.TrackngIds);
@@ -183,14 +178,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public void Generate()
         {
             this.WasGenerated = true;
-            this.Status = PurchaseOrderStatus.Confirm;
-            this.PurchaseOrderIdentifier = string.Format("PO{0:yyyyMMdd}-{1:000000}", this.OrderDate, this.Id);
-        }
-
-        public void Order(DateTime orderWhen)
-        {
-            this.OrderDate = orderWhen;
             this.Status = PurchaseOrderStatus.Ordered;
+            this.PurchaseOrderIdentifier = string.Format("PO{0:yyyyMMdd}-{1:000000}", this.OrderDate, this.Id);
         }
     }
 

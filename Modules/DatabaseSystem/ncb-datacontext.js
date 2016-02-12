@@ -1130,11 +1130,12 @@
 
         function link($scope, element, attrs) {
 
+            // key must be variable to watch
             if (attrs.key == null) {
 
                 throw "key attribute is required";
             }
-
+            
             if (attrs.ncbVlookup == null) {
 
                 throw "ncb-lookup attribute value is required";

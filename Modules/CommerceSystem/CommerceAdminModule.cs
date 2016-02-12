@@ -23,7 +23,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/tables/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
             Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
             Get["/admin/tables/suplier"] = this.HandleViewRequest("/Admin/suppliermanager", null);
-            Get["/admin/tables/purchaseorder"] = this.HandleViewRequest("/Admin/purchasemanager", null);
+            Get["/admin/tables/purchaseorder"] = this.HandleRequest(this.HandlePurchaseOrderManagerPage);
 
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
 
@@ -70,36 +70,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 200;
             });
 
-            #region PurchaseOrder
-
-            Post["/admin/purchaseorder/{id}/generate"] = this.HandleRequest((arg) =>
-            {
-                if (!this.CurrentUser.HasClaim("admin"))
-                {
-                    return 403;
-                }
-
-                var po = this.SiteDatabase.GetById<PurchaseOrder>((int)arg.id);
-                po.Generate();
-                this.SiteDatabase.UpsertRecord(po);
-
-                return po;
-            });
-
-            Post["/admin/purchaseorder/{id}/order"] = this.HandleRequest((arg) =>
-            {
-                if (!this.CurrentUser.HasClaim("admin"))
-                {
-                    return 403;
-                }
-
-                //call PO.Order
-
-                return 404;
-            });
-
-            #endregion
-
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);
 
             Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);
@@ -118,6 +88,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             #endregion
         }
+
+        private dynamic HandlePurchaseOrderManagerPage(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            var dummyPage = new Page();
+
+            var data = new
+            {
+                PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>()
+            };
+
+            return View["/Admin/purchaseordermanager", new StandardModel(this, dummyPage, data)];
+        }
+
         private dynamic GetSaleorderForPrintingReceiptList(dynamic arg)
         {
             var currentMonth = DateTime.Now.Date.AddDays(-DateTime.Now.Day + 1);
