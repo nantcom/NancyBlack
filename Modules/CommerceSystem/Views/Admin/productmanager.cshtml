@@ -39,7 +39,7 @@
      ncg-multicurrency
      class="row">
 
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div style="margin-bottom: 10px">
             <div class="btn-group" role="group" aria-label="...">
                 <button type="button" class="btn btn-success btn-lg"
@@ -94,9 +94,81 @@
         </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="col-md-4">
 
-        <div collapse="ctrl.IsCollapse">
+        <table id="CaseTable"
+                ncb-datatable
+                class="table table-striped table-hover"
+                style="width: 100%"
+                ng-table="tableParams"
+                show-filter="true">
+
+            <tr ng-repeat="product in tableParams.data">
+                <td data-title="'Order'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }"
+                    width="10%" style="text-align:center">
+                    <span ng-hide="product.IsVariation">
+                        {{product.DisplayOrder}}
+                    </span>
+                </td>
+
+                <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
+                    <a href="#" ng-click="ctrl.view_data(product)" ncb-scroll>
+                        <span style="margin-right: 10px"
+                                ng-show="product.IsVariation">
+                            <i class="fa fa-toggle-right"></i>
+                        </span>
+                        {{product.Title}}
+                    </a>
+                </td>
+                <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }"
+                    width="10%" style="text-align:center">
+                    {{product.Stock}}
+                </td>
+                <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
+                    width="10%" style="text-align:right">
+                    {{product.Price | number:2 }}
+                    @this.Site.commerce.multicurrency.home
+
+                    <div style="font-size: 70%"
+                            ng-repeat="(key,value) in product.PriceMultiCurrency">
+                        {{value | number:2 }} {{key}}
+
+                        <span class="label label-danger text-muted"
+                                ng-show="{ 'text-danger' : value < multicurrency.convertHome(product.Price, key)}">
+                            -{{(multicurrency.convertHome(product.Price, key) / value * 100) - 100 | number:2}}%
+                        </span>
+                    </div>
+
+                </td>
+                <td data-title="'Updated'" sortable="'__updatedAt'"
+                    width="20%" style="text-align:center">
+                    {{product.__updatedAt | date:'dd/MM/yyyy, HH:mm'}}
+                </td>
+                <td data-title="''" style="white-space: nowrap">
+
+                    <button class="btn btn-default"
+                            ng-click="data.copy(product)">
+                        <i class="fa fa-copy"></i>
+                    </button>
+
+                </td>
+            </tr>
+
+        </table>
+
+        <script type="text/ng-template" id="ng-table/headers/checkbox.html">
+            <input type="checkbox" ng-model="checkboxes.checked" id="select_all" name="filter-checkbox" value="" />
+        </script>
+
+    </div>
+
+    <div class="col-md-6">
+
+
+        <ncb-alerts alerts="alerts"></ncb-alerts>
+
+
+        <div collapse="ctrl.IsCollapse || object == null">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h1>
@@ -108,8 +180,6 @@
                             <i class="fa fa-trash"></i>
                         </button>
                     </h1>
-                    <span class="glyphicon glyphicon-chevron-down"
-                          ng-click="ctrl.IsCollapse = !ctrl.IsCollapse"></span>
                 </div>
                 <div class="panel-body">
 
@@ -415,80 +485,6 @@
 
                 </div>
             </div>
-        </div>
-
-        <ncb-alerts alerts="alerts"></ncb-alerts>
-
-        <div>
-            <table id="CaseTable"
-                   ncb-datatable
-                   class="table table-striped table-hover"
-                   style="width: 100%"
-                   ng-table="tableParams"
-                   show-filter="true">
-
-                <tr ng-repeat="product in tableParams.data">
-                    <td style="text-align: left" header="'ng-table/headers/checkbox.html'">
-                        <input type="checkbox"
-                               ng-hide="product.IsVariation"
-                               ng-model="checkboxes.items[product.id]" />
-                    </td>
-                    <td data-title="'Order'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }"
-                        width="100px" style="text-align:center">
-                        <span ng-hide="product.IsVariation">
-                            {{product.DisplayOrder}}
-                        </span>
-                    </td>
-
-                    <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
-                        <a href="#top" ng-click="ctrl.view_data(product)" ncb-scroll>
-                            <span style="margin-right: 10px"
-                                  ng-show="product.IsVariation">
-                                <i class="fa fa-toggle-right"></i>
-                            </span>
-                            {{product.Title}}
-                        </a>
-                    </td>
-                    <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }"
-                        width="100px" style="text-align:center">
-                        {{product.Stock}}
-                    </td>
-                    <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
-                        width="150px" style="text-align:right">
-                        {{product.Price | number:2 }}
-                        @this.Site.commerce.multicurrency.home
-
-                        <div style="font-size: 70%"
-                             ng-repeat="(key,value) in product.PriceMultiCurrency">
-                            {{value | number:2 }} {{key}}
-
-                            <span class="label label-danger text-muted"
-                                  ng-show="{ 'text-danger' : value < multicurrency.convertHome(product.Price, key)}">
-                                -{{(multicurrency.convertHome(product.Price, key) / value * 100) - 100 | number:2}}%
-                            </span>
-                        </div>
-
-                    </td>
-                    <td data-title="'Updated'" sortable="'__updatedAt'"
-                        width="200px" style="text-align:center">
-                        {{product.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
-                    </td>
-                    <td data-title="''" style="white-space: nowrap">
-
-                        <button class="btn btn-default"
-                                ng-click="data.copy(product)">
-                            <i class="fa fa-copy"></i>
-                        </button>
-
-                    </td>
-                </tr>
-
-            </table>
-
-            <script type="text/ng-template" id="ng-table/headers/checkbox.html">
-                <input type="checkbox" ng-model="checkboxes.checked" id="select_all" name="filter-checkbox" value="" />
-            </script>
-
         </div>
 
         <ncb-modal id="MultipleProductUpdate"

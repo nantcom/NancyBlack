@@ -248,10 +248,11 @@
                         $scope.$apply(function () {
 
                             $scope.isBusy = false;
+                            $scope.alerts.length = 0;
                             $scope.alerts.push({
 
                                 type: 'success',
-                                msg: 'Item was saved.'
+                                msg: 'Item ID: ' + object.id + ' was saved.'
                             });
                         });
 
@@ -279,6 +280,7 @@
                         $scope.$apply(function () {
 
                             $scope.data.refresh();
+                            $scope.alerts.length = 0;
                             $scope.alerts.push({
 
                                 type: 'success',
@@ -447,10 +449,11 @@
                             callback(object);
                         }
 
+                        $scope.alerts.length = 0;
                         $scope.alerts.push({
 
                             type: 'success',
-                            msg: 'Delete Successful.'
+                            msg: 'Item ID:' + object.id + ' was deleted.'
                         });
                     });
 
@@ -540,10 +543,11 @@
                     $scope.data.uploadProgress = 100;
                     $scope.data.uploadStatus = "success";
 
+                    $scope.alerts.length = 0;
                     $scope.alerts.push({
 
                         type: 'success',
-                        msg: 'File was uploaded for item:' + result.id
+                        msg: 'File: ' + file.name + ' was uploaded for item:' + result.id
                     });
 
                     $scope.$emit(emittedEvents.uploaded, { sender: $scope, args: result });
@@ -605,7 +609,7 @@
 
                     $scope.alerts.push({
                         type: 'warning',
-                        msg: 'File was deleted for item:' + result.id
+                        msg: 'File ' + attachment.Url + ' was deleted for item: ' + result.id
                     });
 
                     $scope.$emit(emittedEvents.updated, { sender: $scope, args: result });
