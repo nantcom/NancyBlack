@@ -87,22 +87,22 @@
                             <div class="row">
 
                                 <div class="col-md-6">
-                                    <h2>การเปลี่ยนแปลงล่าสุด</h2>
+                                    <h2 class="text-info">การเปลี่ยนแปลงล่าสุด</h2>
                                     {{object.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
                                 </div>
 
                                 <div class="col-md-6">
-                                    <h2>วันที่ส่งคำสั่งซื้อ</h2>
+                                    <h2 class="text-info">วันที่ส่งคำสั่งซื้อ</h2>
                                     {{object.__createdAt | date:'dd MMMM yyyy, HH:mm'}}
                                 </div>
 
                                 <div class="col-md-6">
-                                    <h2>สถานะการชำระเงิน</h2>
+                                    <h2 class="text-info">สถานะการชำระเงิน</h2>
                                     {{object.PaymentStatus}}
                                 </div>
 
                                 <div class="col-md-6">
-                                    <h2>สถานะล่าสุด</h2>
+                                    <h2 class="text-info">สถานะล่าสุด</h2>
                                     {{object.Status}}
                                 </div>
                             </div>
@@ -110,9 +110,57 @@
                             <div class="row"
                                  ng-if="object.Status == 'Shipped'">
                                 <div class="col-xs-12" id="dhltracking">
-                                    <h2>สถานะการจัดส่ง</h2>
+                                    <h2 class="text-info">สถานะการจัดส่ง</h2>
                                     <iframe ng-src="{{'http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + object.DHLTrackingNumber}}"></iframe>
                                 </div>
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-xs-12">
+
+                                    <h2 class="text-info" >บันทึก</h2>
+                                    <div class="alert alert-info" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
+
+                                    <div class="row" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
+
+                                        <div class="col-xs-8">
+                                            <div class="well" ng-if="isAdmin == false">
+                                                {{atta.Caption}}
+                                            </div>
+
+                                            <div class="well" ng-if="isAdmin">
+                                                <textarea class="form-control" rows="3"
+                                                          ng-model="atta.Caption"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-xs-4">
+                                            <a href="{{atta.Url}}" target="_blank">
+                                                <img class="img-rounded img-responsive" ng-src="{{atta.Url}}" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (this.CurrentUser.HasClaim("admin"))
+                                    {
+                                        
+                                        <div class="row">
+
+                                            <div class="col-xs-8">
+                                                <div class="well">
+                                                    (เพิ่มภาพก่อนจึงจะสามารถใส่บันทึกได้)
+
+
+                                                    <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                </div>
+
                             </div>
 
                         </tab>
@@ -269,14 +317,10 @@
                         </tab>
 
                         <tab heading="แจ้งการชำระเงิน"
-                             ng-if="object.Status == 'Confirmed' && object.PaymentStatus != 'PaymentReceived'">
-                            <br />
-                            <div class="text-right">
-                                <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
-                                    <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
-                                </button>
-                            </div>
-                            <br />
+                             ng-if="object.Status != 'New' && object.PaymentStatus != 'PaymentReceived'">
+                            
+
+
                             <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
                                 <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
                                 <div class="panel-body">
@@ -300,6 +344,11 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="text-right">
+                                <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
+                                    <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
+                                </button>
+                            </div>
 
                             @if (!this.CurrentUser.HasClaim("admin"))
                             {
@@ -313,54 +362,9 @@
 
                         </tab>
 
-                        <tab heading="หมายเหตุ"
-                             ng-if="object.Status == 'Confirmed'">
-                            <br />
-                            <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
-                                <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="simple-inline-block">
-                                            <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
-                                        </div>
-                                        <div class="simple-inline-block" ng-hide="isAdmin">
-                                            <pre style="width: 700px; font-family: Leelawadee"><b>สถานะ :&ensp;</b>{{atta.Status}}<br /><b>ข้อความ :&ensp;</b>{{atta.Caption}}</pre>
-                                        </div>
-                                        <div class="simple-inline-block" ng-show="isAdmin" style="width: 700px">
-                                            <p>
-                                                <label>สถานะ</label>
-                                                <input class="form-control"
-                                                       ng-model="atta.Status" />
-                                            </p>
-                                            <p>
-                                                <label>ข้อความ</label>
-                                                <textarea class="form-control" style="min-height: 150px"
-                                                          ng-model="atta.Caption"></textarea>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            <div class="alert alert-danger" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
-
-                            @if (this.CurrentUser.HasClaim("admin"))
-                            {
-                                <div class="panel panel-primary">
-                                    <div class="panel-heading">New Image</div>
-                                    <div class="panel-body">
-                                        <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
-                                    </div>
-                                </div>
-                            }
-
-
-                        </tab>
-
                         @if (this.CurrentUser.HasClaim("admin"))
                         {
-                            <tab heading="Serial Number">
+                            <tab heading="Admin: Serial">
 
                                 <table class="table">
                                     <thead>
@@ -398,12 +402,17 @@
 
                     <div class="well">
                         <p>
-                            <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3><br />
+                            <h2 class="text-info">{{object.SaleOrderIdentifier}}</h2>
+                            <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3>
                             <div>
                                 <i class="fa fa-phone"></i> {{object.Customer.PhoneNumber}}
                             </div>
                             <div>
                                 <i class="fa fa-envelope"></i> <a href="mailto:{{object.Customer.Email}}">{{object.Customer.Email}}</a>
+                            </div>
+                            <div ng-if="object.CustomData.Note">
+                                <b>หมายเหตุ:</b>
+                                {{object.CustomData.Note}}
                             </div>
                         </p>
 
