@@ -9,7 +9,7 @@
         $scope.object = {};
         $scope.multicurrency = window.multicurrency;
 
-        $scope.defaultAttributes = ['Color', 'Gender', 'Size', 'BirthMonth'];
+        $scope.defaultAttributes = ['Color', 'Gender', 'Size', 'BirthMonth', 'supplier'];
 
         var vm = this;
         vm.view_data = _viewData;
@@ -196,6 +196,8 @@
 
         function _FilterByUrl(CollectionName) {
             var _url = CollectionName.fullPath;
+
+            $scope.object = null;
             $scope.filters.Url = _url;
         };
 
