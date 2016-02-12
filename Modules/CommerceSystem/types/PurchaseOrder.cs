@@ -183,8 +183,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public void Generate()
         {
             this.WasGenerated = true;
-            this.OrderDate = DateTime.Now;
+            this.Status = PurchaseOrderStatus.Confirm;
             this.PurchaseOrderIdentifier = string.Format("PO{0:yyyyMMdd}-{1:000000}", this.OrderDate, this.Id);
+        }
+
+        public void Order(DateTime orderWhen)
+        {
+            this.OrderDate = orderWhen;
+            this.Status = PurchaseOrderStatus.Ordered;
         }
     }
 

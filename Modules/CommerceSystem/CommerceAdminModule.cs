@@ -70,6 +70,36 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 200;
             });
 
+            #region PurchaseOrder
+
+            Post["/admin/purchaseorder/{id}/generate"] = this.HandleRequest((arg) =>
+            {
+                if (!this.CurrentUser.HasClaim("admin"))
+                {
+                    return 403;
+                }
+
+                var po = this.SiteDatabase.GetById<PurchaseOrder>((int)arg.id);
+                po.Generate();
+                this.SiteDatabase.UpsertRecord(po);
+
+                return po;
+            });
+
+            Post["/admin/purchaseorder/{id}/order"] = this.HandleRequest((arg) =>
+            {
+                if (!this.CurrentUser.HasClaim("admin"))
+                {
+                    return 403;
+                }
+
+                //call PO.Order
+
+                return 404;
+            });
+
+            #endregion
+
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);
 
             Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);

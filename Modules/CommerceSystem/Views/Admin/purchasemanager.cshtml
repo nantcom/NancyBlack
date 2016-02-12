@@ -21,9 +21,19 @@
         (function () {
 
             var mod = angular.module("page", []);
-            mod.controller("PageController", function ($scope, $rootScope, $timeout) {
+            mod.controller("PageController", function ($scope, $http, $rootScope, $timeout) {
 
                 var $me = this;
+                $me.generatePO = function (po) {
+                    $http.post('/admin/purchaseorder/' + po.id + '/generate').
+                      success(function (data, status, headers, config) {
+                          alert('success');
+                          po = data;
+                      }).
+                      error(function (data, status, headers, config) {
+                          alert(data.message);
+                      });
+                }
 
             });
 
@@ -93,7 +103,7 @@
                 </td>
                 <td style="white-space: nowrap">
                     <button class="btn btn-info"
-                            ng-click="">
+                            ng-click="ctrl.generatePO(item)">
                         <i class="fa fa-print"></i>
                     </button>
                 </td>
