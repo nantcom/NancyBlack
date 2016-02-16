@@ -72,6 +72,10 @@
             var id = $scope.object.Items[i];
             var product = lookup[id];
 
+            if (product == null) {
+                continue;
+            }
+
             if (product.Url.indexOf("/products/parts/os") == 0 ||
                 product.Url.indexOf("/promotions") == 0) {
 
@@ -110,13 +114,34 @@
 
             $http.post("/support/notify/payment", { SaleOrderIdentifier: $scope.object.SaleOrderIdentifier })
                 .then(function (success) {
-                    alert("ขั้นตอนการตรวจสอบ และเปลี่ยนสภานะจะใช้เวลา 1 วันทำการ ขอบคุณที่ใช้บริการค่ะ");
+
+                    swal({
+                        title: "ตรวจสอบการชำระเงิน",
+                        text: 'เราจะทำการตรวจสอบให้ท่านโดยเร็ว โดยคุณจะได้รับอีเมลล์แจ้งถึงการเปลี่ยนแปลงสถานะ ขอบคุณที่ใช้บริการค่ะ',
+                        html: true
+                    });
+
                 }, function (error) {
                     alert(error.message);
                 });
 
         }
 
+        me.showTransferInfo = function () {
+
+            swal({   
+                title: "ชำระเงินโดยการโอนเงิน",   
+                text: '<p>กรุณาโอนเงินมายัง:</p>' +
+
+                      '<p>ธนาคารกสิกรไทย สาขาเสาชิงช้า <br/>' +
+                      'เลขที่บัญชี: 004-2-45167-3<br/>' +
+                      'ชื่อบัญชี: บจก. นันคอม</p>' +
+                      
+                      '<p style="margin-top: 20px">หลังการโอนเงิน กรุณาอัพโหลดสลิปการโอนเงินเข้ามายังระบบ โดยใช้แท็บ <b>แจ้งการชำระเงิน</b> ค่ะ</p>',  
+                html: true
+            });
+
+        };
     });
 
     mod.filter('newline', function ($sce) {
