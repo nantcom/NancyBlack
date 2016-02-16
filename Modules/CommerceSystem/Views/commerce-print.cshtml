@@ -226,12 +226,12 @@
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{item.Price | number:2 }}
+                            {{item.Price | number:2 }} บาท
                         </div>
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{item.LineTotal | number:2 }}
+                            {{item.LineTotal | number:2 }} บาท
                         </div>
                     </td>
                 </tr>
@@ -248,10 +248,10 @@
                     </td>
                     <td class="total-value">
                         <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getVat() | number:2 }}
+                            {{getVat() | number:2 }} บาท
                         </span>
                         <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getVatFromSplitedPayment() | number:2 }}
+                            {{getVatFromSplitedPayment() | number:2 }} บาท
                         </span>
                     </td>
                 </tr>
@@ -263,9 +263,7 @@
                         </div>
                     </td>
                     <td class="total-value">
-                        <div class="form-control-static text-right">
-                            <b>{{so.ShippingFee | number:2 }} บาท</b>
-                        </div>
+                        <b>{{so.ShippingFee | number:2 }} บาท</b>
                     </td>
                 </tr>
                 <tr>
@@ -276,9 +274,7 @@
                         </div>
                     </td>
                     <td class="total-value">
-                        <div class="form-control-static text-right">
-                            <b>{{so.ShippingInsuranceFee | number:2 }} บาท</b>
-                        </div>
+                        <b>{{so.ShippingInsuranceFee | number:2 }} บาท</b>
                     </td>
                 </tr>
 
@@ -298,10 +294,10 @@
                     </td>
                     <td class="total-value">
                         <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                            {{so.TotalAmount | number:2 }}
+                            {{so.TotalAmount | number:2 }} บาท
                         </span>
                         <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getTotalFromSplitedPayment() | number:2 }}
+                            {{getTotalFromSplitedPayment() | number:2 }} บาท
                         </span>
                     </td>
                 </tr>
@@ -440,22 +436,24 @@
                             <tr>
                                 <td>
                                     <div class="fitted">
+                                        @if (true || this.CurrentUser.HasClaim("admin"))
+                                        {
+                                            @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"
+                                                src="~/Modules/CommerceSystem/images/JP-Signature.png" />*@
+                                            <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
+                                                 src="~/Modules/CommerceSystem/images/TS-Signature.png" />
+                                        }
                                         <div class="collector">ผู้รับเงิน / Collector</div>
                                         <div class="collect-date">
                                             <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b>
                                             <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd/MM/yy'}}</b>
                                             <br />วันที่/Date
                                         </div>
-                                        @if (this.CurrentUser.HasClaim("admin"))
-                                        {
-                                            <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"
-                                                 src="~/Modules/CommerceSystem/images/JP-Signature.png" />
-                                        }
                                     </div>
                                 </td>
                                 <td>
                                     <div class="fitted">
-                                        @if (this.CurrentUser.HasClaim("admin"))
+                                        @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
                                                  src="~/Modules/CommerceSystem/images/Company-Stemp.png" />
@@ -464,14 +462,16 @@
                                 </td>
                                 <td>
                                     <div class="fitted">
+                                        @if (true || this.CurrentUser.HasClaim("admin"))
+                                        {
+                                            @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 46px;"
+                                                src="~/Modules/CommerceSystem/images/JP-Signature.png" />*@
+                                            <img style="position: absolute; width: 140px; top: 35px; left: 46px;"
+                                                 src="~/Modules/CommerceSystem/images/TS-Signature.png" />
+                                        }
                                         <div class="by-name">ในนาม</div>
                                         <div class="company-name">{{billing.name}}</div>
                                         <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
-                                        @if (this.CurrentUser.HasClaim("admin"))
-                                        {
-                                            <img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 46px;"
-                                                 src="~/Modules/CommerceSystem/images/JP-Signature.png" />
-                                        }
                                     </div>
                                 </td>
                             </tr>

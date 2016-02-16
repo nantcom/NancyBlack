@@ -70,8 +70,8 @@
 
             <tr ng-repeat="item in tableParams.data">
                 <td data-title="'Order#'"
-                    sortable="'SaleOrderIdentifier'"
-                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    sortable="'id'"
+                    filter="{ 'PurchaseOrderIdentifier': 'text' }">
                     <a href target="_blank">
                         {{item.PurchaseOrderIdentifier == null ? 'NotGeneratedYet' : item.PurchaseOrderIdentifier}}
                     </a>

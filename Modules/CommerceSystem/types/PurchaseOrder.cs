@@ -12,6 +12,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     public class PurchaseOrderStatus
     {
         public const string New = "New";
+        public const string Generated = "Generated";
         public const string Ordered = "Ordered";
         public const string Received = "Received";
     }
@@ -98,8 +99,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             var newPItems = new List<PurchaseItem>();
 
             // separate item which require chasis and matched supplier's item
-            foreach (var soItem in saleOrder.ItemsDetail.OrderBy(item => item.Id))
+            foreach (var soItemId in saleOrder.Items.OrderBy(item => item))
             {
+                var soItem = db.GetById<Product>(soItemId);
+                // if this product has been deleted, then use the snapshot in ItemsDetail
+                if (soItem == null)
+                {
+                    soItem = saleOrder.ItemsDetail.Where(product => product.Id == soItemId).FirstOrDefault();
+                }
+
+                if (soItem.Attributes == null)
+                {
+                    continue;
+                }
+
                 var supplierInfoString = ((JObject)soItem.Attributes).Value<string>("supplier");
                 var isChasisRequired = ((JObject)soItem.Attributes).Value<string>("chasis") != null;
 
@@ -114,6 +127,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
                 else
                 {
+                    // do this when there is supplierInfoString or there are supplierInfoString and isChasisRequired == true
                     var supplier = JsonConvert.DeserializeObject<JObject>(supplierInfoString);
                     // if supplier's id is not match, skip this item
                     if (supplier.Value<int>("id") != this.SupplierId)
@@ -129,7 +143,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                         TrackngIds = soItem.Id.ToString(),
                         Title = supplierPartName,
                         ProductTitle = soItem.Title,
-                        Qty = ((JObject)soItem.Attributes).Value<int>("Qty"),
+                        Qty = 1,
                         Parts = new List<string>()
                     });
                 }
@@ -157,17 +171,21 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
                 else
                 {
+                    pItemDict.Add(pitem.TrackngIds, pitem);
                     this.Items.Add(pitem);
                 }
             }
 
-            OrderRelation relation = new OrderRelation()
+            if (newPItems.Count > 0)
             {
-                SaleOrderId = saleOrder.Id,
-                PurchaseOrderId = this.Id
-            };
+                OrderRelation relation = new OrderRelation()
+                {
+                    SaleOrderId = saleOrder.Id,
+                    PurchaseOrderId = this.Id
+                };
 
-            db.UpsertRecord(relation);
+                db.UpsertRecord(relation);
+            }
 
             if (isSaveRequired)
             {
@@ -178,7 +196,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public void Generate()
         {
             this.WasGenerated = true;
-            this.Status = PurchaseOrderStatus.Ordered;
+            this.Status = PurchaseOrderStatus.Generated;
             this.PurchaseOrderIdentifier = string.Format("PO{0:yyyyMMdd}-{1:000000}", this.OrderDate, this.Id);
         }
     }
