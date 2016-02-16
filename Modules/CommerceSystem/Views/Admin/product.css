@@ -1,4 +1,7 @@
-﻿#productlist .panel-heading {
+﻿#productlist .angular-ui-tree-handle {
+  cursor: default !important;
+}
+#productlist .panel-heading {
   position: relative;
 }
 #productlist .panel-heading h1 {

@@ -22,6 +22,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/admin/tables/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
             Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
+            Get["/admin/tables/suplier"] = this.HandleViewRequest("/Admin/suppliermanager", null);
+            Get["/admin/tables/purchaseorder"] = this.HandleRequest(this.HandlePurchaseOrderManagerPage);
 
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
 
@@ -61,19 +63,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return 403;
                 }
 
-                //var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+                var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
 
-                //var product = this.SiteDatabase.GetById<Product>((int)arg.productId);
-                //if (product == null)
-                //{
-                //    return 400;
-                //}
-
-                //var items = so.Items.ToList();
-                //items.Remove((int)arg.ProductId);
-
-                //so.Items = items.ToArray();
-                //so.UpdateSaleOrder(this.SiteDatabase);
+                so.RemoveItem(this.SiteDatabase, (int)arg.productId);
 
                 return 200;
             });
@@ -96,6 +88,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             #endregion
         }
+
+        private dynamic HandlePurchaseOrderManagerPage(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            var dummyPage = new Page();
+
+            var data = new
+            {
+                PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>()
+            };
+
+            return View["/Admin/purchaseordermanager", new StandardModel(this, dummyPage, data)];
+        }
+
         private dynamic GetSaleorderForPrintingReceiptList(dynamic arg)
         {
             var currentMonth = DateTime.Now.Date.AddDays(-DateTime.Now.Day + 1);

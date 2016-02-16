@@ -200,6 +200,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     continue;
                 }
 
+                product.ContentParts = null;
+
                 // check for duplication
                 if (lookupItemDetail.ContainsKey(product.Id))
                 {
@@ -272,6 +274,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     newItem.Attributes = attr;
                 }
                 attr["Qty"] = 1;
+                newItem.ContentParts = null;
                 this.ItemsDetail.Add(newItem);
             }
             else
@@ -284,9 +287,26 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             db.UpsertRecord<SaleOrder>(this);
         }
 
-        public void DeleteItem(NancyBlackDatabase db, int itemId)
+        public void RemoveItem(NancyBlackDatabase db, int itemId)
         {
-            // still thinking about how to do it
+            var list = this.Items.ToList();
+            list.Add(itemId);
+            this.Items = list.ToArray();
+            
+            var existItem = this.ItemsDetail.Where(p => p.Id == itemId).FirstOrDefault();
+            JObject attr = existItem.Attributes;
+
+            if (attr.Value<int>("Qty") == 1)
+            {
+                this.ItemsDetail.Remove(existItem);
+            }
+            else
+            {
+                attr["Qty"] = attr.Value<int>("Qty") - 1;
+            }
+
+            this.TotalAmount -= existItem.Price;
+            db.UpsertRecord<SaleOrder>(this);
         }
 
         /// <summary>
