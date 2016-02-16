@@ -308,14 +308,44 @@
 
             @if (type == "invoice")
             {
-                <div ng-hide="so.Status == 'New'">
-
-                    <div class="row"
-                         ng-controller="PaysbuyBySaleOrderController as psbCtrl">
+                <div ng-hide="so.Status == 'New'"
+                     ng-controller="PaysbuyBySaleOrderController as psbCtrl">
+                    
+                    <div class="row">
 
                         <div class="col-md-6">
                             <div style="margin-bottom: 10px">
-                                ชำระผ่าน <b>PAYSBUY</b>
+                                ชำระผ่าน <b>Paypal</b>
+                            </div>
+                        </div>
+
+                        <form method="post" target="_top" id="paypalPayment">
+                            <input type="hidden" name="cmd" value="_xclick">
+                            <input type="hidden" name="business" value="S97XQKUP76YS2">
+                            <input type="hidden" name="lc" value="TH">
+                            <input type="hidden" name="item_name" value="{{"LEVEL51 - " + so.SaleOrderIdentifier}}">
+                            <input type="hidden" name="amount" value="{{payAmount}}">
+                            <input type="hidden" name="currency_code" value="THB">
+                            <input type="hidden" name="button_subtype" value="services">
+                            <input type="hidden" name="no_note" value="0">
+                            <input type="hidden" name="cn" value="Add special instructions to the seller:">
+                            <input type="hidden" name="no_shipping" value="1">
+                            <input type="hidden" name="rm" value="1">
+                            <input type="hidden" name="return" value="http://www.level51pc.com/__commerce/paypalcomplete">
+                            <input type="hidden" name="cancel_return" value="http://www.level51pc.com/__commerce/paypalcancel">
+                            <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHosted">
+                            <img src="https://www.paypalobjects.com/en_GB/TH/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal – The safer, easier way to pay online.">
+                            <img alt="" border="0" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1">
+                        </form>
+
+
+                    </div>
+                    
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <div style="margin-bottom: 10px">
+                                ชำระผ่าน <b>PAYSBUY</b> (สามารถใช้บริการผ่อนชำระได้)
                             </div>
 
                             <div class="btn-group" role="group" aria-label="..."
@@ -329,6 +359,7 @@
                                     แบ่งชำระ
                                 </button>
                             </div>
+
                             <div ng-show="paymentType == 'Split'">
                                 <div ng-show="paymentDetail.TransactionLog.length > 0">
                                     <table class="table">
@@ -384,10 +415,12 @@
                                     </span>
                                 </div>
                             </div>
+
                             <div class="row"
                                  style="margin-top: 20px"></div>
                         </div>
-                        <div class="col-md-6 pull-right">
+
+                        <div class="col-md-6 text-right">
 
                             <a class="pull-right">
                                 <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
@@ -412,8 +445,8 @@
                                 <input Type="Hidden" Name="amt" ng-value="splitValue" />
                                 <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
                             </form>
-                        </div>
 
+                        </div>
 
                     </div>
 

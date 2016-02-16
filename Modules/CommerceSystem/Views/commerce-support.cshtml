@@ -9,6 +9,7 @@
 @section Head
 {
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
     <link href="/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
     <title>คำสั่งซื้อ</title>
 }
@@ -19,6 +20,7 @@
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
         window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
     </script>
+    <script src="/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
     <script src="/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
 
     <script type="text/javascript">
@@ -71,7 +73,11 @@
                 </p>
                 <p>
                     <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-success btn-lg">
-                        ชำระค่าสินค้า<span ng-show="object.PaymentStatus=='Deposit'">เพิ่ม</span>
+                        ชำระค่าสินค้าออนไลน์<span ng-show="object.PaymentStatus=='Deposit'">เพิ่ม</span>
+                    </a>
+
+                    <a ng-click="ctrl.showTransferInfo()" class="btn btn-success btn-lg">
+                        ชำระค่าสินค้าโดยการโอนเงิน
                     </a>
                 </p>
             </div>
@@ -321,7 +327,8 @@
                             
 
 
-                            <div class="panel panel-info" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
+                            <div class="panel panel-info"
+                                  ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
                                 <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
                                 <div class="panel-body">
                                     <div class="row">
@@ -344,21 +351,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-right">
+                            <p>
                                 <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
                                     <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
                                 </button>
-                            </div>
-
-                            @if (!this.CurrentUser.HasClaim("admin"))
-                            {
-                                <div class="panel panel-primary">
-                                    <div class="panel-heading">เพิ่มรูปสลิป</div>
-                                    <div class="panel-body">
-                                        <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
-                                    </div>
+                            </p>
+                            
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">เพิ่มรูปสลิป</div>
+                                <div class="panel-body">
+                                    <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
                                 </div>
-                            }
+                            </div>
 
                         </tab>
 

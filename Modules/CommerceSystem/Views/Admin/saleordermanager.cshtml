@@ -46,7 +46,7 @@
                      table="'SaleOrder'"
                      fn="'sum'"
                      select="'TotalAmount'"
-                     filter="Status eq 'PaymentReceived'">
+                     filter="PaymentStatus eq 'PaymentReceived'">
                 </div>
 
                 <div class="col-md-6"
@@ -55,7 +55,7 @@
                      table="'SaleOrder'"
                      fn="'count'"
                      select="'TotalAmount'"
-                     filter="Status eq 'PaymentReceived'">
+                     filter="PaymentStatus eq 'PaymentReceived'">
                 </div>
             </div>
 
@@ -76,8 +76,10 @@
             New SO            
         </button>
     </div>
+    <!-- Status = WaitingForPayment is from old code -->
+    <!-- Status = Canceled is not needed -->
     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"                 
-                 alwaysfilter="(Status ne 'Delivered') and (Status ne 'Canceled')"
+                 alwaysfilter="(Status ne 'WaitingForPayment') and (Status ne 'Canceled')"
                  edit-fn="ctrl.viewOrderDetail(id)">
     </ncb-ngtable>
 

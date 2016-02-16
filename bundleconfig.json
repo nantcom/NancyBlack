@@ -1,7 +1,8 @@
 [
   {
     "outputFileName": "Content/Scripts/ncb-dependencies.js",
-    "inputFiles": [
+    "inputFiles": [      
+      "Content/Scripts/sweetalert-master/dist/sweetalert.min.js",
       "Content/scripts/stringformat/stringformat-1.09.min.js",
       "Content/Scripts/jquery-2.1.1.min.js",
       //"Content/Scripts/jquery.signalR-2.2.0.min.js",
@@ -31,7 +32,8 @@
       "Content/fontawesome/css/font-awesome.min.css",
       "Content/ionicons/css/ionicons.min.css",
       "Content/Scripts/angular-ui-select/select.min.css",
-      "Content/scripts/ng-table/ng-table.min.css"
+      "Content/scripts/ng-table/ng-table.min.css",
+      "Content/Scripts/sweetalert-master/dist/sweetalert.css"
     ],
     "minify": {
       "enabled": true,
