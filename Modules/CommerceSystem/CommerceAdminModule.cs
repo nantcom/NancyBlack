@@ -76,6 +76,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/commerce/api/paymentstatus"] = this.HandleRequest(this.GetPaymentStatusList);
 
+            Get["/admin/commerce/reset/purchaseorder"] = this.HandleRequest(this.HandleResetPO);
+
             Get["/admin/commerce/api/printing/saleorder/current/month/list"] = this.HandleRequest(this.GetSaleorderForPrintingReceiptList);
 
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
@@ -87,6 +89,45 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
             #endregion
+        }
+
+        private dynamic ResetPO()
+        {
+            var db = this.SiteDatabase;
+
+            db.Transaction(() =>
+            {
+
+
+            var target = this.SiteDatabase.Query<SaleOrder>()
+                .Where(so => (so.Status == SaleOrderStatus.WaitingForOrder || so.Status == SaleOrderStatus.Packing) && (so.PaymentReceivedDate != default(DateTime)))
+                .OrderBy(so => so.PaymentReceivedDate)
+                .ToList();
+
+            foreach (var so in target)
+            {
+                var wasRocordToPO = db.Query<OrderRelation>().Where(or => or.SaleOrderId == so.Id).ToList();
+                foreach (var relation in wasRocordToPO)
+                {
+                    db.DeleteRecord(relation);
+                }
+            }
+
+            foreach (var item in target)
+            {
+                item.Status = SaleOrderStatus.WaitingForOrder;
+                db.UpsertRecord(item);
+            }
+
+            });
+
+            return 200;
+        }
+
+        private dynamic HandleResetPO(dynamic arg)
+        {
+            return this.ResetPO();
+            
         }
 
         private dynamic HandlePurchaseOrderManagerPage(dynamic arg)

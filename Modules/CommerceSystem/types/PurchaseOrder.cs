@@ -19,41 +19,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
     public class PurchaseOrder : IStaticType
     {
-        public PurchaseOrder() { }
-
-        public PurchaseOrder(Supplier supplier)
+        public void Combine( PurchaseItem item )
         {
-            this.Items = new List<PurchaseItem>();
-            this.Status = PurchaseOrderStatus.New;
-            this.SupplierId = supplier.Id;
-            this.WasGenerated = false;
+            var existing = (from pi in this.Items
+                           where pi.Title == item.Title
+                           select pi).FirstOrDefault();
 
-            if (supplier.OrderPeriod == "Daily")
+            if (existing == null)
             {
-                var canOrderToday = DateTime.Today.AddTicks(supplier.OrderTime.Ticks) > DateTime.Now;
-                this.OrderDate = canOrderToday ? DateTime.Today.AddTicks(supplier.OrderTime.Ticks) : DateTime.Today.AddTicks(supplier.OrderTime.Ticks).AddDays(1);
+                this.Items.Add(item);
             }
-            else if (supplier.OrderPeriod == "Weekly")
+            else
             {
-                var expectedDay = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), supplier.WeeklyOrderWhen, true);
-
-                // get next week day
-                // The (... + 7) % 7 ensures we end up with a value in the range [0, 6]
-                int daysToAdd = ((int)expectedDay - (int)DateTime.Today.DayOfWeek + 7) % 7;
-
-                // example : next monday (depend on expectedDay)
-                var nextDayOfWeek = DateTime.Today.AddDays(daysToAdd).AddTicks(supplier.OrderTime.Ticks);
-                var canOrderThisWeek = nextDayOfWeek > DateTime.Now;
-                this.OrderDate = canOrderThisWeek ? nextDayOfWeek : nextDayOfWeek.AddDays(7);
-            }
-            else if (supplier.OrderPeriod == "Monthly")
-            {
-                var endOfLastMonth = DateTime.Today.AddDays(-DateTime.Today.Day);
-                var expectedOrderDate = endOfLastMonth
-                    .AddDays(supplier.MonthlyOrderWhen) // expectedOrderDate for this month
-                    .AddTicks(supplier.OrderTime.Ticks); // expectedOrderTime for this month
-                var canOrderThisMonth = expectedOrderDate > DateTime.Now;
-                this.OrderDate = canOrderThisMonth ? expectedOrderDate : expectedOrderDate.AddMonths(1);
+                existing.Qty += item.Qty;
             }
         }
 
@@ -91,108 +69,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             }
         }
 
+        /// <summary>
+        /// Related Sale orders
+        /// </summary>
+        public List<int> LinkedSaleorder { get; set; }
+
         public int SupplierId { get; set; }
-
-        public void Add(SaleOrder saleOrder, NancyBlackDatabase db, bool isSaveRequired = true)
-        {
-            var chasisRequiredProducts = new List<Product>();
-            var newPItems = new List<PurchaseItem>();
-
-            // separate item which require chasis and matched supplier's item
-            foreach (var soItemId in saleOrder.Items.OrderBy(item => item))
-            {
-                var soItem = db.GetById<Product>(soItemId);
-                // if this product has been deleted, then use the snapshot in ItemsDetail
-                if (soItem == null)
-                {
-                    soItem = saleOrder.ItemsDetail.Where(product => product.Id == soItemId).FirstOrDefault();
-                }
-
-                if (soItem.Attributes == null)
-                {
-                    continue;
-                }
-
-                var supplierInfoString = ((JObject)soItem.Attributes).Value<string>("supplier");
-                var isChasisRequired = ((JObject)soItem.Attributes).Value<string>("chasis") != null;
-
-                if (string.IsNullOrWhiteSpace(supplierInfoString) && isChasisRequired)
-                {
-                    chasisRequiredProducts.Add(soItem);
-                    continue;
-                }
-                else if (string.IsNullOrWhiteSpace(supplierInfoString))
-                {
-                    continue;
-                }
-                else
-                {
-                    // do this when there is supplierInfoString or there are supplierInfoString and isChasisRequired == true
-                    var supplier = JsonConvert.DeserializeObject<JObject>(supplierInfoString);
-                    // if supplier's id is not match, skip this item
-                    if (supplier.Value<int>("id") != this.SupplierId)
-                    {
-                        continue;
-                    }
-
-                    var supplierPartName = supplier.Value<string>("part");
-                    supplierPartName = supplierPartName == null ? soItem.Title : supplierPartName;
-
-                    newPItems.Add(new PurchaseItem()
-                    {
-                        TrackngIds = soItem.Id.ToString(),
-                        Title = supplierPartName,
-                        ProductTitle = soItem.Title,
-                        Qty = 1,
-                        Parts = new List<string>()
-                    });
-                }
-            }
-
-            var pItemDict = this.Items.ToDictionary<PurchaseItem, string>(item => item.TrackngIds);
-
-            foreach (var pitem in newPItems)
-            {
-                // find matchedChasisPart
-                var matchedChasisPart = chasisRequiredProducts
-                    .Where(product => product.Attributes.Value<string>("chasis").Contains(pitem.ProductTitle));
-
-                // add parts to matched PurchaseItem
-                foreach (var product in matchedChasisPart)
-                {
-                    pitem.Parts.Add(product.Title);
-                    pitem.TrackngIds = string.Format("{0}-{1}", pitem.TrackngIds, product.Id);
-                }
-
-                if (pItemDict.ContainsKey(pitem.TrackngIds))
-                {
-                    PurchaseItem existPItem = pItemDict[pitem.TrackngIds];
-                    existPItem.Qty += pitem.Qty;
-                }
-                else
-                {
-                    pItemDict.Add(pitem.TrackngIds, pitem);
-                    this.Items.Add(pitem);
-                }
-            }
-
-            if (newPItems.Count > 0)
-            {
-                OrderRelation relation = new OrderRelation()
-                {
-                    SaleOrderId = saleOrder.Id,
-                    PurchaseOrderId = this.Id
-                };
-
-                db.UpsertRecord(relation);
-            }
-
-            if (isSaveRequired)
-            {
-                db.UpsertRecord(this);
-            }
-        }
-
+        
         public void Generate()
         {
             this.WasGenerated = true;
@@ -214,6 +97,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string Title { get; set; }
 
         public string ProductTitle { get; set; }
+
+        /// <summary>
+        /// Supplier who will supply this product
+        /// </summary>
+        public int SupplierId { get; set; }
 
         public List<string> Parts { get; set; }
     }

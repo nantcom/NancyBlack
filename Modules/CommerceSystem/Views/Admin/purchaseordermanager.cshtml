@@ -70,11 +70,16 @@
 
             <tr ng-repeat="item in tableParams.data">
                 <td data-title="'Order#'"
-                    sortable="'id'"
+                    sortable="'Id'"
                     filter="{ 'PurchaseOrderIdentifier': 'text' }">
                     <a href target="_blank">
                         {{item.PurchaseOrderIdentifier == null ? 'NotGeneratedYet' : item.PurchaseOrderIdentifier}}
                     </a>
+                    <ul>
+                        <li ng-repeat="soId in item.LinkedSaleorder">
+                            <a href="/Admin/tables/saleorder/{{soId}}" target="_blank">{{soId}}</a>
+                        </li>
+                    </ul>
                     <p class="text-muted">
                         <i class="fa fa-clock-o"></i>
                         Last Update: {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
