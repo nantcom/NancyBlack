@@ -290,7 +290,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public void RemoveItem(NancyBlackDatabase db, int itemId)
         {
             var list = this.Items.ToList();
-            list.Add(itemId);
+            list.Remove(itemId);
             this.Items = list.ToArray();
             
             var existItem = this.ItemsDetail.Where(p => p.Id == itemId).FirstOrDefault();
