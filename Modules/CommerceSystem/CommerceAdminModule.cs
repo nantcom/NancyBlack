@@ -76,7 +76,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/commerce/api/paymentstatus"] = this.HandleRequest(this.GetPaymentStatusList);
 
-            Get["/admin/commerce/reset/purchaseorder"] = this.HandleRequest(this.HandleResetPO);
+            //Get["/admin/commerce/reset/purchaseorder"] = this.HandleRequest(this.HandleResetPO);
 
             Get["/admin/commerce/api/printing/saleorder/current/month/list"] = this.HandleRequest(this.GetSaleorderForPrintingReceiptList);
 
@@ -100,18 +100,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
 
             var target = this.SiteDatabase.Query<SaleOrder>()
-                .Where(so => (so.Status == SaleOrderStatus.WaitingForOrder || so.Status == SaleOrderStatus.Packing) && (so.PaymentReceivedDate != default(DateTime)))
+                .Where(so => so.Status == SaleOrderStatus.WaitingForOrder)
                 .OrderBy(so => so.PaymentReceivedDate)
                 .ToList();
-
-            foreach (var so in target)
-            {
-                var wasRocordToPO = db.Query<OrderRelation>().Where(or => or.SaleOrderId == so.Id).ToList();
-                foreach (var relation in wasRocordToPO)
-                {
-                    db.DeleteRecord(relation);
-                }
-            }
+                
 
             foreach (var item in target)
             {
@@ -126,6 +118,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic HandleResetPO(dynamic arg)
         {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
             return this.ResetPO();
             
         }

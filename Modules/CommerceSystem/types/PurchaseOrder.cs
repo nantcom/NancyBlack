@@ -86,11 +86,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
     public class PurchaseItem
     {
-        /// <summary>
-        /// use this instead of id witch in case 
-        /// there is subpart of item this field will be like: '{mainItemId}-{subItemId1}-{subItemId2}'
-        /// </summary>
-        public string TrackngIds { get; set; }
+        public List<int> PartsId { get; set; }
+
+        public int ProductId { get; set; }
 
         public int Qty { get; set; }
 
@@ -102,7 +100,5 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Supplier who will supply this product
         /// </summary>
         public int SupplierId { get; set; }
-
-        public List<string> Parts { get; set; }
     }
 }
