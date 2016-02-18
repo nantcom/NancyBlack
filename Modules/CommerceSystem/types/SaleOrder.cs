@@ -16,6 +16,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string Confirmed = "Confirmed";
         public const string WaitingForOrder = "WaitingForOrder";
         public const string Packing = "Packing";
+        public const string ReadyToShip = "ReadyToShip";
         public const string Shipped = "Shipped";
         public const string Delivered = "Delivered";
         public const string Cancel = "Cancel";
