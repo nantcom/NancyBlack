@@ -12,6 +12,11 @@
     <link href="/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
     <link href="/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
     <title>คำสั่งซื้อ</title>
+    <style>
+        .sweet-alert fieldset {
+            border: none !important;
+        }
+    </style>
 }
 @section Script
 {
@@ -39,6 +44,21 @@
             });
         });
     </script>
+
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/56c5fd76da3dc74759139cd7/default';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    <!--End of Tawk.to Script-->
+
 }
 
 <div ng-cloak
@@ -73,7 +93,7 @@
                 </p>
                 <p>
                     <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-success btn-lg">
-                        ชำระค่าสินค้าออนไลน์<span ng-show="object.PaymentStatus=='Deposit'">เพิ่ม</span>
+                        ชำระค่าสินค้า<span ng-show="object.PaymentStatus=='Deposit'">เพิ่ม</span>
                     </a>
 
                     <a ng-click="ctrl.showTransferInfo()" class="btn btn-success btn-lg">
@@ -125,7 +145,7 @@
 
                                 <div class="col-xs-12">
 
-                                    <h2 class="text-info" >บันทึก</h2>
+                                    <h2 class="text-info">บันทึก</h2>
                                     <div class="alert alert-info" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
 
                                     <div class="row" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
@@ -147,10 +167,10 @@
                                             </a>
                                         </div>
                                     </div>
-                                    
+
                                     @if (this.CurrentUser.HasClaim("admin"))
                                     {
-                                        
+
                                         <div class="row">
 
                                             <div class="col-xs-8">
@@ -324,7 +344,6 @@
 
                         <tab heading="แจ้งการชำระเงิน"
                              ng-if="object.Status != 'New' && object.PaymentStatus != 'PaymentReceived'">
-                            
 
 
                             <div class="panel panel-info"
@@ -351,18 +370,20 @@
                                     </div>
                                 </div>
                             </div>
-                            <p>
-                                <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
-                                    <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
-                                </button>
-                            </p>
-                            
+
                             <div class="panel panel-primary">
                                 <div class="panel-heading">เพิ่มรูปสลิป</div>
                                 <div class="panel-body">
                                     <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
                                 </div>
                             </div>
+
+                            <p>
+                                <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
+                                    <span class="glyphicon glyphicon-envelope"></span> แจ้งตรวจสอบการชำระเงิน
+                                </button>
+                            </p>
+
 
                         </tab>
 

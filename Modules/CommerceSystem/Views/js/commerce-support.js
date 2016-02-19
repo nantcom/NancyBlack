@@ -9,9 +9,15 @@
         $scope.object = window.allData.SaleOrder;
         $scope.branding = window.branding;
         $scope.isAdmin = window.isAdmin == "True" ? true : false;
-        $scope.allStatus = window.allData.StatusList;
+        $scope.allStatus = ["New", "Confirmed", "WaitingForOrder", "AtLEVEL51", "Building", "Testing", "ReadyToShip", "Shipped", "Delivered", "Cancel"];
         $scope.allPaymentStatus = window.allData.PaymentStatusList;
         $scope.paymentLogs = window.allData.PaymentLogs;
+
+        console.log("WARNING: Using Status list from client side");
+
+        if ($scope.object.DHLTrackingNumber != null) {
+            $scope.trackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.DHLTrackingNumber);
+        }
 
         $scope.laptopStatus = [];
         var status = ["Deploy Keyword", "Deadpicel checking"];
@@ -75,6 +81,7 @@
             if (product == null) {
                 continue;
             }
+
 
             if (product.Url.indexOf("/products/parts/os") == 0 ||
                 product.Url.indexOf("/promotions") == 0) {
