@@ -13,53 +13,37 @@
 
     <script>
         (function () {
-
+            
+            window.data = @this.Html.Raw(this.GetJson(this.Model.Data));
             var mod = angular.module("page", []);
             mod.controller("PageController", function ($scope, $rootScope, $timeout) {
 
                 var $me = this;
 
-                $scope.calculatePrice = function (object) {
-
-                    var lumpsum = object.TotalPrice + object.ShippingFee + object.HandlingFee + object.Tax;
-
-                    object.PricePerUnit = lumpsum / object.Change;
-                };
-
-                $scope.adjustSHT = function (object) {
-
-                    if (object.ItemsInInvoice == "") {
-                        return;
-                    }
-
-                    object.ShippingFee = object.ShippingFee / object.ItemsInInvoice;
-                    object.HandlingFee = object.HandlingFee / object.ItemsInInvoice;
-                    object.Tax = object.Tax / object.ItemsInInvoice;
-                };
-
                 $me.create = function () {
 
                     $("#InventoryMovementModal").modal("show");
                     $scope.object = {
-                        IsInBound: true,
                         MovementDate: new Date()
                     };
                 };
 
+                $scope.currentStocks = window.data.CurrentStocks;
+
                 $rootScope.$on("inserted", function (e, args) {
 
-                    $("#InventoryMovementModal").modal("hide");
+                    //$("#InventoryMovementModal").modal("hide");
 
-                    $timeout(function () {
+                    //$timeout(function () {
 
-                        var temp = JSON.parse(JSON.stringify(args.args));
-                        delete temp.id;
+                    //    var temp = JSON.parse(JSON.stringify(args.args));
+                    //    delete temp.id;
 
-                        $scope.object = temp;
-                        $scope.$apply();
-                        $("#InventoryMovementModal").modal("show");
+                    //    $scope.object = temp;
+                    //    $scope.$apply();
+                    //    $("#InventoryMovementModal").modal("show");
 
-                    }, 1000);
+                    //}, 1000);
 
 
                 });
@@ -75,12 +59,12 @@
      ng-module="page" ng-controller="PageController as ctrl">
 
     <h1 class="page-header">
-        Inventory Changes
+        Inventory Manager
         <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
     </h1>
 
     <div style="margin-bottom: 30px">
-        This page helps you tracks Inventory Changes.
+        This page helps you tracks Inventory Changes. <b>When edit id, the lookup field will not be changed until refresh the page.</b>
     </div>
 
     <div>
@@ -89,217 +73,161 @@
         </alert>
     </div>
 
-    <div class="pull-right">
-        <a class="btn btn-primary" href="/tables/InventoryMovement.xlsx" target="_blank">
-            <i class="fa fa-download"></i>
-            <span>
-                Excel
-            </span>
-        </a>
+    <tabset>
+        <tab heading="Movement">
+            <div class="pull-right">
+                <a class="btn btn-primary" href="/tables/InventoryMovement.xlsx" target="_blank">
+                    <i class="fa fa-download"></i>
+                    <span>
+                        Excel
+                    </span>
+                </a>
 
-        <button class="btn btn-success pull-right"
-                ng-click="ctrl.create()">
-            <span class="glyphicon glyphicon-plus-sign"></span>
-            <span>
-                Inventory Change
-            </span>
-        </button>
-    </div>
+                <button class="btn btn-success pull-right"
+                        ng-click="ctrl.create()">
+                    <span class="glyphicon glyphicon-plus-sign"></span>
+                    <span>
+                        Inventory Change
+                    </span>
+                </button>
+            </div>
 
-    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="InventoryMovementModal">
-    </ncb-ngtable>
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="InventoryMovementModal">
+            </ncb-ngtable>
 
-    <ncb-modal id="InventoryMovementModal"
-               title="{{object.id == null ? 'Create Movement' : 'Edit Movement'}}"
-               closebutton
-               deletebutton="object.id != null">
+            <ncb-modal id="InventoryMovementModal"
+                       title="{{object.id == null ? 'Create Movement' : 'Edit Movement id ' + object.id}}"
+                       closebutton
+                       deletebutton="object.id != null">
 
-        <form role="form" name="InventoryMovementForm">
+                <form role="form" name="InventoryMovementForm">
 
-            <tabset>
-                <tab heading="General">
+                    <tabset>
+                        <tab heading="General">
 
-                    <div class="form-group row">
+                            <div class="form-group form-group-lg"
+                                 ncb-lookupscope
+                                 table="Product" labelpath="Title" filter="$filter=(HasVariation eq 0 or IsVariation eq 1) and startswith(Title,$key)">
 
-                        <div class="col-xs-6">
-                            <label>Type</label>
-                            <div>
-                                <button class="btn btn-default" ng-model="object.IsInBound" btn-radio="true">
-                                    Inbound (Buy)
-                                </button>
+                                <label class="control-label" for="ProductId">
+                                    Product
+                                    <i class="fa fa-spin fa-circle-o-notch"
+                                       ng-show="isBusy"></i>
+                                </label>
 
-                                <button class="btn btn-success" ng-model="object.IsInBound" btn-radio="false">
-                                    Outbound (Sell)
-                                </button>
+                                <ui-select theme="bootstrap" ng-model="object.ProductId"
+                                           reset-search-input="false">
+                                    <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                    <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                       refresh="refreshLookup($select.search)"
+                                                       refresh-delay="0">
+                                        <span>id {{item.Id}} : {{item.label}}</span>
+                                    </ui-select-choices>
+                                </ui-select>
                             </div>
-                        </div>
 
-                        <div class="col-xs-6">
-                            <ncb-datepicker model="object.MovementDate" title="Movement Date" format="'dd MMMM yyyy'"></ncb-datepicker>
-                        </div>
-                    </div>
-                    <div class="form-group form-group-lg"
-                         ncb-lookupscope
-                         table="Product" labelpath="Title" filter="$filter=(HasVariation eq 0 or IsVariation eq 1) and startswith(Title,$key)">
+                            <div class="form-group row">
 
-                        <label class="control-label" for="ProductId">
+                                <div class="col-xs-6">
+                                    <input type="number" title="ProductId"
+                                           ncb-textbox
+                                           ng-model="object.ProductId" />
+                                </div>
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="Change"
+                                           ncb-textbox
+                                           ng-model="object.Change" />
+                                </div>
+
+                            </div>
+
+                            <div class="form-group row">
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="PurchaseOrderId"
+                                           ncb-textbox
+                                           ng-model="object.PurchaseOrderId" />
+                                </div>
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="SaleOrderId"
+                                           ncb-textbox
+                                           ng-model="object.SaleOrderId" />
+                                </div>
+
+                            </div>
+
+                            <div class="form-group row">
+
+                                <div class="col-xs-12">
+                                    <input type="text" title="Note"
+                                           ncb-textbox
+                                           ng-model="object.Note" />
+                                </div>
+
+                            </div>
+
+                        </tab>
+                    </tabset>
+
+                </form>
+
+                <ncb-footer>
+                    <button class="btn btn-primary btn-lg"
+                            ng-click="data.save(object);">
+                        <span ng-show="object.id == null">Create</span>
+                        <span ng-show="object.id != null">Save</span>
+                    </button>
+                </ncb-footer>
+            </ncb-modal>
+        </tab>
+        <tab heading="Current Stock">
+            <table class="table table-striped table-hover"
+                   style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>
+                            CheckingDate
+                        </th>
+                        <th>
                             Product
-                            <i class="fa fa-spin fa-circle-o-notch"
-                               ng-show="isBusy"></i>
-                        </label>
+                        </th>
+                        <th>
+                            Stock
+                        </th>
+                        <th>
+                            UpdateFrom
+                        </th>
+                        <th>
+                            TransactionsId
+                        </th>
+                    </tr>
+                </thead>
 
-                        <ui-select theme="bootstrap" ng-model="object.ProductId"
-                                   reset-search-input="false">
-                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                               refresh="refreshLookup($select.search)"
-                                               refresh-delay="0">
-                                <span>{{item.label}}</span>
-                            </ui-select-choices>
-                        </ui-select>
-                    </div>
+                <tr ng-repeat="stock in currentStocks">
+                    <td>
+                        {{stock.SummaryDate | date:'dd/MM/yyyy, HH:mm' }}
+                    </td>
+                    <td>
+                        Id {{stock.ProductId}} : <span ncb-vlookup="product" key="{{stock.ProductId}}"></span>
+                    </td>
+                    <td>
+                        {{stock.Stock }}
+                    </td>
+                    <td>
+                        {{stock.LastSummaryId}}
+                    </td>
+                    <td>
+                        <ul>
+                            <li ng-repeat="transactionId in stock.MovementTransactionsId">{{transactionId}}</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </tab>
+    </tabset>
 
-
-                    <div class="form-group row">
-
-                        <div class="col-xs-4 form-group">
-                            <label>PO#</label>
-                            <input type="text" name="PONumber" class="form-control"
-                                   ng-model="object.PONumber" />
-                        </div>
-
-                        <div class="col-xs-4">
-                            <label>Invoice#</label>
-
-                            <input type="text" name="InvoiceNumber" class="form-control"
-                                   ng-model="object.InvoiceNumber" />
-                        </div>
-
-                        <div class="col-xs-4">
-                            <label>Receipt#</label>
-
-                            <input type="text" name="ReceiptNumber" class="form-control"
-                                   ng-model="object.ReceiptNumber" />
-                        </div>
-                    </div>
-
-                    <div class="form-group row"
-                         ng-show="object.IsInBound == true">
-
-                        <div class="col-xs-6">
-
-                            <input type="number" name="SerialNumber" title="Serial#"
-                                   ng-disabled="object.Change != 1 && object.Change != -1"
-                                   ncb-textbox
-                                   ng-model="object.SerialNumber" />
-                        </div>
-
-                        <div class="col-xs-2">
-
-                            <input type="number" name="Change" title="Quantity"
-                                   ncb-textbox
-                                   ng-model="object.Change"
-                                   ng-change="calculatePrice(object)" />
-                        </div>
-
-
-                        <div class="col-xs-4 form-group">
-
-                            <div class="form-group">
-
-                                <label>Unit Cost</label>
-                                <input type="number" name="PricePerUnit" class="form-control"
-                                       ng-model="object.PricePerUnit" />
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </tab>
-
-                <tab heading="Price Calculator">
-
-                    <div class="row">
-
-                        <div class="col-xs-6">
-
-                            <div class="form-group">
-                                
-                                <label>Total goods in same invoice</label>
-                                <div class="input-group">
-
-                                    <input type="number" name="TotalPrice" class="form-control"
-                                           ng-model="object.ItemsInInvoice" />
-
-                                    <span class="input-group-btn">
-                                        <button class="btn btn-default"                                                
-                                                ng-click="adjustSHT(object)"
-                                                ng-disabled="object.ItemsInInvoice == ''"
-                                                type="button">Adjust</button>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-
-                                <label>Unit Cost</label>
-                                <input type="number" name="PricePerUnit" class="form-control"
-                                       ng-model="object.PricePerUnit" />
-                            </div>
-
-
-                        </div>
-                        
-                        <div class="col-xs-6">
-
-                            <div class="form-group">
-                                <label>Total Cost</label>
-                                <input type="number" name="TotalPrice" class="form-control"
-                                       ng-model="object.TotalPrice"
-                                       ng-change="calculatePrice(object)" />
-                            </div>
-
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label>Shipping Fee</label>
-                                    <input type="number" name="TotalPrice" class="form-control"
-                                           ng-model="object.ShippingFee"
-                                           ng-change="calculatePrice(object)" />
-                                </div>
-                            </div>
-
-
-                            <div class="form-group">
-                                <label>Handling Fee</label>
-                                <input type="number" name="Handling" class="form-control"
-                                       ng-model="object.HandlingFee"
-                                       ng-change="calculatePrice(object)" />
-                            </div>
-
-                            <div class="form-group">
-                                <label>Tax</label>
-                                <input type="number" name="TotalPrice" class="form-control"
-                                       ng-model="object.Tax"
-                                       ng-change="calculatePrice(object)" />
-
-                            </div>
-                        </div>
-                    </div>
-
-                </tab>
-            </tabset>
-
-        </form>
-
-        <ncb-footer>
-            <button class="btn btn-primary btn-lg"
-                    ng-click="data.save(object);">
-                <span ng-show="object.id == null">Create</span>
-                <span ng-show="object.id != null">Save</span>
-            </button>
-        </ncb-footer>
-    </ncb-modal>
 
     <script type="text/ng-template" id="tablecustomtemplate.html">
 
@@ -316,51 +244,37 @@
                     sortable="'MovementDate'">
                     {{item.MovementDate | date:'dd/MM/yyyy' }}
                 </td>
-                <td data-title="'Updated'"
-                    sortable="'__updatedAt'">
-                    {{item.__updatedAt | date:'dd/MM/yyyy HH:mm' }}
-                </td>
                 <td data-title="'Product'"
                     sortable="'ProductId'"
-                    style="width: 250px; text-align:left">
-
-                    <div ncb-vlookup="product" key="{{item.ProductId}}">
-
-                    </div>
-
+                    filter="{ 'ProductId': 'text' }">
+                    Id {{item.ProductId}} : <span ncb-vlookup="product" key="{{item.ProductId}}"></span>
                 </td>
-                <td data-title="'PO#'"
-                    sortable="'PONumber'"
-                    filter="{ 'PONumber': 'text' }">
-                    {{item.PONumber }}
+                <td data-title="'Purchase Order'"
+                    sortable="'PurchaseOrderId'"
+                    filter="{ 'PurchaseOrderId': 'text' }">
+                    <a href="/admin/tables/purchaseorder" target="_blank">
+                        <span ncb-vlookup="purchaseorder" key="{{item.PurchaseOrderId}}" label="PurchaseOrderIdentifier">
+                        </span>
+                    </a>
                 </td>
-                <td data-title="'Invoice#'"
-                    sortable="'InvoiceNumber'"
-                    filter="{ 'InvoiceNumber': 'text' }">
-                    {{item.InvoiceNumber }}
+                <td data-title="'Sale Order'"
+                    sortable="'SaleOrderId'"
+                    filter="{ 'SaleOrderId': 'text' }">
+                    <a href="/admin/tables/saleorder/{{item.SaleOrderId}}" target="_blank">
+                        <span ncb-vlookup="saleorder" key="{{item.SaleOrderId}}" label="SaleOrderIdentifier">
+                        </span>
+                    </a>
                 </td>
-                <td data-title="'Receipt#'"
-                    sortable="'ReceiptNumber'"
-                    filter="{ 'ReceiptNumber': 'text' }">
-                    {{item.ReceiptNumber }}
-                </td>
-                <td data-title="'Unit Change'"
-                    sortable="'Change'"
-                    style="width: 120px; text-align:right">
+                <td data-title="'Change'"
+                    sortable="'Change'">
                     {{item.Change }}
                 </td>
-                <td data-title="'Unit Price'"
-                    sortable="'PricePerUnit'"
-                    style="width: 150px; text-align:right">
-                    {{item.PricePerUnit | number:2 }}
+                <td data-title="'Note'"
+                    sortable="'Note'"
+                    filter="{ 'Note': 'text' }">
+                    {{item.Note}}
                 </td>
                 <td style="white-space: nowrap">
-
-                    <button class="btn btn-default"
-                            ng-click="data.copy(item)">
-                        <i class="fa fa-copy"></i>
-                    </button>
-
                     <button class="btn btn-info"
                             data-toggle="modal" data-target="#InventoryMovementModal"
                             ng-click="data.view(item)">

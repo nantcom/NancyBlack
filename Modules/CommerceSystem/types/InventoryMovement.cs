@@ -28,58 +28,50 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int ProductId { get; set; }
 
         /// <summary>
-        /// Change of inventory
+        /// Change of inventory (can be positive and negative)
         /// </summary>
         public int Change { get; set; }
-
-        /// <summary>
-        /// Whether this is inbound record
-        /// </summary>
-        public bool IsInBound { get; set; }
-
-        /// <summary>
-        /// Total Price buy or sell
-        /// </summary>
-        public Decimal TotalPrice { get; set; }
         
         /// <summary>
-        /// Shipping Fee
+        /// Purcahse Order's Id
         /// </summary>
-        public Decimal ShippingFee { get; set; }
+        public int PurchaseOrderId { get; set; }
 
         /// <summary>
-        /// Handling Fee
+        /// Sale Order's Id
         /// </summary>
-        public Decimal HandlingFee { get; set; }
+        public int SaleOrderId { get; set; }
 
-        /// <summary>
-        /// Tax
-        /// </summary>
-        public Decimal Tax { get; set; }
+        public string Note { get; set; }
 
-        /// <summary>
-        /// Price per unit
-        /// </summary>
-        public Decimal PricePerUnit { get; set; }
+        public static IEnumerable<InventoryMovement> Create(PurchaseOrder purchaseOrder)
+        {
+            var now = DateTime.Now;
+            foreach (var item in purchaseOrder.Items)
+            {
+                yield return new InventoryMovement()
+                {
+                    PurchaseOrderId = purchaseOrder.Id,
+                    Change = item.Qty,
+                    ProductId = item.ProductId,
+                    MovementDate = now,
+                };
+            }
+        }
 
-        /// <summary>
-        /// Serial Number of the item
-        /// </summary>
-        public string SerialNumber { get; set; }
-        
-        /// <summary>
-        /// Purcahse Order Number
-        /// </summary>
-        public string PONumber { get; set; }
-
-        /// <summary>
-        /// Invoice Number
-        /// </summary>
-        public string InvoiceNumber { get; set; }
-
-        /// <summary>
-        /// Receipt Number
-        /// </summary>
-        public string ReceiptNumber { get; set; }
+        public static IEnumerable<InventoryMovement> Create(SaleOrder saleOrder)
+        {
+            var now = DateTime.Now;
+            foreach (var item in saleOrder.ItemsDetail)
+            {
+                yield return new InventoryMovement()
+                {
+                    SaleOrderId = saleOrder.Id,
+                    Change = -(int)item.Attributes.Qty,
+                    ProductId = item.Id,
+                    MovementDate = now,
+                };
+            }
+        }
     }
 }

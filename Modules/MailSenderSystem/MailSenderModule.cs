@@ -84,16 +84,15 @@ namespace NantCom.NancyBlack.Modules
 
                     foreach (var mail in toSend)
                     {
-                        mail.From = new MailAddress(settings.fromEmail);
-
                         var log = new NcbMailSenderLog();
                         log.Body = mail.Body;
                         log.To = string.Join(",", from m in mail.To select m.Address);
                         log.Subject = mail.Subject;
                         log.Settings = settings;
-
+                        
                         try
                         {
+                            mail.From = new MailAddress(settings.fromEmail);
                             client.Send(mail);
                         }
                         catch (Exception e)

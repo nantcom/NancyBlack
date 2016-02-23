@@ -91,31 +91,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             #endregion
         }
 
-        private dynamic ResetPO()
-        {
-            var db = this.SiteDatabase;
-
-            db.Transaction(() =>
-            {
-
-
-            var target = this.SiteDatabase.Query<SaleOrder>()
-                .Where(so => so.Status == SaleOrderStatus.WaitingForOrder)
-                .OrderBy(so => so.PaymentReceivedDate)
-                .ToList();
-                
-
-            foreach (var item in target)
-            {
-                item.Status = SaleOrderStatus.WaitingForOrder;
-                db.UpsertRecord(item);
-            }
-
-            });
-
-            return 200;
-        }
-
+        /// <summary>
+        /// add product id to purchase item
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
         private dynamic HandleResetPO(dynamic arg)
         {
             if (!this.CurrentUser.HasClaim("admin"))
@@ -123,8 +103,34 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 403;
             }
 
-            return this.ResetPO();
-            
+            Dictionary<string, Product> lookupProductByName = new Dictionary<string, Product>();
+            var polist = this.SiteDatabase.Query<PurchaseOrder>();
+
+            foreach (var po in polist)
+            {
+                foreach (var item in po.Items)
+                {
+                    Product product;
+                    if (lookupProductByName.ContainsKey(item.ProductTitle))
+                    {
+                        product = lookupProductByName[item.ProductTitle];
+                    }
+                    else
+                    {
+                        product = this.SiteDatabase.Query<Product>().Where(pro => pro.Title == item.ProductTitle).FirstOrDefault();
+                        if (product == null)
+                        {
+                            continue;
+                        }
+                        lookupProductByName.Add(product.Title, product);
+                    }
+                    item.ProductId = product.Id;
+                }
+
+                this.SiteDatabase.UpsertRecord(po);
+            }
+
+            return 200;
         }
 
         private dynamic HandlePurchaseOrderManagerPage(dynamic arg)
