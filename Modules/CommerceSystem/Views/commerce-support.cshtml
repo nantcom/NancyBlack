@@ -69,7 +69,13 @@
                 <h1 class="text-success">คำสั่งซื้อของคุณได้รับการยืนยันแล้ว</h1>
                 <h2>หมายเลขคำสั่งซื้อของคุณคือ: {{object.SaleOrderIdentifier}}</h2>
                 <p>
-                    การสั่งซื้อของคุณได้รับการยืนยันแล้ว กรุณาตรวจสอบข้อมูลอีกครั้งและทำการชำระเงิน เพื่อให้เราเริ่มดำเนินการคำสั่งซื้อของคุณ
+                    การสั่งซื้อของคุณได้รับการยืนยันแล้ว กรุณาตรวจสอบข้อมูลอีกครั้งและทำการชำระเงิน เพื่อให้เราเริ่มดำเนินการคำสั่งซื้อของคุณ<br />
+                    <span id="clockdiv" ng-controller="CountDownTimerController">
+                        คำสั่งซื้อนี้จะหมดอายุใน <span class="days"></span> วัน
+                        <span class="hours"></span> ชั่วโมง
+                        <span class="minutes"></span> นาที
+                        <span class="seconds"></span> วินาที
+                    </span>
                 </p>
                 <p>
                     <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-success btn-lg">

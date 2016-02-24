@@ -144,6 +144,61 @@
         };
     });
 
+    mod.controller('CountDownTimerController', function ($scope, $http) {
+
+        if (window.allData.SaleOrder.Status == "Confirmed") {
+            var createdAt = new Date(window.allData.SaleOrder.__createdAt);
+            // 14 * 24 * 60 * 60 * 1000 = 1209600000 (2 weeks)
+            var deadline = new Date(createdAt.setUTCHours(7) + 1209600000);
+
+            var daysSpan = null;
+            var hoursSpan = null;
+            var minutesSpan = null;
+            var secondsSpan = null;
+
+            function getTimeRemaining(endtime) {
+                var t = endtime - Date.parse(new Date());
+                var seconds = Math.floor((t / 1000) % 60);
+                var minutes = Math.floor((t / 1000 / 60) % 60);
+                var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
+                var days = Math.floor(t / (1000 * 60 * 60 * 24));
+                return {
+                    'total': t,
+                    'days': days,
+                    'hours': hours,
+                    'minutes': minutes,
+                    'seconds': seconds
+                };
+            }
+
+            function initializeClock(id, endtime) {
+
+                function updateClock() {
+                    var t = getTimeRemaining(endtime);
+
+                    daysSpan.innerHTML = t.days;
+                    hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
+                    minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
+                    secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
+                    if (t.total <= 0) {
+                        clearInterval(timeinterval);
+                    }
+                }
+
+                var clock = document.getElementById(id);
+                daysSpan = clock.querySelector('.days');
+                hoursSpan = clock.querySelector('.hours');
+                minutesSpan = clock.querySelector('.minutes');
+                secondsSpan = clock.querySelector('.seconds');
+                updateClock(); // run function once at first to avoid delay
+                var timeinterval = setInterval(updateClock, 1000);
+            }
+
+            initializeClock('clockdiv', deadline);
+        }
+
+    })
+
     mod.filter('newline', function ($sce) {
 
         return function (input) {

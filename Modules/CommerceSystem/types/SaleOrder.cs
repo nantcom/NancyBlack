@@ -114,6 +114,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public bool IsDuplicatePayment { get; set; }
 
+        public bool IsExpired
+        {
+            get
+            {
+                return (this.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.WaitingForPayment || this.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.Deposit)
+                    && this.Status == SaleOrderStatus.Confirmed
+                    && this.__createdAt.AddDays(14) < DateTime.Now;
+            }
+        }
+
         /// <summary>
         /// User Id that made the purchase
         /// </summary>
