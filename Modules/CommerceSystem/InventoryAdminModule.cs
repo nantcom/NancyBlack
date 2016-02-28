@@ -56,6 +56,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             SaleOrder saleOrder = obj;
             if (saleOrder.Status != SaleOrderStatus.Packing &&
+                saleOrder.Status != "Building" &&
                 saleOrder.Status != SaleOrderStatus.ReadyToShip &&
                 saleOrder.Status != SaleOrderStatus.Delivered)
             {
