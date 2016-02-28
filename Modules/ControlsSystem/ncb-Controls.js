@@ -1138,6 +1138,7 @@
             });
 
             $scope.alwaysfilter = attrs.alwaysfilter;
+            $scope.defaultSort = attrs.defaultsort;
 
             if (attrs.reloadwatch != null) {
                 $scope.$parent.$watch(attrs.reloadwatch, function () {
@@ -1172,9 +1173,7 @@
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
                 count: 10,          // count per page
-                sorting: {
-                    Id: 'asc'       // initial sorting
-                },
+                sorting: { __updatedAt: 'asc' },
                 filter: $scope.filters // initial filters
             }, {
                 total: 0, // length of data

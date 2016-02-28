@@ -69,19 +69,70 @@
     <div class="page-header">
         <h3>Sale Orders</h3>
     </div>
-    <div class="pull-right">
-        <button class="btn btn-success"
-                data-toggle="modal" data-target="#NewSaleOrderModal">
-            <i class="fa fa-plus"></i>
-            New SO            
-        </button>
-    </div>
-    <!-- Status = WaitingForPayment is from old code -->
-    <!-- Status = Canceled is not needed -->
-    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"                 
-                 alwaysfilter="(Status ne 'WaitingForPayment') and (Status ne 'Canceled')"
-                 edit-fn="ctrl.viewOrderDetail(id)">
-    </ncb-ngtable>
+
+
+    <tabset>
+        <tab heading="Pending Order">
+
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                         alwaysfilter="(Status eq 'WaitingForOrder')"
+                         defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                         edit-fn="ctrl.viewOrderDetail(id)">
+            </ncb-ngtable>
+
+        </tab>
+        <tab heading="At Level51">
+
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                         alwaysfilter="(Status eq 'AtLEVEL51')"
+                         defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                         edit-fn="ctrl.viewOrderDetail(id)">
+            </ncb-ngtable>
+
+        </tab>
+
+        <tab heading="Ready to Ship">
+
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                         alwaysfilter="(Status eq 'ReadyToShip')"
+                         edit-fn="ctrl.viewOrderDetail(id)">
+            </ncb-ngtable>
+
+        </tab>
+
+        <tab heading="Shipped">
+
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                         alwaysfilter="(Status eq 'Shipped')"
+                         edit-fn="ctrl.viewOrderDetail(id)">
+            </ncb-ngtable>
+
+        </tab>
+
+        <tab heading="New">
+
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                         alwaysfilter="(Status eq 'New')"
+                         edit-fn="ctrl.viewOrderDetail(id)">
+            </ncb-ngtable>
+
+        </tab>
+
+        <tab heading="All">
+
+            <div class="pull-right">
+                <button class="btn btn-success"
+                        data-toggle="modal" data-target="#NewSaleOrderModal">
+                    <i class="fa fa-plus"></i>
+                    New SO
+                </button>
+            </div>
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
+                         edit-fn="ctrl.viewOrderDetail(id)">
+            </ncb-ngtable>
+        </tab>
+    </tabset>
+
 
     <script type="text/ng-template" id="tablecustomtemplate.html">
 
@@ -118,6 +169,11 @@
                     sortable="'PaymentStatus'"
                     filter="{ 'PaymentStatus': 'text' }">
                     {{item.PaymentStatus }}
+                </td>
+                <td data-title="'PaymentReceivedDate'"
+                    sortable="'PaymentReceivedDate'"
+                    filter="{ 'PaymentReceivedDate': 'text' }">
+                    {{item.PaymentReceivedDate | date:'dd MMMM yyyy, HH:mm' }}
                 </td>
                 <td data-title="'Customer, S&H'"
                     sortable="'Customer'"
@@ -181,11 +237,11 @@
 
             <tabset>
                 @*<tab heading="General">
-                    
-                    <input type="text" name="SaleOrderIdentifier" title="SaleOrderIdentifier"
-                           ncb-textbox
-                           ng-model="object.SaleOrderIdentifier" />                                        
-                </tab>*@
+
+                        <input type="text" name="SaleOrderIdentifier" title="SaleOrderIdentifier"
+                               ncb-textbox
+                               ng-model="object.SaleOrderIdentifier" />
+                    </tab>*@
                 <tab heading="Items">
                     <table class="table table-hover"
                            ncb-listeditor
