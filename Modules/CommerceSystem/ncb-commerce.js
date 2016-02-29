@@ -1146,7 +1146,7 @@
                     data.forEach(function (item) {
                         var date = new Date(parseInt(item.Key));
 
-                        arrKey.push(String.format("{0:dddd}", date));
+                        arrKey.push(String.format("{0:dd/MM}", date));
                         arrValue.push(item.Value);
                     });
                 }

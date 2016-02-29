@@ -41,7 +41,9 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
         stddev,
         sum,
         count,
-        frequency
+        frequency,
+        cumulativecount,
+        cumulativesum
     }
 
     public class SummarizeTimeSeriesFactory
@@ -237,7 +239,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                         min = now.AddHours(-24);
                         break;
                     case TimePeriod.day:
-                        min = now.Date.AddDays(-7);
+                        min = now.Date.AddDays(-30);
                         break;
                     case TimePeriod.week:
                         min = now.Date.AddDays(-30);
@@ -281,7 +283,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                 }
             }
         }
-
+        
         /// <summary>
         /// Creates a function which create summary for a given period
         /// </summary>
@@ -322,6 +324,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                        });
                     };
 
+                case Function.cumulativesum:
                 case Function.sum:
 
                     return (col) =>
@@ -333,6 +336,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                        });
                     };
 
+                case Function.cumulativecount:
                 case Function.count:
 
                     // number of items in the given period
@@ -361,6 +365,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                                };
 
                     };
+
                     
             }
 
@@ -403,19 +408,47 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                                 v => new Series() { Key = v, Value = 0 }
                             );
 
-            foreach (var g in groups)
-            {
-                var series = new Series();
-                series.Key = g.Key;
-                series.Value = summary(g);
 
-                allseries[g.Key] = series;
+            if (this.SummaryKind == Function.cumulativecount ||
+                this.SummaryKind == Function.cumulativesum)
+            {
+                var hasvalue = groups.ToDictionary(g => g.Key);
+                double currentValue = 0;
+
+                // for cumulative - must assign values into all series
+                foreach (var series in allseries.Values.OrderBy(s => s.Key))
+                {
+                    // get value from the summary function if current series have value
+                    if (hasvalue.ContainsKey( series.Key ))
+                    {
+                        // keep it for assign in series that does not have value 
+                        currentValue += summary( hasvalue[series.Key] );
+                    }
+                    series.Value = currentValue;
+                    yield return series;
+                }
+            }
+            else
+            {
+                foreach (var g in groups)
+                {
+                    if (allseries.ContainsKey(g.Key))
+                    {
+                        var series = new Series();
+                        series.Key = g.Key;
+                        series.Value = summary(g);
+
+                        allseries[g.Key] = series;
+                    }
+                }
+
+                foreach (var series in allseries.Values.OrderBy(s => s.Key))
+                {
+                    yield return series;
+                }
+
             }
 
-            foreach (var series in allseries.Values.OrderBy( s => s.Key ) )
-            {
-                yield return series;
-            }
         }
     }
 

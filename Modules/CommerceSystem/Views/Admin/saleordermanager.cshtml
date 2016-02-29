@@ -36,101 +36,101 @@
     </div>
 
     <tabset>
-        <tab heading="General Summary">
+
+        <tab heading="Report">
 
             <div class="row">
 
                 <div class="col-md-6"
                      ncg-chart
-                     title="'Revenue'"
+                     title="'Monthly Revenue'"
                      table="'SaleOrder'"
-                     fn="'sum'"
+                     fn="'cumulativesum'"
                      select="'TotalAmount'"
                      filter="PaymentStatus eq 'PaymentReceived'">
                 </div>
 
                 <div class="col-md-6"
                      ncg-chart
-                     title="'Sale Volume'"
+                     title="'Monthly Volume'"
                      table="'SaleOrder'"
-                     fn="'count'"
+                     fn="'cumulativecount'"
                      select="'TotalAmount'"
                      filter="PaymentStatus eq 'PaymentReceived'">
                 </div>
             </div>
 
         </tab>
-        <tab heading="Product Summary">
+
+        <tab heading="Sale Order">
+
+            <tabset>
+
+                <tab heading="Pending Order">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'WaitingForOrder')"
+                                 defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Pending Work">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'AtLevel51') or (Status eq 'Building') or (Status eq 'Testing')"
+                                 defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Ready to Ship">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'ReadyToShip')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Shipped">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'Shipped')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="New">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'New')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="All">
+
+                    <div class="pull-right">
+                        <button class="btn btn-success"
+                                data-toggle="modal" data-target="#NewSaleOrderModal">
+                            <i class="fa fa-plus"></i>
+                            New SO
+                        </button>
+                    </div>
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+                </tab>
+            </tabset>
+
 
         </tab>
-    </tabset>
 
-
-    <div class="page-header">
-        <h3>Sale Orders</h3>
-    </div>
-
-
-    <tabset>
-        <tab heading="Pending Order">
-
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                         alwaysfilter="(Status eq 'WaitingForOrder')"
-                         defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
-                         edit-fn="ctrl.viewOrderDetail(id)">
-            </ncb-ngtable>
-
-        </tab>
-        <tab heading="At Level51">
-
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                         alwaysfilter="(Status eq 'AtLEVEL51')"
-                         defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
-                         edit-fn="ctrl.viewOrderDetail(id)">
-            </ncb-ngtable>
-
-        </tab>
-
-        <tab heading="Ready to Ship">
-
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                         alwaysfilter="(Status eq 'ReadyToShip')"
-                         edit-fn="ctrl.viewOrderDetail(id)">
-            </ncb-ngtable>
-
-        </tab>
-
-        <tab heading="Shipped">
-
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                         alwaysfilter="(Status eq 'Shipped')"
-                         edit-fn="ctrl.viewOrderDetail(id)">
-            </ncb-ngtable>
-
-        </tab>
-
-        <tab heading="New">
-
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                         alwaysfilter="(Status eq 'New')"
-                         edit-fn="ctrl.viewOrderDetail(id)">
-            </ncb-ngtable>
-
-        </tab>
-
-        <tab heading="All">
-
-            <div class="pull-right">
-                <button class="btn btn-success"
-                        data-toggle="modal" data-target="#NewSaleOrderModal">
-                    <i class="fa fa-plus"></i>
-                    New SO
-                </button>
-            </div>
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
-                         edit-fn="ctrl.viewOrderDetail(id)">
-            </ncb-ngtable>
-        </tab>
     </tabset>
 
 
