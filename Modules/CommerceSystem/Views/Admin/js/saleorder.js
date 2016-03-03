@@ -20,12 +20,13 @@
 
         $scope.object = {}; 
 
-        function _createSaleOrder(object) {
+        function _createSaleOrder() {
 
-            $http.post('/__commerce/api/checkout', object).then(function (response) {
-                alert("สร้าง SO สำเร็จ");
-            }, function () {
-
+            $http.post('/admin/tables/saleorder/new', { Items: [], CustomData: {}, ShippingDetails: {} })
+                .then(function (response) {
+                $window.location = "/Admin/tables/saleorder/" + response.data.Id;
+            }, function (error) {
+                alert(error.data.Message);
             });
         };
         
