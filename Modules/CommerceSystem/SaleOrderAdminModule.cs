@@ -20,14 +20,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
     {
         public SaleOrderAdminModule()
         {
-            Get["/admin/tables/saleorder"] = this.HandleViewRequest("/Admin/saleordermanager", null);
+            Get["/admin/tables/saleorder"] = this.HandleRequest(this.SaleOrderManagerPage);
 
             Post["/admin/tables/saleorder/new"] = this.HandleRequest(this.NewSaleOrder);
 
             Get["/admin/tables/saleorder/{id}"] = this.HandleRequest(this.HandleSaleorderDetailPage);
 
             Get["/admin/saleorder/{id}/add/{productId}"] = this.HandleRequest(this.AddProductToSaleOrder);
-            
+
             Get["/admin/saleorder/{id}/remove/{productId}"] = this.HandleRequest(this.RemoveProductFromSaleOrder);
 
             Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);
@@ -35,6 +35,58 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/commerce/api/paymentstatus"] = this.HandleRequest(this.GetPaymentStatusList);
 
             Get["/admin/commerce/api/printing/saleorder/current/month/list"] = this.HandleRequest(this.GetSaleorderForPrintingReceiptList);
+
+            //Get["/admin/reset/saleorder/items"] = this.HandleRequest((arg) =>
+            //{
+            //    if (!this.CurrentUser.HasClaim("admin"))
+            //    {
+            //        return 403;
+            //    }
+
+            //    var soList = this.SiteDatabase.Query<SaleOrder>().Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived);
+            //    foreach (var so in soList.AsParallel())
+            //    {
+            //        List<int> list = new List<int>();
+            //        foreach (var item in so.ItemsDetail)
+            //        {
+            //            var json = (JObject)item.Attributes;
+            //            if (json == null || json.Value<int?>("Qty") == null)
+            //            {
+            //                continue;
+            //            }
+            //            for (int i = 0; i < json.Value<int>("Qty"); i++)
+            //            {
+            //                list.Add(item.Id);
+            //            }
+            //        }
+            //        so.Items = list.ToArray();
+
+            //        so.ItemsDetail.AsParallel().ForAll((item) =>
+            //        {
+            //            item.ContentParts = null;
+            //        });
+
+            //        this.SiteDatabase.UpsertRecord(so);
+            //    }
+
+            //    return 200;
+            //});
+        }
+
+        private dynamic SaleOrderManagerPage(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            var dummyPage = new Page();
+
+            var data = new
+            {
+            };
+
+            return View["/Admin/saleordermanager", new StandardModel(this, dummyPage, data)];
         }
 
         private dynamic NewSaleOrder(dynamic arg)
