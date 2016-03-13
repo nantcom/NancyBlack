@@ -16,10 +16,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types.Investment
 
     public class InvestedProductReport : InvestedReport
     {
-        public InvestedProductReport(string title, NancyBlackDatabase db, int productId, int returnFromInvestmentPerUnit)
+        public InvestedProductReport(string title, List<SaleOrder> paidSaleOrders, int productId, int returnFromInvestmentPerUnit)
         {
             this.Title = title;
-            var monthlyReports = InvestedProductMonthlyReport.GetMonthlyReports(db, productId, returnFromInvestmentPerUnit);
+            var monthlyReports = InvestedProductMonthlyReport.GetMonthlyReports(paidSaleOrders, productId, returnFromInvestmentPerUnit);
             this.SummarizeReport(monthlyReports);
         }
 
@@ -82,15 +82,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types.Investment
     {
         public DateTime ReportedDate { get; set; }
         
-        public static IEnumerable<InvestedProductMonthlyReport> GetMonthlyReports(NancyBlackDatabase db, int productId, int returnFromInvestmentPerUnit)
+        public static IEnumerable<InvestedProductMonthlyReport> GetMonthlyReports(List<SaleOrder> paidSaleOrders, int productId, int returnFromInvestmentPerUnit)
         {
-            var paidSos = db.Query<SaleOrder>()
-                .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived)
-                .ToList();
-
             var lookupReport = new ConcurrentDictionary<DateTime, InvestedProductMonthlyReport>();
 
-            paidSos.AsParallel().ForAll((so) =>
+            paidSaleOrders.AsParallel().ForAll((so) =>
             {
                 var product = so.ItemsDetail.Where(item => item.Id == productId).FirstOrDefault();
                 if (product != null)

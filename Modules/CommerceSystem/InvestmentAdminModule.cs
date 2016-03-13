@@ -29,10 +29,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic InvestmentPage(dynamic arg)
         {
-            //if (!this.CurrentUser.HasClaim("admin"))
-            //{
-            //    return 403;
-            //}
+            if (!this.CurrentUser.HasClaim("admin") && this.CurrentUser.Id != 3)
+            {
+                return 403;
+            }
 
             var dummyPage = new Page();
 
@@ -44,7 +44,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived).ToList();
 
             Task.WhenAll(
-                Task.Run(() => productReports = this.GetItReport()),
+                Task.Run(() => productReports = this.GetItReport(paidSaleOrders)),
                 Task.Run(() => revenueChart = this.GetSummarizedRevenueChart(paidSaleOrders)),
                 Task.Run(() => soldLaptopChart = this.GetLaptopSoldChart(paidSaleOrders, this.SiteDatabase))
             ).Wait();
@@ -68,16 +68,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return View["/Admin/investmentsummary", new StandardModel(this, dummyPage, data)];
         }
 
-        private List<InvestedProductReport> GetItReport()
+        private List<InvestedProductReport> GetItReport(List<SaleOrder> paidSaleOrders)
         {
             InvestedProductReport keyboardX14Report = null;
             InvestedProductReport keyboardXL15Report = null;
             InvestedProductReport keyboardXL17Report = null;
 
             Task.WhenAll(
-                Task.Run(() => { keyboardX14Report = new InvestedProductReport("Keyboard's X14 Report", this.SiteDatabase, 176, 389); }),
-                Task.Run(() => { keyboardXL15Report = new InvestedProductReport("Keyboard's XL15 Report", this.SiteDatabase, 138, 555); }),
-                Task.Run(() => { keyboardXL17Report = new InvestedProductReport("Keyboard's XL17 Report", this.SiteDatabase, 173, 555); })
+                Task.Run(() => { keyboardX14Report = new InvestedProductReport("Keyboard's X14 Report", paidSaleOrders, 176, 389); }),
+                Task.Run(() => { keyboardXL15Report = new InvestedProductReport("Keyboard's XL15 Report", paidSaleOrders, 138, 555); }),
+                Task.Run(() => { keyboardXL17Report = new InvestedProductReport("Keyboard's XL17 Report", paidSaleOrders, 173, 555); })
                 ).Wait();
 
             return new List<InvestedProductReport>()
