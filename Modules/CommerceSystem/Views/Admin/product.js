@@ -108,6 +108,20 @@
 
         //#region Reload on data change
         {
+            var ToLocalTimeString = function (dateISOString) {
+                var date = new Date(dateISOString);
+                date = new Date(date.getTime());
+                date.setHours(0);
+                return date.toISOString();
+            }
+
+            vm.updatePromotionDate = function () {
+                //$scope.object.PromotionStartDate = ToLocalTimeString($scope.object.ISOPromotionStartDate);
+                //$scope.object.PromotionEndDate = ToLocalTimeString($scope.object.ISOPromotionEndDate);
+                $scope.object.PromotionStartDate = $scope.object.ISOPromotionStartDate;
+                $scope.object.PromotionEndDate = $scope.object.ISOPromotionEndDate;
+            }
+
             var reload = function () {
 
                 $("#ProductModal").modal('hide');
@@ -190,6 +204,8 @@
             vm.IsCollapse = false;
             $scope.object = Product;
             $scope.productVariations = null;
+            $scope.object.ISOPromotionStartDate = $scope.object.PromotionStartDate + 'Z';
+            $scope.object.ISOPromotionEndDate = $scope.object.PromotionEndDate + 'Z';
 
             $http.get( "/")
         };

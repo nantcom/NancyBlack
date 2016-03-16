@@ -56,10 +56,46 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string SKUNumber { get; set; }
         
         /// <summary>
-        /// Price of this product in home currency
+        /// Full Price of this product in home currency (non-promotion discount)
         /// </summary>
         public Decimal Price { get; set; }
-        
+
+        /// <summary>
+        /// this field relate to PromotionDate. when current time still in promotion period
+        /// the current price will be DiscountPrice
+        /// </summary>
+        public Decimal CurrentPrice {
+            get
+            {
+                if (this.IsPromotionPrice)
+                {
+                    return this.DiscountPrice;
+                }
+
+                return this.Price;
+            }
+        }
+
+        public bool IsPromotionPrice
+        {
+            get
+            {
+                return DateTime.Today <= this.PromotionEndDate.ToLocalTime() &&
+                        DateTime.Today >= this.PromotionStartDate.ToLocalTime();
+            }
+        }
+
+        /// <summary>
+        /// Discount price of this product in home currency
+        /// </summary>
+        public Decimal DiscountPrice { get; set; }
+
+        public double PercentDiscount { get; set; }
+
+        public DateTime PromotionStartDate { get; set; }
+
+        public DateTime PromotionEndDate { get; set; }
+
         /// <summary>
         /// Stock of this product
         /// </summary>

@@ -190,6 +190,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             // Update Total
             this.TotalAmount = 0;
 
+            // Total without discount
+            decimal totalWithoutDiscount = 0;
+
             // snapshot the products into this sale order
             // so that if there is a change in product info later
             // we still have the one that customer sees
@@ -233,7 +236,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     lookupItemDetail.Add(product.Id, product);
                 }
                 
-                this.TotalAmount += product.Price;
+                this.TotalAmount += product.CurrentPrice;
+                totalWithoutDiscount += product.Price;
+            }
+
+            // insert discount when there are some item with discount price (all in one discount)
+            if (this.TotalAmount != totalWithoutDiscount)
+            {
+                var attr = new JObject();
+                attr.Add("Qty", 1);
+                var discount = new Product()
+                {
+                    Title = "Discount",
+                    Price = this.TotalAmount - totalWithoutDiscount,
+                    Attributes = attr
+                };
+                this.ItemsDetail.Add(discount);
             }
 
             if (save == false)
@@ -265,59 +283,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             });
 
 
-        }
-
-        public void AddItem(NancyBlackDatabase db, int itemId)
-        {
-            var list = this.Items.ToList();
-            list.Add(itemId);
-            this.Items = list.ToArray();
-
-            var newItem = db.GetById<Product>(itemId);
-            var existItem = this.ItemsDetail.Where(p => p.Id == itemId && p.Title == newItem.Title && p.Price == newItem.Price).FirstOrDefault();
-
-            if (existItem == null)
-            {
-                JObject attr = newItem.Attributes;
-                if (attr == null)
-                {
-                    attr = new JObject();
-                    newItem.Attributes = attr;
-                }
-                attr["Qty"] = 1;
-                newItem.ContentParts = null;
-                this.ItemsDetail.Add(newItem);
-            }
-            else
-            {
-                JObject attr = existItem.Attributes;
-                attr["Qty"] = attr.Value<int>("Qty") + 1;
-            }
-
-            this.TotalAmount += newItem.Price;
-            db.UpsertRecord<SaleOrder>(this);
-        }
-
-        public void RemoveItem(NancyBlackDatabase db, int itemId)
-        {
-            var list = this.Items.ToList();
-            list.Remove(itemId);
-            this.Items = list.ToArray();
-            
-            var existItem = this.ItemsDetail.Where(p => p.Id == itemId).FirstOrDefault();
-            JObject attr = existItem.Attributes;
-
-            if (attr.Value<int>("Qty") == 1)
-            {
-                this.ItemsDetail.Remove(existItem);
-            }
-            else
-            {
-                attr["Qty"] = attr.Value<int>("Qty") - 1;
-            }
-
-            this.TotalAmount -= existItem.Price;
-            db.UpsertRecord<SaleOrder>(this);
         }
 
         /// <summary>

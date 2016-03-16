@@ -116,11 +116,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 403;
             }
 
-            var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
-
-            so.AddItem(this.SiteDatabase, (int)arg.productId);
-
-            return 200;
+            return 404;
         }
 
         private dynamic RemoveProductFromSaleOrder(dynamic arg)
@@ -130,11 +126,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 403;
             }
 
-            var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
-
-            so.RemoveItem(this.SiteDatabase, (int)arg.productId);
-
-            return 200;
+            return 404;
         }
 
         private dynamic GetSaleorderForPrintingReceiptList(dynamic arg)

@@ -202,15 +202,12 @@
 
                                         <div class="row">
 
-                                            <input type="text" ncb-textbox ncb-lg required ncb-col="col-xs-6"
+                                            <input type="text" ncb-textbox ncb-lg required ncb-col="col-xs-9"
                                                    name="Title" title="Title/Name" ng-model="object.Title">
 
                                             <input type="text" ncb-textbox ncb-lg ncb-col="col-xs-3"
                                                    ng-disabled="object.IsVariation"
                                                    name="DisplayOrder" title="Show Order" ng-model="object.DisplayOrder">
-
-                                            <input type="number" ncb-textbox ncb-lg required ncb-col="col-xs-3"
-                                                   name="Price" title="Price  (@this.Site.commerce.multicurrency.home)" ng-model="object.Price">
 
                                         </div>
 
@@ -252,6 +249,35 @@
                                                     </div>
                                                 </div>
 
+                                            </div>
+
+                                        </div>
+
+                                        <div class="row">
+
+                                            <input type="number" ncb-textbox required ncb-col="col-xs-6"
+                                                   name="Price" title="Price  (@this.Site.commerce.multicurrency.home)" ng-model="object.Price">
+
+                                            <div class="col-xs-6">
+                                                <label>Discount Price  (@this.Site.commerce.multicurrency.home)</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" ng-model="object.DiscountPrice" ng-change="object.PercentDiscount = (object.Price - object.DiscountPrice) / object.Price * -100">
+                                                    <div class="input-group-addon">{{object.PercentDiscount | number:2}}%</div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="row">
+
+                                            <div class="col-xs-6">
+                                                <ncb-datepicker model="object.ISOPromotionStartDate" format="'dd MMMM yyyy'"
+                                                                title="วันที่เริ่มโปรโมชั่น"></ncb-datepicker>
+                                            </div>
+
+                                            <div class="col-xs-6">
+                                                <ncb-datepicker model="object.ISOPromotionEndDate" format="'dd MMMM yyyy'"
+                                                                title="วันสุดท้ายของโปรโมชั่น"></ncb-datepicker>
                                             </div>
 
                                         </div>
@@ -471,7 +497,7 @@
                     </tabset>
                     <div>
                         <button class="btn btn-primary btn-lg pull-right"
-                                ng-click="data.save(object)">
+                                ng-click="ctrl.updatePromotionDate(); data.save(object)">
                             <span ng-show="object.id != null">
                                 <i class="fa fa-save"></i>
                                 Save
