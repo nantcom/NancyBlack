@@ -155,8 +155,8 @@
 
         if (window.allData.SaleOrder.Status == "Confirmed") {
             var createdAt = new Date(window.allData.SaleOrder.__createdAt);
-            // 14 * 24 * 60 * 60 * 1000 = 1209600000 (2 weeks)
-            var deadline = new Date(createdAt.setUTCHours(7) + 1209600000);
+            // 14 * 24 * 60 * 60 * 1000 = 1209600000 (2 weeks), 86400000 = 1 วัน
+            var deadline = new Date(createdAt.setUTCHours(7) + 86400000);
 
             var daysSpan = null;
             var hoursSpan = null;

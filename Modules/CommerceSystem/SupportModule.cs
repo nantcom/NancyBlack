@@ -34,7 +34,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 404;
             }
 
-            // if customer did not paid in 2 week after create sale order,
+            // if customer did not paid in a day after create sale order,
             // system will automate cancel the sale order.
             if (so.IsExpired)
             {

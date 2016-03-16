@@ -124,7 +124,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 return (this.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.WaitingForPayment || this.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.Deposit)
                     && this.Status == SaleOrderStatus.Confirmed
-                    && this.__createdAt.AddDays(14) < DateTime.Now;
+                    && this.__createdAt.AddDays(1) < DateTime.Now;
             }
         }
 
