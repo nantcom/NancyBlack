@@ -74,7 +74,7 @@
                         {{so.BillTo.State}},{{so.BillTo.Country}}<br />
                         {{so.BillTo.PostalCode}}
                     </div>
-                    <div ng-class="{'hide': so.UseBillingAddress == true}">
+                    <div ng-class="{'hide': so.UseBillingAddress == true || so.ShipTo == null || so.ShipTo.To == null}">
                         <b>{{so.ShipTo.To}}</b><br />
                         {{so.ShipTo.Address}}<br />
                         {{so.ShipTo.SubDistrict}}, {{so.ShipTo.District}}<br />
@@ -236,19 +236,19 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="blank" colspan="3">
+                    <td class="blank" colspan="2">
                         <div class="fitted">
                             <div class="eoe" ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
                                 หมายเหตุ ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
                             </div>
                         </div>
                     </td>
-                    <td class="total-line">
+                    <td class="total-line" colspan="2">
                         Vat 7 %
                     </td>
                     <td class="total-value">
                         <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getVat() | number:2 }} บาท
+                            {{getVatNew() | number:2 }} บาท
                         </span>
                         <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
                             {{getVatFromSplitedPayment() | number:2 }} บาท
@@ -256,8 +256,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="blank" colspan="3"> </td>
-                    <td class="total-line">
+                    <td class="blank" colspan="2"> </td>
+                    <td class="total-line" colspan="2">
                         <div class="form-control-static">
                             <b>ค่าจัดส่ง</b>
                         </div>
@@ -267,8 +267,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="blank" colspan="3"> </td>
-                    <td class="total-line">
+                    <td class="blank" colspan="2"> </td>
+                    <td class="total-line" colspan="2">
                         <div class="form-control-static">
                             <b>ค่าประกันการจัดส่ง</b>
                         </div>
@@ -279,7 +279,19 @@
                 </tr>
 
                 <tr>
-                    <td class="blank" colspan="3">
+                    <td class="blank" colspan="2"> </td>
+                    <td class="total-line" colspan="2">
+                        <div class="form-control-static">
+                            <b>ค่าธรรมเนียมบัตรเครดิต</b>
+                        </div>
+                    </td>
+                    <td class="total-value">
+                        <b>{{so.PaymentFee | number:2 }} บาท</b>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="blank" colspan="2">
                         @if (type == "receipt")
                         {
                             <div class="fitted">
@@ -289,7 +301,7 @@
                             </div>
                         }
                     </td>
-                    <td class="total-line">
+                    <td class="total-line" colspan="2">
                         Total
                     </td>
                     <td class="total-value">
@@ -341,7 +353,7 @@
 
                     </div>*@
                     
-                    <div class="row">
+                    <div class="row" ng-show="so.IsPayWithCreditCart">
 
                         <div class="col-md-6">
                             <div style="margin-bottom: 10px">

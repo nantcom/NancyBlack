@@ -99,6 +99,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public string DHLTrackingNumber { get; set; }
 
+        public decimal PaymentFee { get; set; }
+
+        public bool IsPayWithCreditCart { get; set; }
+
         /// <summary>
         /// Shipping fee
         /// </summary>
@@ -258,14 +262,23 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 return; // Just update the details for calculation
             }
-            
-            if (this.ShippingDetails.insurance == true)
+
+            if (this.ShippingDetails.method == "shipping")
             {
-                this.ShippingInsuranceFee = this.TotalAmount * 0.03M;
+                this.ShippingFee = 400;
+
+                if (this.ShippingDetails.insurance == true)
+                {
+                    this.ShippingInsuranceFee = this.TotalAmount * 0.03M;
+                }
             }
 
-            this.TotalAmount += this.ShippingInsuranceFee;
+            if (this.IsPayWithCreditCart)
+            {
+                this.PaymentFee = this.TotalAmount * 0.035M;
+            }
 
+            this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
 
             db.Transaction(() =>
             {

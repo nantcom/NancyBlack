@@ -13,7 +13,7 @@
         //#region copy from ncb-commerce
 
         $scope.getTotal = function () {
-            return $scope.so.TotalAmount;
+            return $scope.so.TotalAmount - $scope.so.ShippingFee - $scope.so.ShippingInsuranceFee - $scope.so.PaymentFee;
         };
 
         $scope.getPriceBeforeVat = function (Price) {
@@ -30,7 +30,7 @@
             return result + margin;
         };
 
-        $scope.getVat = function () {
+        $scope.getVatNew = function () {
             var total = $scope.getTotal();
             return total - $scope.getPriceBeforeVat(total);
         };
@@ -78,7 +78,7 @@
         }
 
         totalWithoutVat = Round(totalWithoutVat);
-        var gap = Round($scope.so.TotalAmount - (totalWithoutVat + Round($scope.getVat())));
+        var gap = Round($scope.getTotal() - (totalWithoutVat + Round($scope.getVatNew())));
         $scope.ItemsDetail[0].LineTotal = Round($scope.ItemsDetail[0].LineTotal + gap);
         $scope.ItemsDetail[0].Price = Round($scope.ItemsDetail[0].Price + (gap / $scope.ItemsDetail[0].Attributes.Qty));
 
