@@ -253,6 +253,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 {
                     Title = "Discount",
                     Price = this.TotalAmount - totalWithoutDiscount,
+                    Url = "/dummy/dummy",
                     Attributes = attr
                 };
                 this.ItemsDetail.Add(discount);

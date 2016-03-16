@@ -47,15 +47,15 @@
 
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/56c5fd76da3dc74759139cd7/default';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
-    })();
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        (function(){
+            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+            s1.async=true;
+            s1.src='https://embed.tawk.to/56c5fd76da3dc74759139cd7/default';
+            s1.charset='UTF-8';
+            s1.setAttribute('crossorigin','*');
+            s0.parentNode.insertBefore(s1,s0);
+        })();
     </script>
     <!--End of Tawk.to Script-->
 
@@ -91,14 +91,18 @@
                 <p>
                     การสั่งซื้อของคุณได้รับการยืนยันแล้ว กรุณาตรวจสอบข้อมูลอีกครั้งและทำการชำระเงิน เพื่อให้เราเริ่มดำเนินการคำสั่งซื้อของคุณ<br />
                     <span id="clockdiv" ng-controller="CountDownTimerController">
-                        คำสั่งซื้อนี้จะหมดอายุใน <span class="days"></span> วัน
+                        คำสั่งซื้อนี้จะหมดอายุใน
+
+                        <span class="days"></span> วัน
                         <span class="hours"></span> ชั่วโมง
                         <span class="minutes"></span> นาที
                         <span class="seconds"></span> วินาที
                     </span>
                 </p>
                 <p>
-                    <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice" target="_blank" class="btn btn-success btn-lg">
+                    <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice"
+                       ng-if="object.IsPayWithCreditCart"
+                       target="_blank" class="btn btn-success btn-lg">
                         ชำระค่าสินค้า<span ng-show="object.PaymentStatus=='Deposit'">เพิ่ม</span>
                     </a>
 
@@ -366,7 +370,7 @@
 
 
                             <div class="panel panel-info"
-                                  ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
+                                 ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
                                 <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
                                 <div class="panel-body">
                                     <div class="row">

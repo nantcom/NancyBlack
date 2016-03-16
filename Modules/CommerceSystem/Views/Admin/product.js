@@ -207,7 +207,6 @@
             $scope.object.ISOPromotionStartDate = $scope.object.PromotionStartDate + 'Z';
             $scope.object.ISOPromotionEndDate = $scope.object.PromotionEndDate + 'Z';
 
-            $http.get( "/")
         };
 
         function _FilterByUrl(CollectionName) {
