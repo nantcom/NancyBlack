@@ -265,12 +265,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             if (this.ShippingDetails.method == "shipping")
             {
-                this.ShippingFee = 400;
+                this.ShippingFee = 500;
 
                 if (this.ShippingDetails.insurance == true)
                 {
                     this.ShippingInsuranceFee = this.TotalAmount * 0.03M;
                 }
+            }
+            else
+            {
+                this.ShippingFee = 0;
             }
 
             if (this.IsPayWithCreditCart)
