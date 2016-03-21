@@ -76,6 +76,15 @@
 
     @RenderBody()
 
+    @helper TrimData(object input)
+    {
+    var copy = Newtonsoft.Json.Linq.JObject.FromObject(input);
+    copy.Remove("ContentParts");
+    copy.Remove("Attachments");
+
+        @this.Html.Raw(copy.ToString(Newtonsoft.Json.Formatting.None))
+    }
+
     <script>
         // Make :hover works on ipad
         document.addEventListener("touchstart", function(){}, true);
@@ -84,7 +93,7 @@
         {
             // automatically set current user info into window variable
             <text>
-        window.currentUser = @this.Html.Raw(this.GetJson(this.CurrentUser));
+        window.currentUser = @this.Html.Raw(this.GetJsonWithoutContentParts(this.CurrentUser));
         </text>
         }
 
@@ -92,7 +101,7 @@
         {
             <text>
         window.model = { };
-        window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
+        window.model.Content = @TrimData(this.Model.Content);
         </text>
         }
     </script>

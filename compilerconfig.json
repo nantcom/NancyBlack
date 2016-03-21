@@ -50,5 +50,9 @@
   {
     "outputFile": "Modules/CommerceSystem/Views/css/commerce-support.css",
     "inputFile": "Modules/CommerceSystem/Views/css/commerce-support.less"
+  },
+  {
+    "outputFile": "Site/illegear.css",
+    "inputFile": "Site/illegear.less"
   }
 ]

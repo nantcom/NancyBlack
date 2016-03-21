@@ -188,7 +188,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// 
         /// </summary>
         /// <param name="db"></param>
-        public void UpdateSaleOrder( NancyBlackDatabase db, bool save = true )
+        public void UpdateSaleOrder(dynamic currentSite, NancyBlackDatabase db, bool save = true )
         {
 
             // Update Total
@@ -266,11 +266,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             if (this.ShippingDetails.method == "shipping")
             {
-                this.ShippingFee = 400;
+                this.ShippingFee = currentSite.commerce.shipping.fee;
 
                 if (this.ShippingDetails.insurance == true)
                 {
-                    this.ShippingInsuranceFee = this.TotalAmount * 0.03M;
+                    this.ShippingInsuranceFee = this.TotalAmount * currentSite.commerce.shipping.insuranceRate;
                 }
             }
 
@@ -303,10 +303,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Apply promotion code
         /// </summary>
         /// <param name="code"></param>
-        public PromotionApplyResult ApplyPromotion( NancyBlackDatabase db, string code )
+        public PromotionApplyResult ApplyPromotion( dynamic currentSite, NancyBlackDatabase db, string code )
         {
             // Sale order
-            this.UpdateSaleOrder(db, false);
+            this.UpdateSaleOrder(currentSite, db, false);
             
             string codeUrl = "/promotions/code/" + code;
 

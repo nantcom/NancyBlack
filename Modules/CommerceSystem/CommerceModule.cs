@@ -72,16 +72,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 return new StandardModel(this, "Checkout");
             });
-
-            //Get["/__commerce/saleorder/{id}/notifytransfer"] = this.HandleViewRequest("commerce-notifytransfer", (args) =>
-            //{
-            //    var saleorder = this.SiteDatabase.Query("saleorder",
-            //        string.Format("uuid eq '{0}'", (string)args.id),
-            //        "Id desc").FirstOrDefault();
-
-            //    return new StandardModel(this, content: saleorder);
-            //});
-
+            
             // get the product 
             Get["/__commerce/api/productstructure"] = this.HandleRequest(this.BuildProductStructure);
 
@@ -139,9 +130,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
 
             Post["/__commerce/api/resolvevariation"] = this.HandleRequest(this.HandleVariationRequest);
-
-
+            
             Get["/__commerce/banner"] = this.HandleRequest(this.HandleBannerRequest);
+            
+            Get["/__commerce/settings"] = this.HandleRequest( (arg)=>
+            {
+                return this.CurrentSite.commerce;
+            });
 
             Post["/__commerce/api/checkpromotion"] = this.HandleRequest(this.HandlePromotionCheckRequest);
 
@@ -150,7 +145,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         private dynamic HandlePromotionCheckRequest(dynamic arg)
         {
             var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
-            return saleorder.ApplyPromotion(this.SiteDatabase, this.Request.Query.code);
+            return saleorder.ApplyPromotion( this.CurrentSite, this.SiteDatabase, this.Request.Query.code);
         }
 
         private dynamic HandleBannerRequest(dynamic arg)
@@ -235,8 +230,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 saleorder.Customer.Email = this.CurrentUser.Email; // sets email
             }
-
-            saleorder.UpdateSaleOrder(this.SiteDatabase);
+            
+            saleorder.UpdateSaleOrder(this.SiteDatabase, this.CurrentSite);
 
             return saleorder;
         }

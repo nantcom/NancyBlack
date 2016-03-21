@@ -164,6 +164,7 @@ namespace NantCom.NancyBlack.Modules
                         paysbuy = new { },
                         billing = new { vattype = "" },
                         branding = new { bgcolor = "black", fgcolor = "white", accentcolor = "blue" },
+                        shipping = new { fee = 500, insuranceRate = 0.035 },
                         multicurrency = new
                         {
                             openexchangeratekey = "8ecf50d998af4c2f837bfa416698784e",

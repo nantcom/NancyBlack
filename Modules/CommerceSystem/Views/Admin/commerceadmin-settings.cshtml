@@ -71,6 +71,16 @@
                 <a class="btn btn-default" btn-radio="'includevat'" ng-model="object.commerce.billing.vattype">VAT included</a>
             </div>
 
+            <h2>Fees</h2>
+
+            <input type="number" title="Credit Card Rate"
+                   ncb-textbox ng-model="object.commerce.creditCardRate" />
+
+            <input type="number" title="Flat Shipping Fee"
+                   ncb-textbox ng-model="object.commerce.shipping.fee" />
+
+            <input type="number" title="Flat Insurance Rate"
+                   ncb-textbox ng-model="object.commerce.shipping.insuranceRate" />
         </div>
 
         <div class="col-md-4 "

@@ -104,7 +104,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             };
             JObject shippingDetail = so.ShippingDetails;
             shippingDetail.Add("insurance", false);
-            so.UpdateSaleOrder(this.SiteDatabase, true);
+            so.UpdateSaleOrder( this.CurrentSite, this.SiteDatabase, true);
 
             return so;
         }
