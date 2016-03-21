@@ -273,6 +273,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     this.ShippingInsuranceFee = this.TotalAmount * currentSite.commerce.shipping.insuranceRate;
                 }
             }
+            else
+            {
+                this.ShippingFee = 0;
+            }
 
             if (this.IsPayWithCreditCart)
             {
