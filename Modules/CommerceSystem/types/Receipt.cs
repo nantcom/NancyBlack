@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
-    public class Index : IStaticType
+    public class Receipt : IStaticType
     {
         public int Id { get; set; }
 
@@ -14,8 +14,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public DateTime __updatedAt { get; set; }
 
-        public string Type { get; set; }
+        public int SaleOrderId { get; set; }
 
-        public long Value { get; set; }
+        public int PaymentLogId { get; set; }
+
+        public string Identifier { get; set; }
+
+        public void SetIdentifier()
+        {
+            this.Identifier = string.Format("RC{0:yyyy}-{1:000000}", DateTime.Today, this.Id);
+        }
     }
 }

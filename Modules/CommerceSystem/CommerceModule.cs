@@ -100,6 +100,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     }
                 }
 
+                var receipt = this.SiteDatabase.Query<Receipt>()
+                    .Where(r => r.SaleOrderId == so.Id)
+                    .Skip(this.Request.Query.index == null ? 0 : (int)this.Request.Query.index)
+                    .FirstOrDefault();
+
+                if (receipt == null)
+                {
+                    receipt = new Receipt() { Identifier = so.ReceiptIdentifier };
+                }
+
                 var paymentlogs = this.SiteDatabase.Query<PaymentLog>()
                             .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier && p.IsErrorCode == false)
                             .OrderBy(log => log.PaymentDate)
@@ -124,7 +134,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     })
                 };
 
-                return new StandardModel(this, dummyPage, new { SaleOrder = so, PaymentDetail = paymentDetail });
+                return new StandardModel(this, dummyPage, new { SaleOrder = so, PaymentDetail = paymentDetail, Receipt = receipt });
             });
 
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
@@ -451,23 +461,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     log.IsPaymentSuccess = true;
 
                     so.PaymentStatus = PaymentStatus.PaymentReceived;
-                    so.PaymentReceivedDate = paidWhen;
-                }
-
-                if (string.IsNullOrEmpty(so.ReceiptIdentifier))
-                {
-                    var index = db.Query<Index>().Where(i => i.Type == "Recieve").FirstOrDefault();
-                    index.Value++;
-                    so.ReceiptIdentifier = string.Format(CultureInfo.InvariantCulture,
-                        "RC{0:yyyy}-{1:000000}", paidWhen, index.Value);
-
-                    db.UpsertRecord<Index>(index);
+                    so.PaymentReceivedDate = DateTime.Now;
                 }
 
                 EndPayment:
 
                 log.Exception = exceptions;
                 db.UpsertRecord<PaymentLog>(log);
+                
+                // Set Receipt number
+                var rc = db.UpsertRecord<Receipt>(new Receipt() { SaleOrderId = so.Id, PaymentLogId = log.Id });
+                rc.SetIdentifier();
+                db.UpsertRecord(rc);
 
                 db.UpsertRecord<SaleOrder>(so);
 

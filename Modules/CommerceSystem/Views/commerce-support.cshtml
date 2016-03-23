@@ -314,38 +314,22 @@
                                         <tr>
                                             <th>#</th>
                                             <th>วันที่ชำระเงิน</th>
-                                            <th>รหัสใบเสร็จ</th>
                                             <th>ช่องทางการชำระเงิน</th>
                                             <th>รหัสอนุมัติ</th>
                                             <th>สถานะ</th>
                                             <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
+                                            <th>ใบเสร็จ</th>
                                         </tr>
                                     </thead>
                                     <tr ng-repeat="item in paymentLogs">
                                         <td>
-                                            <div class="form-control-static">
-                                                {{$index + 1}}
-                                            </div>
+                                            {{$index + 1}}
                                         </td>
                                         <td>
-                                            <div class="form-control-static">
-                                                {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
-                                            </div>
+                                            {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
                                         </td>
                                         <td>
-                                            <div class="form-control-static">
-                                                <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt"
-                                                   ng-show="paymentLogs.length == 1 && object.PaymentStatus == 'PaymentReceived'"
-                                                   target="_blank">
-                                                    {{object.ReceiptIdentifier}}
-                                                </a>
-                                                <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt?index={{$index}}"
-                                                   ng-show="paymentLogs.length > 1"
-                                                   target="_blank">{{object.ReceiptIdentifier}}-{{$index + 1}}</a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {{item.PaymentSource}}
+                                            {{item.PaymentMethod}}
                                         </td>
                                         <td>
                                             {{item.ApCode}}
@@ -354,8 +338,20 @@
                                             {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
                                         </td>
                                         <td>
-                                            <div class="form-control-static text-right">
-                                                {{item.Amount | number:2}} บาท
+                                            {{item.Amount | number:2}} บาท
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                <a ng-href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt"
+                                                   ng-show="paymentLogs.length == 1 && object.PaymentStatus == 'PaymentReceived'"
+                                                   class="btn btn-success">
+                                                    <span class="icon ion-printer"></span>
+                                                </a>
+                                                <a ng-href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt?index={{$index}}"
+                                                   ng-show="paymentLogs.length > 1"
+                                                   class="btn btn-success">
+                                                    <span class="icon ion-printer"></span>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

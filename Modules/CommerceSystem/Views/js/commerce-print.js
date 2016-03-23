@@ -6,6 +6,7 @@
     mod.controller('PageController', function ($scope, $http) {
 
         $scope.so = window.data.SaleOrder;
+        $scope.rc = window.data.Receipt;
         $scope.paymentDetail = window.data.PaymentDetail;
         $scope.billing = window.billing;
         $scope.branding = window.branding;
