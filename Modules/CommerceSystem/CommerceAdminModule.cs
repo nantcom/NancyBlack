@@ -62,7 +62,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var data = new
             {
-                PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>()
+                PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>(),
+                PendingPurchaseOrders = PurchaseOrderManager.GetPendingPurchaseOrders(this.SiteDatabase).ToList()
             };
 
             return View["/Admin/purchaseordermanager", new StandardModel(this, dummyPage, data)];

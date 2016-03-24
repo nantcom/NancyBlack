@@ -1,6 +1,7 @@
 ﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -181,33 +182,41 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             return null;
         }
 
-        /// <summary>
-        /// add item from SaleOrder to PurchaseOrder in case SaleOrder never been added yet
-        /// </summary>
-        /// <param name="saleOrder"></param>
-        /// <param name="db"></param>
-        public static void AddSalelOrderToPurchaseOrder(SaleOrder saleOrder, NancyBlackDatabase db)
+        public static IEnumerable<PurchaseOrder> GetPendingPurchaseOrders(NancyBlackDatabase db)
         {
-            GenerateOrderedPurchaseOrder(db);
+            var pendingSOs = db.Query<SaleOrder>()
+                .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived && so.Status == SaleOrderStatus.WaitingForOrder)
+                .ToList();
 
-            var relations = db.Query<OrderRelation>().Where(relation => relation.SaleOrderId == saleOrder.Id);
-            if (relations.Count() > 0)
+            var purchaseItems = new List<PurchaseItem>();
+            foreach (var saleOrder in pendingSOs)
             {
-                return;
+                purchaseItems.AddRange(saleOrder.ToPurchaseItems(db));
             }
 
-            // create detailed list of product in sale order
-            // DOES NOT WORK DUE TO BUG in SaleOrder.Items
-            //var items = (from itemId in saleOrder.Items
-            //             let itemInDb = db.GetById<Product>(itemId)
-            //             let item = itemInDb == null ? saleOrder.ItemsDetail.Where(p => p.Id == itemId).FirstOrDefault() : itemInDb
-            //             where item.Attributes != null
-            //             let supplierNull = item.Attributes.supplier == null
-            //             let deserialize = (item.Attributes.supplier = supplierNull ? JObject.Parse("{}") : JObject.Parse(item.Attributes.supplier.ToString()))
-            //             let setSupplier = (item.Attributes.supplierinfo = item.Attributes.supplier.id == null ? JObject.FromObject(new Supplier()) : JObject.FromObject(db.GetById<Supplier>((int)item.Attributes.supplier.id)))
-            //             select item).ToList();
+            var purchaseOrders = new ConcurrentBag<PurchaseOrder>();
+            db.Query<Supplier>().AsParallel().ForAll((supplier) =>
+            {
+                var po = new PurchaseOrder()
+                {
+                    SupplierId = supplier.Id,
+                    Items = new List<PurchaseItem>()
+                };
 
-            // this version use embedded itemsdetail
+                var matchedItems = purchaseItems.Where(pi => pi.SupplierId == supplier.Id);
+                foreach (var item in matchedItems)
+                {
+                    po.Combine(item);
+                }
+
+                purchaseOrders.Add(po);
+            });
+
+            return purchaseOrders.Where(po => po.Items.Count > 0).OrderBy(po => po.SupplierId);
+        }
+
+        public static IEnumerable<PurchaseItem> ToPurchaseItems(this SaleOrder saleOrder, NancyBlackDatabase db)
+        {
             var source = GetPurchasingProduct(saleOrder, db);
 
             List<Product> items = new List<Product>();
@@ -223,7 +232,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
-            var purchaseList = from item in items
+            // create detailed list of product in sale order
+            // DOES NOT WORK DUE TO BUG in SaleOrder.Items
+            //var items = (from itemId in saleOrder.Items
+            //             let itemInDb = db.GetById<Product>(itemId)
+            //             let item = itemInDb == null ? saleOrder.ItemsDetail.Where(p => p.Id == itemId).FirstOrDefault() : itemInDb
+            //             where item.Attributes != null
+            //             let supplierNull = item.Attributes.supplier == null
+            //             let deserialize = (item.Attributes.supplier = supplierNull ? JObject.Parse("{}") : JObject.Parse(item.Attributes.supplier.ToString()))
+            //             let setSupplier = (item.Attributes.supplierinfo = item.Attributes.supplier.id == null ? JObject.FromObject(new Supplier()) : JObject.FromObject(db.GetById<Supplier>((int)item.Attributes.supplier.id)))
+            //             select item).ToList();
+
+            return from item in items
                                where
                                    item.Attributes.supplierinfo.Id != 0 // only product that has supplier
                                group item by item.Id into itemWithSameId // group the product to get count
@@ -237,6 +257,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                                    ProductId = firstItem.Id,
                                    PartsId = GeneratePartsIdList(firstItem, items)
                                };
+        }
+
+        /// <summary>
+        /// add item from SaleOrder to PurchaseOrder in case SaleOrder never been added yet
+        /// </summary>
+        /// <param name="saleOrder"></param>
+        /// <param name="db"></param>
+        public static void AddSalelOrderToPurchaseOrder(SaleOrder saleOrder, NancyBlackDatabase db)
+        {
+            GenerateOrderedPurchaseOrder(db);
+
+            var relations = db.Query<OrderRelation>().Where(relation => relation.SaleOrderId == saleOrder.Id);
+            if (relations.Count() > 0)
+            {
+                return;
+            }
+
+            var purchaseList = saleOrder.ToPurchaseItems(db);
 
             AddItemToPurchaseOrder(saleOrder, purchaseList, db);
         }

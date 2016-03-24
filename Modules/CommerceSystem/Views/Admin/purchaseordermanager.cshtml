@@ -29,6 +29,7 @@
                 var $me = this;
 
                 $scope.allPOStatus = window.allData.PurchaseOrderStatus;
+                $scope.pendingPOs = window.allData.PendingPurchaseOrders;
 
                 $me.generatePO = function (po) {
                     $http.post('/admin/purchaseorder/' + po.id + '/generate').
@@ -56,8 +57,43 @@
         <h1>Purchase Order</h1>
     </div>
 
-    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'">
-    </ncb-ngtable>
+    <tabset>
+        <tab heading="Current Pending PO">
+
+            <div class="col-md-4" ng-repeat="po in pendingPOs">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <span ncb-vlookup="supplier" key="{{po.SupplierId}}" label="Name">
+                        </span>
+                    </div>
+                    <div class="panel-body">
+
+                        <table class="table table-striped table-hover table-responsive">
+
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                            </tr>
+                            <tr ng-repeat="supply in po.Items">
+                                <td data-title="'Supplies'">
+                                    <div style="text-align: left">
+                                        {{supply.Title}}<span ng-repeat="part in supply.Parts">-{{part}}</span>
+                                    </div>
+                                </td>
+                                <td>{{supply.Qty}}</td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+        </tab>
+        <tab heading="All PO">
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'">
+            </ncb-ngtable>
+        </tab>
+    </tabset>
 
     <script type="text/ng-template" id="tablecustomtemplate.html">
 
