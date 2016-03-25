@@ -1783,6 +1783,13 @@
                                     element.height()
                                 );
                 }
+                
+                if (attrs.mode) {
+
+                    finalUrl += String.format("&mode={0}",
+                                    attrs.mode
+                                );
+                }
 
                 if (lastSrc == finalUrl) {
                     return;
