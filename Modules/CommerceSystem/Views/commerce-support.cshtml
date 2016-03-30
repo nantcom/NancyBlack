@@ -141,6 +141,95 @@
                                     <h2 class="text-info">สถานะล่าสุด</h2>
                                     {{object.Status}}
                                 </div>
+
+                                <div class="col-md-12" ng-show="object.Status != 'Cancel' && object.Status != 'Confirmed'">
+                                    <h2 class="text-info">ไทม์ไลน์สถานะ</h2>
+                                    <ul class="timeline">
+                                        <li class="timeline-inverted" ng-show="StatusState == 2">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'WaitingForOrder'}"><i class="glyphicon glyphicon-plane"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Waiting For Order: กำลังรอรับสินค้าจากประเทศสิงคโปร์</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>อยู่ระหว่างการรอรับสินค้าจากต่างประเทศ ใช้เวลาในการขนส่งสินค้าประมาณ 2 สัปดาห์</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 4">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'AtLEVEL51'}"><i class="glyphicon glyphicon-home"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">At LEVEL51: ขณะนี้แล็ปท็อปอยู่ที่ร้านของทางเราแล้ว</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>ขณะนี้แล็ปท็อปอยู่ที่ร้านของทางเราแล้ว กำลังรออะไหล่บางชิ้นรอหรือการประกอบอยู่</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 5">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Building'}"><i class="glyphicon glyphicon-wrench"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Building: อยู่ระหว่างการประกอบ</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>อยู่รหว่างการประกอบเครื่อง ตรวจสอบสินค้า และติดต่อระบบปฏิบัติการ</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 6">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Testing'}"><i class="fa fa-tachometer"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Testing: กำลังตรวจสอบคุณภาพของสินค้า</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>กำลังตรวจสอบคุณภาพของสินค้าด้วยโปรแกรม 3D Mark</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 7">
+                                            <div class="timeline-badge" ng-class="{'success': object.Status == 'ReadyToShip'}"><i class="glyphicon glyphicon-gift"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Ready to Ship: สินค้าพร้อมจัดส่ง</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>สินค้าพร้อมจัดส่ง อยู่ระหว่างการรอส่งสินค้า</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 8">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Shipped'}"><i class="fa fa-truck"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Shiping: สิงค้าอยู่ระหว่างการจัดส่ง</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>
+                                                        ทางทีมงานได้จัดเตรียมสินค้าและจัดส่งเรียบร้อยแล้ว ทางผู้จัดส่ง (DHL)
+                                                        จะทำการโทรไปติดต่อยืนยันเวลาจัดส่งอีกครั้งตามเบอร์ที่ลูกค้าให้ไว้
+                                                        สินค้าอยู่ระหว่างการขนส่งโดยระยะเวลาขึ้นอยู่กับจังหวัดที่ขนส่ง เช่น
+                                                        หากอยู่ในหรือใกล้กรุงเทพจะใช้เวลาจัดส่งใน 1 วัน
+                                                        หากอยู่ไกลจากกรุงเทพออกไปจะต้องใช้เวลาจัดส่งมากขึ้น
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 9">
+                                            <div class="timeline-badge" ng-class="{'success': object.Status == 'Delivered'}"><i class="glyphicon glyphicon-heart"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Delivered: สินค้าถูกส่งมอบเรียบร้อย</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>สินค้าถูกส่งมอบเรียบร้อย</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
 
                             <div class="row"
