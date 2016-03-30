@@ -116,7 +116,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 403;
             }
 
-            return 404;
+            var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+
+            so.AddItem(this.SiteDatabase, this.CurrentSite, (int)arg.productId);
+
+            return 200;
         }
 
         private dynamic RemoveProductFromSaleOrder(dynamic arg)
