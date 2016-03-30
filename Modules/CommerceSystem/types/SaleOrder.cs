@@ -281,9 +281,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             if (this.IsPayWithCreditCart)
             {
                 this.PaymentFee = this.TotalAmount * 0.035M;
+                this.PaymentFee = Math.Round(this.PaymentFee, 2, MidpointRounding.AwayFromZero);
             }
 
             this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
+            this.TotalAmount = Math.Round(this.TotalAmount, 2, MidpointRounding.AwayFromZero);
 
             db.Transaction(() =>
             {
