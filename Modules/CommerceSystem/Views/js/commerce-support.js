@@ -13,6 +13,13 @@
         $scope.allPaymentStatus = window.allData.PaymentStatusList;
         $scope.paymentLogs = window.allData.PaymentLogs;
 
+        for (var i = 0; i < $scope.allStatus.length; i++) {
+            if ($scope.object.Status == $scope.allStatus[i]) {
+                $scope.StatusState = i;
+            }
+        }
+        
+
         console.log("WARNING: Using Status list from client side");
 
         if ($scope.object.DHLTrackingNumber != null) {

@@ -69,7 +69,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
     public class SaleOrder : IStaticType
     {
-        
+
         public int Id { get; set; }
 
         public DateTime __createdAt { get; set; }
@@ -77,7 +77,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __updatedAt { get; set; }
 
         public DateTime PaymentReceivedDate { get; set; }
-        
+
         /// <summary>
         /// Sale Order Identifier
         /// </summary>
@@ -185,6 +185,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public dynamic[] Attachments { get; set; }
 
+        public void SetAllFee(dynamic currentSite)
+        {
+            if (this.ShippingDetails.method == "shipping")
+            {
+                this.ShippingFee = currentSite.commerce.shipping.fee;
+
+                if (this.ShippingDetails.insurance == true)
+                {
+                    this.ShippingInsuranceFee = this.TotalAmount * currentSite.commerce.shipping.insuranceRate;
+                }
+            }
+            else
+            {
+                this.ShippingFee = 0;
+            }
+
+            if (this.IsPayWithCreditCart)
+            {
+                this.PaymentFee = this.TotalAmount * 0.035M;
+                this.PaymentFee = Math.Round(this.PaymentFee, 2, MidpointRounding.AwayFromZero);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -265,26 +288,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 return; // Just update the details for calculation
             }
 
-            if (this.ShippingDetails.method == "shipping")
-            {
-                this.ShippingFee = currentSite.commerce.shipping.fee;
-
-                if (this.ShippingDetails.insurance == true)
-                {
-                    this.ShippingInsuranceFee = this.TotalAmount * currentSite.commerce.shipping.insuranceRate;
-                }
-            }
-            else
-            {
-                this.ShippingFee = 0;
-            }
-
-            if (this.IsPayWithCreditCart)
-            {
-                this.PaymentFee = this.TotalAmount * 0.035M;
-            }
+            this.SetAllFee(currentSite);
 
             this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
+            this.TotalAmount = Math.Round(this.TotalAmount, 2, MidpointRounding.AwayFromZero);
 
             db.Transaction(() =>
             {
@@ -304,6 +311,47 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         }
 
+        public void AddItem(NancyBlackDatabase db, dynamic currentSite, int itemId)
+        {
+            var list = this.Items.ToList();
+            list.Add(itemId);
+            this.Items = list.ToArray();
+
+            var newItem = db.GetById<Product>(itemId);
+            var existItem = this.ItemsDetail.Where(p => p.Id == itemId && p.Title == newItem.Title && p.Price == newItem.Price).FirstOrDefault();
+
+            if (existItem == null)
+            {
+                JObject attr = newItem.Attributes;
+                if (attr == null)
+                {
+                    attr = new JObject();
+                    newItem.Attributes = attr;
+                }
+                attr["Qty"] = 1;
+                newItem.ContentParts = null;
+                this.ItemsDetail.Add(newItem);
+            }
+            else
+            {
+                JObject attr = existItem.Attributes;
+                attr["Qty"] = attr.Value<int>("Qty") + 1;
+            }
+            
+            if (newItem.IsPromotionPrice)
+            {
+                var discount = this.ItemsDetail.Where(p => p.Url == "/dummy/dummy").FirstOrDefault();
+                discount.Price += newItem.CurrentPrice - newItem.Price;
+            }
+
+            this.TotalAmount = this.TotalAmount - (this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee);
+            this.TotalAmount += newItem.CurrentPrice;
+            this.SetAllFee(currentSite);
+            this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
+
+            db.UpsertRecord<SaleOrder>(this);
+        }
+        
         /// <summary>
         /// Apply promotion code
         /// </summary>
