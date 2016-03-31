@@ -159,6 +159,14 @@
             Title of the page, usually shows in menu and as page heading.
         </h3>
 
+        <input type="number" ncb-textbox title="Display Order"
+               placeholder="0"
+               ng-model="object.DisplayOrder" />
+
+        <h3>
+            Display Order, use number less than 0 to hide from list.
+        </h3>
+
         <h2>SEO:</h2>
         <input type="text" ncb-textbox title="Meta Keywords"
                placeholder="keywords to describe this page"

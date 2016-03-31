@@ -228,6 +228,7 @@ namespace NantCom.NancyBlack.Modules
 
             return db.Query<Page>()
                     .Where(p => p.Url.StartsWith(url))
+                    .Where(p => p.DisplayOrder >= 0)
                     .OrderBy(p => p.DisplayOrder)
                     .OrderByDescending(p=> p.__createdAt);
         }

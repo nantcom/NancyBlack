@@ -182,10 +182,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             return null;
         }
 
-        public static IEnumerable<PurchaseOrder> GetPendingPurchaseOrders(NancyBlackDatabase db)
+        public static IEnumerable<PurchaseOrder> GetPendingPurchaseOrders(NancyBlackDatabase db, string status = SaleOrderStatus.WaitingForOrder)
         {
             var pendingSOs = db.Query<SaleOrder>()
-                .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived && so.Status == SaleOrderStatus.WaitingForOrder)
+                .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived && so.Status == status)
                 .ToList();
 
             var purchaseItems = new List<PurchaseItem>();

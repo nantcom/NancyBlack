@@ -66,8 +66,8 @@
 
 
     @if (this.Site.lockdown != null &&
-                                                 this.Site.lockdown.enable == true &&
-                                                 this.Request.Url.Path != "/__editor")
+                                                         this.Site.lockdown.enable == true &&
+                                                         this.Request.Url.Path != "/__editor")
     {
         <i class="fa fa-lock"
            style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
@@ -78,12 +78,15 @@
 
     @helper TrimData(object input)
     {
-    var copy = Newtonsoft.Json.Linq.JObject.FromObject(input);
-    copy.Remove("ContentParts");
-    copy.Remove("Attachments");
+        var copy = Newtonsoft.Json.Linq.JObject.FromObject(input);
+        if (this.CurrentUser.HasClaim("Admin") == false)
+        {
+            copy.Remove("ContentParts");
+            copy.Remove("Attachments");
+        }
 
         @this.Html.Raw(copy.ToString(Newtonsoft.Json.Formatting.None))
-    }
+}
 
     <script>
         // Make :hover works on ipad
@@ -199,8 +202,8 @@
     </script>
 
     @if (this.Site.Application != null &&
-                         this.Request.Url.Path.StartsWith("/Admin") == false &&
-                         this.Request.Url.Path.StartsWith("/__editor") == false)
+                                 this.Request.Url.Path.StartsWith("/Admin") == false &&
+                                 this.Request.Url.Path.StartsWith("/__editor") == false)
     {
         @if (this.Site.Application.FacebookAppId != null)
         {

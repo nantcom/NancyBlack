@@ -58,12 +58,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 403;
             }
 
+            var statusType = (string)this.Request.Query.status;
+            if (statusType == null)
+            {
+                statusType = SaleOrderStatus.WaitingForOrder;
+            }
+
             var dummyPage = new Page();
 
             var data = new
             {
                 PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>(),
-                PendingPurchaseOrders = PurchaseOrderManager.GetPendingPurchaseOrders(this.SiteDatabase).ToList()
+                PendingPurchaseOrders = PurchaseOrderManager.GetPendingPurchaseOrders(this.SiteDatabase, statusType).ToList()
             };
 
             return View["/Admin/purchaseordermanager", new StandardModel(this, dummyPage, data)];
