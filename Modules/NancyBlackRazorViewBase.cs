@@ -26,6 +26,22 @@ namespace NantCom.NancyBlack
                 return this.RenderContext.Context.Request;
             }
         }
+
+        /// <summary>
+        /// Gets the current language requested
+        /// </summary>
+        public string Language
+        {
+            get
+            {
+                if (this.Context.Items.ContainsKey("Language"))
+                {
+                    return this.Context.Items["Language"].ToString();
+                }
+
+                return string.Empty;
+            }
+        }
         
         /// <summary>
         /// Gets the content being rendered
@@ -44,8 +60,7 @@ namespace NantCom.NancyBlack
                 return this.Model.Content;
             }
         }
-
-
+        
         private IContent _ThemeContent;
 
         /// <summary>
@@ -152,7 +167,7 @@ namespace NantCom.NancyBlack
             return copy.ToString( Formatting.None );
         }
         
-        #region Content Editing
+        #region Content
 
         private string _LastPropertyName;
 
@@ -219,9 +234,9 @@ namespace NantCom.NancyBlack
             if (contentParts != null)
             {
                 // use the localized one if the localized content is requested
-                if (this.Context.Items.ContainsKey("Language") == true)
+                if (this.Language != string.Empty)
                 {
-                    value = (string)contentParts[propertyName + "-" + this.Context.Items["Language"]];
+                    value = (string)contentParts[propertyName + "_" + this.Language];
                 }
 
                 // try to get the non-localized version
@@ -305,7 +320,7 @@ namespace NantCom.NancyBlack
                 // use the localized one if the localized content is requested
                 if (this.Context.Items.ContainsKey("Language") == true)
                 {
-                    value = (string)contentParts[_LastPropertyName + "-" + this.Context.Items["Language"]];
+                    value = (string)contentParts[_LastPropertyName + "_" + this.Context.Items["Language"]];
                 }
 
                 // try to get the non-localized version

@@ -118,22 +118,7 @@ namespace NantCom.NancyBlack.Modules
             // see if the url is collection request or content request
             var parts = url.Split('/');
 
-            if (ContentModule.LanguageCodes.Contains(parts.Last()))
-            {
-                this.Context.Items["Language"] = parts.Last();
-
-                if (parts.Length == 2)
-                {
-                    url = "/";
-                }
-                else
-                {
-                    url = string.Join("/", parts.Take(parts.Length - 1));
-                }
-            }
-
             url = ContentModule.RewriteUrl(this.Context, arg, url);
-
 
             if (parts.Length > 2 && parts[1].EndsWith("s"))
             {
@@ -321,14 +306,7 @@ namespace NantCom.NancyBlack.Modules
         }
 
         #endregion
-
-        private static string[] LanguageCodes =
-        {
-            "th",
-            "en",
-            "jp",
-            "cn"
-        };
+        
     }
 
 }

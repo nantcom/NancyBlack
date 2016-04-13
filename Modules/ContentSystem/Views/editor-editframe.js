@@ -21,6 +21,11 @@
                 element: editable,
                 name: editable.data("propertyname"),
             };
+
+            if (window.language != "") {
+                area.name = area.name + "_" + window.language;
+            }
+
             areas.push(area);
             areas[area.name] = area;
         });
@@ -326,7 +331,7 @@
 
     });
 
-    ncbEditor.controller("NcbContentEditor", function ($scope, $rootScope, $timeout, $location, $datacontext) {
+    ncbEditor.controller("NcbContentEditor", function ($scope, $rootScope, $timeout, $location, $datacontext, $http) {
 
         var $me = this;
         var siteView = $("#siteview");

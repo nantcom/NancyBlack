@@ -80,9 +80,114 @@ namespace NantCom.NancyBlack.Configuration
             
             ModuleResource.ReadSystemsAndResources(BootStrapper.RootPath);
 
-            #region View Conventions
-
             this.Conventions.ViewLocationConventions.Clear();
+            
+            #region Localized View Conventions
+
+            // Site's View Folder has most priority
+            // Mobile View Overrides
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("Language") == false)
+                {
+                    return string.Empty;
+                }
+
+                string u = context.Context.Request.Headers.UserAgent.ToLowerInvariant();
+                if (u.Contains("mobile/"))
+                {
+                    return "Site/Views/Mobile/" + viewName + "_" + context.Context.Items["Language"];
+                }
+
+                return string.Empty; // not mobile browser
+
+            });
+
+            // Desktop View Location
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("Language") == false)
+                {
+                    return string.Empty;
+                }
+
+                return "Site/Views/Desktop/" + viewName + "_" + context.Context.Items["Language"];
+            });
+
+            // Generic View Location
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("Language") == false)
+                {
+                    return string.Empty;
+                }
+
+                return "Site/Views/" + viewName + "_" + context.Context.Items["Language"];
+            });
+
+            // Theme view location (views/_theme) can override _theme of the Theme folder
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                var theme = context.Context.GetSiteSettings().Theme;
+                if (theme == null)
+                {
+                    return string.Empty;
+                }
+
+                if (context.Context.Items.ContainsKey("Language") == false)
+                {
+                    return string.Empty;
+                }
+
+                return "Themes/" + theme + "/" + viewName + "_" + context.Context.Items["Language"];
+            });
+
+            // NancyBlack's View Location
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                if (context.Context.Items.ContainsKey("Language") == false)
+                {
+                    return string.Empty;
+                }
+
+                return "Content/Views/" + viewName + "_" + context.Context.Items["Language"];
+            });
+
+            // then try Views in Systems (AdminSystem, ContentSystem etc...)
+            foreach (var system in ModuleResource.Systems)
+            {
+                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                {
+                    if (context.Context.Items.ContainsKey("Language") == false)
+                    {
+                        return string.Empty;
+                    }
+
+                    return string.Concat("Modules/",
+                                         viewName,
+                                         "_" ,
+                                         context.Context.Items["Language"]);
+                });
+
+                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                {
+                    if (context.Context.Items.ContainsKey("Language") == false)
+                    {
+                        return string.Empty;
+                    }
+
+                    return string.Concat("Modules/",
+                                         system,
+                                         "/Views/",
+                                         viewName,
+                                         "_",
+                                         context.Context.Items["Language"]);
+                });
+            }
+            
+            #endregion
+            
+            #region View Conventions
 
             // Site's View Folder has most priority
             // Mobile View Overrides
@@ -125,7 +230,6 @@ namespace NantCom.NancyBlack.Configuration
             // NancyBlack's View Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-
                 return "Content/Views/" + viewName;
             });
 
@@ -155,6 +259,9 @@ namespace NantCom.NancyBlack.Configuration
             {
                 return viewName.Substring(1); // fully qualify names, remove forward slash at first
             });
+
+
+
 
             #endregion
 

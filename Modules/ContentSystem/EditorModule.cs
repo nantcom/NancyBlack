@@ -43,8 +43,10 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
 
             });
 
-            Post["/__editor/updateorder"] = this.HandleRequest(this.UpdateContentOrder); 
+            Post["/__editor/updateorder"] = this.HandleRequest(this.UpdateContentOrder);
+            
         }
+        
 
         private dynamic UpdateContentOrder(dynamic arg)
         {

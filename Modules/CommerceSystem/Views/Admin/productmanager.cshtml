@@ -436,64 +436,6 @@
                             
                         </tab>
 
-                        <tab heading="Inventory"
-                             disable="(object.HasVariation == false || object.IsVariation == true) == false">
-
-                            <div ng-show="object.HasVariation == false || object.IsVariation == true"
-                                 ncb-datacontext table="InventoryMovement">
-
-                                <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                                             reloadwatch="object.id"
-                                             alwaysfilter="object.id == null ? '' : 'ProductId eq ' + object.id">
-                                </ncb-ngtable>
-
-                                <script type="text/ng-template" id="tablecustomtemplate.html">
-
-                                    <table id="NcbNgTable"
-                                           ncb-datatable
-                                           class="table table-striped table-hover"
-                                           style="width: 100%"
-                                           ng-table="tableParams"
-                                           show-filter="true">
-
-                                        <tr ng-repeat="item in tableParams.data">
-
-                                            <td data-title="'Date'"
-                                                sortable="'MovementDate'">
-                                                {{item.MovementDate | date:'dd/MM/yyyy' }}
-                                            </td>
-                                            <td data-title="'PO#'"
-                                                sortable="'PONumber'"
-                                                filter="{ 'PONumber': 'text' }">
-                                                {{item.PONumber }}
-                                            </td>
-                                            <td data-title="'Invoice#'"
-                                                sortable="'InvoiceNumber'"
-                                                filter="{ 'InvoiceNumber': 'text' }">
-                                                {{item.InvoiceNumber }}
-                                            </td>
-                                            <td data-title="'Receipt#'"
-                                                sortable="'ReceiptNumber'"
-                                                filter="{ 'ReceiptNumber': 'text' }">
-                                                {{item.ReceiptNumber }}
-                                            </td>
-                                            <td data-title="'Unit Change'"
-                                                sortable="'Change'"
-                                                style="width: 120px; text-align:right">
-                                                {{item.Change }}
-                                            </td>
-                                            <td data-title="'Unit Price'"
-                                                sortable="'PricePerUnit'"
-                                                style="width: 150px; text-align:right">
-                                                {{item.PricePerUnit | number:2 }}
-                                            </td>
-                                        </tr>
-                                    </table>
-
-                                </script>
-
-                            </div>
-                        </tab>
                     </tabset>
                     <div>
                         <button class="btn btn-primary btn-lg pull-right"
@@ -512,34 +454,6 @@
                 </div>
             </div>
         </div>
-
-        <ncb-modal id="MultipleProductUpdate"
-                   title="Update Stock/Price on multiple products"
-                   closebutton>
-
-            <form role="form" name="MultipleProductUpdateForm" ng-submit="ctrl.UpdateMultipleProducts(UpdateStock, UpdatePrice)">
-
-                <div class="well">
-                    Edit: {{checkboxes.items.legnt}} Products.
-                </div>
-
-                <input type="text" name="Stock" title="Stock"
-                       ncb-textbox
-                       ng-model="ctrl.UpdateStock" />
-
-                <input type="text" name="Price" title="Price"
-                       ncb-textbox
-                       ng-model="ctrl.UpdatePrice" />
-
-            </form>
-
-            <ncb-footer>
-                <button class="btn btn-primary btn-lg" ng-click="ctrl.UpdateMultipleProducts()">
-                    <span>Update</span>
-                </button>
-            </ncb-footer>
-
-        </ncb-modal>
 
 
     </div>

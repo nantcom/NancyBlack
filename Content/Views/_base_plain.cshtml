@@ -62,12 +62,13 @@
 </head>
 <body ncb-membership
       ng-module="BaseModule"
-      ng-controller="BaseController as bCtrl">
+      ng-controller="BaseController as bCtrl"
+      class="lang-@(this.Language == string.Empty ? "neutral" : this.Language)">
 
 
     @if (this.Site.lockdown != null &&
-                                                         this.Site.lockdown.enable == true &&
-                                                         this.Request.Url.Path != "/__editor")
+         this.Site.lockdown.enable == true &&
+         this.Request.Url.Path != "/__editor")
     {
         <i class="fa fa-lock"
            style="font-size: 100px; opacity: 0.5; position: fixed; right: 0; top: 0; pointer-events: none; color: red; z-index:999999"></i>
@@ -75,18 +76,6 @@
 
 
     @RenderBody()
-
-    @helper TrimData(object input)
-    {
-        var copy = Newtonsoft.Json.Linq.JObject.FromObject(input);
-        if (this.CurrentUser.HasClaim("Admin") == false)
-        {
-            copy.Remove("ContentParts");
-            copy.Remove("Attachments");
-        }
-
-        @this.Html.Raw(copy.ToString(Newtonsoft.Json.Formatting.None))
-}
 
     <script>
         // Make :hover works on ipad
@@ -96,17 +85,19 @@
         {
             // automatically set current user info into window variable
             <text>
-        window.currentUser = @this.Html.Raw(this.GetJsonWithoutContentParts(this.CurrentUser));
+        window.currentUser = @this.Html.Raw( this.GetJson( this.CurrentUser ));
         </text>
         }
 
         @if (this.CurrentUser.HasClaim("Admin") || this.CurrentUser.HasClaim("Editor"))
         {
             <text>
-        window.model = { };
-        window.model.Content = @TrimData(this.Model.Content);
+            window.model = { };
+            window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
         </text>
         }
+
+        window.language = "@(this.Language)";
     </script>
 
     <script src="/Content/Scripts/ncb-dependencies.js"></script>

@@ -236,7 +236,7 @@
                                  ng-if="object.Status == 'Shipped'">
                                 <div class="col-xs-12" id="dhltracking">
                                     <h2 class="text-info">สถานะการจัดส่ง</h2>
-                                    <iframe ng-src="{{'http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + object.DHLTrackingNumber}}"></iframe>
+                                    <iframe ng-src="{{trackingUrl}}"></iframe>
                                 </div>
                             </div>
 

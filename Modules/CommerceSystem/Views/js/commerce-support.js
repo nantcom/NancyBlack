@@ -2,7 +2,7 @@
 (function () {
 
     var mod = angular.module('Page', []);
-    mod.controller('PageController', function ($scope, $http) {
+    mod.controller('PageController', function ($scope, $http, $sce) {
 
         var me = this;
 
