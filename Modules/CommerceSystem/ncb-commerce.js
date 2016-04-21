@@ -1224,6 +1224,12 @@
                 return $me.convert(input, $me.home, wantCurrency);
             };
 
+            $me.fairRatio = function (homeValue, wantValue, wantCurrency)
+            {
+                var fairValue = $me.convert(homeValue, $me.home, wantCurrency);
+                return wantValue / fairValue
+            }
+
             $me.convert = function (input, inputCurrency, wantCurrency) {
 
                 var want = currencyRate.rates[wantCurrency];

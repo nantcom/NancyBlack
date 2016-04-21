@@ -220,6 +220,49 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
+        /// Gets localized content from content parts object and property name
+        /// </summary>
+        /// <param name="contentParts"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public string GetLocalizedContent( JObject contentParts, string propertyName )
+        {
+            string value = null;
+            if (contentParts != null)
+            {
+                // use the localized one if the localized content is requested
+                if (this.Language != string.Empty)
+                {
+                    value = (string)contentParts[propertyName + "_" + this.Language];
+
+                    // try to get from english version
+                    if (value == null)
+                    {
+                        value = (string)contentParts[propertyName + "_en"];
+                    }
+
+                    // try to get the non-localized version
+                    if (value == null)
+                    {
+                        value = (string)contentParts[propertyName];
+                    }
+                }
+                else
+                {
+                    value = (string)contentParts[propertyName];
+                }
+
+            }
+
+            if (value == null)
+            {
+                return string.Empty;
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Get Contents of the specified property name.
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
@@ -233,17 +276,7 @@ namespace NantCom.NancyBlack
             
             if (contentParts != null)
             {
-                // use the localized one if the localized content is requested
-                if (this.Language != string.Empty)
-                {
-                    value = (string)contentParts[propertyName + "_" + this.Language];
-                }
-
-                // try to get the non-localized version
-                if (value == null)
-                {
-                    value = (string)contentParts[propertyName];
-                }
+                value = this.GetLocalizedContent(contentParts, propertyName);
             }
 
             if (value == null)
@@ -274,7 +307,7 @@ namespace NantCom.NancyBlack
             var contentParts = (this.Content as IContent).ContentParts as JObject;
             if (contentParts != null)
             {
-                value = (string)contentParts[propertyName];
+                value = this.GetLocalizedContent(contentParts, propertyName);
             }
 
             if (value == null)
@@ -317,17 +350,7 @@ namespace NantCom.NancyBlack
             var contentParts = content.ContentParts as JObject;
             if (contentParts != null)
             {
-                // use the localized one if the localized content is requested
-                if (this.Context.Items.ContainsKey("Language") == true)
-                {
-                    value = (string)contentParts[_LastPropertyName + "_" + this.Context.Items["Language"]];
-                }
-
-                // try to get the non-localized version
-                if (value == null)
-                {
-                    value = (string)contentParts[_LastPropertyName];
-                }
+                value = this.GetLocalizedContent(contentParts, _LastPropertyName);
             }
 
             _LastPropertyName = null;

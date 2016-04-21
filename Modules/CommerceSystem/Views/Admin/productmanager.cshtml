@@ -126,16 +126,14 @@
                 </td>
                 <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
                     width="10%" style="text-align:right">
-                    {{product.Price | number:2 }}
-                    @this.Site.commerce.multicurrency.home
+                    {{multicurrency.home}}{{product.Price | number:2 }}
 
-                    <div style="font-size: 70%"
+                    <div style="font-size: 90%"
                             ng-repeat="(key,value) in product.PriceMultiCurrency">
-                        {{value | number:2 }} {{key}}
-
+                        <b>{{key}}</b>{{value | number:2 }}
                         <span class="label label-danger text-muted"
-                                ng-show="{ 'text-danger' : value < multicurrency.convertHome(product.Price, key)}">
-                            -{{(multicurrency.convertHome(product.Price, key) / value * 100) - 100 | number:2}}%
+                                ng-if="multicurrency.fairRatio(product.Price, value, key) <= 1.0">
+                            {{100 - (multicurrency.fairRatio(product.Price, value, key) * 100) | number:2 }}%
                         </span>
                     </div>
 
