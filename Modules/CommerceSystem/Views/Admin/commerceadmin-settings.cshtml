@@ -71,6 +71,10 @@
                 <a class="btn btn-default" btn-radio="'includevat'" ng-model="object.commerce.billing.vattype">VAT included</a>
             </div>
 
+        </div>
+
+        <div class="col-md-4">
+
             <h2>Fees</h2>
 
             <input type="number" title="Credit Card Rate"
@@ -139,8 +143,6 @@
 
         </div>
 
-    </div>
-    <div class="row">
 
         <div class="col-md-4">
 
@@ -175,7 +177,17 @@
         </div>
 
 
+        <div class="col-md-4">
+
+            <h2>Email Notification</h2>
+
+            <input type="text" title="Send Notifications to"
+                   ncb-textbox ng-model="object.commerce.email.notification" />
+        </div>
+
     </div>
+
+
 </div>
 
 @section Script
