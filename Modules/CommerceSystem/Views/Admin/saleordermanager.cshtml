@@ -32,37 +32,8 @@
      id="ManageSaleorder">
 
     <div class="page-header">
-        <h1>Selling Center</h1>
+        <h1>Sale Order</h1>
     </div>
-
-    <tabset>
-
-        <tab heading="Report">
-
-            <div class="row">
-
-                <div class="col-md-6"
-                     ncg-chart
-                     title="'Monthly Revenue'"
-                     table="'SaleOrder'"
-                     fn="'cumulativesum'"
-                     select="'TotalAmount'"
-                     filter="PaymentStatus eq 'PaymentReceived'">
-                </div>
-
-                <div class="col-md-6"
-                     ncg-chart
-                     title="'Monthly Volume'"
-                     table="'SaleOrder'"
-                     fn="'cumulativecount'"
-                     select="'TotalAmount'"
-                     filter="PaymentStatus eq 'PaymentReceived'">
-                </div>
-            </div>
-
-        </tab>
-
-        <tab heading="Sale Order">
 
             <tabset>
 
@@ -79,7 +50,7 @@
                 <tab heading="Pending Work">
 
                     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                                 alwaysfilter="(Status eq 'AtLevel51') or (Status eq 'Building') or (Status eq 'Testing')"
+                                 alwaysfilter="(Status eq 'AtLEVEL51') or (Status eq 'Building') or (Status eq 'Testing')"
                                  defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
                                  edit-fn="ctrl.viewOrderDetail(id)">
                     </ncb-ngtable>
@@ -99,6 +70,15 @@
 
                     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
                                  alwaysfilter="(Status eq 'Shipped')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Delivered">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'Delivered')"
                                  edit-fn="ctrl.viewOrderDetail(id)">
                     </ncb-ngtable>
 
@@ -127,10 +107,6 @@
                 </tab>
             </tabset>
 
-
-        </tab>
-
-    </tabset>
 
 
     <script type="text/ng-template" id="tablecustomtemplate.html">
@@ -190,6 +166,14 @@
                         <div ng-repeat="(k,v) in item.ShippingDetails">
                             <b>{{k}}</b>: {{v}}
                         </div>
+
+                        <b>Shipping Address:</b><br/>
+                        {{item.ShipTo.To || 'empty'}}<br />
+                        {{item.ShipTo.Address || 'empty'}}<br />
+                        {{item.ShipTo.SubDistrict || 'empty'}}
+                        {{item.ShipTo.District || 'empty'}}<br />
+                        {{item.ShipTo.State || 'empty'}},
+                        {{item.ShipTo.PostalCode || 'empty'}}<br/>
                     </div>
 
                 </td>

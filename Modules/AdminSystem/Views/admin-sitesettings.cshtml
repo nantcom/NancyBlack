@@ -34,6 +34,20 @@
             <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
                    ncb-textbox ng-model="object.Application.GoogleAnalyticsId" />
 
+            <input type="text" title="Facebook Pixel Id"
+                   ncb-textbox ng-model="object.Application.FacebookPixelId" />
+
+
+            <div class="form-group">
+                <input type="text" title="Google Site Verification"
+                       ncb-textbox ng-model="object.Application.GoogleSiteVerification" />
+                <span class="text-muted">
+                    Use the "Meta Tag" verification method, copy the attribute <b>content</b> (no quotes) into this box.
+                    for example, if the tag is :<br/>
+                    &lt;meta name="google-site-verification" content="<b>1eDxakJwEISMtQUXfeUzshYDBlD-GvEm9sx-coN6o_I</b>" /&gt;
+                    copy the <b>1eDxakJwEISMtQUXfeUzshYDBlD-GvEm9sx-coN6o_I</b> into this box.
+                </span>
+            </div>
         </div>
 
         <div class="col-md-4">
@@ -201,7 +215,7 @@
                             });
                         })
                         .error( function(data) {
-                            
+
                             $scope.alerts.push( {
                                 type: 'danger',
                                 msg: 'Settings was not saved.'

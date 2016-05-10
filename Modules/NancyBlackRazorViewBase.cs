@@ -253,12 +253,7 @@ namespace NantCom.NancyBlack
                 }
 
             }
-
-            if (value == null)
-            {
-                return string.Empty;
-            }
-
+            
             return value;
         }
 
