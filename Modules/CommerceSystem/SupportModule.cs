@@ -34,9 +34,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 404;
             }
 
-            // if customer did not paid in a day after create sale order,
-            // system will automate cancel the sale order.
-            if (so.IsExpired)
+            var isExpired = so.PaymentStatus == PaymentStatus.WaitingForPayment
+                    && so.Status == SaleOrderStatus.Confirmed
+                    && (so.__createdAt.AddDays(14) < DateTime.Now);
+            
+            if (isExpired)
             {
                 so.Status = SaleOrderStatus.Cancel;
                 this.SiteDatabase.UpsertRecord(so);

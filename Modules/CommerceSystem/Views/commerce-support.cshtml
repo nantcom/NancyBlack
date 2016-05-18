@@ -93,10 +93,10 @@
                     <span id="clockdiv" ng-controller="CountDownTimerController">
                         คำสั่งซื้อนี้จะหมดอายุใน
 
-                        <span class="days"></span> วัน
-                        <span class="hours"></span> ชั่วโมง
-                        <span class="minutes"></span> นาที
-                        <span class="seconds"></span> วินาที
+                        <span ng-cloak ng-show="days > 1">{{days}} วัน</span>
+                        <span ng-cloak ng-show="days < 1">{{hours}} ชั่วโมง</span>
+                        <span ng-cloak ng-show="days < 1 && hours < 1">{{minutes}} นาที</span>
+                        <span ng-cloak ng-show="days < 1 && hours < 1">{{seconds}} วินาที</span>
                     </span>
                 </p>
                 <p>

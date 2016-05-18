@@ -37,6 +37,15 @@
 
             <tabset>
 
+                <tab heading="View by Customer">
+
+                    <ncb-ngtable tabletemplate="'tablecustomertemplate.html'"
+                                 alwaysfilter="(PaymentStatus eq 'PaymentReceived')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
                 <tab heading="Pending Order">
 
                     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
@@ -111,8 +120,7 @@
 
     <script type="text/ng-template" id="tablecustomtemplate.html">
 
-        <table id="sotable"
-               ncb-datatable
+        <table ncb-datatable
                class="table table-striped table-hover"
                style="width: 100%"
                ng-table="tableParams"
@@ -207,6 +215,74 @@
                        ng-disabled="object.Status != 'PaymentReceived'">
                         <span class="icon ion-printer"></span> R
                     </a>
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+
+    <script type="text/ng-template" id="tablecustomertemplate.html">
+        
+
+
+        <table ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td data-title="'Order#'"
+                    sortable="'SaleOrderIdentifier'"
+                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
+                        {{item.SaleOrderIdentifier }}
+                    </a>
+                </td>
+                <td data-title="'Customer'"
+                    sortable="'Customer'"
+                    filter="{ 'Customer': 'text' }">
+                    {{item.Customer.FirstName}} {{item.Customer.LastName}}
+                </td>
+                <td data-title="'Phone'">
+                    {{item.Customer.PhoneNumber}}
+                </td>
+                <td data-title="'Email'">
+                    {{item.Customer.Email}}
+                </td>
+                <td data-title="'Shipping Address'">
+                    <div ng-if="item.ShipTo.To != null">
+                        {{item.ShipTo.To}}<br />
+                        {{item.ShipTo.Address}}<br />
+                        {{item.ShipTo.SubDistrict}}
+                        {{item.ShipTo.District}}<br />
+                        {{item.ShipTo.State}},
+                        {{item.ShipTo.PostalCode}}
+                    </div>
+                    <div ng-if="item.ShipTo.To == null">
+                        (Pick Up)
+                    </div>
+                </td>
+                <td data-title="'Billing Address'">
+
+                    <div ng-if="item.UseBillingAddress">
+                        {{item.BillTo.To }}<br />
+                        {{item.BillTo.Address}}<br />
+                        {{item.BillTo.SubDistrict}}
+                        {{item.BillTo.District}}<br />
+                        {{item.BillTo.State}},
+                        {{item.BillTo.PostalCode}}
+                    </div>
+
+                    <div ng-if="item.UseBillingAddress == false">
+                        (not used)
+                    </div>
+                </td>
+                <td data-title="'Total (net)'"
+                    sortable="'TotalAmount'"
+                    filter="{ 'TotalAmount': 'text' }">
+                    {{item.TotalAmount | number:2 }}
                 </td>
             </tr>
         </table>
