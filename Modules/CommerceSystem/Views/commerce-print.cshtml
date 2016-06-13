@@ -35,7 +35,7 @@
         {
             <div id="header" style="height: auto; line-height: 20px; letter-spacing: normal"
                  ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
-                ใบเสร็จรับเงิน / ใบกำกับภาษี<br />receipt / tax invoice
+                ใบเสร็จรับเงิน / ใบกำกับภาษี / ใบส่งสินค้า<br />receipt / tax invoice / shipping invoice
             </div>
         }
         else
@@ -66,20 +66,38 @@
             <div id="customer" class="row">
 
                 <div id="customer-title" class="col-xs-6">
-                    <div ng-class="{'hide': so.UseBillingAddress != true}">
-                        <b>Bill To:</b>
-                        <b>{{so.BillTo.To}}</b><br />
-                        {{so.BillTo.Address}}<br />
-                        {{so.BillTo.SubDistrict}}, {{so.BillTo.District}}<br />
-                        {{so.BillTo.State}},{{so.BillTo.Country}}<br />
-                        {{so.BillTo.PostalCode}}
+
+                    <div ng-if="so.UseBillingAddress">
+                        ได้รับชำระเงินจาก:
+                        <p>
+                            <b>{{so.BillTo.To}}</b><br />
+                            {{so.BillTo.Address}}<br />
+                            {{so.BillTo.SubDistrict}}
+                            {{so.BillTo.District}}<br />
+                            {{so.BillTo.State}}
+                            {{so.BillTo.Country}}<br />
+                            {{so.BillTo.PostalCode}}
+                        </p>
                     </div>
-                    <div ng-class="{'hide': so.UseBillingAddress == true || so.ShipTo == null || so.ShipTo.To == null}">
-                        <b>{{so.ShipTo.To}}</b><br />
-                        {{so.ShipTo.Address}}<br />
-                        {{so.ShipTo.SubDistrict}}, {{so.ShipTo.District}}<br />
-                        {{so.ShipTo.State}},{{so.ShipTo.Country}}<br />
-                        {{so.ShipTo.PostalCode}}
+                    <div ng-if="so.UseBillingAddress == false && so.ShipTo != null && so.ShipTo.To != null">
+                        ได้รับชำระเงินจาก:
+                        <p>
+                            <b>{{so.ShipTo.To}}</b><br />
+                            {{so.ShipTo.Address}}<br />
+                            {{so.ShipTo.SubDistrict}}
+                            {{so.ShipTo.District}}<br />
+                            {{so.ShipTo.State}}
+                            {{so.ShipTo.Country}}<br />
+                            {{so.ShipTo.PostalCode}}
+                        </p>
+                    </div>
+
+                    <div ng-if="so.UseBillingAddress == false && (so.ShipTo == null || so.ShipTo.To == null)">
+                        ได้รับชำระเงินจาก:
+                        <p>
+                            <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br/>
+                            {{so.Customer.PhoneNumber}}
+                        </p>
                     </div>
                 </div>
 
@@ -89,7 +107,7 @@
                         <tr>
                             <td class="meta-head">
                                 <div class="editabe" id="saleordernumber">
-                                    Sale Order #
+                                    หมายเลขคำสั่งซื้อ #
                                 </div>
                             </td>
                             <td>{{so.SaleOrderIdentifier}}</td>
@@ -101,7 +119,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="receiptnumber">
-                                            Receipt #
+                                            หมายเลขใบเสร็จรับเงิน
                                         </div>
                                     </td>
                                     <td>
@@ -114,7 +132,7 @@
                         <tr>
                             <td class="meta-head">
                                 <div class="editabe" id="date">
-                                    Date
+                                    วันที่
                                 </div>
                             </td>
                             <td>
@@ -123,14 +141,14 @@
                                     @if (type == "invoice")
                                     {
                                         <text>
-                                            <span>{{so.__createdAt | date:'dd MMMM yyyy'}}</span>
+                                            <span>{{so.__createdAt | date:'dd/MM/yyyy'}}</span>
                                         </text>
                                     }
                                     else
                                     {
                                         <text>
-                                            <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd MMMM yyyy'}}</span>
-                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | date:'dd MMMM yyyy'}}</span>
+                                            <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yyyy'}}</span>
+                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | date:'dd/MM/yyyy'}}</span>
                                         </text>
                                     }
                                 </div>
@@ -144,7 +162,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="amountpaid">
-                                            <span>Amount Paid</span>
+                                            <span>ชำระแล้ว</span>
                                         </div>
                                     </td>
                                     <td>
@@ -156,7 +174,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="amountpaid">
-                                            <span>Amount Due</span>
+                                            <span>ต้องชำระเพิ่มe</span>
                                         </div>
                                     </td>
                                     <td>
@@ -173,7 +191,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="amountpaid">
-                                            <span>Amount Paid</span>
+                                            <span>ชำระแล้ว</span>
                                         </div>
                                     </td>
                                     <td>
@@ -202,10 +220,10 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Product</th>
-                        <th>Qty.</th>
-                        <th>Unit Price</th>
-                        <th>Line Total</th>
+                        <th>สินค้า</th>
+                        <th>จำนวน</th>
+                        <th>ราคาต่อหน่วย</th>
+                        <th>รวม</th>
                     </tr>
                 </thead>
                 <tr ng-repeat="item in ItemsDetail | orderBy: 'Price' : true">
@@ -244,7 +262,7 @@
                         </div>
                     </td>
                     <td class="total-line" colspan="2">
-                        Vat 7 %
+                        ภาษีมูลค่าเพิ่ม 7 %
                     </td>
                     <td class="total-value">
                         <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
@@ -255,7 +273,7 @@
                         </span>
                     </td>
                 </tr>
-                <tr>
+                <tr ng-if="so.ShippingFee > 0">
                     <td class="blank" colspan="2"> </td>
                     <td class="total-line" colspan="2">
                         <div class="form-control-static">
@@ -266,7 +284,7 @@
                         <b>{{so.ShippingFee | number:2 }} บาท</b>
                     </td>
                 </tr>
-                <tr>
+                <tr ng-if="so.ShippingInsuranceFee > 0">
                     <td class="blank" colspan="2"> </td>
                     <td class="total-line" colspan="2">
                         <div class="form-control-static">
@@ -278,7 +296,7 @@
                     </td>
                 </tr>
 
-                <tr>
+                <tr ng-if="so.PaymentFee > 0">
                     <td class="blank" colspan="2"> </td>
                     <td class="total-line" colspan="2">
                         <div class="form-control-static">

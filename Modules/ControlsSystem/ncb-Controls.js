@@ -2004,15 +2004,12 @@
                     return;
                 }
 
-                window.setTimeout(function () {
+                var heavyImage = new Image();
+                heavyImage.src = finalUrl;
+                heavyImage.onload = function () {
+                    element.attr("src", finalUrl);
+                };
 
-                    var heavyImage = new Image();
-                    heavyImage.src = finalUrl;
-                    heavyImage.onload = function () {
-                        element.attr("src", finalUrl);
-                    };
-
-                }, Math.random() * 2000);
             }
 
             if (attrs.ncbResize.indexOf('/') != 0) {

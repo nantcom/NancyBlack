@@ -206,13 +206,13 @@
                     </a>
 
                     <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
-                       class="btn btn-primary"
-                       ng-disabled="object.Status == 'PaymentReceived'">
+                       class="btn btn-primary" target="_blank"
+                       ng-disabled="object.PaymentStatus != 'PaymentReceived'">
                         <span class="icon ion-printer"></span> IV
                     </a>
                     <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
-                       class="btn btn-success"
-                       ng-disabled="object.Status != 'PaymentReceived'">
+                       class="btn btn-success" target="_blank"
+                       ng-disabled="object.PaymentStatus == 'PaymentReceived'">
                         <span class="icon ion-printer"></span> R
                     </a>
                 </td>

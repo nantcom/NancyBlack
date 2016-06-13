@@ -193,8 +193,44 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             if (this.IsPayWithCreditCart)
             {
-                this.PaymentFee = this.TotalAmount * 0.035M;
-                this.PaymentFee = Math.Round(this.PaymentFee, 2, MidpointRounding.AwayFromZero);
+                this.PaymentFee = this.TotalAmount * (Decimal)currentSite.commerce.creditCardRate;
+                this.PaymentFee = Math.Floor(this.PaymentFee);
+
+                var feeParts = (from number in ((int)this.PaymentFee).ToString()
+                                select int.Parse(number.ToString())).ToList();
+
+                feeParts[feeParts.Count - 1] = 0;
+
+                if (feeParts[feeParts.Count - 2] < 5)
+                {
+                    feeParts[feeParts.Count - 2] = 0; // if tenth position is less than 5 - make it 0
+                }
+
+                if (feeParts[feeParts.Count - 2] > 5)
+                {
+                    feeParts[feeParts.Count - 2] = 9; // if tenth position is less than 5 - make it 9
+                }
+
+                this.PaymentFee = int.Parse(string.Join("", feeParts));
+
+                /*
+                 *  $scope.PaymentFee = Math.floor($scope.PaymentFee);
+
+                var feeParts = ($scope.PaymentFee + "").split('');
+                for (var i = 0; i < feeParts.length; i++) {
+                    feeParts[i] = parseInt(feeParts[i]);
+                }
+
+                feeParts[feeParts.length - 1] = 0; // last digit always 0
+
+                if (feeParts[feeParts.length - 2] < 5) {
+                    feeParts[feeParts.length - 2] = 0; // if tenth position is less than 5 - make it 0
+                }
+                
+                if (feeParts[feeParts.length - 2] > 5) {
+                    feeParts[feeParts.length - 2] = 9; // if tenth position is less than 5 - make it 9
+                }
+                 */
             }
         }
 
@@ -331,7 +367,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             if (newItem.IsPromotionPrice)
             {
                 var discount = this.ItemsDetail.Where(p => p.Url == "/dummy/dummy").FirstOrDefault();
-                discount.Price += newItem.CurrentPrice - newItem.Price;
+                if (discount != null)
+                {
+                    discount.Price += newItem.CurrentPrice - newItem.Price;
+                }
             }
 
             this.TotalAmount = this.TotalAmount - (this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee);
@@ -456,3 +495,4 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         }
     }
 }
+ 

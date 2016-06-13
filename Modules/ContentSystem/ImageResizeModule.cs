@@ -416,7 +416,18 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             }
 
             resizeRelativePath = (string)arg.path + "-imageresize/" + parameterKey + Path.GetExtension( file );
-            var resizeDirectory = Path.Combine(this.RootPath, (string)arg.path + "-imageresize");
+
+            var rootPath = this.RootPath;
+            if (File.Exists("D:\\DATALOSS_WARNING_README.txt")) // running in azure
+            {
+                rootPath = "D:\\ImageResize";
+                if (!Directory.Exists(rootPath))
+                {
+                    Directory.CreateDirectory(rootPath);
+                }
+            }
+
+            var resizeDirectory = Path.Combine(rootPath, (string)arg.path + "-imageresize");
             Directory.CreateDirectory(resizeDirectory);
 
             var resizeFile = Path.Combine(this.RootPath, resizeRelativePath);

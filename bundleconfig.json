@@ -1,11 +1,10 @@
 [
   {
     "outputFileName": "Content/Scripts/ncb-dependencies.js",
-    "inputFiles": [      
+    "inputFiles": [
       "Content/Scripts/sweetalert-master/dist/sweetalert.min.js",
       "Content/scripts/stringformat/stringformat-1.09.min.js",
       "Content/Scripts/jquery-2.1.1.min.js",
-      //"Content/Scripts/jquery.signalR-2.2.0.min.js",
       "Content/scripts/underscore.js",
       "Content/Scripts/bootstrap.min.js",
       "Content/Scripts/angular.min.js",
@@ -18,12 +17,7 @@
       "Content/Scripts/MobileServices.Web-1.2.5.min.js",
       "Content/scripts/angular-ui-select/select.min.js",
       "Content/scripts/ng-table/ng-table.min.js"
-    ],
-    "minify": {
-      "enabled": true
-    },
-    "includeInProject": true,
-    "sourceMaps": false
+    ]
   },
   {
     "outputFileName": "Content/ncb-dependencies.css",
@@ -38,9 +32,12 @@
     "minify": {
       "enabled": true,
       "termSemicolons": true
-    },
-    "includeInProject": true,
-    "sourceMaps": false
+    }
+  },
+  {
+    "outputFileName": "Site/js/bundle.js",
+    "inputFiles": [
+      "Site/js/bundle.js"
+    ]
   }
-
 ]
