@@ -33,11 +33,5 @@
       "enabled": true,
       "termSemicolons": true
     }
-  },
-  {
-    "outputFileName": "Site/js/bundle.js",
-    "inputFiles": [
-      "Site/js/bundle.js"
-    ]
   }
 ]
