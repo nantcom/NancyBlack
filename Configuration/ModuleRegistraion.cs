@@ -92,7 +92,7 @@ namespace NantCom.NancyBlack.Configuration
         /// <param name="rootPath"></param>
         public static void ReadSystemsAndResources( string rootPath )
         {
-            var modules = Path.Combine(rootPath, "Modules");
+            var modules = Path.Combine(rootPath, "NancyBlack", "Modules");
 
             var alljs = from js in Directory.GetFiles(modules, "*.js", SearchOption.AllDirectories)
                         where js.Contains("\\Views\\") == false

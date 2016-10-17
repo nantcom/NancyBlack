@@ -42,8 +42,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var data = new
             {
                 PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>(),
-                UnpaidBillsAmount = this.SiteDatabase.Query<PurchaseOrder>()
-                .Where(po => po.IsCancel == false && po.HasPaid == false).Sum(po => po.TotalAmount)
+                //UnpaidBillsAmount = this.SiteDatabase.Query<PurchaseOrder>()
+                //.Where(po => po.IsCancel == false && po.HasPaid == false).Sum(po => po.TotalAmount)
             };
 
             return View["/Admin/purchaseordermanager", new StandardModel(this, dummyPage, data)];

@@ -26,7 +26,7 @@ gulp.task('compile:doc-src', function () {
 gulp.task('vendor-css', function () {
     return gulp.src([
         './app/vendor/angular-material/angular-material.css',
-        './Content/font-awesome/css/*.css'
+        './NancyBlack/Content/font-awesome/css/*.css'
     ]).pipe(gulp.dest('./docs/release/app/vendor/css'));
 });
 

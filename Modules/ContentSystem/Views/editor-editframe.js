@@ -263,7 +263,7 @@
             // Link to CSS for edit area
             siteView.contents()
                 .find("head")
-                .append('<link rel="stylesheet" href="/Modules/ContentSystem/Views/editor-editarea.css"></style>');
+                .append('<link rel="stylesheet" href="/NancyBlack/Modules/ContentSystem/Views/editor-editarea.css"></style>');
 
             $scope.$apply(function () {
 

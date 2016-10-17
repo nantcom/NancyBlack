@@ -15,9 +15,9 @@
             overflow-x: hidden;
         }
     </style>
-    <link href="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.css" rel="stylesheet" />
-    <link href="/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
-    <link href="/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/angular-ui-tree/angular-ui-tree.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/angular-ui-tree/demo.css" rel="stylesheet" />
+    <link href="/NancyBlack/Modules/CommerceSystem/Views/Admin/product.css" rel="stylesheet" />
 }
 
 @section Scripts
@@ -26,10 +26,10 @@
         window.multicurrency = @this.Html.Raw(this.GetJson(this.Site.commerce.multicurrency));
     </script>
 
-    <script src="/Modules/ContentSystem/Views/angular-sortable-view.js"></script>
-    <script src="/Content/Scripts/ng-table/ng-table.min.js"></script>
-    <script src="/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
-    <script src="/Modules/CommerceSystem/Views/Admin/product.js"></script>
+    <script src="/NancyBlack/Modules/ContentSystem/Views/angular-sortable-view.js"></script>
+    <script src="/NancyBlack/Content/Scripts/ng-table/ng-table.min.js"></script>
+    <script src="/NancyBlack/Content/Scripts/angular-ui-tree/angular-ui-tree.min.js"></script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/Admin/product.js"></script>
 }
 <div ng-module="app"
      ng-controller="product_controller as ctrl"

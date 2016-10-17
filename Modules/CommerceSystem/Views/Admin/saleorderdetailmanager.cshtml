@@ -4,8 +4,8 @@
 }
 
 @section Head{
-    <link href="/Content/Scripts/angular-xeditable/css/xeditable.css" rel="stylesheet" />
-    <link href="/Content/Scripts/jsoneditor/jsoneditor.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/angular-xeditable/css/xeditable.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/jsoneditor/jsoneditor.css" rel="stylesheet" />
     <style>
         .ncb-editable-span {
             display: block;
@@ -15,12 +15,12 @@
 }
 
 @section Scripts{
-    <script src="/Content/Scripts/jsoneditor/jsoneditor.js"></script>
-    <script src="/Content/Scripts/angular-xeditable/js/xeditable.js"></script>
+    <script src="/NancyBlack/Content/Scripts/jsoneditor/jsoneditor.js"></script>
+    <script src="/NancyBlack/Content/Scripts/angular-xeditable/js/xeditable.js"></script>
     <script>
         window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
     </script>
-    <script src="/Modules/CommerceSystem/Views/Admin/js/saleorderdetail.js"></script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/Admin/js/saleorderdetail.js"></script>
 }
 
 <div class="page-header">

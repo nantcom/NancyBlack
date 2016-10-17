@@ -496,7 +496,7 @@
 
         return {
             restrict: 'E',
-            templateUrl: '/Modules/CommerceSystem/templates/ncg-cartbutton.html',
+            templateUrl: '/NancyBlack/Modules/CommerceSystem/templates/ncg-cartbutton.html',
             link: link,
             scope: true,
             replace: true,
@@ -962,7 +962,7 @@
 
         return {
             restrict: 'E',
-            templateUrl: '/Modules/CommerceSystem/templates/ncg-sotable.html',
+            templateUrl: '/NancyBlack/Modules/CommerceSystem/templates/ncg-sotable.html',
             link: link,
             scope: false,
             replace: true,
@@ -1178,7 +1178,7 @@
 
         return {
             restrict: 'A',
-            templateUrl: '/Modules/CommerceSystem/templates/ncg-chart.html',
+            templateUrl: '/NancyBlack/Modules/CommerceSystem/templates/ncg-chart.html',
             link: link,
             scope: {
                 title: "=title",

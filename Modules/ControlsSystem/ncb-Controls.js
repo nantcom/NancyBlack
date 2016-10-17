@@ -612,7 +612,7 @@
                 format: '=format'
             },
             replace: true,
-            templateUrl: '/Modules/ControlsSystem/Templates/ncbDatePicker.html',
+            templateUrl: '/NancyBlack/Modules/ControlsSystem/Templates/ncbDatePicker.html',
         };
     });
 
@@ -679,7 +679,7 @@
             scope: {
                 model: '=model',
             },
-            templateUrl: '/Modules/ControlsSystem/Templates/ncbSimpleDatePicker.html',
+            templateUrl: '/NancyBlack/Modules/ControlsSystem/Templates/ncbSimpleDatePicker.html',
         };
     });
 
@@ -796,7 +796,7 @@
             transclude: true,
             replace: true,
             scope: false, // integrates into scope
-            templateUrl: '/Modules/ControlsSystem/Templates/ncbModal.html',
+            templateUrl: '/NancyBlack/Modules/ControlsSystem/Templates/ncbModal.html',
             link: link
         };
     }]);
@@ -1571,7 +1571,7 @@
                 modalId: '=modalid',
                 editFn: '&editFn',
             },
-            templateUrl: '/Modules/ControlsSystem/Templates/ncbNgtable.html',
+            templateUrl: '/NancyBlack/Modules/ControlsSystem/Templates/ncbNgtable.html',
             controller: controller,
             //replace: true,
             // It's like this directive is a mask and allowed the controller passed the value through template.
@@ -1970,7 +1970,7 @@
 
         return {
             restrict: 'E',
-            templateUrl: '/Modules/ControlsSystem/Templates/ncbAlerts.html',
+            templateUrl: '/NancyBlack/Modules/ControlsSystem/Templates/ncbAlerts.html',
             link: link,
             replace: true,
             scope: true,

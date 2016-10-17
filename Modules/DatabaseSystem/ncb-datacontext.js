@@ -972,7 +972,7 @@
             restrict: 'E',
             replace: true,
             link: link,
-            templateUrl: '/Modules/DatabaseSystem/template/ncbLookupbox.html'
+            templateUrl: '/NancyBlack/Modules/DatabaseSystem/template/ncbLookupbox.html'
         };
     }]);
 
@@ -1125,7 +1125,7 @@
             replace: true,
             link: link,
             scope: false,
-            templateUrl: '/Modules/DatabaseSystem/template/ncbAttachmentManager.html'
+            templateUrl: '/NancyBlack/Modules/DatabaseSystem/template/ncbAttachmentManager.html'
         };
     }]);
 

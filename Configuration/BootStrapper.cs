@@ -14,6 +14,7 @@ using NantCom.NancyBlack.Modules.MembershipSystem;
 using System.Collections.Generic;
 using System.Web.Routing;
 using NantCom.NancyBlack.Configuration;
+using Nancy.Conventions;
 
 namespace NantCom.NancyBlack
 {
@@ -70,7 +71,7 @@ namespace NantCom.NancyBlack.Configuration
 
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
-
+        
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             BootStrapper.RootPath = this.RootPathProvider.GetRootPath();
@@ -81,7 +82,7 @@ namespace NantCom.NancyBlack.Configuration
             ModuleResource.ReadSystemsAndResources(BootStrapper.RootPath);
 
             this.Conventions.ViewLocationConventions.Clear();
-            
+
             #region Localized View Conventions
 
             // Site's View Folder has most priority
@@ -150,7 +151,7 @@ namespace NantCom.NancyBlack.Configuration
                     return string.Empty;
                 }
 
-                return "Content/Views/" + viewName + "_" + context.Context.Items["Language"];
+                return "NancyBlack/Content/Views/" + viewName + "_" + context.Context.Items["Language"];
             });
 
             // then try Views in Systems (AdminSystem, ContentSystem etc...)
@@ -163,7 +164,7 @@ namespace NantCom.NancyBlack.Configuration
                         return string.Empty;
                     }
 
-                    return string.Concat("Modules/",
+                    return string.Concat("NancyBlack/Modules/",
                                          viewName,
                                          "_" ,
                                          context.Context.Items["Language"]);
@@ -176,7 +177,7 @@ namespace NantCom.NancyBlack.Configuration
                         return string.Empty;
                     }
 
-                    return string.Concat("Modules/",
+                    return string.Concat("NancyBlack/Modules/",
                                          system,
                                          "/Views/",
                                          viewName,
@@ -230,7 +231,7 @@ namespace NantCom.NancyBlack.Configuration
             // NancyBlack's View Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                return "Content/Views/" + viewName;
+                return "NancyBlack/Content/Views/" + viewName;
             });
 
             // then try Views in Systems (AdminSystem, ContentSystem etc...)
@@ -238,12 +239,12 @@ namespace NantCom.NancyBlack.Configuration
             {
                 this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
                 {
-                    return string.Concat("Modules/",
+                    return string.Concat("NancyBlack/Modules/",
                                          viewName);
                 });
                 this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
                 {
-                    return string.Concat("Modules/",
+                    return string.Concat("NancyBlack/Modules/",
                                          system,
                                          "/Views/",
                                          viewName);

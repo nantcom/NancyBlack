@@ -41,7 +41,7 @@
     @this.RenderSection("Style", false)
     @this.RenderSection("Head", false)
 
-    <link href="~/Modules/ContentSystem/ncb-content.min.css" rel="stylesheet" />
+    <link href="~/NancyBlack/Modules/ContentSystem/ncb-content.min.css" rel="stylesheet" />
 
 </head>
 <body ncb-membership
@@ -85,7 +85,7 @@
         window.currency = "@(this.Currency)"
     </script>
 
-    <script src="/Content/Scripts/ncb-dependencies.js"></script>
+    <script src="/NancyBlack/Content/Scripts/ncb-dependencies.js"></script>
 
 
     @if (this.Request.Url.HostName == "localhost" || this.Request.Url.HostName.StartsWith("beta"))

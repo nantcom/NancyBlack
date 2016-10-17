@@ -156,7 +156,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 throw new InvalidOperationException("Entity:" + table_name + " does not exists, Insert some sample data before running this page.");
             }
 
-            var template = File.ReadAllText(Path.Combine(this.RootPath, "Modules", "DatabaseSystem", "Views", "_backendtemplate.cshtml"));
+            var template = File.ReadAllText(Path.Combine(this.RootPath, "NancyBlack", "Modules", "DatabaseSystem", "Views", "_backendtemplate.cshtml"));
             var code = Razor.Parse<ViewModel>(template, new ViewModel()
             {
                 DataType = type,

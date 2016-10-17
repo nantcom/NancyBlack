@@ -50,6 +50,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public string PurchaseOrderIdentifier { get; set; }
 
+        public bool HasPaid { get; set; }
+
+        public bool IsCancel { get; set; }
+
         public string Status { get; set; }
 
         private List<PurchaseItem> _Items;

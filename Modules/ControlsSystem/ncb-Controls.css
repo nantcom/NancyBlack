@@ -1,4 +1,4 @@
-﻿@import url('/Modules/ControlsSystem/select2.css');
+﻿@import url('/NancyBlack/Modules/ControlsSystem/select2.css');
 input.ng-invalid,
 textarea.ng-invalid {
   border-color: rgba(242, 148, 148, 0.6);

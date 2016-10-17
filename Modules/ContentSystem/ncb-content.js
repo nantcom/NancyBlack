@@ -34,9 +34,9 @@
 
             var $me = {};
 
-            if ($("script[src='/Content/Scripts/ckeditor/ckeditor.js']").length == 0) {
+            if ($("script[src='/NancyBlack/Content/Scripts/ckeditor/ckeditor.js']").length == 0) {
 
-                $('<script src="/Content/Scripts/ckeditor/ckeditor.js"></script>').appendTo($("head"));
+                $('<script src="/NancyBlack/Content/Scripts/ckeditor/ckeditor.js"></script>').appendTo($("head"));
             };
 
             if ($("#editable-toolbar").length == 0) {

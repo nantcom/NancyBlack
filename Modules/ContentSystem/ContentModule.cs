@@ -207,10 +207,10 @@ namespace NantCom.NancyBlack.Modules
 
             Directory.CreateDirectory(layoutPath);
 
-            var sourceFile = Path.Combine(this.RootPath, "Content", "Views", "_base" + Path.GetFileName(layout) + "layout.cshtml");
+            var sourceFile = Path.Combine(this.RootPath, "NancyBlack", "Content", "Views", "_base" + Path.GetFileName(layout) + "layout.cshtml");
             if (File.Exists(sourceFile) == false)
             {
-                sourceFile = Path.Combine(this.RootPath, "Content", "Views", "_basecontentlayout.cshtml");
+                sourceFile = Path.Combine(this.RootPath, "NancyBlack", "Content", "Views", "_basecontentlayout.cshtml");
             }
             File.Copy(sourceFile, layoutFilename);
         }
