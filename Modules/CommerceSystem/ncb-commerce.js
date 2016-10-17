@@ -1260,16 +1260,27 @@
 
         return function (input, wantCurrency) {
 
+            if (wantCurrency == undefined) {
+                wantCurrency = window.currency;
+            }
+
+            if (wantCurrency == undefined || wantCurrency == null || wantCurrency == "") {
+                return input;
+            }
+
             var want = currencyRate.rates[wantCurrency];
             var home = currencyRate.rates['THB'];
 
             var usd = input / home;
             var result = usd * want;
 
+            // add 3% buffer
+            result = result * 1.03;
+
             return result;
         };
     });
-
+    
     ncg.filter('xchgrate', function ($http, localStorageService) {
 
         ensureRateAvailable($http, localStorageService);

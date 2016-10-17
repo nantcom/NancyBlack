@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,12 +11,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
     /// Designates that the type has required properties
     /// for nancy white collection editor
     /// </summary>
-    public interface IContent
+    public interface IContent : IStaticType
     {
-        /// <summary>
-        /// Id of this Item
-        /// </summary>
-        int Id { get; set; }
 
         /// <summary>
         /// Url to access this item
@@ -66,5 +63,20 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Attachments
         /// </summary>
         dynamic[] Attachments { get; set; }
+
+        /// <summary>
+        /// Translations of Title, Metakeyword, MetaDescriptions
+        /// </summary>
+        dynamic SEOTranslations { get; set; }
+
+        /// <summary>
+        /// Comma separated list of tags. ex: sport,art,car
+        /// </summary>
+        string Tags { get; set; }
+
+        /// <summary>
+        /// Attributes of the content
+        /// </summary>
+        dynamic Attributes { get; set; }
     }
 }

@@ -25,6 +25,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string To { get; set; }
 
         /// <summary>
+        /// To
+        /// </summary>
+        public string TaxId { get; set; }
+
+        /// <summary>
         /// Address
         /// </summary>
         public string Address { get; set; }

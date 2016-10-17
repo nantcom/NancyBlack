@@ -1,0 +1,61 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base_plain";
+}
+
+@section Head{
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            background-image: url('/Modules/MembershipSystem/images/loginbg.jpg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+    </style>
+    <link href="~/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
+}
+@section Script{
+    <script src="~/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
+    <script>
+        (function () {
+
+            var mod = angular.module('Page', []);
+            mod.controller('PageController', function ($scope, $http) {
+                swal(
+                    {
+                        title: "Login",
+                        text: "Please insert your email address.",
+                        type: "input",
+                        showCancelButton: false,
+                        confirmButtonText: "OK",
+                        inputPlaceholder: "Email...",
+                        closeOnConfirm: false
+                    }, function (inputValue) {
+
+                        if (inputValue === false) return false;
+
+                        if (inputValue === "") { swal.showInputError("You need to write something!"); return false }
+
+                        // checking email
+
+                        location.reload();
+
+                        swal({ title: "Success!", type: "success", text: "Redirect to support system in 2 seconds.", timer: 2000, showConfirmButton: false });
+
+                    });
+            });
+
+        })();
+    </script>
+}
+<div ng-module="Page" 
+     ng-controller="PageController as ctrl">
+
+
+</div>

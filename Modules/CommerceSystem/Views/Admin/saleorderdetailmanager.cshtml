@@ -417,13 +417,25 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="To" class="col-sm-4 control-label">To</label>
+                                <label for="To" class="col-sm-4 control-label">Company/Branch</label>
                                 <div class="col-sm-8">
                                     <span class="ncb-editable-span"
                                           id="To"
                                           e-name="To"
                                           editable-text="object.BillTo.To">
                                         {{object.BillTo.To || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="TaxId" class="col-sm-4 control-label">Tax ID</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="TaxId"
+                                          e-name="TaxId"
+                                          editable-text="object.BillTo.TaxId">
+                                        {{object.BillTo.TaxId || 'empty'}}
                                     </span>
                                 </div>
                             </div>
@@ -509,7 +521,7 @@
                 <div class="panel panel-primary">
                     <div class="panel-heading">
                         <h3 class="panel-title">
-                            Shopping Cart
+                            Items
                         </h3>
                     </div>
 
@@ -521,8 +533,8 @@
                                     <th>#</th>
                                     <th>Product</th>
                                     <th><div class="text-right">Qty.</div></th>
-                                    <th><div class="text-right">Unit Price</div></th>
-                                    <th><div class="text-right">Line Total</div></th>
+                                    <th><div class="text-right">Unit Price ({{object.Currency}})</div></th>
+                                    <th><div class="text-right">Line Total ({{object.Currency}})</div></th>
                                 </tr>
                             </thead>
                             <tr ng-repeat="item in object.ItemsDetail">
@@ -547,12 +559,12 @@
                                 <td>
 
                                     <div class="form-control-static text-right">
-                                        {{item.Price | number:2}} บาท
+                                        {{item.Price | number:2}} 
                                     </div>
                                 </td>
                                 <td>
                                     <div class="form-control-static text-right">
-                                        {{(item.Price * item.Attributes.Qty) | number:2}} บาท
+                                        {{(item.Price * item.Attributes.Qty) | number:2}} 
                                     </div>
                                 </td>
                             </tr>
@@ -565,7 +577,7 @@
                                 </td>
                                 <td>
                                     <div class="form-control-static text-right">
-                                        <b>{{object.ShippingFee | number:2 }} บาท</b>
+                                        <b>{{object.ShippingFee | number:2 }} </b>
                                     </div>
                                 </td>
                             </tr>
@@ -578,7 +590,7 @@
                                 </td>
                                 <td>
                                     <div class="form-control-static text-right">
-                                        <b>{{object.ShippingInsuranceFee | number:2 }} บาท</b>
+                                        <b>{{object.ShippingInsuranceFee | number:2 }} </b>
                                     </div>
                                 </td>
                             </tr>
@@ -591,7 +603,7 @@
                                 </td>
                                 <td>
                                     <div class="form-control-static text-right">
-                                        <b>{{object.PaymentFee | number:2 }} บาท</b>
+                                        <b>{{object.PaymentFee | number:2 }} </b>
                                     </div>
                                 </td>
                             </tr>
@@ -604,7 +616,7 @@
                                 </td>
                                 <td>
                                     <div class="form-control-static text-right">
-                                        <b>{{object.TotalAmount | number:2 }} บาท</b>
+                                        <b>{{object.TotalAmount | number:2 }} </b>
                                     </div>
                                 </td>
                             </tr>
@@ -716,7 +728,7 @@
                             <th>ช่องทางการชำระเงิน</th>
                             <th>รหัสอนุมัติ</th>
                             <th>สถานะ</th>
-                            <th><div class="text-right">จำนวนเงินที่ชำระ</div></th>
+                            <th><div class="text-right">จำนวนเงินที่ชำระ (สกุล {{object.Currency}})</div></th>
                         </tr>
                     </thead>
                     <tr ng-repeat="item in paymentLogs">
@@ -737,11 +749,11 @@
                             {{item.ApCode}}
                         </td>
                         <td>
-                            {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
+                            {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
                         </td>
                         <td>
                             <div class="form-control-static text-right">
-                                {{item.Amount | number:2}} บาท
+                                {{item.Amount | number:2}} 
                             </div>
                         </td>
                     </tr>

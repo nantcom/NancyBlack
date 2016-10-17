@@ -35,8 +35,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             var dummyPage = new Page();
-
-            var cash = 488400;
+            
             List<InvestedProductReport> productReports = null;
             AngularChart revenueChart = null;
             AngularChart soldLaptopChart = null;
@@ -44,7 +43,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived).ToList();
 
             Task.WhenAll(
-                Task.Run(() => productReports = this.GetItReport(paidSaleOrders)),
                 Task.Run(() => revenueChart = this.GetSummarizedRevenueChart(paidSaleOrders)),
                 Task.Run(() => soldLaptopChart = this.GetLaptopSoldChart(paidSaleOrders, this.SiteDatabase))
             ).Wait();
@@ -52,42 +50,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var summarizedProductReport = InvestedProductReport.MergeReports(
                 "Summarized Report", productReports.Select(report => report.MonthlyReports).ToArray()
                 );
-
-            var currentCash = cash + summarizedProductReport.ReturnFromInvestment;
-
+            
             var data = new
             {
                 SummarizedReports = summarizedProductReport,
                 ProductReports = productReports,
-                Cash = cash,
-                CurrentCash = currentCash,
                 SummarizedRevenueChart = revenueChart,
                 SoldLaptopChart = soldLaptopChart
             };
 
             return View["/Admin/investmentsummary", new StandardModel(this, dummyPage, data)];
         }
-
-        private List<InvestedProductReport> GetItReport(List<SaleOrder> paidSaleOrders)
-        {
-            InvestedProductReport keyboardX14Report = null;
-            InvestedProductReport keyboardXL15Report = null;
-            InvestedProductReport keyboardXL17Report = null;
-
-            Task.WhenAll(
-                Task.Run(() => { keyboardX14Report = new InvestedProductReport("Keyboard's X14 Report", paidSaleOrders, 176, 389); }),
-                Task.Run(() => { keyboardXL15Report = new InvestedProductReport("Keyboard's XL15 Report", paidSaleOrders, 138, 555); }),
-                Task.Run(() => { keyboardXL17Report = new InvestedProductReport("Keyboard's XL17 Report", paidSaleOrders, 173, 555); })
-                ).Wait();
-
-            return new List<InvestedProductReport>()
-            {
-                keyboardX14Report,
-                keyboardXL15Report,
-                keyboardXL17Report
-            };
-        }
-
+        
         private AngularChart GetSummarizedRevenueChart(List<SaleOrder> paidSaleOrders)
         {
             var chart = new AngularChart()

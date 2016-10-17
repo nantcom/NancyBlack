@@ -1155,6 +1155,15 @@
                 $scope.data = data;
                 var value = attrs.label == null ? data.Title : data[attrs.label];
 
+                if (value == null) {
+
+                    if (attrs.label == null) {
+                        value = "[Title is not defined]";
+                    } else {
+                        value = "[" + attrs.label + " is not defined]";
+                    }
+                }
+
                 if (attrs.scope != null) {
                     return;
                 }

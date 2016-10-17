@@ -184,6 +184,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     if (this.ImageOffsetAndSize.Width == input.Width &&
                         this.ImageOffsetAndSize.Height == input.Height)
                     {
+                        if (this.Mode == ImageResizeMode.Fit)
+                        {
+                            return;
+                        }
                         this.IsProcessResize = false;
                         this.ImageOffsetAndSize = RectangleF.Empty;
                     }
@@ -207,6 +211,22 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 this.FileName = fileName;
             }
 
+            /// <summary>
+            /// Create new instance of image filtration parameters
+            /// </summary>
+            /// <param name="ctx"></param>
+            /// <param name="fileName"></param>
+            public ImageFiltrationParameters(Image input, int w, int h, ImageResizeMode mode)
+            {
+                this.TargetWidth = w;
+                this.TargetHeight = h;
+                this.Mode = mode;
+                this.IsProcessResize = false;
+                this.ImageOffsetAndSize = RectangleF.Empty;
+
+                this.Validate(input);
+            }
+
             public override int GetHashCode()
             {
                 return JsonConvert.SerializeObject( this ).GetHashCode();
@@ -220,6 +240,34 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             public string ContentType { get; set; }
 
             public Stream Output { get; set; }
+        }
+
+        /// <summary>
+        /// In Fill Mode, we will blur and fill the background
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="parameter"></param>
+        private static void FillBackground( Image source, Graphics target, ImageFiltrationParameters parameter)
+        {
+            if (parameter.Mode != ImageResizeMode.Fit)
+            {
+                return;
+            }
+
+            // get blurred image and draw using fit width mode
+            var blurFilter = new AForge.Imaging.Filters.GaussianBlur(8, 10);
+            using (var blurred = blurFilter.Apply((Bitmap)source))
+            {
+                var p = new ImageFiltrationParameters(source, parameter.TargetWidth, parameter.TargetHeight, ImageResizeMode.FitWidth);
+
+                var darken = new AForge.Imaging.Filters.BrightnessCorrection(-100);
+                darken.ApplyInPlace(blurred);
+
+                target.DrawImage(blurred, p.ImageOffsetAndSize.Left,
+                                p.ImageOffsetAndSize.Top,
+                                p.ImageOffsetAndSize.Width,
+                                p.ImageOffsetAndSize.Height);
+            }
         }
 
         /// <summary>
@@ -261,6 +309,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     {
                         g.Clear(Color.White);
                     }
+
+                    ImageResizeModule.FillBackground(b, g, parameters);
 
                     g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
@@ -418,19 +468,20 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             resizeRelativePath = (string)arg.path + "-imageresize/" + parameterKey + Path.GetExtension( file );
 
             var rootPath = this.RootPath;
-            if (File.Exists("D:\\DATALOSS_WARNING_README.txt")) // running in azure
-            {
-                rootPath = "D:\\ImageResize";
-                if (!Directory.Exists(rootPath))
-                {
-                    Directory.CreateDirectory(rootPath);
-                }
-            }
+            // conflict with our _FileList caching
+            //if (File.Exists("D:\\DATALOSS_WARNING_README.txt")) // running in azure
+            //{
+            //    rootPath = "D:\\ImageResize";
+            //    if (!Directory.Exists(rootPath))
+            //    {
+            //        Directory.CreateDirectory(rootPath);
+            //    }
+            //}
 
             var resizeDirectory = Path.Combine(rootPath, (string)arg.path + "-imageresize");
             Directory.CreateDirectory(resizeDirectory);
 
-            var resizeFile = Path.Combine(this.RootPath, resizeRelativePath);
+            var resizeFile = Path.Combine(rootPath, resizeRelativePath);
 
             lock (resizeFile)
             {

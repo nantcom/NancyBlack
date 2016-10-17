@@ -1,0 +1,347 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head
+{
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        body {
+            overflow-x: scroll;
+        }
+    </style>
+}
+
+@section Scripts
+{
+    <script src="/Modules/MembershipSystem/Views/Admin/membership-admin.js"></script>
+}
+
+<div ng-module="membershipadmin"
+     ng-controller="MembershipController as pCtrl">
+    
+    <div class="page-header">
+        <h1>
+            Membership Administration
+            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+        </h1>
+    </div>
+
+    <div>
+        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">
+            {{alert.msg}}
+        </alert>
+    </div>
+
+    <tabset>
+
+        <tab heading="Roles">
+
+            <div ng-controller="RoleController as ctrl"
+                 ncb-datacontext table="NcbRole">
+
+                <div class="pull-right" style="margin-bottom: 10px">
+                    <a class="btn btn-primary" href="/tables/NcbRole.xlsx" target="_blank">
+                        <i class="fa fa-download"></i>
+                        <span>
+                            Excel
+                        </span>
+                    </a>
+                    &nbsp;
+                    <button class="btn btn-success pull-right"
+                            data-toggle="modal" data-target="#NcbRoleModal"
+                            ng-click="object = {}">
+                        <span class="glyphicon glyphicon-plus-sign"></span>
+                        <span>
+                            Create New Role
+                        </span>
+                    </button>
+                </div>
+
+                <ncb-ngtable tabletemplate="'ncbrole.html'" modalid="NcbRoleModal">
+                </ncb-ngtable>
+                
+
+
+                <script type="text/ng-template" id="ncbrole.html">
+
+                    <table id="NcbNgTable"
+                           ncb-datatable
+                           class="table table-striped table-hover"
+                           style="width: 100%"
+                           ng-table="tableParams"
+                           show-filter="true">
+
+                        <tr ng-repeat="item in tableParams.data">
+
+                            <td data-title="'Name'"
+                                sortable="'Name'"
+                                filter="{ 'Name': 'text' }">
+                                {{item.Name }}
+                            </td>
+
+                            <td data-title="'Claims'"
+                                sortable="'Claims'">
+                                <ul ng-repeat="subitem in item.Claims">
+                                    <li>{{subitem}}</li>
+                                </ul>
+                            </td>
+
+                            <td data-title="'Created'"
+                                sortable="'__createdAt'">
+                                {{item.__createdAt | date:'dd MMMM yyyy, HH:mm' }}
+                            </td>
+                            <td data-title="'Updated'"
+                                sortable="'__updatedAt'">
+                                {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                            </td>
+                            <td style="white-space: nowrap">
+
+                                <button class="btn btn-default"
+                                        ng-click="data.copy(item)">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+
+                                <button class="btn btn-info"
+                                        data-toggle="modal" data-target="#NcbRoleModal"
+                                        ng-click="data.view(item)">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                </script>
+
+                <ncb-modal id="NcbRoleModal"
+                           title="{{object.id == null ? 'Create NcbRole' : 'Edit NcbRole'}}"
+                           closebutton deletebutton>
+                    <form role="form" name="NcbRoleForm">
+
+                        <tabset>
+                            <tab heading="General">
+
+                                <input type="text" name="Name" title="Name"
+                                       ncb-textbox
+                                       ng-model="object.Name" />
+                            </tab>
+                            <tab heading="Claims">
+                                <table class="table table-hover"
+                                       ncb-listeditor
+                                       target="object.Claims">
+                                    <thead>
+                                        <tr>
+                                            <th>Claims</th>
+                                            <th width="16px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="element in target">
+                                        <td>
+                                            <input class="form-control"
+                                                   placeholder="Claims" disabled
+                                                   ng-model="element" />
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger"
+                                                    ng-click="remove(element)">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input class="form-control"
+                                                   placeholder="Claims"
+                                                   ng-model="newItem" />
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success"
+                                                    ng-click="add()">
+                                                <i class="glyphicon glyphicon-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </tab>
+
+                        </tabset>
+
+                    </form>
+
+                    <ncb-footer>
+                        <button class="btn btn-primary btn-lg"
+                                ng-click="data.save(object)">
+                            <span ng-show="object.id == null">Create</span>
+                            <span ng-show="object.id != null">Save</span>
+                        </button>
+                    </ncb-footer>
+                </ncb-modal>
+
+            </div>
+
+        </tab>
+        <tab heading="Enrollment">
+
+            <div ng-controller="EnrollController as ctrl"
+                 ncb-datacontext table="NcbEnroll">
+
+
+                <div class="pull-right" style="margin-bottom: 10px">
+                    <a class="btn btn-primary" href="/tables/NcbEnroll.xlsx" target="_blank">
+                        <i class="fa fa-download"></i>
+                        <span>
+                            Excel
+                        </span>
+                    </a>
+                    &nbsp;
+                    <button class="btn btn-success pull-right"
+                            data-toggle="modal" data-target="#NcbEnrollModal"
+                            ng-click="ctrl.createEnrollment()">
+                        <span class="glyphicon glyphicon-plus-sign"></span>
+                        <span>
+                            Create New Enrollment
+                        </span>
+                    </button>
+                </div>
+
+
+                <ncb-ngtable tabletemplate="'NcbEnroll.html'" modalid="NcbEnrollModal">
+                </ncb-ngtable>
+
+                <script type="text/ng-template" id="NcbEnroll.html">
+
+                    <table id="NcbNgTable"
+                           ncb-datatable
+                           class="table table-striped table-hover"
+                           style="width: 100%"
+                           ng-table="tableParams"
+                           show-filter="true">
+
+                        <tr ng-repeat="item in tableParams.data">
+
+                            <td data-title="'User'">
+                                <span ncb-vlookup="NcbUser" key="{{item.NcbUserId}}" label="UserName">
+                                </span>
+                            </td>
+
+                            <td data-title="'Role'">
+                                <span ncb-vlookup="NcbRole" key="{{item.NcbRoleId}}" label="Name">
+                                </span>
+                            </td>
+
+                            <td data-title="'Created'"
+                                sortable="'__createdAt'">
+                                {{item.__createdAt | date:'dd MMMM yyyy, HH:mm' }}
+                            </td>
+
+                            <td data-title="'Updated'"
+                                sortable="'__updatedAt'">
+                                {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                            </td>
+                            <td data-title="'IsActive'"
+                                sortable="'IsActive'"
+                                filter="{ 'IsActive': 'text' }">
+                                {{item.IsActive }}
+                            </td>
+                            <td data-title="'EnrollCode'"
+                                sortable="'EnrollCode'"
+                                filter="{ 'EnrollCode': 'text' }">
+                                {{item.EnrollCode }}
+                            </td>
+                            <td style="white-space: nowrap">
+
+                                <button class="btn btn-default"
+                                        ng-click="data.copy(item)">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+
+                                <button class="btn btn-info"
+                                        data-toggle="modal" data-target="#NcbEnrollModal"
+                                        ng-click="data.view(item)">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                </script>
+
+                <ncb-modal id="NcbEnrollModal"
+                           title="{{object.id == null ? 'Create NcbEnroll' : 'Edit NcbEnroll'}}"
+                           closebutton deletebutton>
+                    <form role="form" name="NcbEnrollForm">
+
+                        <tabset>
+                            <tab heading="General">
+
+                                <input type="checkbox" name="IsActive" title="IsActive"
+                                       ncb-checkbox
+                                       ng-model="object.IsActive" />
+                                <input type="text" name="EnrollCode" title="EnrollCode"
+                                       ncb-textbox
+                                       ng-model="object.EnrollCode" />
+                                <div class="form-group"
+                                     ncb-lookupscope
+                                     table="NcbUser" labelpath="UserName" filter="$filter=startswith(UserName, $key)">
+
+                                    <label class="control-label" for="NcbUserId">
+                                        User
+                                        <i class="fa fa-spin fa-circle-o-notch"
+                                           ng-show="isBusy"></i>
+                                    </label>
+
+                                    <ui-select theme="bootstrap" ng-model="object.NcbUserId"
+                                               reset-search-input="false">
+                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.UserName}}</ui-select-match>
+                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                           refresh="refreshLookup($select.search)"
+                                                           refresh-delay="0">
+                                            <span>{{item.UserName}}</span>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                                <div class="form-group"
+                                     ncb-lookupscope
+                                     table="NcbRole" labelpath="Name" filter="$filter=startswith(name, $key)">
+
+                                    <label class="control-label" for="NcbRoleId">
+                                        Role
+                                        <i class="fa fa-spin fa-circle-o-notch"
+                                           ng-show="isBusy"></i>
+                                    </label>
+
+                                    <ui-select theme="bootstrap" ng-model="object.NcbRoleId"
+                                               reset-search-input="false">
+                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.Name}}</ui-select-match>
+                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                           refresh="refreshLookup($select.search)"
+                                                           refresh-delay="0">
+                                            <span>{{item.Name}}</span>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                            </tab>
+
+                        </tabset>
+
+                    </form>
+
+                    <ncb-footer>
+                        <button class="btn btn-primary btn-lg"
+                                ng-click="data.save(object)">
+                            <span ng-show="object.id == null">Create</span>
+                            <span ng-show="object.id != null">Save</span>
+                        </button>
+                    </ncb-footer>
+                </ncb-modal>
+
+            </div>
+        </tab>
+    </tabset>
+</div>
+

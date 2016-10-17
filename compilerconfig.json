@@ -42,5 +42,9 @@
   {
     "outputFile": "Modules/CommerceSystem/Views/css/commerce-support.css",
     "inputFile": "Modules/CommerceSystem/Views/css/commerce-support.less"
+  },
+  {
+    "outputFile": "Site/styles/css/style.css",
+    "inputFile": "Site/styles/css/style.less"
   }
 ]

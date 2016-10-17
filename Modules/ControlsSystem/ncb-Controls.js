@@ -359,9 +359,9 @@
 
             label.append(element);
 
-            if (element.is("[text]")) {
+            if (element.is("[title]")) {
 
-                var text = $('<span>' + element.attr("text") + '</span>');
+                var text = $('<span>' + element.attr("title") + '</span>');
                 var compiled = $compile(text);
 
                 compiled(scope);
@@ -1819,6 +1819,61 @@
         };
     });
 
+    // scroll the element with scrolling view
+    module.directive('ncbScrollfixed', function ($window) {
+
+        function link(scope, element, attrs) {
+
+            if (attrs.ncbScrollfixed == null) {
+                throw "ncbScrollfixed attribute is required";
+            }
+
+            if (attrs.refer == null) {
+                throw "refer attribute is required";
+            }
+
+            var target = element;
+            if (attrs.target != null) {
+                target = $(attrs.target);
+            }
+
+            var $window = $(window);
+            var myHeight = element.offset().top;
+
+
+            target.css("position", "relative");
+            target.css("transition", "all 0.2s");
+
+            $window.on("scroll", function () {
+
+                var top = $window.scrollTop();
+                var endHeight = $(attrs.refer).height() - element.height();
+
+                if (top > endHeight) {
+
+                    return;
+                }
+
+                if (top < myHeight) {
+
+                    target.css("top", "0");
+                }
+
+                if (top > myHeight) {
+                    target.css("top", top - myHeight);
+
+                }
+
+            });
+
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+        };
+    });
+
     module.directive('ncbScroll', function () {
 
         function link(scope, element, attrs) {
@@ -1950,6 +2005,7 @@
                     return;
                 }
                 var lastSrc = element.attr("src");
+                var reference = element.parents(attrs.refer);
 
                 var finalUrl = "/__resize" + url + "?";
 
@@ -1977,22 +2033,56 @@
                                 );
                 }
 
-                if (attrs.width == null && attrs.height == null ) {
+                if ( (attrs.width == null && attrs.height == null) || 
+                     (attrs.width == "" && attrs.height == "")) {
+                    
+                    // widht and height cannot be identified
+                    // try the refer attribute to look for parents where
+                    // we will get size from
+                    if (reference.length > 0) {
 
-                    finalUrl += String.format("w={0}&h={1}",
-                                    element.width(),
-                                    element.height()
-                                );
+                        finalUrl += String.format("w={0}&h={1}",
+                                        reference.width(),
+                                        reference.height()
+                                    );
+                    } else {
+
+                        var found = false;
+                        var w = element.width();
+                        var h = element.height();
+
+                        // ok, try to find height using parent
+                        element.parents().each(function (i, e) {
+
+                            if (found) {
+                                return;
+                            }
+
+                            w = $(e).width();
+                            h = $(e).height();
+
+                            found = (w != 0) && (h != 0);
+                        });
+
+                        if (found == false) {
+
+                            // try again in 1 second
+                            window.setTimeout(function () {
+
+                                updateUrl(url);
+                            }, 1000);
+
+                            return;
+                        }
+
+                        finalUrl += String.format("w={0}&h={1}",
+                                        w,
+                                        h
+                                    );
+                    }
+
                 }
 
-                if (attrs.width == "" && attrs.height == "") {
-
-                    finalUrl += String.format("w={0}&h={1}",
-                                    element.width(),
-                                    element.height()
-                                );
-                }
-                
                 if (attrs.mode) {
 
                     finalUrl += String.format("&mode={0}",
@@ -2016,8 +2106,22 @@
                 // needs to watch, it is not a url
                 $scope.$parent.$watch(attrs.ncbResize, updateUrl);
             } else {
+                
+                $(document).ready(function () {
 
-                updateUrl(attrs.ncbResize);
+                    if (attrs.delay > 0) {
+
+                        // try again in 1 second
+                        window.setTimeout(function () {
+
+                            updateUrl(attrs.ncbResize);
+                        }, attrs.delay);
+
+                    } else {
+
+                        updateUrl(attrs.ncbResize);
+                    }
+                });
             }
 
             if (attrs.once == null) {

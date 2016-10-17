@@ -29,7 +29,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         {
             if (product.Url.Contains("/laptops/"))
             {
-                return GetSupplierProductTitle(product) + " " + string.Join(" ", from item in items
+                var monitor = items.Where(mo => mo.Url.Contains("/monitor/")).FirstOrDefault();
+                var monitorTitle = monitor == null ? string.Empty : GetSupplierProductTitle(monitor);
+                return GetSupplierProductTitle(product) + monitorTitle + " " + string.Join(" ", from item in items
                                                                                  where
                                                                                    (item.Attributes == null || item.Attributes.supplierinfo.Id == 0) &&
                                                                                   (item.Url.Contains("/cpu/") || item.Url.Contains("/gpu/"))
@@ -154,7 +156,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                    where itemInDb.Attributes != null
                    let supplierNull = itemInDb.Attributes.supplier == null
                    let deserialize = (item.Attributes.supplier = supplierNull ? JObject.Parse("{}") : JObject.Parse(itemInDb.Attributes.supplier.ToString()))
-                   let setSupplier = (item.Attributes.supplierinfo = item.Attributes.supplier.id == null ? JObject.FromObject(new Supplier()) : JObject.FromObject(db.GetById<Supplier>((int)item.Attributes.supplier.id)))
+                   let setSupplier = (item.Attributes.supplierinfo = item.Attributes.supplier.id == null || item.Attributes.supplier.id == 0 ? JObject.FromObject(new Supplier()) : JObject.FromObject(db.GetById<Supplier>((int)item.Attributes.supplier.id)))
                    select item;
         }
 
@@ -175,7 +177,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 return (from item in items
                         where
                           (item.Attributes == null || item.Attributes.supplierinfo.Id == 0) &&
-                         (item.Url.Contains("/cpu/") || item.Url.Contains("/gpu/"))
+                         (item.Url.Contains("/monitor/") || item.Url.Contains("/cpu/") || item.Url.Contains("/gpu/"))
                         select item.Id).ToList();
 
             }
@@ -185,7 +187,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public static IEnumerable<PurchaseOrder> GetPendingPurchaseOrders(NancyBlackDatabase db, string status = SaleOrderStatus.WaitingForOrder)
         {
             var pendingSOs = db.Query<SaleOrder>()
-                .Where(so => so.PaymentStatus == PaymentStatus.PaymentReceived && so.Status == status)
+                .Where(so => so.Status == status)
                 .ToList();
 
             var purchaseItems = new List<PurchaseItem>();

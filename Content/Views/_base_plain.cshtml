@@ -3,32 +3,13 @@
 <html>
 <head>
 
-    @if (this.Model != null && this.Model.Content != null)
-    {
-        <title>
-            @if (this.Model.Content.Title != null)
-            {
-                @this.Model.Content.Title
-            }
-            @RenderSection("Title", false)
-        </title>
+    <title>
+        @this.SEOContent.Title
+        @RenderSection("Title", false)
+    </title>
 
-        @if (this.Model.Content.MetaKeywords != null)
-        {
-            <meta name="keywords" content="@(this.Model.Content.MetaKeywords)">
-        }
-
-        @if (this.Model.Content.MetaDescription != null)
-        {
-            <meta name="description" content="@(this.Model.Content.MetaDescription)">
-        }
-    }
-    else
-    {
-        <title>
-            @RenderSection("Title", false)
-        </title>
-    }
+    <meta name="keywords" content="@(this.SEOContent.MetaKeywords)">
+    <meta name="description" content="@(this.SEOContent.MetaDescription)">
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -50,10 +31,7 @@
     <link rel="icon" type="image/png" href="/__favicon/16x16.png">
     <link rel="shortcut icon" href="/__favicon/16x16.ico" />
     <link rel="manifest" href="/__favicon/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
-
 
     @if (this.Site.Application.GoogleSiteVerification != null)
     {
@@ -104,12 +82,13 @@
         }
 
         window.language = "@(this.Language)";
+        window.currency = "@(this.Currency)"
     </script>
 
     <script src="/Content/Scripts/ncb-dependencies.js"></script>
 
 
-    @if (this.Request.Url.HostName == "localhost")
+    @if (this.Request.Url.HostName == "localhost" || this.Request.Url.HostName.StartsWith("beta"))
     {
         @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
     }

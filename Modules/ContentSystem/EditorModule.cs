@@ -13,15 +13,10 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
     {
         public EditorModule()
         {
-            this.RequiresAuthentication();
+            this.RequiresClaims("editor");
             
             Get["/__editor"] = this.HandleRequest((arg) =>
             {
-                if (this.CurrentUser.HasClaim( "editor" ) == false)
-                {
-                    return 403;
-                }
-
                 return View["editor-editframe", new StandardModel(this)];
             });
 

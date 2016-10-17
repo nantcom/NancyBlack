@@ -1,7 +1,18 @@
 ﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
 @{
     Layout = "_base";
+
 }
+
+@{
+    var localeSuffix = "";
+    if (!string.IsNullOrEmpty(this.Language))
+    {
+        localeSuffix = "_" + this.Language;
+    }
+}
+
+
 @section Title
 {
     NancyWhite
@@ -16,6 +27,7 @@
 {
     <script>
         window.sitesettings = @this.Html.Raw( this.GetJson(this.Site) );
+
     </script>
     <script src="/Content/Scripts/angular-animate.min.js"></script>
     <script src="/Content/Scripts/ckeditor/ckeditor.js"></script>
@@ -156,7 +168,7 @@
                ng-model="object.Title" />
 
         <h3>
-            Title of the page, usually shows in menu and as page heading.
+            Title of the page, this may be used internally by system.
         </h3>
 
         <input type="number" ncb-textbox title="Display Order"
@@ -167,14 +179,78 @@
             Display Order, use number less than 0 to hide from list.
         </h3>
 
+        <input type="text" ncb-textbox title="Tags"
+               placeholder="tag1,tag2,tag3"
+               ng-model="object.Tags" />
+        <h3>
+            Tags use for categorize related subject together. use ',' for sapperate tag. ex: home,office,condo
+        </h3>
+
+        <table class="table"
+               ncb-attributeeditor target="object.Attributes">
+            <thead>
+                <tr>
+                    <th style="width: 150px">Attribute</th>
+                    <th>Value</th>
+                    <th style="width: 30px"></th>
+                </tr>
+            </thead>
+            <tr ng-repeat="(key,value) in target">
+                <td>
+                    {{key}}
+                </td>
+                <td>
+                    {{value}}
+                </td>
+                <td>
+                    <button class="btn btn-danger"
+                            ng-click="remove(key)"
+                            ng-hide="object.IsVariation">
+                        <i class="fa fa-remove"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="text" ncb-textbox
+                           ng-model="newItem.Key"
+                           typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8" />
+                </td>
+                <td>
+                    <input type="text" ncb-textbox
+                           ng-model="newItem.Value" />
+
+                </td>
+                <td>
+                    <button class="btn btn-success"
+                            ng-click="add()">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+        <h3>
+            Attributes are special descriptor of product such as Color, Gender or Size.
+        </h3>
+
         <h2>SEO:</h2>
+
+        <input type="text" ncb-textbox title="Title"
+               placeholder="Shows in tab title"
+               ng-model="object.SEOTranslations.Title@(localeSuffix)" />
+
+        <h3>
+            Title of the page, vary by language
+        </h3>
+
         <input type="text" ncb-textbox title="Meta Keywords"
                placeholder="keywords to describe this page"
-               ng-model="object.MetaKeywords" />
+               ng-model="object.SEOTranslations.MetaKeywords@(localeSuffix)" />
 
         <textarea type="text" ncb-textbox title="Meta Description"
                   placeholder="description about this page"
-                  rows="5" ng-model="object.MetaDescription"></textarea>
+                  rows="5" ng-model="object.SEOTranslations.MetaDescription@(localeSuffix)"></textarea>
 
         <h3>
             meta tags were beleived to help you with search engine ranking -
@@ -237,13 +313,14 @@
             [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
         </h3>
 
+
         <input type="text" ncb-textbox title="Meta Keywords"
                placeholder="keywords to describe this page"
-               ng-model="object.seo.MetaKeywords" />
+               ng-model="object.seo.MetaKeywords@(localeSuffix)" />
 
         <textarea type="text" ncb-textbox title="Meta Description"
                   placeholder="description about this page"
-                  rows="5" ng-model="object.seo.MetaDescription"></textarea>
+                  rows="5" ng-model="object.seo.MetaDescription@(localeSuffix)"></textarea>
     </div>
 
 </script>

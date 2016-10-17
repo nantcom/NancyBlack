@@ -231,8 +231,18 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             }
 
             var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
+            this.UpdateProfile(siteDb, (context.CurrentUser as NcbUser).Id, newProfile);
+        }
 
-            user = siteDb.GetById<NcbUser>( (context.CurrentUser as NcbUser).Id );
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="user"></param>
+        /// <param name="newProfile"></param>
+        public void UpdateProfile(NancyBlackDatabase siteDb, int userId, dynamic newProfile)
+        {
+            var user = siteDb.GetById<NcbUser>( userId );
             user.Profile = newProfile;
 
             if (user.Profile != null)
@@ -383,14 +393,19 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="db"></param>
         /// <param name="registerParameters"></param>
         /// <returns></returns>
-        public NcbUser Register( NancyBlackDatabase db, string email, string passwordHash, bool genCode = false)
+        public NcbUser Register( NancyBlackDatabase db, string email, string passwordHash, bool genCode = false, bool returnExisting = false, dynamic initialProfile = null)
         {
             var existing = db.Query<NcbUser>()
                             .Where(u => u.Email == email)
                             .FirstOrDefault();
 
-            if (existing != null)
-            {
+            if (existing != null )
+            {  
+                if (returnExisting == true)
+                {
+                    return existing;
+                }
+
                 throw new InvalidOperationException("Email already in use");
             }
 
@@ -398,6 +413,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             user.Email = email;
             user.PasswordHash = passwordHash;
             user.Guid = Guid.NewGuid();
+            user.Profile = initialProfile;
 
             if (genCode == true)
             {

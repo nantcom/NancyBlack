@@ -11,14 +11,94 @@
         $scope.billing = window.billing;
         $scope.branding = window.branding;
 
-        //#region copy from ncb-commerce
-
-        $scope.getTotal = function () {
-            return $scope.so.TotalAmount - $scope.so.ShippingFee - $scope.so.ShippingInsuranceFee - $scope.so.PaymentFee;
-        };
+        $scope.discount = { Price: 0 };
 
         $scope.getPriceBeforeVat = function (Price) {
-            return Price * 0.9345794392523364485981308411215;
+            return Price / 1.07;
+        };
+
+        $scope.getProductValue = function () {
+
+            var grandTotal = $scope.getProductTotal() + $scope.discount.Price;
+            var beforeVat = $scope.getPriceBeforeVat(grandTotal);
+
+            return beforeVat;
+        };
+
+        $scope.getBathText = function (inputNumber) {
+            
+            var getText = function (input) {
+                var toNumber = input.toString();
+                var numbers = toNumber.split('').reverse();
+
+                var numberText = "/หนึ่ง/สอง/สาม/สี่/ห้า/หก/เจ็ด/แปด/เก้า/สิบ".split('/');
+                var unitText = "/สิบ/ร้อย/พ้น/หมื่น/แสน/ล้าน".split('/');
+
+                var output = "";
+                for (var i = 0; i < numbers.length; i++) {
+                    var number = parseInt(numbers[i]);
+                    var text = numberText[number];
+                    var unit = unitText[i];
+
+                    if (number == 0)
+                        continue;
+
+                    if (i == 1 && number == 2) {
+                        output = "ยี่สิบ" + output;
+                        continue;
+                    }
+
+                    if (i == 1 && number == 1) {
+                        output = "สิบ" + output;
+                        continue;
+                    }
+
+                    output = text + unit + output;
+                }
+
+                return output;
+            }
+
+            var fullNumber = Math.floor(inputNumber);
+            var decimal = inputNumber - fullNumber;
+
+            if (decimal == 0) {
+
+                return getText(fullNumber) + "บาทถ้วน";
+
+            } else {
+
+                // convert decimal into full number, need only 2 digits
+                decimal = decimal * 100;
+                decimal = Math.round(decimal);
+
+                return getText(fullNumber) + "บาท" + getText(decimal) + "สตางค์";
+            }
+
+        };
+
+        $scope.getVat = function () {
+
+            var grandTotal = $scope.getProductTotal() + $scope.discount.Price;
+            var beforeVat = $scope.getPriceBeforeVat( grandTotal );
+
+            return grandTotal - beforeVat;
+        };
+
+        $scope.getProductTotal = function () {
+
+            var total = 0;
+            for (var i = 0; i < $scope.ItemsDetail.length; i++) {
+                
+                total += $scope.ItemsDetail[i].Price * $scope.ItemsDetail[i].Attributes.Qty;
+            }
+
+            return total;
+        };
+
+        $scope.getTotalBeforeVat = function () {
+            var total = $scope.getTotal();
+            return total / 1.07;
         };
 
         $scope.getPriceBeforeVatWithGap = function (Price) {
@@ -47,9 +127,6 @@
 
         //#endregion
 
-        var Round = function (price) {
-            return Math.round(price * 100) / 100;
-        }
 
         if ($scope.paymentDetail.PaymentRemaining != $scope.so.TotalAmount) {
             $scope.paymentType = 'Split';
@@ -60,31 +137,53 @@
 
         $scope.ItemsDetail = [];
         $scope.type = window.formType;
-        if (window.formType == 'receipt') {
-            for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
-                if ($scope.so.ItemsDetail[i].Price != 0) {
-                    $scope.ItemsDetail.push($scope.so.ItemsDetail[i]);
-                }
+
+        for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
+
+            if ($scope.so.ItemsDetail[i].Price == 0) {
+                continue;
+            }
+
+            if ($scope.so.ItemsDetail[i].Price > 0) {
+                $scope.ItemsDetail.push($scope.so.ItemsDetail[i]);
+            }
+
+            if ($scope.so.ItemsDetail[i].Price < 0) {
+                $scope.discount.Price += $scope.so.ItemsDetail[i].Price;
             }
         }
-        else {
-            $scope.ItemsDetail = $scope.so.ItemsDetail;
+        
+        if ($scope.so.ShippingFee == 0 && $scope.so.ShippingInsuranceFee > 0) {
+            $scope.ItemsDetail.push({
+                Title: "Shipping Insurance",
+                Attributes: { Qty: 1 },
+                Price: $scope.so.ShippingFee + $scope.so.ShippingInsuranceFee,
+            });
         }
 
-        var totalWithoutVat = 0;
-        for (var i = 0; i < $scope.ItemsDetail.length; i++) {
-            $scope.ItemsDetail[i].LineTotal = Round($scope.getPriceBeforeVat($scope.ItemsDetail[i].Price * $scope.ItemsDetail[i].Attributes.Qty));
-            $scope.ItemsDetail[i].Price = Round($scope.getPriceBeforeVat($scope.ItemsDetail[i].Price));
-            totalWithoutVat += $scope.ItemsDetail[i].LineTotal;
+        if ($scope.so.ShippingFee > 0 && $scope.so.ShippingInsuranceFee > 0) {
+            $scope.ItemsDetail.push({
+                Title: "Shipping (with Insurance)",
+                Attributes: { Qty: 1 },
+                Price: $scope.so.ShippingFee + $scope.so.ShippingInsuranceFee,
+            });
         }
 
-        totalWithoutVat = Round(totalWithoutVat);
-        var gap = Round($scope.getTotal() - (totalWithoutVat + Round($scope.getVatNew())));
-        $scope.ItemsDetail[0].LineTotal = Round($scope.ItemsDetail[0].LineTotal + gap);
-        $scope.ItemsDetail[0].Price = Round($scope.ItemsDetail[0].Price + (gap / $scope.ItemsDetail[0].Attributes.Qty));
+        if ($scope.so.ShippingFee > 0 && $scope.so.ShippingInsuranceFee == 0) {
+            $scope.ItemsDetail.push({
+                Title: "Shipping",
+                Attributes: { Qty: 1 },
+                Price: $scope.so.ShippingFee,
+            });
+        }
 
-        //alert(totalWithoutVat);
-        //alert(gap);
+        if ($scope.so.PaymentFee > 0) {
+            $scope.ItemsDetail.push({
+                Title: "Payment Fee",
+                Attributes: { Qty: 1 },
+                Price: $scope.so.PaymentFee,
+            });
+        }
 
         $scope.toPay = $scope.paymentDetail.PaymentRemaining
 

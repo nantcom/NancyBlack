@@ -46,6 +46,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public string TableName {  get { return "Product"; } }
 
+        /// <summary>
+        /// Translations of Title, Metakeyword, MetaDescriptions
+        /// </summary>
+        public dynamic SEOTranslations { get; set; }
+
+        public string Tags { get; set; }
+
+        /// <summary>
+        /// Attributes of the product (such as size, color...)
+        /// </summary>
+        public dynamic Attributes { get; set; }
+
         #endregion
 
         public dynamic[] Attachments { get; set; }
@@ -110,11 +122,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Additional information about the object
         /// </summary>
         public dynamic Addendum { get; set; }
-
-        /// <summary>
-        /// Attributes of the product (such as size, color...)
-        /// </summary>
-        public dynamic Attributes { get; set; }
 
         /// <summary>
         /// Price of this product in Multi Currency

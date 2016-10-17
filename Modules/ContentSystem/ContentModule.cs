@@ -19,7 +19,7 @@ namespace NantCom.NancyBlack.Modules
         /// <summary>
         /// Allow custom mapping of input url into another url
         /// </summary>
-        public static event Func<NancyContext, dynamic, string, string> RewriteUrl = (ctx, arg, url)=> url;
+        public static event Func<NancyContext, dynamic, string, string> RewriteUrl = (ctx, arg, url) => url;
 
         /// <summary>
         /// Allow custom processing of requested page
@@ -33,6 +33,7 @@ namespace NantCom.NancyBlack.Modules
 
         private static string _RootPath;
 
+
         public ContentModule()
         {
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
@@ -42,14 +43,148 @@ namespace NantCom.NancyBlack.Modules
             _RootPath = this.RootPath;
 
             SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
+            NancyBlackDatabase.ObjectCreated += InsertTag_ObjectCreate;
+            NancyBlackDatabase.ObjectUpdated += UpdateTag_ObjectUpdate;
+
+            // Timer to update the page view counter
+            var locker = new object();
+            var timer = new Timer((state) =>
+            {
+                //lastPageViewId have to be saved on setting (but we will re-count everytime for now)
+                var lastPageViewId = 0;
+                var results = this.SiteDatabase.Query
+                    (string.Format("SELECT TableName, ContentId, Request, COUNT(Id) as Hit FROM PageView WHERE Id > {0} GROUP BY TableName, ContentId", lastPageViewId),
+                    new
+                    {
+                        TableName = "test",
+                        ContentId = 0,
+                        Hit = 0,
+                        Request = ""
+                    }).ToList();
+
+                // update lastPageViewId back and save to setting (but we will re-count everytime for now)
+                //lastPageViewId = this.SiteDatabase.Query<PageView>().LastOrDefault().Id;
+
+                foreach (dynamic pageView in results)
+                {
+                    string tableName = pageView.TableName;
+                    int contentId = pageView.ContentId;
+                    var summary = this.SiteDatabase.Query<PageViewSummary>()
+                        .Where(rec => rec.TableName == tableName && rec.ContentId == contentId).FirstOrDefault();
+
+                    if (summary == null)
+                    {
+                        var request = JObject.Parse(pageView.Request);
+                        summary = new PageViewSummary()
+                        {
+                            ContentId = contentId,
+                            TableName = tableName,
+                            PageViews = pageView.Hit,
+                            Url = request.Value<string>("Path")
+                        };
+                    }
+                    else
+                    {
+                        // if exist should be just update the pageview (but we will re-count everytime for now)
+                        //summary.PageViews += pageView.Hit;
+                        summary.PageViews = pageView.Hit;
+                    }
+
+                    this.SiteDatabase.UpsertRecord(summary);
+                }
+
+            }, this, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
         }
+
+        #region Update Tag Table
+
+        private void UpdateTag_ObjectUpdate(NancyBlackDatabase db, string table, dynamic obj)
+        {
+            if (!(obj is IContent))
+            {
+                return;
+            }
+
+            IContent content = obj;
+            var type = content.GetType().Name;
+            var existTags = db.Query<Tag>().Where(tag => tag.ContentId == content.Id && tag.Type == type);
+
+            if (content.Tags != null)
+            {
+                var source = string.Join(",", content.Tags.Split(',').Distinct().OrderBy(s => s)).ToLowerInvariant();
+                var inDb = string.Join(",", existTags.ToList().Select(tag => tag.Name).OrderBy(s => s)).ToLowerInvariant();
+
+                // return when there is nothing change in tags
+                if (source == inDb)
+                {
+                    return;
+                }
+            }
+
+            db.Transaction(() =>
+            {
+                // delete exist tags for re-add new tags
+                foreach (var tag in existTags)
+                {
+                    db.DeleteRecord(tag);
+                }
+
+                // re-insert tag
+                this.InsertTag(db, content);
+            });
+        }
+
+        private string GetCategoryPath(IContent content)
+        {
+            var index = content.Url.LastIndexOf('/');
+            if (index == -1)
+            {
+                return string.Empty;
+            }
+
+            return content.Url.Substring(0, index);
+        }
+
+        private void InsertTag(NancyBlackDatabase db, IContent content)
+        {
+            if (string.IsNullOrEmpty(content.Tags))
+            {
+                return;
+            }
+
+            var tags = content.Tags.Split(',').Distinct();
+            foreach (var tag in tags)
+            {
+                db.UpsertRecord<Tag>(
+                    new Tag()
+                    {
+                        Name = tag,
+                        Type = content.GetType().Name,
+                        ContentId = content.Id,
+                        Url = GetCategoryPath(content)
+                    });
+            }
+        }
+
+        private void InsertTag_ObjectCreate(NancyBlackDatabase db, string table, dynamic obj)
+        {
+            if (!(obj is IContent))
+            {
+                return;
+            }
+
+            IContent content = obj;
+            this.InsertTag(db, content);
+        }
+
+        #endregion
 
         private void SiteMapModule_SiteMapRequested(NancyContext ctx, SiteMap sitemap)
         {
             var db = ctx.GetSiteDatabase();
             foreach (var item in db.Query<Page>().AsEnumerable())
             {
-                sitemap.RegisterUrl( "http://" + ctx.Request.Url.HostName + item.Url, item.__updatedAt);
+                sitemap.RegisterUrl("http://" + ctx.Request.Url.HostName + item.Url, item.__updatedAt);
             }
         }
 
@@ -61,7 +196,7 @@ namespace NantCom.NancyBlack.Modules
         protected void GenerateLayoutPage(dynamic site, dynamic content)
         {
             var layout = (string)content.Layout;
-            
+
             string layoutPath = Path.Combine(this.RootPath, "Site", "Views", Path.GetDirectoryName(layout));
             string layoutFilename = Path.Combine(layoutPath, Path.GetFileName(layout) + ".cshtml");
 
@@ -79,7 +214,7 @@ namespace NantCom.NancyBlack.Modules
             }
             File.Copy(sourceFile, layoutFilename);
         }
-        
+
         protected dynamic HandleContentRequest(dynamic arg)
         {
             var url = (string)arg.path;
@@ -112,9 +247,9 @@ namespace NantCom.NancyBlack.Modules
             {
                 return 404;
             }
-            
+
             IContent requestedContent = null;
-            
+
             // see if the url is collection request or content request
             var parts = url.Split('/');
 
@@ -167,7 +302,7 @@ namespace NantCom.NancyBlack.Modules
 
                 requestedContent = ContentModule.CreatePage(this.SiteDatabase, url);
             }
-            
+
             if (string.IsNullOrEmpty((string)requestedContent.RequiredClaims) == false)
             {
                 var required = ((string)requestedContent.RequiredClaims).Split(',');
@@ -184,7 +319,21 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
-            if (string.IsNullOrEmpty( requestedContent.Layout ))
+            this.SiteDatabase.DelayedInsert(new PageView()
+            {
+                ContentId = requestedContent.Id,
+                TableName = requestedContent.TableName,
+                Request = new
+                {
+                    QueryString = this.Request.Url.Query,
+                    Path = this.Request.Url.Path,
+                    UserIP = this.Request.Headers.Host,
+                    Referer = this.Request.Headers.Referrer,
+                    UserAgent = this.Request.Headers.UserAgent
+                }
+            });
+
+            if (string.IsNullOrEmpty(requestedContent.Layout))
             {
                 requestedContent.Layout = "Content";
             }
@@ -193,7 +342,7 @@ namespace NantCom.NancyBlack.Modules
 
             ContentModule.ProcessPage(this.Context, requestedContent);
 
-            return View[(string)requestedContent.Layout, new StandardModel( this, requestedContent, requestedContent)];
+            return View[(string)requestedContent.Layout, new StandardModel(this, requestedContent, requestedContent)];
         }
 
         #region All Logic Related to Content
@@ -201,9 +350,11 @@ namespace NantCom.NancyBlack.Modules
         /// <summary>
         /// Get child content of given url
         /// </summary>
-        /// <param name="url"></param>
+        /// <param name="db">Reference to the database</param>
+        /// <param name="url">Base Url</param>
+        /// <param name="levels">Level of items to get, 0 means unlimited.</param>
         /// <returns></returns>
-        public static IEnumerable<Page> GetChildPages(NancyBlackDatabase db, string url)
+        public static IEnumerable<Page> GetChildPages(NancyBlackDatabase db, string url, int levels = 0)
         {
             if (url.StartsWith("/") == false)
             {
@@ -211,11 +362,65 @@ namespace NantCom.NancyBlack.Modules
             }
             url = url.ToLowerInvariant() + "/";
 
-            return db.Query<Page>()
-                    .Where(p => p.Url.StartsWith(url))
-                    .Where(p => p.DisplayOrder >= 0)
-                    .OrderBy(p => p.DisplayOrder)
-                    .OrderByDescending(p=> p.__createdAt);
+            var query = db.Query<Page>()
+                   .Where(p => p.Url.StartsWith(url))
+                   .Where(p => p.DisplayOrder >= 0)
+                   .OrderBy(p => p.DisplayOrder)
+                   .OrderByDescending(p => p.__createdAt);
+
+            if (levels == 0)
+            {
+                return query;
+            }
+            else
+            {
+                var finishQuery = query.AsEnumerable(); // hit the database
+                return finishQuery.Where(p =>
+                {
+
+                    var urlParts = p.Url.Split('/');
+                    return (urlParts.Length - 2) == levels;
+
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get TagName and Tag's child count
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public static IEnumerable<TagGroup> GetTagGroupByName(NancyBlackDatabase db, string categoryUrl, string type)
+        {
+            if (categoryUrl.StartsWith("/") == false)
+            {
+                categoryUrl = "/" + categoryUrl;
+            }
+            categoryUrl = categoryUrl.ToLowerInvariant() + "/";
+
+            return db.Query<Tag>()
+                    .Where(tag => tag.Url == categoryUrl && tag.Type == type)
+                    .Select(tag => tag.Name)
+                    .GroupBy(tagName => tagName)
+                    .Select(group => new TagGroup() { Count = group.Count(), Name = group.Key });
+        }
+
+        /// <summary>
+        /// Get Content which match the same Tag
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public static IEnumerable<object> GetContentByTag(NancyBlackDatabase db, Tag tag, int skip, int take)
+        {
+            var tags = db.Query<Tag>()
+                        .Where(rec => rec.Url == tag.Url && rec.Type == tag.Type && rec.Name == tag.Name);
+
+            foreach (var rec in tags)
+            {
+                yield return db.GetById(rec.Type, rec.ContentId);
+            }
         }
 
         /// <summary>
@@ -229,7 +434,6 @@ namespace NantCom.NancyBlack.Modules
                     .Where(p => p.Url.StartsWith("/") && p.Url.Substring(1).IndexOf('/') < 0)
                     .OrderBy(p => p.DisplayOrder);
         }
-
 
         /// <summary>
         /// Get content of given url and optionally creates the content
@@ -292,7 +496,7 @@ namespace NantCom.NancyBlack.Modules
                 url = "/" + url;
             }
 
-            var createdContent = db.UpsertRecord<Page>( new Page()
+            var createdContent = db.UpsertRecord<Page>(new Page()
             {
                 Id = 0,
                 Title = Path.GetFileName(url),
@@ -306,7 +510,7 @@ namespace NantCom.NancyBlack.Modules
         }
 
         #endregion
-        
+
     }
 
 }

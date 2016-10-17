@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.Caching;
+using System.Text;
 using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
@@ -43,6 +44,23 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);
 
             Post["/admin/commerce/api/pay"] = this.HandleRequest(this.HandlePayRequest);
+
+            Get["/admin/commerce/printreceipt"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", (arg)=>
+            {
+                var now = DateTime.Now;
+                var lastMonth = now.AddMonths(-1);
+                lastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1, 0, 0, 0); // first second of last month
+
+                var thisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
+                thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
+
+                var result = this.SiteDatabase.Query<Receipt>()
+                                .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
+                                .OrderBy( r => r.Id )
+                                .ToList();
+
+                return new StandardModel(this, null, result);
+            });
 
             #region Quick Actions
 
@@ -249,15 +267,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic GetExchangeRate(dynamic arg)
         {
-            byte[] cached = MemoryCache.Default["ExchangeRates"] as byte[];
-            if (cached == null)
-            {
-                WebClient client = new WebClient();
-                cached = client.DownloadData("https://openexchangerates.org/api/latest.json?app_id=8ecf50d998af4c2f837bfa416698784e");
-                client.Dispose();
-
-                MemoryCache.Default.Add("ExchangeRates", cached, DateTimeOffset.Now.AddMinutes(60));
-            }
+            byte[] cached = CommerceAdminModule.GetExchangeRateData();
 
             var response = new Response();
             response.Contents = (s) =>
@@ -267,6 +277,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             return response;
 
+        }
+
+        public static dynamic ExchangeRate
+        {
+            get
+            {
+                byte[] exchangeRateData = CommerceAdminModule.GetExchangeRateData();
+                return JObject.Parse(Encoding.UTF8.GetString(exchangeRateData)).Property("rates").Value;
+            }
+        }
+
+
+        private static byte[] GetExchangeRateData()
+        {
+            byte[] array = MemoryCache.Default["ExchangeRates"] as byte[];
+            if (array == null)
+            {
+                WebClient web = new WebClient();
+                array = web.DownloadData("https://openexchangerates.org/api/latest.json?app_id=8ecf50d998af4c2f837bfa416698784e");
+                web.Dispose();
+                MemoryCache.Default.Add("ExchangeRates", array, DateTimeOffset.Now.AddMinutes(60.0), null);
+            }
+            return array;
         }
     }
 }

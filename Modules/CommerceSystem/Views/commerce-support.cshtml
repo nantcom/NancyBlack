@@ -24,6 +24,22 @@
         window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
         window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
+        window.bankInfo = {   
+            title: "ชำระเงินโดยการโอนเงิน",   
+            text: '<p>กรุณาโอนเงินมายัง:</p>' +
+
+                  '<p>ธนาคารกสิกรไทย สาขาเสาชิงช้า <br/>' +
+                  'เลขที่บัญชี: 004-2-45167-3<br/>' +
+                  'ชื่อบัญชี: บจก. นันคอม</p>' +
+                      
+                  '<p style="margin-top: 20px">หลังการโอนเงิน กรุณาอัพโหลดสลิปการโอนเงินเข้ามายังระบบ โดยใช้แท็บ <b>แจ้งชำระเงิน</b> ค่ะ</p>',  
+            html: true
+        };
+        window.notifyMessage = {
+            title: "ตรวจสอบการชำระเงิน",
+            text: 'เราจะทำการตรวจสอบให้ท่านโดยเร็ว โดยคุณจะได้รับอีเมลล์แจ้งถึงการเปลี่ยนแปลงสถานะ ขอบคุณที่ใช้บริการค่ะ',
+            html: true
+        };
     </script>
     <script src="/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
     <script src="/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
@@ -90,7 +106,8 @@
                 <h2>หมายเลขคำสั่งซื้อของคุณคือ: {{object.SaleOrderIdentifier}}</h2>
                 <p>
                     การสั่งซื้อของคุณได้รับการยืนยันแล้ว กรุณาตรวจสอบข้อมูลอีกครั้งและทำการชำระเงิน เพื่อให้เราเริ่มดำเนินการคำสั่งซื้อของคุณ<br />
-                    <span id="clockdiv" ng-controller="CountDownTimerController">
+                    <span id="clockdiv" ng-controller="CountDownTimerController"
+                          ng-show="days < 1">
                         คำสั่งซื้อนี้จะหมดอายุใน
 
                         <span ng-cloak ng-show="days > 1">{{days}} วัน</span>
@@ -107,7 +124,7 @@
                     </a>
 
                     <a ng-click="ctrl.showTransferInfo()" class="btn btn-success btn-lg">
-                        ชำระค่าสินค้าโดยการโอนเงิน
+                        ดูรายละเอียดการโอนเงิน
                     </a>
                 </p>
             </div>
@@ -152,7 +169,7 @@
                                                     <h4 class="timeline-title">Waiting For Order: กำลังรอรับสินค้าจากประเทศสิงคโปร์</h4>
                                                 </div>
                                                 <div class="timeline-body">
-                                                    <p>อยู่ระหว่างการรอรับสินค้าจากต่างประเทศ ใช้เวลาในการขนส่งสินค้าประมาณ 2 สัปดาห์</p>
+                                                    <p>อยู่ระหว่างการรอรับสินค้าจากต่างประเทศ ใช้เวลาในการขนส่งสินค้าประมาณ 2-4 สัปดาห์</p>
                                                 </div>
                                             </div>
                                         </li>
@@ -322,12 +339,12 @@
                                     <td>
 
                                         <div class="form-control-static text-right">
-                                            {{item.Price | number:2}} บาท
+                                            {{item.Price | number:2}} 
                                         </div>
                                     </td>
                                     <td>
                                         <div class="form-control-static text-right">
-                                            {{(item.Price * item.Attributes.Qty) | number:2}} บาท
+                                            {{(item.Price * item.Attributes.Qty) | number:2}} 
                                         </div>
                                     </td>
                                 </tr>
@@ -340,7 +357,7 @@
                                     </td>
                                     <td>
                                         <div class="form-control-static text-right">
-                                            <b>{{object.ShippingFee | number:2 }} บาท</b>
+                                            <b>{{object.ShippingFee | number:2 }} </b>
                                         </div>
                                     </td>
                                 </tr>
@@ -353,7 +370,7 @@
                                     </td>
                                     <td>
                                         <div class="form-control-static text-right">
-                                            <b>{{object.ShippingInsuranceFee | number:2 }} บาท</b>
+                                            <b>{{object.ShippingInsuranceFee | number:2 }} </b>
                                         </div>
                                     </td>
                                 </tr>
@@ -366,7 +383,7 @@
                                     </td>
                                     <td>
                                         <div class="form-control-static text-right">
-                                            <b>{{object.PaymentFee | number:2 }} บาท</b>
+                                            <b>{{object.PaymentFee | number:2 }} </b>
                                         </div>
                                     </td>
                                 </tr>
@@ -379,7 +396,7 @@
                                     </td>
                                     <td>
                                         <div class="form-control-static text-right">
-                                            <b>{{object.TotalAmount | number:2 }} บาท</b>
+                                            <b>{{object.TotalAmount | number:2 }} </b>
                                         </div>
                                     </td>
                                 </tr>
@@ -427,7 +444,7 @@
                                             {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
                                         </td>
                                         <td>
-                                            {{item.Amount | number:2}} บาท
+                                            {{item.Amount | number:2}} 
                                         </td>
                                         <td>
                                             <div class="form-control-static">

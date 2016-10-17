@@ -42,7 +42,22 @@ namespace NantCom.NancyBlack
                 return string.Empty;
             }
         }
-        
+
+        /// <summary>
+        /// Currently Requesting Currency
+        /// </summary>
+        public string Currency
+        {
+            get
+            {
+                if (base.Context.Items.ContainsKey("Currency"))
+                {
+                    return base.Context.Items["Currency"].ToString();
+                }
+                return string.Empty;
+            }
+        }
+
         /// <summary>
         /// Gets the content being rendered
         /// </summary>
@@ -60,11 +75,56 @@ namespace NantCom.NancyBlack
                 return this.Model.Content;
             }
         }
-        
+
+        private IContent _SEOContent;
+
+        /// <summary>
+        /// Gets the localized SEO Content (Title, Keyword, Description)
+        /// </summary>
+        public IContent SEOContent
+        {
+            get
+            {
+                if (this._SEOContent != null)
+                {
+                    return this._SEOContent;
+                }
+
+                if (this.Content == null)
+                {
+                    return new Page();
+                }
+
+                var page = new Page();
+                page.Title = this.Content.Title;
+                page.MetaKeywords = this.Content.MetaKeywords;
+                page.MetaDescription = this.Content.MetaDescription;
+
+                if (this.Content.SEOTranslations != null)
+                {
+                    var suffix = string.IsNullOrEmpty(this.Language) ? "" : "_" + this.Language;
+                    var o = JObject.FromObject(this.Content.SEOTranslations as object);
+                    var page2 = new Page();
+                    page2.Title = o.Value<string>("Title" + suffix);
+                    page2.MetaKeywords = o.Value<string>("MetaKeywords" + suffix);
+                    page2.MetaDescription = o.Value<string>("MetaDescription" + suffix);
+
+                    page.Title = string.IsNullOrEmpty(page2.Title) ? page.Title : page2.Title;
+                    page.MetaKeywords = string.IsNullOrEmpty(page2.MetaKeywords) ? page.MetaKeywords : page2.MetaKeywords;
+                    page.MetaDescription = string.IsNullOrEmpty(page2.MetaDescription) ? page.MetaDescription : page2.MetaDescription;
+                }
+
+                this._SEOContent = page;
+
+                return this._SEOContent;
+            }
+        }
+
         private IContent _ThemeContent;
 
         /// <summary>
         /// Get the theme content, theme content is stored inside Item with Url "/" of Page Table
+        /// (currently same as Site Content - must be changed when there is a theme support)
         /// </summary>
         public IContent ThemeContent
         {
@@ -78,6 +138,27 @@ namespace NantCom.NancyBlack
                 }
 
                 return _ThemeContent;
+            }
+        }
+
+
+        private IContent _SiteContent;
+
+        /// <summary>
+        /// Get the Site content, Site content is stored inside Item with Url "/" of Page Table
+        /// </summary>
+        public IContent SiteContent
+        {
+            get
+            {
+                if (_SiteContent == null)
+                {
+                    _SiteContent = this.Context.GetSiteDatabase().Query<Page>()
+                        .Where(p => p.Url == "/")
+                        .FirstOrDefault();
+                }
+
+                return _SiteContent;
             }
         }
 
@@ -159,14 +240,14 @@ namespace NantCom.NancyBlack
             return JsonConvert.SerializeObject(input);
         }
 
-        public string GetJsonWithoutContentParts( object input )
+        public string GetJsonWithoutContentParts(object input)
         {
             var copy = JObject.FromObject(input);
             copy.Remove("ContentParts");
 
-            return copy.ToString( Formatting.None );
+            return copy.ToString(Formatting.None);
         }
-        
+
         #region Content
 
         private string _LastPropertyName;
@@ -184,6 +265,22 @@ namespace NantCom.NancyBlack
             return new NonEncodedHtmlString(string.Format(
                 @"ncw-collection=""true"" rooturl=""{0}"" table=""{1}"" name=""{2}"" layout=""{3}"" ",
                 rootUrl, table, name, defaultLayout));
+        }
+
+        /// <summary>
+        /// truncate text to make it within maxLength and put ... at the end of content
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="maxLength"></param>
+        /// <returns></returns>
+        public string TruncateWithEllipsis(string source, int maxLength)
+        {
+            if (source.Count() < maxLength)
+            {
+                return source;
+            }
+
+            return source.Substring(0, maxLength) + "...";
         }
 
         /// <summary>
@@ -219,13 +316,26 @@ namespace NantCom.NancyBlack
             return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\" data-id=\"{1}\" data-table=\"{2}\"", propertyName, content.Id, content.TableName));
         }
 
+
+        /// <summary>
+        /// Get Edit Attributes for given property name of current site 
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString MakeEditableForSite(string propertyName)
+        {
+            IContent siteContent = this.SiteContent;
+            this._LastPropertyName = propertyName;
+            return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\" data-id=\"{1}\" data-table=\"{2}\"", propertyName, siteContent.Id, siteContent.TableName));
+        }
+
         /// <summary>
         /// Gets localized content from content parts object and property name
         /// </summary>
         /// <param name="contentParts"></param>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        public string GetLocalizedContent( JObject contentParts, string propertyName )
+        public string GetLocalizedContent(JObject contentParts, string propertyName)
         {
             string value = null;
             if (contentParts != null)
@@ -253,7 +363,7 @@ namespace NantCom.NancyBlack
                 }
 
             }
-            
+
             return value;
         }
 
@@ -268,7 +378,7 @@ namespace NantCom.NancyBlack
 
             string value = null;
             var contentParts = (this.Content as IContent).ContentParts as JObject;
-            
+
             if (contentParts != null)
             {
                 value = this.GetLocalizedContent(contentParts, propertyName);
@@ -290,16 +400,26 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
-        /// Get Contents of the specified property name.
+        /// Get Contents of the specified property name in Model.
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns></returns>
         public NonEncodedHtmlString GetContent(string propertyName)
         {
+            return this.GetContent(this.Content.ContentParts, propertyName);
+        }
+
+        /// <summary>
+        /// Get Content of the specified property name in contentParts.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetContent(JObject contentParts, string propertyName)
+        {
             _LastPropertyName = null;
 
             string value = null;
-            var contentParts = (this.Content as IContent).ContentParts as JObject;
             if (contentParts != null)
             {
                 value = this.GetLocalizedContent(contentParts, propertyName);
@@ -358,6 +478,16 @@ namespace NantCom.NancyBlack
             return value;
         }
 
+
+        /// <summary>
+        /// Get Contents of the specified property name from Site Content
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns></returns>
+        public NonEncodedHtmlString GetSiteContent(Func<dynamic, object> defaultContent)
+        {
+            return this.GetContent(this.SiteContent, defaultContent);
+        }
 
         #endregion
 
@@ -448,6 +578,52 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
+        /// List item in collection under this.Model.Content's url which containing tag
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        /// <param name="take">use in query of Tag's table</param>
+        /// <param name="skip">use in query of Tag's table</param>
+        /// <param name="sortColumn">use in query of Tag's table</param>
+        public object ListChildContents(Func<dynamic, object> contentTemplate, string tag, string type, int take = 0, int skip = 0, string sortColumn = null)
+        {
+            var matchedTags = Database.QueryAsJObject(
+                "Tag",
+                string.Format("Url eq '{0}' and Name eq '{1}' and Type eq '{2}'", this.Model.Content.Url, tag, type),
+                sortColumn,
+                skip.ToString(),
+                take.ToString()
+            );
+
+            foreach (var record in matchedTags)
+            {
+                var item = this.Database.GetById(type, record.Value<int>("ContentId"));
+                var output = contentTemplate(item);
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// List item in collection under this.Model.Content's url
+        /// </summary>
+        /// <param name="url">Base Url </param>
+        /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
+        public object ListChildContents(Func<dynamic, object> contentTemplate, int take = 0, int skip = 0, string sortColumn = null)
+        {
+            var list = Database.QueryAsJObject("Page", string.Format("startswith(Url,'{0}') and Url ne '{0}'", this.Model.Content.Url), sortColumn, skip.ToString(), take.ToString());
+
+            foreach (var item in list)
+            {
+                var output = contentTemplate(item);
+                this.WriteLiteral(output);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Find the Content under current url
         /// </summary>
         /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
@@ -461,7 +637,7 @@ namespace NantCom.NancyBlack
         /// </summary>
         /// <param name="url">Base Url </param>
         /// <param name="contentTemplate">Razor Template to render for each item of the output</param>
-        public object ListChildContents(string url, Func<IContent, object> contentTemplate)
+        public object ListChildContents(string url, Func<IContent, object> contentTemplate, int levels = 0)
         {
 
 #if DEBUG
@@ -470,7 +646,7 @@ namespace NantCom.NancyBlack
                 throw new ArgumentNullException("url");
             }
 #endif
-            var list = ContentModule.GetChildPages(this.Database, url);
+            var list = ContentModule.GetChildPages(this.Database, url, levels);
 
             foreach (var item in list)
             {
@@ -517,6 +693,12 @@ namespace NantCom.NancyBlack
             }
 
             var jarray = content.Attachments as object[];
+
+            if (content.Attachments is JArray)
+            {
+                jarray = ((JArray)content.Attachments).ToArray<object>();
+            }
+
             if (jarray == null)
             {
                 return new dynamic[] { };
@@ -560,6 +742,22 @@ namespace NantCom.NancyBlack
         public string GetAttachmentUrl()
         {
             return this.GetAttachmentUrl(this.Content);
+        }
+
+        /// <summary>
+        /// Get attachment url by attachment's type
+        /// in case there is primary type, will return primary one
+        /// in case there is no primary type, will return secondary one
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="primaryType"></param>
+        /// <param name="secondaryType"></param>
+        /// <param name="fullPath"></param>
+        /// <returns></returns>
+        public string GetAttachmentUrl(dynamic content, string primaryType, string secondaryType, bool fullPath = false)
+        {
+            var imageUrl = this.GetAttachmentUrl(content, "square", fullPath);
+            return string.IsNullOrEmpty(imageUrl) ? this.GetAttachmentUrl(content, "default", fullPath) : imageUrl;
         }
 
         /// <summary>

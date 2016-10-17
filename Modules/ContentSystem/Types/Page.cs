@@ -61,6 +61,17 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
 
         public dynamic[] Attachments { get; set; }
 
+        public string Tags { get; set; }
+
+        /// <summary>
+        /// Attributes of the Page (such as anything but exist one)
+        /// </summary>
+        public dynamic Attributes { get; set; }
+
+        /// <summary>
+        /// Translations of Title, Metakeyword, MetaDescriptions
+        /// </summary>
+        public dynamic SEOTranslations { get; set; }
 
         private string _TableName = "Page";
 

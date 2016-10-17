@@ -74,6 +74,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return View["membership-login", new StandardModel(this)];
             };
 
+            Get["/__membership/logindialog"] = p =>
+            {
+                return View["ncb-membership-logindialog", new StandardModel(this)];
+            };
+
             Get["/__membership/resetpassword"] = p =>
             {
                 return View["membership-resetpassword", new StandardModel(this)];
@@ -84,18 +89,17 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.LogoutAndRedirect("/");
             };
 
-            Post["/__membership/login"] = p =>
+            Post["/__membership/loginfacebook"] = this.HandleRequest( p =>
             {
-                var loginParams = this.Bind<LoginParams>();
-
-                var user = UserManager.Current.GetUserFromLogin(this.SiteDatabase, loginParams.Email, loginParams.Password);
-                if (user == null)
+                var input = p.body.Value;
+                if (input == null)
                 {
-                    return 403;
+                    return 400;
                 }
 
+                var user = UserManager.Current.Register(this.SiteDatabase, "fb_" + input.me.id, (string)input.me.name, false, true, input.me);
                 return this.ProcessLogin(user);
-            };
+            });
 
             Post["/__membership/register"] = p =>
             {

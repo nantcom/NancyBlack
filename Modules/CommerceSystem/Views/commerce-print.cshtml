@@ -10,6 +10,10 @@
     <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
     <link href="/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
     <style>
+        body {
+            -webkit-print-color-adjust:exact;
+        }
+
         .hide {
             display: none;
         }
@@ -52,7 +56,7 @@
 
                 <div class="col-xs-8">
                     <b>{{billing.name}}</b><br />
-                    เลขประจำตัวผู้เสียภาษี/ Tax ID {{billing.regid}}<br />
+                    หมายเลขประจำตัวผู้เสียภาษี/ Tax ID: {{billing.regid}}<br />
                     <span ng-bind-html="billing.address | newline"></span>
                 </div>
 
@@ -68,36 +72,40 @@
                 <div id="customer-title" class="col-xs-6">
 
                     <div ng-if="so.UseBillingAddress">
-                        ได้รับชำระเงินจาก:
-                        <p>
-                            <b>{{so.BillTo.To}}</b><br />
+                        <b>ลูกค้า / Customer</b>
+                        <div>
+                            <div><b>{{so.BillTo.To}}</b></div>
+                            <div ng-if="so.BillTo.TaxId != null">
+                                หมายเลขประจำตัวผู้เสียภาษี: {{so.BillTo.TaxId}}
+                            </div>
+                            
                             {{so.BillTo.Address}}<br />
                             {{so.BillTo.SubDistrict}}
                             {{so.BillTo.District}}<br />
                             {{so.BillTo.State}}
-                            {{so.BillTo.Country}}<br />
+                            {{so.BillTo.Country}}
                             {{so.BillTo.PostalCode}}
-                        </p>
+                        </div>
                     </div>
                     <div ng-if="so.UseBillingAddress == false && so.ShipTo != null && so.ShipTo.To != null">
-                        ได้รับชำระเงินจาก:
-                        <p>
+                        <b>ลูกค้า / Customer</b>
+                        <div>
                             <b>{{so.ShipTo.To}}</b><br />
                             {{so.ShipTo.Address}}<br />
                             {{so.ShipTo.SubDistrict}}
                             {{so.ShipTo.District}}<br />
-                            {{so.ShipTo.State}}
-                            {{so.ShipTo.Country}}<br />
+                            {{so.ShipTo.State}} 
+                            {{so.ShipTo.Country}}
                             {{so.ShipTo.PostalCode}}
-                        </p>
+                        </div>
                     </div>
 
                     <div ng-if="so.UseBillingAddress == false && (so.ShipTo == null || so.ShipTo.To == null)">
-                        ได้รับชำระเงินจาก:
-                        <p>
+                        <b>ลูกค้า / Customer</b>
+                        <div>
                             <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br/>
                             {{so.Customer.PhoneNumber}}
-                        </p>
+                        </div>
                     </div>
                 </div>
 
@@ -107,7 +115,7 @@
                         <tr>
                             <td class="meta-head">
                                 <div class="editabe" id="saleordernumber">
-                                    หมายเลขคำสั่งซื้อ #
+                                    Order No.
                                 </div>
                             </td>
                             <td>{{so.SaleOrderIdentifier}}</td>
@@ -119,7 +127,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="receiptnumber">
-                                            หมายเลขใบเสร็จรับเงิน
+                                            เลขที่/No.
                                         </div>
                                     </td>
                                     <td>
@@ -132,7 +140,7 @@
                         <tr>
                             <td class="meta-head">
                                 <div class="editabe" id="date">
-                                    วันที่
+                                    วันที่/Date
                                 </div>
                             </td>
                             <td>
@@ -162,7 +170,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="amountpaid">
-                                            <span>ชำระแล้ว</span>
+                                            <span>ยอดชำระ/Amount Paid</span>
                                         </div>
                                     </td>
                                     <td>
@@ -174,7 +182,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="amountpaid">
-                                            <span>ต้องชำระเพิ่มe</span>
+                                            <span>ต้องชำระเพิ่ม</span>
                                         </div>
                                     </td>
                                     <td>
@@ -191,7 +199,7 @@
                                 <tr>
                                     <td class="meta-head">
                                         <div class="editabe" id="amountpaid">
-                                            <span>ชำระแล้ว</span>
+                                            <span>ยอดชำระ/Amount Paid</span>
                                         </div>
                                     </td>
                                     <td>
@@ -220,10 +228,23 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>สินค้า</th>
-                        <th>จำนวน</th>
-                        <th>ราคาต่อหน่วย</th>
-                        <th>รวม</th>
+                        <th>
+                            สินค้า/รายละเอียด
+                            <br/>
+                            Product/Description
+                        </th>
+                        <th>
+                            จำนวน<br/>
+                            Quantity
+                        </th>
+                        <th>
+                            ราคาต่อหน่วย<br/>
+                            Unit Price
+                        </th>
+                        <th>
+                            จำนวนเงินรวม<br/>
+                            Amount
+                        </th>
                     </tr>
                 </thead>
                 <tr ng-repeat="item in ItemsDetail | orderBy: 'Price' : true">
@@ -244,91 +265,68 @@
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{item.Price | number:2 }} บาท
+                            {{ item.Price | number:2 }}
                         </div>
                     </td>
                     <td>
                         <div class="form-control-static">
-                            {{item.LineTotal | number:2 }} บาท
+                            {{item.Price * item.Attributes.Qty | number:2 }}
                         </div>
+                    </td>
+                </tr>
+                <tr ng-if="discount.Price < 0">
+                    <td class="blank" colspan="2">
+
+                    </td>
+                    <td class="total-line" colspan="2">
+                        ส่วนลด DISCOUNT
+                    </td>
+                    <td class="total-value">
+                        {{discount.Price | number: 2}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="2"
+                        style="vertical-align: middle; background-color: lightblue">
+                       ( {{getBathText( getProductTotal() + discount.Price )}} )
+                    </td>
+                    <td class="total-line" colspan="2">
+                        รวมเงินทั้งสิ้น GRAND TOTAL
+                    </td>
+                    <td class="total-value">
+                        {{ getProductTotal() + discount.Price  | number : 2}}
                     </td>
                 </tr>
                 <tr>
                     <td class="blank" colspan="2">
-                        <div class="fitted">
-                            <div class="eoe" ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
-                                หมายเหตุ ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
-                            </div>
-                        </div>
+                        
                     </td>
                     <td class="total-line" colspan="2">
-                        ภาษีมูลค่าเพิ่ม 7 %
+                        ภาษีมูลค่าเพิ่ม VALUE ADDED TAX
                     </td>
                     <td class="total-value">
-                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getVatNew() | number:2 }} บาท
-                        </span>
-                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getVatFromSplitedPayment() | number:2 }} บาท
-                        </span>
+                        {{ getVat() | number: 2}}
                     </td>
                 </tr>
-                <tr ng-if="so.ShippingFee > 0">
-                    <td class="blank" colspan="2"> </td>
-                    <td class="total-line" colspan="2">
-                        <div class="form-control-static">
-                            <b>ค่าจัดส่ง</b>
-                        </div>
-                    </td>
-                    <td class="total-value">
-                        <b>{{so.ShippingFee | number:2 }} บาท</b>
-                    </td>
-                </tr>
-                <tr ng-if="so.ShippingInsuranceFee > 0">
-                    <td class="blank" colspan="2"> </td>
-                    <td class="total-line" colspan="2">
-                        <div class="form-control-static">
-                            <b>ค่าประกันการจัดส่ง</b>
-                        </div>
-                    </td>
-                    <td class="total-value">
-                        <b>{{so.ShippingInsuranceFee | number:2 }} บาท</b>
-                    </td>
-                </tr>
-
-                <tr ng-if="so.PaymentFee > 0">
-                    <td class="blank" colspan="2"> </td>
-                    <td class="total-line" colspan="2">
-                        <div class="form-control-static">
-                            <b>ค่าธรรมเนียมบัตรเครดิต</b>
-                        </div>
-                    </td>
-                    <td class="total-value">
-                        <b>{{so.PaymentFee | number:2 }} บาท</b>
-                    </td>
-                </tr>
-
                 <tr>
                     <td class="blank" colspan="2">
                         @if (type == "receipt")
                         {
                             <div class="fitted">
-                                <div class="eoe">
+                                <div class="eoe" style="text-align: left">
+                                    <div ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
+                                        <b>หมายเหตุ</b> ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
+                                    </div>
                                     ผิด ตก ยกเว้น E. & O.E.
                                 </div>
                             </div>
                         }
                     </td>
                     <td class="total-line" colspan="2">
-                        Total
+                        รวมมูลค่าสินค้า TOTAL
                     </td>
                     <td class="total-value">
-                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                            {{so.TotalAmount | number:2 }} บาท
-                        </span>
-                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                            {{getTotalFromSplitedPayment() | number:2 }} บาท
-                        </span>
+                        {{ getProductValue() | number : 2}}
                     </td>
                 </tr>
             </table>
@@ -340,36 +338,6 @@
             {
                 <div ng-hide="so.Status == 'New'"
                      ng-controller="PaysbuyBySaleOrderController as psbCtrl">
-                    
-                    @*<div class="row">
-
-                        <div class="col-md-6">
-                            <div style="margin-bottom: 10px">
-                                ชำระผ่าน <b>Paypal</b>
-                            </div>
-                        </div>
-
-                        <form method="post" target="_top" id="paypalPayment">
-                            <input type="hidden" name="cmd" value="_xclick">
-                            <input type="hidden" name="business" value="S97XQKUP76YS2">
-                            <input type="hidden" name="lc" value="TH">
-                            <input type="hidden" name="item_name" value="{{"LEVEL51 - " + so.SaleOrderIdentifier}}">
-                            <input type="hidden" name="amount" value="{{payAmount}}">
-                            <input type="hidden" name="currency_code" value="THB">
-                            <input type="hidden" name="button_subtype" value="services">
-                            <input type="hidden" name="no_note" value="0">
-                            <input type="hidden" name="cn" value="Add special instructions to the seller:">
-                            <input type="hidden" name="no_shipping" value="1">
-                            <input type="hidden" name="rm" value="1">
-                            <input type="hidden" name="return" value="http://www.level51pc.com/__commerce/paypalcomplete">
-                            <input type="hidden" name="cancel_return" value="http://www.level51pc.com/__commerce/paypalcancel">
-                            <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHosted">
-                            <img src="https://www.paypalobjects.com/en_GB/TH/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal – The safer, easier way to pay online.">
-                            <img alt="" border="0" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1">
-                        </form>
-
-
-                    </div>*@
                     
                     <div class="row" ng-show="so.IsPayWithCreditCart">
 
@@ -499,6 +467,7 @@
                             <tr>
                                 <td>
                                     <div class="fitted">
+                                        <div class="collector" style="bottom: auto; top: 35px">ผู้รับสินค้า / Received By</div>
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
                                             @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"

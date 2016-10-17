@@ -22,8 +22,7 @@ namespace NantCom.NancyBlack.Modules
 
         public AdminModule()
         {
-            this.RequiresAuthentication();
-            this.RequiresClaims(new string[] { "admin" });
+            this.RequiresClaims("admin");
 
             Get["/Admin"] = this.HandleViewRequest("admin-dashboard");
             Get["/Admin/"] = this.HandleViewRequest("admin-dashboard");

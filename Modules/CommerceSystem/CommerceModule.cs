@@ -87,10 +87,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", (arg) =>
             {
+                int soId = 0;
                 var id = (string)arg.so_id;
-                var so = this.SiteDatabase.Query<SaleOrder>()
-                            .Where(row => row.SaleOrderIdentifier == id)
-                            .FirstOrDefault();
+                SaleOrder so = null;
+                if (int.TryParse(id, out soId))
+                {
+                    so = this.SiteDatabase.GetById<SaleOrder>(soId);
+                }
+                else
+                {
+                    so = this.SiteDatabase.Query<SaleOrder>()
+                                .Where(row => row.SaleOrderIdentifier == id)
+                                .FirstOrDefault();
+
+                }
 
                 if (arg.form == "receipt" && !this.CurrentUser.HasClaim("admin"))
                 {
@@ -98,6 +108,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     {
                         return new StandardModel(400);
                     }
+                }
+
+                if (so == null)
+                {
+                    return new StandardModel(404); ;
                 }
 
                 var receipt = this.SiteDatabase.Query<Receipt>()

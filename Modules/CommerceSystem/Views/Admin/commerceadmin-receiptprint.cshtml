@@ -1,0 +1,51 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@using Newtonsoft.Json.Linq
+@{
+    Layout = "_admin";
+}
+@section Title
+{
+    Administration - Commerce - Customer List
+}
+<div id="PrintReceipt">
+
+    <div class="page-header">
+        <h1>Receipt Summary</h1>
+    </div>
+
+    <table class="table">
+        <thead>
+            <th>
+                Identifier
+            </th>
+            <th>
+                SO
+            </th>
+            <th>
+                Print
+            </th>
+        </thead>
+        <tbody>
+            @foreach (var item in this.Model.Data)
+            {
+                <tr>
+                    <td>
+                        @item.Identifier
+                    </td>
+                    <td>
+                        @item.SaleOrderId
+                    </td>
+                    <td>
+                        <a href="/__commerce/saleorder/@(item.SaleOrderId)/receipt" class="btn btn-default" target="_blank">
+                            <i class="fa fa-print"></i>
+                        </a>
+                    </td>
+                </tr>
+
+
+            }
+        </tbody>
+
+    </table>
+
+</div>

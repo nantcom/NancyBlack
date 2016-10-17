@@ -270,12 +270,23 @@
 
                                             <div class="col-xs-6">
                                                 <ncb-datepicker model="object.ISOPromotionStartDate" format="'dd MMMM yyyy'"
-                                                                title="วันที่เริ่มโปรโมชั่น"></ncb-datepicker>
+                                                                title="Start Promotion Date"></ncb-datepicker>
                                             </div>
 
                                             <div class="col-xs-6">
                                                 <ncb-datepicker model="object.ISOPromotionEndDate" format="'dd MMMM yyyy'"
-                                                                title="วันสุดท้ายของโปรโมชั่น"></ncb-datepicker>
+                                                                title="End Promotion Date"></ncb-datepicker>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="row">
+
+                                            <div class="col-xs-6">
+
+                                                <input type="text" ncb-textbox
+                                                       name="Tags" title="Tags" ng-model="object.Tags">
+
                                             </div>
 
                                         </div>

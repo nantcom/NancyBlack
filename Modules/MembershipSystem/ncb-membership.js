@@ -43,11 +43,15 @@
                     UserName: "Anonymous",
                 };
             }
+            $me.currentUser.IsFacebookUser = $me.currentUser.UserName.indexOf('fb_') == 0;
+
 
             var processLogin = function (response, callback) {
 
                 $me.currentUser = response;
-                $window.currentUser = response;
+                $window.currentUser = $me.currentUser;
+
+                $me.currentUser.IsFacebookUser = $me.currentUser.UserName.indexOf('fb_') == 0;
 
                 $scope.$emit("ncb-membership.login", {
                     sender: $scope,
@@ -92,6 +96,22 @@
                 error(function (data, status, headers, config) {
 
                     $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
+
+                });
+
+            };
+
+            $me.loginfacebook = function (facebookMe, callback) {
+
+                $http.post('/__membership/loginfacebook', { me: facebookMe }).
+                success(function (data, status, headers, config) {
+
+                    processLogin(data, callback);
+
+                }).
+                error(function (data, status, headers, config) {
+
+                    $me.alerts.push({ type: 'danger', msg: 'Cannot Login' });
 
                 });
 
@@ -174,6 +194,7 @@
 
                     });
             };
+
         }
 
         return {
@@ -195,6 +216,23 @@
         //$scope.mode = 'login';
         $scope.mode = 'register';
 
+        $me.afterLogin = function () {
+
+            $("#loginDialog").modal('hide');
+
+            // redirect if login from membership page
+            if (window.location.pathname == "/__membership/login") {
+
+                var target = utils.Querystring("returnUrl");
+
+                if (target == null || target == undefined) {
+                    target = "/";
+                }
+
+                window.location.href = target;
+            }
+        };
+
         this.login = function () {
 
             if ($scope.login.email == null || $scope.login.password == null) {
@@ -202,23 +240,45 @@
                 return;
             }
 
-            $scope.membership.login($scope.login.email, $scope.login.password, function () {
+            $scope.membership.login($scope.login.email, $scope.login.password, $me.afterLogin);
+        };
+        
+        this.loginfacebook = function () {
 
-                $("#loginDialog").modal('hide');
+            var processLogin = function () {
 
-                // redirect if login from membership page
-                if (window.location.pathname == "/__membership/login") {
+                FB.api('/me', function (me) {
 
-                    var target = utils.Querystring("returnUrl");
+                    // get information about user and register
+                    $scope.membership.loginfacebook(me, $me.afterLogin);
+                });
+            };
 
-                    if (target == null || target == undefined) {
-                        target = "/";
-                    }
+            FB.getLoginStatus(function (response) {
 
-                    window.location.href = target;
+                if (response.status == 'unknown' || response.status == 'not_authorized') {
+
+                    FB.login(function (loginResponse) {
+
+                        if (loginResponse.authResponse) {
+
+                            processLogin();
+
+                        } else {
+                            console.log('User cancelled login or did not fully authorize.');
+                        }
+
+                    }, { scope: 'email,public_profile,user_about_me' });
+                }
+
+                if (response.status == "connected" ) {
+
+                    processLogin();
                 }
             });
+
         };
+
 
         this.register = function () {
 
@@ -348,24 +408,37 @@
 
             var myScope = scope;
 
-            if ($("ncb-logindialog").length == 0) {
-
-                // Add login dialog if not already there
-                var loginDialog = $('<div class="container"><ncb-logindialog></ncb-logindialog></div>');
-                $("body").append(loginDialog);
-                $compile(loginDialog)(scope);
-            }
-
-
             element.on("click", function () {
 
-                if (scope.currentUser != null) {
+                if (scope.membership.currentUser.Id == 0) {
 
-                    scope.currentProfileController.view();
+                    if (typeof (FB) != 'undefined') {
+
+                        // initialize facebook login
+                        FB.getLoginStatus(function (response) {
+
+                            if (response.status == "connected") {
+
+                                FB.api('/me', function (me) {
+
+                                    // get information about user and register
+                                    scope.membership.loginfacebook(me, null);
+                                });
+                            } else {
+                                
+                                window.location.href = "/__membership/login";
+                            }
+                        });
+
+                    } else {
+
+                        window.location.href = "/__membership/login";
+                    }
+
 
                 } else {
 
-                    scope.currentLoginController.view();
+                    // already logged in
                 }
 
             });

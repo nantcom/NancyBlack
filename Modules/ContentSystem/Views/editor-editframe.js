@@ -541,6 +541,25 @@
         $scope.menu.backbuttonText = "save";
         $scope.menu.altbuttonText = "discard";
 
+        /* Fix SEO translations*/
+        if ($scope.object.SEOTranslations == null) {
+            $scope.object.SEOTranslations = {};
+        }
+
+        var suffix = '';
+        if (window.language != "" && window.language != null) {
+            suffix = "_" & window.language
+        }
+
+        for (var key in { 'Title' :'', 'MetaKeywords' : '', 'MetaDescription' : '' } ) {
+            if ($scope.object.SEOTranslations[key + suffix] == null ||
+                $scope.object.SEOTranslations[key + suffix] == '') {
+
+                $scope.object.SEOTranslations[key + suffix] = $scope.object[key];
+            }
+        }
+        /**/
+
         $scope.menu.cancel = function () {
 
             if (confirm("Are you sure?")) {

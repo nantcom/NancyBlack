@@ -79,6 +79,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime PaymentReceivedDate { get; set; }
 
         /// <summary>
+        /// Currency that this sale order was created
+        /// </summary>
+        public string Currency
+        {
+            get;
+            set;
+        }
+        
+        /// <summary>
+        /// Conversion Rate of the currency
+        /// </summary>
+        public decimal CurrencyConversionRate
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Sale Order Identifier
         /// </summary>
         public string SaleOrderIdentifier { get; set; }
@@ -309,15 +327,36 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.ItemsDetail.Add(discount);
             }
 
-            if (save == false)
-            {
-                return; // Just update the details for calculation
-            }
-
             this.SetAllFee(currentSite);
 
             this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
             this.TotalAmount = Math.Round(this.TotalAmount, 2, MidpointRounding.AwayFromZero);
+
+            if (!string.IsNullOrEmpty(this.Currency))
+            {
+                JObject rate = CommerceAdminModule.ExchangeRate;
+                decimal want = (decimal)rate.Property(this.Currency).Value;
+                decimal home = (decimal)rate.Property("THB").Value;
+                this.CurrencyConversionRate = want / home;
+
+                Func<decimal, decimal> toWant = (decimal input) => input * this.CurrencyConversionRate * 1.03m;
+                foreach (Product current in this.ItemsDetail)
+                {
+                    current.Price = toWant(current.Price);
+                    current.DiscountPrice = toWant(current.DiscountPrice);
+                }
+
+                this.ShippingFee = toWant(this.ShippingFee);
+                this.ShippingInsuranceFee = toWant(this.ShippingInsuranceFee);
+                this.PaymentFee = toWant(this.PaymentFee);
+                this.TotalAmount = toWant(this.TotalAmount);
+            }
+
+
+            if (save == false)
+            {
+                return; // Just update the details for calculation
+            }
 
             db.Transaction(() =>
             {

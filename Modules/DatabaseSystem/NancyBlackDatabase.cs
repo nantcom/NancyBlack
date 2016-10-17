@@ -568,6 +568,29 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
 
+        /// <summary>
+        /// Execute the specified sql command and g
+        /// </summary>
+        /// <param name="commandText"></param>
+        public IEnumerable<object> Query( string commandText, object sampleOutput )
+        {
+            var cmd = _db.CreateCommand(commandText);
+            var resultType = sampleOutput.GetType();
+
+            // create data type on the fly for query
+            // since anonymous type cannot be created
+            var dt = DataType.FromJObject(resultType.Name.Replace("<>", "aa" ).Replace("`", "b"), JObject.FromObject(sampleOutput));
+            var mapping = new TableMapping(dt.GetCompiledType());
+
+            // dynamically invoke the method on SQLite database to read data with specified command
+            var method = typeof(SQLiteCommand)
+                .GetMethod("ExecuteDeferredQuery", new Type[] { typeof(TableMapping) })
+                .MakeGenericMethod(dt.GetCompiledType());
+
+            var result = (IEnumerable<object>)method.Invoke(cmd, new object[] { mapping });
+            return result;
+        }
+
         #endregion
 
         /// <summary>
