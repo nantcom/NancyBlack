@@ -13,7 +13,7 @@ namespace NantCom.NancyBlack.Modules.EditorSystem
     {
         public EditorModule()
         {
-            this.RequiresClaims("editor");
+            this.RequiresAnyClaim("admin", "editor");
             
             Get["/__editor"] = this.HandleRequest((arg) =>
             {
