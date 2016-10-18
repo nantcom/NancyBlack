@@ -78,5 +78,15 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Attributes of the content
         /// </summary>
         dynamic Attributes { get; set; }
+        
+        /// <summary>
+        /// User Id who updated the entity
+        /// </summary>
+        int UpdatedBy { get; set; }
+
+        /// <summary>
+        /// User Id who created the entity
+        /// </summary>
+        int CreatedBy { get; set; }
     }
 }

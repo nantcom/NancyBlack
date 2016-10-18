@@ -124,10 +124,14 @@ namespace NantCom.NancyBlack.Modules
 
         static DataWatcherModule()
         {
-            var ignore = new string[] { "rowversion", "mailsenderlog", "sitesettings" };
+            var ignore = new string[] { "rowversion", "mailsenderlog", "sitesettings", "pageview", "pageviewsummary" };
+
+            // this handler will handle database event from NancyBlack Database system
+            // and it will add information of all database actions in the request into buffer
+
             Action<string, NancyBlackDatabase, string, dynamic> genericHandler = (action, arg1, arg2, arg3) =>
             {
-                if (ignore.Contains( arg2 ))
+                if (ignore.Contains( arg2.ToLowerInvariant() ))
                 {
                     return;
                 }
@@ -169,6 +173,9 @@ namespace NantCom.NancyBlack.Modules
                 
         public void Hook(IPipelines p)
         {
+            // Use Pipeline Hook so that we can get information about the requests before performing action
+            // with the data
+
             p.AfterRequest.AddItemToStartOfPipeline((ctx) =>
             {
                 if (_Events == null)
@@ -178,6 +185,7 @@ namespace NantCom.NancyBlack.Modules
 
                 var siteconfig = ctx.Items["CurrentSite"] as JObject;
                 var user = ctx.CurrentUser as NcbUser;
+                // this will not work when more than one person updating the site at the same time
 
                 var events = _Events.ToList();
                 _Events = null;
@@ -212,8 +220,6 @@ namespace NantCom.NancyBlack.Modules
 
                             continue;
                         }
-
-
 
                         if (config.version == true)
                         {

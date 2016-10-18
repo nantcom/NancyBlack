@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.ContentSystem;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
@@ -11,10 +12,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Nancy.Bootstrapper;
 
 namespace NantCom.NancyBlack.Modules
 {
-    public class ContentModule : BaseModule
+    public class ContentModule : BaseModule, IPipelineHook
     {
         /// <summary>
         /// Allow custom mapping of input url into another url
@@ -32,24 +34,23 @@ namespace NantCom.NancyBlack.Modules
         public static event Func<NancyContext, IContent, IContent> MapPage = (ctx, content) => content;
 
         private static string _RootPath;
+        private static DateTime _LastPageViewUpdated;
+        private const int PAGEVIEW_DELAYTIME = 5;
 
-
-        public ContentModule()
+        /// <summary>
+        /// Perform hook 
+        /// </summary>
+        /// <param name="p"></param>
+        public void Hook(IPipelines p)
         {
-            Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
-
-            Get["/"] = this.HandleRequest(this.HandleContentRequest);
-
-            _RootPath = this.RootPath;
-
-            SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
-            NancyBlackDatabase.ObjectCreated += InsertTag_ObjectCreate;
-            NancyBlackDatabase.ObjectUpdated += UpdateTag_ObjectUpdate;
-
-            // Timer to update the page view counter
-            var locker = new object();
-            var timer = new Timer((state) =>
+            // Update Page View every 5 minutes after request has ended
+            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
+                if (DateTime.Now.Subtract(_LastPageViewUpdated).TotalMinutes < PAGEVIEW_DELAYTIME)
+                {
+                    return;
+                }
+
                 //lastPageViewId have to be saved on setting (but we will re-count everytime for now)
                 var lastPageViewId = 0;
                 var results = this.SiteDatabase.Query
@@ -93,7 +94,23 @@ namespace NantCom.NancyBlack.Modules
                     this.SiteDatabase.UpsertRecord(summary);
                 }
 
-            }, this, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+                _LastPageViewUpdated = DateTime.Now;
+            });
+        }
+        
+
+        public ContentModule()
+        {
+            Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
+
+            Get["/"] = this.HandleRequest(this.HandleContentRequest);
+
+            _RootPath = this.RootPath;
+
+            SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
+            NancyBlackDatabase.ObjectCreated += InsertTag_ObjectCreate;
+            NancyBlackDatabase.ObjectUpdated += UpdateTag_ObjectUpdate;
+
         }
 
         #region Update Tag Table

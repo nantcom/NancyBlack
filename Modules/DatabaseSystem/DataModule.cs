@@ -13,6 +13,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using System.Runtime.Caching;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -80,6 +81,19 @@ namespace NantCom.NancyBlack.Modules
             else
             {
                 TableSecModule.ThrowIfNoPermission(this.Context, entityName, TableSecModule.PERMISSON_UPDATE);
+            }
+
+            // special treatment for IContent
+            if ( typeof( IContent ).IsAssignableFrom( db.DataType.FromName(entityName).GetCompiledType() ) )
+            {
+                if (id == null || id == 0)
+                {
+                    fromClient.CreatedBy = this.CurrentUser.Id;
+                }
+                else
+                {
+                    fromClient.UpdatedBy = this.CurrentUser.Id;
+                }
             }
 
             dynamic record = db.UpsertRecord(entityName, fromClient);

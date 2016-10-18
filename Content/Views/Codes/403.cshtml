@@ -7,21 +7,20 @@
 <div class="jumbotron">
     <h1 class="text-warning">Not Authorized</h1>
     <p>
-        You are not authorized to access this resource.
+        You were not allowed to access this resource.
     </p>
-    <p>
-        Your Claims:
-        <ul>
-            @foreach (var item in this.RenderContext.Context.CurrentUser.Claims)
-            {
-                <li>@item</li>
-            }
-        </ul>
-    </p>
-
     @if (this.RenderContext.Context.CurrentUser != null &&
-          this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NcbUser.Anonymous)
+                  this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NcbUser.Anonymous)
     {
+        <p>
+            Your Current Permission:
+            <ul>
+                @foreach (var item in this.RenderContext.Context.CurrentUser.Claims)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        </p>
 
         <a class="btn btn-lg btn-success" href="/__membership/enroll">
             Have Code?

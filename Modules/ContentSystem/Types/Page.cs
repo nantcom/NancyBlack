@@ -87,10 +87,21 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
             }
         }
 
-        public void SetTableName( string tableName )
+        public void SetTableName(string tableName)
         {
             _TableName = tableName;
         }
+
+        /// <summary>
+        /// User Id of person who updated this content
+        /// </summary>
+        public int UpdatedBy { get; set; }
+
+        /// <summary>
+        /// User Id of person who created this content
+        /// </summary>
+        public int CreatedBy { get; set; }
+        
     }
 
 }

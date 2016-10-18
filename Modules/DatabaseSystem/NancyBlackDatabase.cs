@@ -22,9 +22,36 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
     public class NancyBlackDatabase
     {
-        public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
-        public static event Action<NancyBlackDatabase, string, dynamic> ObjectUpdated = delegate { };
+        /// <summary>
+        /// Fires when object is being created. (before insert) Parameters of Action are Database, Entity Name and the object that is being inserted.
+        /// </summary>
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectCreating = delegate { };
+
+        /// <summary>
+        /// Fires when object was created. Parameters of Action are Database, Entity Name and the object that was inserted.
+        /// </summary>
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectCreated = delegate { };
+
+        /// <summary>
+        /// Fires when object is being updated. (before update) Parameters of Action are Database, Entity Name and the object being updated.
+        /// </summary>
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectUpdating = delegate { };
+
+        /// <summary>
+        /// Fires when object was updated. Parameters of Action are Database, Entity Name and the object that was updated.
+        /// </summary>
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectUpdated = delegate { };
+
+        /// <summary>
+        /// Fires when object is being deleted. Parameters of Action are Database, Entity Name and the object being deleted.
+        /// </summary>
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleting = delegate { };
+
+        /// <summary>
+        /// Fires when object was deleted. Parameters of Action are Database, Entity Name and the object that was deleted.
+        /// </summary>
+        public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
+
 
         private SQLiteConnection _db;
         private DataTypeFactory _dataType;
@@ -350,15 +377,21 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 inputObject.__createdAt = DateTime.Now;
                 inputObject.__updatedAt = DateTime.Now;
+                
+                NancyBlackDatabase.ObjectCreating(this, entityName, inputObject);
 
                 _db.Insert((object)inputObject, actualType);
+
                 NancyBlackDatabase.ObjectCreated(this, entityName, inputObject);
             }
             else
             {
                 inputObject.__updatedAt = DateTime.Now;
 
+                NancyBlackDatabase.ObjectUpdating(this, entityName, inputObject);
+
                 _db.Update((object)inputObject, actualType);
+
                 NancyBlackDatabase.ObjectUpdated(this, entityName, inputObject);
             }
 
@@ -424,6 +457,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
                 // needs to convert to object to get Id later
                 dynamic toInsert = jObject.ToObject(actualType);
+                
+                NancyBlackDatabase.ObjectCreating(this, entityName, toInsert);
+
                 _db.Insert(toInsert, actualType);
                 jObject["Id"] = toInsert.Id;
 
@@ -431,6 +467,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
             else
             {
+                NancyBlackDatabase.ObjectUpdating(this, entityName, jObject);
+
                 _db.Update(jObject.ToObject(actualType), actualType);
 
                 NancyBlackDatabase.ObjectUpdated(this, entityName, jObject);
@@ -479,6 +517,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var deleting = this.GetById(entityName, id.Value); // get the object out before delete
+            
+            NancyBlackDatabase.ObjectDeleting(this, entityName, deleting);
+
             _db.Delete(deleting);
 
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
@@ -540,12 +581,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 input.__createdAt = DateTime.Now;
 
+                NancyBlackDatabase.ObjectCreating(this, entityName, input);
+
                 _db.Insert(input, actualType);
+
                 NancyBlackDatabase.ObjectCreated(this, entityName, input);
             }
             else
             {
+                NancyBlackDatabase.ObjectUpdating(this, entityName, input);
+
                 _db.Update(input, actualType);
+
                 NancyBlackDatabase.ObjectUpdated(this, entityName, input);
             }
 
@@ -563,6 +610,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var entityName = actualType.Name;
 
             var deleting = this.GetById<T>(input.Id); // get the object out before delete
+            
+            NancyBlackDatabase.ObjectDeleting(this, entityName, deleting);
+
             _db.Delete(deleting);
 
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);

@@ -149,7 +149,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Variation Attributes Configuration
         /// </summary>
         public dynamic VariationAttributes { get; set; }
-        
+
+        /// <summary>
+        /// User Id who updated this item
+        /// </summary>
+        public int UpdatedBy { get; set; }
+
+        /// <summary>
+        /// User Id who created this item
+        /// </summary>
+        public int CreatedBy { get; set; }
+
         #endregion
     }
     
