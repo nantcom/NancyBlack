@@ -352,12 +352,8 @@
             var parent = $('<div class="checkbox"></div>');
             var label = $('<label></label>');
 
-            parent.append(label);
-
-            element.before(parent);
-            element.remove();
-
-            label.append(element);
+            element.wrap(label);
+            label.wrap(parent);
 
             if (element.is("[title]")) {
 
