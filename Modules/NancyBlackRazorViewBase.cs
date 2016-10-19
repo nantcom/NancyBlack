@@ -715,66 +715,42 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
-        /// Get First attachment url of given content
+        /// Get attachment of given type for specified content
         /// </summary>
-        /// <param name="content"></param>
-        /// <param name="index"></param>
+        /// <param name="content">The content to get attachment</param>
+        /// <param name="primaryType">The type of attachment to get</param>
+        /// <param name="fullPath">Whether full path is required</param>
+        /// <param name="secondaryTypes">Fall back attachment types, UserUpload which is the default type is automatically added</param>
         /// <returns></returns>
-        public string GetAttachmentUrl(dynamic content)
+        public string GetAttachmentUrl(dynamic content, string primaryType = null, bool fullPath = false, params string[] secondaryTypes)
         {
+            var types = new List<string>();
 
-            var jarray = content.Attachments as object[];
-            if (jarray == null)
+            if (primaryType != null)
             {
-                return null;
+                types.Add(primaryType);
             }
 
-            var item = jarray[0] as JObject;
-            return item["Url"].ToString();
-        }
-
-        /// <summary>
-        /// Get First attachment url
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public string GetAttachmentUrl()
-        {
-            return this.GetAttachmentUrl(this.Content);
-        }
-
-        /// <summary>
-        /// Get attachment url by attachment's type
-        /// in case there is primary type, will return primary one
-        /// in case there is no primary type, will return secondary one
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="primaryType"></param>
-        /// <param name="secondaryType"></param>
-        /// <param name="fullPath"></param>
-        /// <returns></returns>
-        public string GetAttachmentUrl(dynamic content, string primaryType, string secondaryType, bool fullPath = false)
-        {
-            var imageUrl = this.GetAttachmentUrl(content, "square", fullPath);
-            return string.IsNullOrEmpty(imageUrl) ? this.GetAttachmentUrl(content, "default", fullPath) : imageUrl;
-        }
-
-        /// <summary>
-        /// Get attachment url
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public string GetAttachmentUrl(dynamic content, string type = null, bool fullPath = false)
-        {
-            IEnumerable<dynamic> result = this.GetAttachments(content, type);
-            var first = result.FirstOrDefault();
-            if (first == null)
+            if (secondaryTypes != null && secondaryTypes.Length > 0)
             {
+                types.AddRange(secondaryTypes);
+            }
+
+            types.Add("default");
+            types.Add("UserUpload");
+
+
+            var result = types.Select( type => (this.GetAttachments(content, type) as IEnumerable<dynamic>).ToList() )
+                        .FirstOrDefault(list => list.Count > 0 );
+
+            if (result == null)
+            {
+                // does not match any type
                 return string.Empty;
             }
 
+            var first = result[0];
+            
             if (fullPath == true)
             {
                 var url = this.Request.Url.Scheme;
@@ -794,14 +770,15 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
-        /// Get attachment url
+        /// Get attachment url of given type for currently viewing content
         /// </summary>
-        /// <param name="content"></param>
-        /// <param name="index"></param>
+        /// <param name="primaryType">The type of attachment to get</param>
+        /// <param name="fullPath">Whether full path is required</param>
+        /// <param name="secondaryTypes">Fall back attachment types, UserUpload which is the default type is automatically added</param>
         /// <returns></returns>
-        public string GetAttachmentUrl(string type, bool fullPath = false)
+        public string GetAttachmentUrl(string primaryType, bool fullPath = false, params string[] secondaryTypes)
         {
-            return this.GetAttachmentUrl(this.Content, type, fullPath);
+            return this.GetAttachmentUrl(this.Content, primaryType, fullPath, secondaryTypes);
         }
 
         #endregion
