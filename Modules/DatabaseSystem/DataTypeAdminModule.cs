@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
+using Nancy.Security;
+using Nancy.Authentication.Forms;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +14,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
     {
         public DataTypeAdminModule()
         {
+            this.RequiresClaims("admin");
+
             Get["/Admin/Tables"] = this.HandleViewRequest("databasesystem-entities", (arg) =>
             {
                 return new StandardModel( this, "Administration - Data Types" );
@@ -26,6 +30,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             Post["/tables/DataType"] = this.HandleRegisterDataTypeRequest(() => this.SiteDatabase);
             Patch["/tables/DataType/{item_id}"] = this.HandleRegisterDataTypeRequest(() => this.SiteDatabase);
             Delete["/tables/DataType/{item_id}"] = this.HandleDeleteDataTypeRequest(() => this.SiteDatabase);
+
+            // List frequently used attributes
+            Get["/tables/{table_name}/__attributes"] = this.HandleRequest( this.GetFrequentlyUsedAttributes);
+            Get["/tables/{table_name}/__tags"] = this.HandleRequest(this.GetFrequentlyUsedTags);
         }
 
         #region Tables API
@@ -89,7 +97,42 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         #endregion
-        
+
+        private dynamic GetFrequentlyUsedAttributes( dynamic arg )
+        {
+            var table_name = (string)arg.table_name;
+            var samples = this.SiteDatabase.QueryAsJObject(table_name, oDataSort: "Id desc", take: "100");
+
+            HashSet<string> sampleAttributes = new HashSet<string>();
+            foreach (var item in samples)
+            {
+                if (item["Attributes"] != null)
+                {
+                    var attributes = item["Attributes"] as JObject;
+                    if (attributes == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var property in attributes.Properties())
+                    {
+                        sampleAttributes.Add(property.Name);
+                    }
+                }
+            }
+
+            return sampleAttributes.ToList();
+        }
+
+
+        private dynamic GetFrequentlyUsedTags(dynamic arg)
+        {
+            var table_name = (string)arg.table_name;
+            var tags = this.SiteDatabase.Query("SELECT DISTINCT Name FROM Tag WHERE Type = '" + table_name + "' ", new { Name = "name" } );
+
+            return tags.Select(t => (t as dynamic).Name as string).ToList();
+        }
+
         protected dynamic HandleTableAdminPageRequests(dynamic arg)
         {
             var table_name = (string)arg.table_name;

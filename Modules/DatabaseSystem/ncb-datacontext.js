@@ -847,14 +847,26 @@
         };
     }]);
 
-    ncb.directive('ncbAttributeeditor', ['$compile', function ($compile) {
+    ncb.directive('ncbAttributeeditor', ['$compile', '$http', function ($compile, $http) {
 
         function link($scope, element, attrs) {
 
             var $me = this;
 
             $scope.newItem = {};
+            $scope.defaultAttributes = [];
             $scope.target = $scope.$parent.$eval(attrs.target);
+
+            if (attrs.table != null) {
+
+                var table = $scope.$parent.$eval(attrs.table)
+
+                $http.get("/tables/" + table + "/__attributes").
+                    success(function (data, status, headers, config) {
+
+                        $scope.defaultAttributes = data;
+                    });
+            }
 
             $scope.$watch(attrs.target, function () {
 
@@ -899,6 +911,73 @@
             link: link,
             scope: true
         };
+    }]);
+
+    ncb.directive('ncbTagmanager', ['$http', function ($http) {
+
+        function link($scope, $element, attrs)
+        {
+            var input = angular.element($element.children()[1]);
+
+            if (attrs.target == null) {
+                throw "target attribute required";
+            }
+
+            if (attrs.table != null) {
+
+                var table = $scope.$parent.$eval(attrs.table)
+
+                $http.get("/tables/" + table + "/__tags").
+                    success(function (data, status, headers, config) {
+
+                        $scope.tagList = data;
+                    });
+            }
+
+            $scope.tags = [];
+            $scope.tagList = ['test'];
+
+            var start = $scope.$parent.$eval(attrs.target);
+            if (start != null) {
+                $scope.tags = start.split(",")
+            }
+
+            // adds the new tag to the tags array
+            $scope.add = function () {
+                $scope.tags.push($scope.new_value);
+                $scope.new_value = "";
+
+                $scope.$parent.$eval(attrs.target + "='" + $scope.tags.join() + "'");
+            };
+
+            // remove an item
+            $scope.remove = function (idx) {
+                $scope.tags.splice(idx, 1);
+                $scope.$parent.$eval(attrs.target + "='" + $scope.tags.join() + "'");
+            };
+
+            // capture keypresses
+            input.bind('keypress', function (event) {
+                // enter was pressed
+                if (event.keyCode == 13) {
+                    $scope.$apply($scope.add);
+                }
+            });
+        }
+
+        return {
+            restrict: 'E',
+            link: link,
+            scope: true,
+            transclude: true,
+            replace: true,
+            template:
+           '<div class="ncbtageditor"><div class="tags">' +
+               '<div ng-repeat="(idx, tag) in tags" class="tag label label-success">{{tag}} <a class="close" href ng-click="remove(idx)">×</a></div>' +
+           '</div>' +
+           '<div class="input-group"><input type="text" class="form-control" placeholder="add a tag..." ng-model="new_value" typeahead="n for n in tagList | filter:$viewValue | limitTo:8"></input> ' +
+           '<span class="input-group-btn"><a class="btn btn-default" ng-click="add()">Add</a></span></div></div>',
+        }
     }]);
 
     ncb.directive('ncbLookupscope', ['$compile', function ($compile) {

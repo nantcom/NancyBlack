@@ -21,6 +21,23 @@
 @section Head
 {
     <link href="/NancyBlack/Modules/ContentSystem/Views/editor-editframe.min.css" rel="stylesheet" />
+    <style>
+        .tags {
+           display: inline-block;
+           margin-bottom: 5px;
+        } 
+
+        .tags .tag {
+           display: inline-block;
+           margin-right: 5px;
+           font-size: 13px;
+        }
+  
+        .tag .close {
+           font-size: 14px;
+           margin-left: 5px;
+        }
+    </style>
 }
 
 @section Script
@@ -179,59 +196,94 @@
             Display Order, use number less than 0 to hide from list.
         </h3>
 
-        <input type="text" ncb-textbox title="Tags"
-               placeholder="tag1,tag2,tag3"
-               ng-model="object.Tags" />
-        <h3>
-            Tags use for categorize related subject together. use ',' for sapperate tag. ex: home,office,condo
-        </h3>
+        <ncb-modal id="attributesEditor" lg title="Edit Attributes">
 
-        <table class="table"
-               ncb-attributeeditor target="object.Attributes">
-            <thead>
-                <tr>
-                    <th style="width: 150px">Attribute</th>
-                    <th>Value</th>
-                    <th style="width: 30px"></th>
-                </tr>
-            </thead>
-            <tr ng-repeat="(key,value) in target">
-                <td>
-                    {{key}}
-                </td>
-                <td>
-                    {{value}}
-                </td>
-                <td>
-                    <button class="btn btn-danger"
-                            ng-click="remove(key)"
-                            ng-hide="object.IsVariation">
-                        <i class="fa fa-remove"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="text" ncb-textbox
-                           ng-model="newItem.Key"
-                           typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8" />
-                </td>
-                <td>
-                    <input type="text" ncb-textbox
-                           ng-model="newItem.Value" />
+            <div>
+                <tabset>
 
-                </td>
-                <td>
-                    <button class="btn btn-success"
-                            ng-click="add()">
-                        <i class="fa fa-plus"></i>
-                    </button>
-                </td>
-            </tr>
-        </table>
+                    <tab heading="Attributes">
 
-        <h3>
-            Attributes are special descriptor of product such as Color, Gender or Size.
+                        <table class="table"
+                                style="margin-top: 10px"
+                               ncb-attributeeditor table="currentTable" target="object.Attributes">
+                            <thead>
+                                <tr>
+                                    <th style="width: 150px">Attribute</th>
+                                    <th>Value</th>
+                                    <th style="width: 30px"></th>
+                                </tr>
+                            </thead>
+                            <tr ng-repeat="(key,value) in target">
+                                <td>
+                                    {{key}}
+                                </td>
+                                <td>
+                                    {{value}}
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger"
+                                            ng-click="remove(key)"
+                                            ng-hide="object.IsVariation">
+                                        <i class="fa fa-remove"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="text" ncb-textbox
+                                           ng-model="newItem.Key"
+                                           typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8" />
+                                </td>
+                                <td>
+                                    <input type="text" ncb-textbox
+                                           ng-model="newItem.Value" />
+
+                                </td>
+                                <td>
+                                    <button class="btn btn-success"
+                                            ng-click="add()">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </tab>
+
+                    <tab heading="Tags">
+                        
+                        <div style="margin-top: 10px">
+
+                            <ncb-tagmanager target="object.Tags"
+                                            table="currentTable"></ncb-tagmanager>
+
+                            <h3 style="margin-top: 15px">
+                                Tags use for categorize related subject together. use ',' for sapperate tag. ex: home,office,condo
+                            </h3>
+
+                        </div>
+
+                    </tab>
+
+                </tabset>
+
+            </div>
+
+            <ncb-footer>
+
+                <button class="btn btn-primary"
+                        onclick="$('#attributesEditor').modal('hide')">
+                    Close
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+
+        <button class="btn btn-primary"
+                onclick="$('#attributesEditor').modal('show')">Attributes and Tags</button>
+
+        <h3 style="margin-top: 10px">
+            Attributes are special descriptor of an item. Tags are used to categorize the item.
         </h3>
 
         <h2>SEO:</h2>
