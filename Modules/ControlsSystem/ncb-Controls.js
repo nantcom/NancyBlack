@@ -2010,6 +2010,10 @@
                     var w = attrs.width;
                     if (w == "100%") {
                         w = element.width();
+
+                        if (reference.length > 0) {
+                            w = reference.width();
+                        }
                     }
 
                     finalUrl += String.format("w={0}&",
@@ -2022,10 +2026,14 @@
                     var h = attrs.height;
                     if (h == "100%") {
                         h = element.height();
+
+                        if (reference.length > 0) {
+                            h = reference.height();
+                        }
                     }
 
                     finalUrl += String.format("h={0}&",
-                                    attrs.height
+                                    h
                                 );
                 }
 
@@ -2036,11 +2044,13 @@
                     // try the refer attribute to look for parents where
                     // we will get size from
                     if (reference.length > 0) {
-
+                        
                         finalUrl += String.format("w={0}&h={1}",
                                         reference.width(),
                                         reference.height()
                                     );
+
+
                     } else {
 
                         var found = false;
@@ -2102,22 +2112,19 @@
                 // needs to watch, it is not a url
                 $scope.$parent.$watch(attrs.ncbResize, updateUrl);
             } else {
-                
-                $(document).ready(function () {
 
-                    if (attrs.delay > 0) {
+                if (attrs.delay > 0) {
 
-                        // try again in 1 second
-                        window.setTimeout(function () {
-
-                            updateUrl(attrs.ncbResize);
-                        }, attrs.delay);
-
-                    } else {
+                    // try again in 1 second
+                    window.setTimeout(function () {
 
                         updateUrl(attrs.ncbResize);
-                    }
-                });
+                    }, attrs.delay);
+
+                } else {
+
+                    updateUrl(attrs.ncbResize);
+                }
             }
 
             if (attrs.once == null) {

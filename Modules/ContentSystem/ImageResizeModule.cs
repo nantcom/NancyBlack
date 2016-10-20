@@ -258,7 +258,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             var blurFilter = new AForge.Imaging.Filters.GaussianBlur(8, 10);
             using (var blurred = blurFilter.Apply((Bitmap)source))
             {
-                var p = new ImageFiltrationParameters(source, parameter.TargetWidth, parameter.TargetHeight, ImageResizeMode.FitWidth);
+                var p = new ImageFiltrationParameters(source, parameter.TargetWidth, parameter.TargetHeight, ImageResizeMode.Fill);
 
                 var darken = new AForge.Imaging.Filters.BrightnessCorrection(-100);
                 darken.ApplyInPlace(blurred);

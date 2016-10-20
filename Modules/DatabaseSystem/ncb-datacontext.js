@@ -947,13 +947,13 @@
                 $scope.tags.push($scope.new_value);
                 $scope.new_value = "";
 
-                $scope.$parent.$eval(attrs.target + "='" + $scope.tags.join() + "'");
+                $scope.$parent.$eval(attrs.target + '="' + $scope.tags.join() + '"');
             };
 
             // remove an item
             $scope.remove = function (idx) {
                 $scope.tags.splice(idx, 1);
-                $scope.$parent.$eval(attrs.target + "='" + $scope.tags.join() + "'");
+                $scope.$parent.$eval(attrs.target + '="' + $scope.tags.join() + '"');
             };
 
             // capture keypresses
