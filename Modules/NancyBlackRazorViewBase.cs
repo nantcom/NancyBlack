@@ -281,6 +281,11 @@ namespace NantCom.NancyBlack
         /// <returns></returns>
         public string TruncateWithEllipsis(string source, int maxLength)
         {
+            if (source == null)
+            {
+                return string.Empty;
+            }
+
             if (source.Count() < maxLength)
             {
                 return source;
