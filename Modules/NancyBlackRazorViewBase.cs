@@ -114,6 +114,12 @@ namespace NantCom.NancyBlack
                     page.MetaDescription = string.IsNullOrEmpty(page2.MetaDescription) ? page.MetaDescription : page2.MetaDescription;
                 }
 
+                if (string.IsNullOrEmpty( page.MetaDescription ) == true)
+                {
+                    // try getting from content part
+                    page.MetaDescription = this.GetContent("ShortText").ToHtmlString();
+                }
+
                 this._SEOContent = page;
 
                 return this._SEOContent;

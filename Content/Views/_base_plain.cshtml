@@ -33,6 +33,18 @@
     <link rel="manifest" href="/__favicon/manifest.json">
     <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
 
+    <!-- Facebook Open Graph Tag-->
+    <meta property="og:url" content="@this.Request.Url" />
+    <meta property="og:type" content="article" />
+
+    @if (this.Content != null)
+    {
+        <meta property="og:title" content="@this.SEOContent.Title" />
+        <meta property="og:description" content="@this.SEOContent.MetaDescription" />
+        <meta property="og:image" content="@this.GetAttachmentUrl("OpenGraphImage")" />
+    }
+
+
     @if (this.Site.Application.GoogleSiteVerification != null)
     {
         <meta name="google-site-verification" content="@(this.Site.Application.GoogleSiteVerification)" />
