@@ -79,6 +79,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime PaymentReceivedDate { get; set; }
 
         /// <summary>
+        /// Prefer language for customer
+        /// </summary>
+        public string Language { get; set; }
+
+        /// <summary>
         /// Currency that this sale order was created
         /// </summary>
         public string Currency

@@ -52,6 +52,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     foreach (var table in _CachedDataType.Values)
                     {
                         var type = table.GetCompiledType();
+                        if (type.Name.StartsWith("aaf_"))
+                        {
+                            continue;
+                        }
                         _db.CreateTable(type);
 
                         // index all column by default

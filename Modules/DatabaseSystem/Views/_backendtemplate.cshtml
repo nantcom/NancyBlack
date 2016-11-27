@@ -198,7 +198,7 @@
                             }
                             else if (property.Type == "DateTime")
                             {
-                                <ncb-datepicker placeholder="To Date"
+                                <ncb-datepicker placeholder="@(property.Name)"
                                                 format="'dd MMMM yyyy'"
                                                 model="object.@(property.Name)"></ncb-datepicker>
                             }

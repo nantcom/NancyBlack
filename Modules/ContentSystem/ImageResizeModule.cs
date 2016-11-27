@@ -22,6 +22,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             Fill,
             FitWidth,
             Fit,
+            FitWithBg,
             SwapWidthHeight
         }
 
@@ -249,7 +250,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         /// <param name="parameter"></param>
         private static void FillBackground( Image source, Graphics target, ImageFiltrationParameters parameter)
         {
-            if (parameter.Mode != ImageResizeMode.Fit)
+            if (parameter.Mode != ImageResizeMode.FitWithBg)
             {
                 return;
             }

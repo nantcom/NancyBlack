@@ -8,9 +8,9 @@
 
 @section Head
 {
-    <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
-    <link href="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
-    <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
+    <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
+    <link href="/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
     <title>คำสั่งซื้อ</title>
     <style>
         .sweet-alert fieldset {
@@ -24,15 +24,15 @@
         window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
         window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
-        window.bankInfo = {   
-            title: "ชำระเงินโดยการโอนเงิน",   
+        window.bankInfo = {
+            title: "ชำระเงินโดยการโอนเงิน",
             text: '<p>กรุณาโอนเงินมายัง:</p>' +
 
-                  '<p>ธนาคารกสิกรไทย สาขาเสาชิงช้า <br/>' +
-                  'เลขที่บัญชี: 004-2-45167-3<br/>' +
+                  '<p>ธนาคารกสิกรไทย สาขาเดอะไนน์ พระรามเก้า<br/>' +
+                  'เลขที่บัญชี: 018-3-27819-3<br/>' +
                   'ชื่อบัญชี: บจก. นันคอม</p>' +
-                      
-                  '<p style="margin-top: 20px">หลังการโอนเงิน กรุณาอัพโหลดสลิปการโอนเงินเข้ามายังระบบ โดยใช้แท็บ <b>แจ้งชำระเงิน</b> ค่ะ</p>',  
+
+                  '<p style="margin-top: 20px">หลังการโอนเงิน กรุณาอัพโหลดสลิปการโอนเงินเข้ามายังระบบ โดยใช้แท็บ <b>แจ้งชำระเงิน</b> ค่ะ</p>',
             html: true
         };
         window.notifyMessage = {
@@ -41,8 +41,8 @@
             html: true
         };
     </script>
-    <script src="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
-    <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
+    <script src="/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
+    <script src="/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
 
     <script type="text/javascript">
         $(function() {
@@ -60,20 +60,6 @@
             });
         });
     </script>
-
-    <!--Start of Tawk.to Script-->
-    <script type="text/javascript">
-        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-        (function(){
-            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-            s1.async=true;
-            s1.src='https://embed.tawk.to/56c5fd76da3dc74759139cd7/default';
-            s1.charset='UTF-8';
-            s1.setAttribute('crossorigin','*');
-            s0.parentNode.insertBefore(s1,s0);
-        })();
-    </script>
-    <!--End of Tawk.to Script-->
 
 }
 
@@ -339,12 +325,12 @@
                                     <td>
 
                                         <div class="form-control-static text-right">
-                                            {{item.Price | number:2}} 
+                                            {{item.Price | number:2}}
                                         </div>
                                     </td>
                                     <td>
                                         <div class="form-control-static text-right">
-                                            {{(item.Price * item.Attributes.Qty) | number:2}} 
+                                            {{(item.Price * item.Attributes.Qty) | number:2}}
                                         </div>
                                     </td>
                                 </tr>
@@ -444,7 +430,7 @@
                                             {{item.IsPaymentSuccess ? 'สำเร็จ' : 'ไม่สำเร็จ'}}
                                         </td>
                                         <td>
-                                            {{item.Amount | number:2}} 
+                                            {{item.Amount | number:2}}
                                         </td>
                                         <td>
                                             <div class="form-control-static">

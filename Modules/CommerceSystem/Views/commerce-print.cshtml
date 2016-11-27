@@ -7,11 +7,11 @@
 }
 
 @section Head{
-    <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
-    <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
+    <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
     <style>
         body {
-            -webkit-print-color-adjust:exact;
+            -webkit-print-color-adjust: exact;
         }
 
         .hide {
@@ -26,7 +26,7 @@
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
         window.formType = '@type';
     </script>
-    <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
+    <script src="/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
 }
 <div class="printform"
      ng-cloak
@@ -78,7 +78,7 @@
                             <div ng-if="so.BillTo.TaxId != null">
                                 หมายเลขประจำตัวผู้เสียภาษี: {{so.BillTo.TaxId}}
                             </div>
-                            
+
                             {{so.BillTo.Address}}<br />
                             {{so.BillTo.SubDistrict}}
                             {{so.BillTo.District}}<br />
@@ -94,7 +94,7 @@
                             {{so.ShipTo.Address}}<br />
                             {{so.ShipTo.SubDistrict}}
                             {{so.ShipTo.District}}<br />
-                            {{so.ShipTo.State}} 
+                            {{so.ShipTo.State}}
                             {{so.ShipTo.Country}}
                             {{so.ShipTo.PostalCode}}
                         </div>
@@ -103,7 +103,7 @@
                     <div ng-if="so.UseBillingAddress == false && (so.ShipTo == null || so.ShipTo.To == null)">
                         <b>ลูกค้า / Customer</b>
                         <div>
-                            <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br/>
+                            <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br />
                             {{so.Customer.PhoneNumber}}
                         </div>
                     </div>
@@ -230,19 +230,19 @@
                         <th>#</th>
                         <th>
                             สินค้า/รายละเอียด
-                            <br/>
+                            <br />
                             Product/Description
                         </th>
                         <th>
-                            จำนวน<br/>
+                            จำนวน<br />
                             Quantity
                         </th>
                         <th>
-                            ราคาต่อหน่วย<br/>
+                            ราคาต่อหน่วย<br />
                             Unit Price
                         </th>
                         <th>
-                            จำนวนเงินรวม<br/>
+                            จำนวนเงินรวม<br />
                             Amount
                         </th>
                     </tr>
@@ -275,9 +275,7 @@
                     </td>
                 </tr>
                 <tr ng-if="discount.Price < 0">
-                    <td class="blank" colspan="2">
-
-                    </td>
+                    <td class="blank" colspan="2"></td>
                     <td class="total-line" colspan="2">
                         ส่วนลด DISCOUNT
                     </td>
@@ -288,7 +286,7 @@
                 <tr>
                     <td class="blank" colspan="2"
                         style="vertical-align: middle; background-color: lightblue">
-                       ( {{getBathText( getProductTotal() + discount.Price )}} )
+                        ( {{getBathText( getProductTotal() + discount.Price )}} )
                     </td>
                     <td class="total-line" colspan="2">
                         รวมเงินทั้งสิ้น GRAND TOTAL
@@ -298,9 +296,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="blank" colspan="2">
-                        
-                    </td>
+                    <td class="blank" colspan="2"></td>
                     <td class="total-line" colspan="2">
                         ภาษีมูลค่าเพิ่ม VALUE ADDED TAX
                     </td>
@@ -338,23 +334,24 @@
             {
                 <div ng-hide="so.Status == 'New'"
                      ng-controller="PaysbuyBySaleOrderController as psbCtrl">
-                    
+
                     <div class="row" ng-show="so.IsPayWithCreditCart">
 
                         <div class="col-md-6">
                             <div style="margin-bottom: 10px">
-                                ชำระผ่าน <b>PAYSBUY</b> (สามารถใช้บริการผ่อนชำระได้)
+                                ชำระผ่าน <b>PAYSBUY</b> (สามารถใช้บริการผ่อนชำระได้)<br />
+                                Payment via Paysbuy
                             </div>
 
                             <div class="btn-group" role="group" aria-label="..."
                                  ng-show="paymentType != 'Split'">
                                 <button class="btn btn-md btn-primary"
                                         ng-click="psbCtrl.pay()">
-                                    ชำระเงินทั้งหมด
+                                    ชำระเงินทั้งหมด / Full Amount
                                 </button>
                                 <button class="btn btn-md btn-primary"
                                         ng-click="paymentType = 'Split'">
-                                    แบ่งชำระ
+                                    แบ่งชำระ / Split Payment
                                 </button>
                             </div>
 
@@ -363,8 +360,8 @@
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>วันที่ชำระ</th>
-                                                <th class="text-center">จำนวนเงินที่ชำระ</th>
+                                                <th>วันที่ชำระ / Date</th>
+                                                <th class="text-center">จำนวนเงินที่ชำระ / Amount</th>
                                             </tr>
                                         </thead>
                                         <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
@@ -378,7 +375,7 @@
                                         <tr>
                                             <td class="total-line">
                                                 <div class="text-right" style="font-weight: bold">
-                                                    ชำระแล้วทั้งสิ้น
+                                                    ชำระแล้วทั้งสิ้น / Total Paid
                                                 </div>
                                             </td>
                                             <td>
@@ -390,7 +387,7 @@
                                         <tr>
                                             <td class="total-line">
                                                 <div class="text-right" style="font-weight: bold">
-                                                    ชำระเพิ่ม
+                                                    ชำระเพิ่ม / Additional Payment
                                                 </div>
                                             </td>
                                             <td>
@@ -402,13 +399,13 @@
                                     </table>
                                 </div>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ..."
+                                    <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ... / Amount..."
                                            ng-model="toPay">
                                     <span class="input-group-btn">
                                         <button class="btn btn-primary" type="button"
                                                 ng-click="psbCtrl.splitPay(toPay)"
                                                 ng-disabled="ctrl.checkAmount(toPay) == false">
-                                            <i class="fa fa-shopping-cart"></i> ชำระตามจำนวน
+                                            <i class="fa fa-shopping-cart"></i> ชำระ / Pay
                                         </button>
                                     </span>
                                 </div>
@@ -421,7 +418,7 @@
                         <div class="col-md-6 text-right">
 
                             <a class="pull-right">
-                                <img src="/NancyBlack/Modules/CommerceSystem/images/ipsb_01.png" />
+                                <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
                             </a>
                             <form id="paysbuy_form" name="formpaysbuy" method="post"
                                   action=""
@@ -448,14 +445,6 @@
 
                     </div>
 
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <b>ชำระโดยการโอนเงิน:</b><br />
-                            ธนาคารกสิกรไทย ชื่อบัญชี บจก. นันคอม<br />
-                            เลขที่บัญชี 004-2-45167-3<br />
-                            กรุณาแจ้งเลขที่คำสั่งซื้อ (SOXXXX) พร้อมถ่ายภาพ หรือแสกนสลิปมาทาง Email ที่ <b>company@nant.co</b>
-                        </div>
-                    </div>
 
                 </div>
             }
@@ -471,9 +460,9 @@
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
                                             @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"
-                                                src="~/NancyBlack/Modules/CommerceSystem/images/JP-Signature.png" />*@
+                                                src="~/Modules/CommerceSystem/images/JP-Signature.png" />*@
                                             <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
-                                                 src="~/NancyBlack/Modules/CommerceSystem/images/TS-Signature.png" />
+                                                 src="~/Modules/CommerceSystem/images/TS-Signature.png" />
                                         }
                                         <div class="collector">ผู้รับเงิน / Collector</div>
                                         <div class="collect-date">
@@ -488,7 +477,7 @@
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
-                                                 src="~/NancyBlack/Modules/CommerceSystem/images/Company-Stemp.png" />
+                                                 src="~/Modules/CommerceSystem/images/Company-Stemp.png" />
                                         }
                                     </div>
                                 </td>
@@ -497,9 +486,9 @@
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
                                             @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 46px;"
-                                                src="~/NancyBlack/Modules/CommerceSystem/images/JP-Signature.png" />*@
+                                                src="~/Modules/CommerceSystem/images/JP-Signature.png" />*@
                                             <img style="position: absolute; width: 140px; top: 35px; left: 46px;"
-                                                 src="~/NancyBlack/Modules/CommerceSystem/images/TS-Signature.png" />
+                                                 src="~/Modules/CommerceSystem/images/TS-Signature.png" />
                                         }
                                         <div class="by-name">ในนาม</div>
                                         <div class="company-name">{{billing.name}}</div>
