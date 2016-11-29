@@ -524,7 +524,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
-
+        
         #endregion
 
         #region Static Types
@@ -774,7 +774,27 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var db = new SQLiteConnection(fileName, true);
             return new NancyBlackDatabase(db);
         }
+        
+        /// <summary>
+        /// Find older version of given object, the latest version is returned first
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public IEnumerable<T> GetOlderVersions<T>(T input) where T : IStaticType
+        {
+            var typeName = input.GetType().Name;
+            var createdAt = input.__updatedAt;
+            var id = input.Id;
 
+            var oldVersions = this.Query<RowVersion>().Where(rv => rv.DataType == typeName && rv.RowId == id && rv.__createdAt < createdAt)
+                .OrderByDescending(rv => rv.__createdAt);
+
+            foreach (var item in oldVersions)
+            {
+                yield return JsonConvert.DeserializeObject<T>(item.js_Row);
+            }
+        }
     }
 
 }

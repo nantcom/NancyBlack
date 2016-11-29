@@ -91,7 +91,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             get;
             set;
         }
-        
+
         /// <summary>
         /// Conversion Rate of the currency
         /// </summary>
@@ -178,6 +178,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public Decimal TotalAmount { get; set; }
 
         /// <summary>
+        /// Total Amount of this sale order without discount
+        /// </summary>
+        public Decimal TotalWithoutDiscount { get; set; }
+
+        /// <summary>
+        /// Total amount of discount in this sale order
+        /// </summary>
+        public Decimal TotalDiscount { get; set; }
+
+        /// <summary>
         /// Shipping Details related to this sale order
         /// </summary>
         public dynamic ShippingDetails { get; set; }
@@ -197,9 +207,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Attachments
         /// </summary>
         public dynamic[] Attachments { get; set; }
-
+        
+        /// <summary>
+        /// Set Fees from current site settings
+        /// </summary>
+        /// <param name="currentSite"></param>
         public void SetAllFee(dynamic currentSite)
         {
+            if (currentSite == null)
+            {
+                return;
+            }
+
             if (this.ShippingDetails.method == "shipping")
             {
                 this.ShippingFee = currentSite.commerce.shipping.fee;
@@ -261,7 +280,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// 
         /// </summary>
         /// <param name="db"></param>
-        public void UpdateSaleOrder(dynamic currentSite, NancyBlackDatabase db, bool save = true )
+        public void UpdateSaleOrder(dynamic currentSite, NancyBlackDatabase db, bool save = true)
         {
 
             // Update Total
@@ -312,7 +331,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     this.ItemsDetail.Add(product);
                     lookupItemDetail.Add(product.Id, product);
                 }
-                
+
                 this.TotalAmount += product.CurrentPrice;
                 totalWithoutDiscount += product.Price;
             }
@@ -320,6 +339,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             // insert discount when there are some item with discount price (all in one discount)
             if (this.TotalAmount != totalWithoutDiscount)
             {
+
+                // find all negative prices
+                var totalNegativePrices = this.ItemsDetail.Where(i => i.CurrentPrice < 0).Sum(i => i.CurrentPrice);
+
                 var attr = new JObject();
                 attr.Add("Qty", 1);
                 var discount = new Product()
@@ -330,7 +353,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     Attributes = attr
                 };
                 this.ItemsDetail.Add(discount);
+
+                this.TotalDiscount = ( discount.Price + totalNegativePrices ) * -1;
+                this.TotalWithoutDiscount = totalWithoutDiscount + (totalNegativePrices *-1);
             }
+
 
             this.SetAllFee(currentSite);
 
@@ -407,7 +434,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 JObject attr = existItem.Attributes;
                 attr["Qty"] = attr.Value<int>("Qty") + 1;
             }
-            
+
             if (newItem.IsPromotionPrice)
             {
                 var discount = this.ItemsDetail.Where(p => p.Url == "/dummy/dummy").FirstOrDefault();
@@ -424,16 +451,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             db.UpsertRecord<SaleOrder>(this);
         }
-        
+
         /// <summary>
         /// Apply promotion code
         /// </summary>
         /// <param name="code"></param>
-        public PromotionApplyResult ApplyPromotion( dynamic currentSite, NancyBlackDatabase db, string code )
+        public PromotionApplyResult ApplyPromotion(dynamic currentSite, NancyBlackDatabase db, string code)
         {
             // Sale order
             this.UpdateSaleOrder(currentSite, db, false);
-            
+
             string codeUrl = "/promotions/code/" + code;
 
             var codeProduct = db.Query<Product>()
@@ -481,7 +508,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             if (codeProduct.Attributes.until != null)
             {
                 var expire = new DateTime((long)codeProduct.Attributes.until);
-                
+
                 if (DateTime.Now > expire.AddMinutes(15)) // give 10 minutes gap
                 {
                     return new PromotionApplyResult()
@@ -504,7 +531,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 discount = codeProduct.Price
             };
         }
-
+        
         public IEnumerable<object> GetRowVersions(NancyBlackDatabase db)
         {
             var rows = db.Query<RowVersion>()
@@ -524,7 +551,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 yield break;
             }
-            
+
             foreach (var log in query)
             {
                 yield return new
@@ -539,4 +566,3 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         }
     }
 }
- 

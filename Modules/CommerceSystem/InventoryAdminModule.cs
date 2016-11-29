@@ -13,70 +13,103 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
     {
         static InventoryAdminModule()
         {
-            NancyBlackDatabase.ObjectUpdated += CreateInventoryMovement_WhenPurchaseOrderStatusUpdated;
-            NancyBlackDatabase.ObjectUpdated += CreateInventoryMovement_WhenSaleOrderStatusUpdated;
+            NancyBlackDatabase.ObjectUpdated += NancyBlackDatabase_ObjectUpdated;
         }
 
-        private static void CreateInventoryMovement_WhenPurchaseOrderStatusUpdated(NancyBlackDatabase db, string table, dynamic obj)
+        /// <summary>
+        /// Occurred when inventory has finished extracting products from sale order, use this event to
+        /// transforms the inventory items such as combining the components into one SKU.
+        /// </summary>
+        public static event Action<NancyBlackDatabase, SaleOrder, List<InventoryItem>> TransformInventoryRequest = delegate { };
+
+        private static void NancyBlackDatabase_ObjectUpdated(NancyBlackDatabase db, string type, dynamic obj)
         {
-            if (table != "PurchaseOrder")
+            if (type != "SaleOrder")
             {
                 return;
             }
 
-            PurchaseOrder purchaseOrder = obj;
-            // only Received status can create inventory movement
-            if (purchaseOrder.Status != PurchaseOrderStatus.Received)
+            var saleOrder = obj as SaleOrder;
+
+            // only do when status is waiting for order
+            if (saleOrder.Status != SaleOrderStatus.WaitingForOrder)
+            {
+                return;
+            }
+            
+            // if previous status is already waiting for order - do nothing
+            if (db.GetOlderVersions(saleOrder).First().Status == SaleOrderStatus.WaitingForOrder)
             {
                 return;
             }
 
-            var hasBeenusedForMovement = db.Query<InventoryMovement>()
-                .Where(im => im.PurchaseOrderId == purchaseOrder.Id).FirstOrDefault() != null;
-            // no record match mean this item never been used 
-            // for create movement for prevent duplication
-            if (hasBeenusedForMovement)
+            var now = DateTime.Now;
+
+            // ensures that all logic of sale order has been ran
+            saleOrder.UpdateSaleOrder(null, db, false);
+
+            var items = new List<InventoryItem>();
+            foreach (var item in saleOrder.ItemsDetail)
             {
-                return;
+                if (item.CurrentPrice < 0) // dont take negative prices (coupon)
+                {
+                    continue;
+                }
+
+                // For each items in sale order, create an inventory item
+                for (int i = 0; i < (int)item.Attributes.Qty; i++)
+                {
+                    items.Add(new InventoryItem()
+                    {
+                        SaleOrderId = saleOrder.Id,
+                        ProductId = item.Id,
+                        RequestedDate = now,
+                        IsFullfilled = false,
+                        SellingPrice = item.CurrentPrice
+                    });
+                }
             }
 
-            var newInventoryMovements = InventoryMovement.Create(purchaseOrder);
-            foreach (var imovement in newInventoryMovements)
+            // distribute discount into items which has actual sell price
+            var discountToDistribute = saleOrder.TotalDiscount / items.Where( item => item.SellingPrice > 0 ).Count();
+            foreach (var item in items)
             {
-                db.UpsertRecord(imovement);
-            }
-        }
-
-        private static void CreateInventoryMovement_WhenSaleOrderStatusUpdated(NancyBlackDatabase db, string table, dynamic obj)
-        {
-            if (table != "SaleOrder")
-            {
-                return;
+                if (item.SellingPrice > 0)
+                {
+                    item.SellingPrice -= discountToDistribute;
+                }
             }
 
-            SaleOrder saleOrder = obj;
-            if (saleOrder.Status != SaleOrderStatus.Packing &&
-                saleOrder.Status != "Building" &&
-                saleOrder.Status != SaleOrderStatus.ReadyToShip &&
-                saleOrder.Status != SaleOrderStatus.Delivered)
-            {
-                return;
-            }
+            InventoryAdminModule.TransformInventoryRequest(db, saleOrder, items);
 
-            var hasBeenusedForMovement = db.Query<InventoryMovement>()
-                .Where(im => im.SaleOrderId == saleOrder.Id).FirstOrDefault() != null;
-            // no record match mean this item never been used 
-            // for create movement for prevent duplication
-            if (hasBeenusedForMovement)
+            db.Transaction(() =>
             {
-                return;
-            }
+                // before inserting...
+                // if the inventory item for this sale order already fullfilled
+                // it will remain in inventory but sale order removed
 
-            var newInventoryMovements = InventoryMovement.Create(saleOrder);
-            foreach (var imovement in newInventoryMovements)
-            {
-                db.UpsertRecord(imovement);
-            }
+                // we will always create new inventory item for this sale order
+                // and clear out old ones
+
+                foreach (var item in db.Query<InventoryItem>().Where( ivt => ivt.SaleOrderId == saleOrder.Id ).ToList())
+                {
+                    if (item.IsFullfilled)
+                    {
+                        item.Note = "Sale Order Id was removed because sale order which created this item has status set to WaitingForOrder Again";
+                        item.SaleOrderId = 0;
+                        db.UpsertRecord(item);
+                        continue; // item already fullfilled, we leave it but remove sale order id
+                    }
+
+                    db.DeleteRecord(item);
+                }
+
+                foreach (var item in items)
+                {
+                    db.UpsertRecord(item);
+                }
+            });
+            
         }
 
         public InventoryAdminModule()
@@ -95,46 +128,50 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic OpenInventoryManager(dynamic arg)
         {
-            if (!this.CurrentUser.HasClaim("admin"))
-            {
-                return 403;
-            }
+            return 200;
 
-            var unsummarizedStock = InventorySummary.GetUnsummarizedStocks(this.SiteDatabase);
+            //if (!this.CurrentUser.HasClaim("admin"))
+            //{
+            //    return 403;
+            //}
 
-            // Update stock if last month stock never been update yet
-            if (unsummarizedStock != null)
-            {
-                foreach (var summary in InventorySummary.GetUnsummarizedStocks(this.SiteDatabase))
-                {
-                    this.SiteDatabase.UpsertRecord(summary);
-                }
-            }
+            //var unsummarizedStock = InventorySummary.GetUnsummarizedStocks(this.SiteDatabase);
+
+            //// Update stock if last month stock never been update yet
+            //if (unsummarizedStock != null)
+            //{
+            //    foreach (var summary in InventorySummary.GetUnsummarizedStocks(this.SiteDatabase))
+            //    {
+            //        this.SiteDatabase.UpsertRecord(summary);
+            //    }
+            //}
 
 
-            var currentStocks = InventorySummary.GetStocks(DateTime.Now, this.SiteDatabase).ToList();
+            //var currentStocks = InventorySummary.GetStocks(DateTime.Now, this.SiteDatabase).ToList();
 
-            var dummyPage = new Page();
+            //var dummyPage = new Page();
 
-            var data = new
-            {
-                CurrentStocks = currentStocks
-            };
+            //var data = new
+            //{
+            //    CurrentStocks = currentStocks
+            //};
 
-            return View["/Admin/Inventorymanager", new StandardModel(this, dummyPage, data)];
+            //return View["/Admin/Inventorymanager", new StandardModel(this, dummyPage, data)];
         }
 
         private dynamic GetStock(dynamic arg)
         {
-            if (!this.CurrentUser.HasClaim("admin"))
-            {
-                return 403;
-            }
+            return 200;
 
-            var param = ((JObject)arg.body.Value);
-            var checkingDate = param.Value<DateTime>("checkingDate").ToLocalTime();
+            //if (!this.CurrentUser.HasClaim("admin"))
+            //{
+            //    return 403;
+            //}
 
-            return InventorySummary.GetStocks(checkingDate, this.SiteDatabase).ToList();
+            //var param = ((JObject)arg.body.Value);
+            //var checkingDate = param.Value<DateTime>("checkingDate").ToLocalTime();
+
+            //return InventorySummary.GetStocks(checkingDate, this.SiteDatabase).ToList();
         }
         
         private dynamic CopyStock(dynamic arg)

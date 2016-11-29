@@ -43,6 +43,10 @@
     <li><b>Manage Data</b></li>
     @foreach (var item in this.Database.DataType.RegisteredTypes.OrderBy(item => item.NormalizedName))
     {
+        if (item.NormalizedName.StartsWith("aaf_"))
+        {
+            continue;
+        }
         <li><a href="/Admin/Tables/@item.NormalizedName">@item.OriginalName</a></li>
     }
 

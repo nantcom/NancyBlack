@@ -1,4 +1,5 @@
-﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+﻿using NantCom.NancyBlack.Configuration;
+using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
@@ -9,9 +10,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web;
+using Nancy.Bootstrapper;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
+
     public class CommerceModule : BaseDataModule
     {
 
@@ -39,8 +42,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 return content;
             };
+            
         }
-
+        
         private static bool _Triggered = false;
 
         public CommerceModule()

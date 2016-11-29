@@ -50,8 +50,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 .Where(stock => stock.SummaryDate == startOfThisMonthDate)
                 .ToDictionary(stock => stock.ProductId);
 
-            var thisMonthMovements = db.Query<InventoryMovement>()
-                .Where(iMovement => iMovement.MovementDate <= checkingDate && iMovement.MovementDate >= startOfThisMonthDate);
+            var thisMonthMovements = db.Query<InventoryItem>()
+                .Where(iMovement => iMovement.InboundDate <= checkingDate && iMovement.InboundDate >= startOfThisMonthDate);
 
             // group movement by product's id
             var movementGrouped = from movement in thisMonthMovements
@@ -85,8 +85,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 .Where(stock => stock.SummaryDate == startOfLastMonth)
                 .ToDictionary(stock => stock.ProductId);
 
-            var lastMonthMovements = db.Query<InventoryMovement>()
-                .Where(iMovement => iMovement.MovementDate >= startOfLastMonth && iMovement.MovementDate < startOfThisMonth);
+            var lastMonthMovements = db.Query<InventoryItem>()
+                .Where(iMovement => iMovement.InboundDate >= startOfLastMonth && iMovement.InboundDate < startOfThisMonth);
 
             // group movement by product's id
             var movementGrouped = from movement in lastMonthMovements
@@ -105,7 +105,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// <returns></returns>
         private static IEnumerable<InventorySummary> SummarizeStock(
 
-            IEnumerable<IGrouping<int, InventoryMovement>> movementGrouped,
+            IEnumerable<IGrouping<int, InventoryItem>> movementGrouped,
             Dictionary<int, InventorySummary> loopupInStock,
             DateTime summarizeDate
 
