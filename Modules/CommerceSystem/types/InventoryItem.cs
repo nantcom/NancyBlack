@@ -53,14 +53,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string Note { get; set; }
 
         /// <summary>
-        /// Price that the item was bought for
+        /// Cost that the item was bought for, include shipping and handling but without any Tax
         /// </summary>
-        public Decimal BuyingPrice { get; set; }
+        public Decimal BuyingCost { get; set; }
 
         /// <summary>
-        /// Price that this item was sold for
+        /// Tax Paid when bought this item
+        /// </summary>
+        public Decimal BuyingTax { get; set; }
+
+        /// <summary>
+        /// Price that this item was sold for, without Tax
         /// </summary>
         public Decimal SellingPrice { get; set; }
+
+        /// <summary>
+        /// Tax based on price that this item was sold for
+        /// </summary>
+        public Decimal SellingTax { get; set; }
         
         /// <summary>
         /// Whether this inventory movement has been fullfilled

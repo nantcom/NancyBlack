@@ -65,10 +65,20 @@
                       ncb-textbox ng-model="object.commerce.billing.address"></textarea>
 
             <div class="form-group">
-                <label>VAT</label><br />
-                <a class="btn btn-default" btn-radio="''" ng-model="object.commerce.billing.vattype">No VAT</a>
-                <a class="btn btn-default" btn-radio="'addvat'" ng-model="object.commerce.billing.vattype">+VAT</a>
-                <a class="btn btn-default" btn-radio="'includevat'" ng-model="object.commerce.billing.vattype">VAT included</a>
+                <label>TAX</label><br />
+                <a class="btn btn-default" btn-radio="''" ng-model="object.commerce.billing.vattype">None</a>
+                <a class="btn btn-default" btn-radio="'addvat'" ng-model="object.commerce.billing.vattype">Add TAX</a>
+                <a class="btn btn-default" btn-radio="'includevat'" ng-model="object.commerce.billing.vattype">Price Included Tax</a>
+
+            </div>
+
+            <div class="form-group">
+
+                <div class="input-group">
+                    <input type="number" class="form-control" placeholder="VAT/TAX/GST Percentage" ng-model="object.commerce.billing.vatpercent">
+                    <span class="input-group-addon" id="basic-addon2">%</span>
+                </div>
+
             </div>
 
         </div>

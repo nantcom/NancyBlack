@@ -173,7 +173,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int[] Items { get; set; }
 
         /// <summary>
-        /// Total Amount of this sale order
+        /// Total Amount of this sale order, include Tax
         /// </summary>
         public Decimal TotalAmount { get; set; }
 
@@ -186,6 +186,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Total amount of discount in this sale order
         /// </summary>
         public Decimal TotalDiscount { get; set; }
+
+        /// <summary>
+        /// Total Tax in this Sale Order
+        /// </summary>
+        public Decimal TotalTax { get; set; }
+
+        /// <summary>
+        /// Total Amount without Tax of this Sale Order
+        /// </summary>
+        public Decimal TotalAmountWithoutTax { get; set; }
 
         /// <summary>
         /// Shipping Details related to this sale order
@@ -207,6 +217,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Attachments
         /// </summary>
         public dynamic[] Attachments { get; set; }
+
+        /// <summary>
+        /// The Latest Site Settings that were used to perform calculation
+        /// </summary>
+        public dynamic SiteSettings { get; set; }
         
         /// <summary>
         /// Set Fees from current site settings
@@ -282,7 +297,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// <param name="db"></param>
         public void UpdateSaleOrder(dynamic currentSite, NancyBlackDatabase db, bool save = true)
         {
-
             // Update Total
             this.TotalAmount = 0;
 
@@ -364,6 +378,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
             this.TotalAmount = Math.Round(this.TotalAmount, 2, MidpointRounding.AwayFromZero);
 
+            // TAX Calculation
+            if (currentSite.commerce.billing.vattype == "addvat")
+            {
+                this.TotalAmountWithoutTax = this.TotalAmount;
+                this.TotalTax = this.TotalAmountWithoutTax * (100 + (int)currentSite.commerce.billing.vatpercent) / 100;
+                this.TotalAmount = this.TotalAmountWithoutTax + this.TotalTax;
+            }
+
+            if (currentSite.commerce.billing.vattype == "includevat")
+            {
+                this.TotalAmountWithoutTax = this.TotalAmount * 100 / (100 + (int)currentSite.commerce.billing.vatpercent);
+                this.TotalTax = this.TotalAmount - this.TotalAmountWithoutTax;
+            }
+
             if (!string.IsNullOrEmpty(this.Currency))
             {
                 JObject rate = CommerceAdminModule.ExchangeRate;
@@ -384,6 +412,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.TotalAmount = toWant(this.TotalAmount);
             }
 
+            this.SiteSettings = currentSite;
 
             if (save == false)
             {

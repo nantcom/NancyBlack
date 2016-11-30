@@ -15,7 +15,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             NancyBlackDatabase.ObjectUpdated += NancyBlackDatabase_ObjectUpdated;
         }
-
+        
         /// <summary>
         /// Occurred when inventory has finished extracting products from sale order, use this event to
         /// transforms the inventory items such as combining the components into one SKU.
@@ -44,9 +44,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             var now = DateTime.Now;
+            var currentSite = AdminModule.ReadSiteSettings();
 
             // ensures that all logic of sale order has been ran
-            saleOrder.UpdateSaleOrder(null, db, false);
+            saleOrder.UpdateSaleOrder(currentSite, db, false);
 
             var items = new List<InventoryItem>();
             foreach (var item in saleOrder.ItemsDetail)
@@ -59,14 +60,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // For each items in sale order, create an inventory item
                 for (int i = 0; i < (int)item.Attributes.Qty; i++)
                 {
-                    items.Add(new InventoryItem()
+                    var ivitm = new InventoryItem()
                     {
                         SaleOrderId = saleOrder.Id,
                         ProductId = item.Id,
                         RequestedDate = now,
                         IsFullfilled = false,
                         SellingPrice = item.CurrentPrice
-                    });
+                    };
+                    items.Add(ivitm);
                 }
             }
 
@@ -77,6 +79,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 if (item.SellingPrice > 0)
                 {
                     item.SellingPrice -= discountToDistribute;
+
+                    if (currentSite.commerce.billing.vattype == "addvat")
+                    {
+                        item.SellingTax = item.SellingPrice * (100 + (int)currentSite.commerce.billing.vatpercent) / 100;
+                    }
+
+                    if (currentSite.commerce.billing.vattype == "includevat")
+                    {
+                        var priceWithoutTax = item.SellingPrice * 100 / (100 + (int)currentSite.commerce.billing.vatpercent);
+                        item.SellingTax = item.SellingPrice - priceWithoutTax;
+                        item.SellingPrice = priceWithoutTax;
+                    }
                 }
             }
 
