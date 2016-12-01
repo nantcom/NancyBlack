@@ -73,8 +73,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public Decimal SellingTax { get; set; }
         
         /// <summary>
-        /// Whether this inventory movement has been fullfilled
+        /// Whether this inventory item has been used to fullfill and sale order
         /// </summary>
         public bool IsFullfilled { get; set; }
+
+        /// <summary>
+        /// The inventory inbound which causes this item to be fullfilled
+        /// </summary>
+        public int InventoryInboundId { get; set; }
     }
 }

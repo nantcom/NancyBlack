@@ -14,26 +14,89 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
     public class InventoryAdminModule : BaseModule
     {
-        static InventoryAdminModule()
-        {
-            NancyBlackDatabase.ObjectUpdated += NancyBlackDatabase_ObjectUpdated;
-        }
-
         /// <summary>
         /// Occurred when inventory has finished extracting products from sale order, use this event to
         /// transforms the inventory items such as combining the components into one SKU.
         /// </summary>
         public static event Action<NancyBlackDatabase, SaleOrder, List<InventoryItem>> TransformInventoryRequest = delegate { };
 
-        private static void NancyBlackDatabase_ObjectUpdated(NancyBlackDatabase db, string type, dynamic obj)
+
+        static InventoryAdminModule()
         {
-            if (type != "SaleOrder")
+            NancyBlackDatabase.ObjectUpdated += (db,table,obj) =>
             {
-                return;
+                if (table == "SaleOrder")
+                {
+                    InventoryAdminModule.ProcessSaleOrderUpdate(db, obj);
+                }
+            };
+            NancyBlackDatabase.ObjectCreated += (db, table, obj) =>
+            {
+                if (table == "InventoryInbound")
+                {
+                    InventoryAdminModule.ProcessInventoryInboundCreation(db, obj);
+                }
+            };
+        }
+
+        private static object LockObject = new object();
+        
+        /// <summary>
+        /// When inventory inbound is created, find the inventory item that needs to be fullfilled
+        /// and fullfil with item from inventory inbound
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="obj"></param>
+        private static void ProcessInventoryInboundCreation(NancyBlackDatabase db, InventoryInbound obj)
+        {
+            // ensures that only one thread will be doing this
+            lock (InventoryAdminModule.LockObject)
+            {
+                db.Transaction(() =>
+                {
+                    foreach (var item in obj.Items)
+                    {
+                        var pId = item.ProductId;
+                        var oldestRequestForProduct = db.Query<InventoryItem>()
+                                                        .Where(i => i.IsFullfilled == false && i.ProductId == pId)
+                                                        .OrderBy(i => i.RequestedDate)
+                                                        .FirstOrDefault();
+
+                        if (oldestRequestForProduct != null) // there is a request for this product
+                        {
+                            oldestRequestForProduct.InboundDate = obj.InboundDate;
+                            oldestRequestForProduct.InventoryInboundId = obj.Id;
+                            oldestRequestForProduct.IsFullfilled = true;
+                            oldestRequestForProduct.BuyingCost = item.Price;
+                            oldestRequestForProduct.BuyingTax = item.Tax;
+
+                            db.UpsertRecord(oldestRequestForProduct);
+                        }
+                        else // there is no request for this product, create as item
+                        {
+                            InventoryItem ivitm = new InventoryItem();
+                            ivitm.InboundDate = obj.InboundDate;
+                            ivitm.InventoryInboundId = obj.Id;
+                            ivitm.ProductId = item.ProductId;
+                            ivitm.BuyingCost = item.Price;
+                            ivitm.BuyingTax = item.Tax;
+
+                            db.UpsertRecord(ivitm);
+                        }
+                    }
+
+                });
             }
+        }
 
-            var saleOrder = obj as SaleOrder;
-
+        /// <summary>
+        /// When Saleorder is set to waiting for order, generate InventoryItem for each item in the sale order
+        /// TransformInventoryRequest event is called to finalize the list of items.
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="saleOrder"></param>
+        private static void ProcessSaleOrderUpdate(NancyBlackDatabase db, SaleOrder saleOrder)
+        {
             // only do when status is waiting for order
             if (saleOrder.Status != SaleOrderStatus.WaitingForOrder)
             {
