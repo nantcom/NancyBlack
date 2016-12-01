@@ -20,6 +20,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// </summary>
         public static event Action<NancyBlackDatabase, SaleOrder, List<InventoryItem>> TransformInventoryRequest = delegate { };
 
+        /// <summary>
+        /// Occured when inbound processing is completed. This will be run in transaction along with inbound processing
+        /// and will revert if exception occured
+        /// </summary>
+        public static event Action<NancyBlackDatabase, InventoryInbound, List<InventoryItem>> InboundCompleted = delegate { };
 
         static InventoryAdminModule()
         {
@@ -54,6 +59,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 db.Transaction(() =>
                 {
+                    var inboundItems = new List<InventoryItem>();
+
                     foreach (var item in obj.Items)
                     {
                         var pId = item.ProductId;
@@ -71,6 +78,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             oldestRequestForProduct.BuyingTax = item.Tax;
 
                             db.UpsertRecord(oldestRequestForProduct);
+
+                            inboundItems.Add(oldestRequestForProduct);
                         }
                         else // there is no request for this product, create as item
                         {
@@ -82,10 +91,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             ivitm.BuyingTax = item.Tax;
 
                             db.UpsertRecord(ivitm);
+
+                            inboundItems.Add(ivitm);
                         }
                     }
 
+                    InventoryAdminModule.InboundCompleted(db,obj,inboundItems);
                 });
+
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿(function () {
 
-    var module = angular.module('AccountingGlModule', ['ui.bootstrap']);
+    var module = angular.module('AccountingGlModule', ['ui.bootstrap', 'angular.filter', 'chart.js']);
 
     module.controller("AccountingTransactionEditor", function ($scope, $rootScope, $http) {
 
@@ -99,6 +99,44 @@
         };
 
         $me.refreshAutoComplete();
+    });
+
+    module.controller("AccountingDashboard", function ($scope, $rootScope, $http) {
+
+        $me = this;
+        $scope.AccountSummary = [];
+
+        $http.get("/admin/tables/accountingentry/__accountsummary").success(function (data) {
+
+            for (var i = 0; i < data.TotalIncrease.length; i++) {
+
+                var account = {
+                    Account: data.TotalIncrease[i].Account,
+                    TotalIncrease: data.TotalIncrease[i].Amount,
+                    LatestIncreaseDate: data.TotalIncrease[i].LatestDate,
+                };
+
+                $scope.AccountSummary.push(account);
+                $scope.AccountSummary[data.TotalIncrease[i].Account] = account;
+            }
+
+            for (var i = 0; i < data.TotalDecrease.length; i++) {
+
+                var account = $scope.AccountSummary[data.TotalDecrease[i].Account];
+
+                if (account == null) {
+                    account = {
+                        Account: data.TotalDecrease[i].Account,
+                    }
+                    $scope.AccountSummary.push(account);
+                }
+
+                account.TotalDecrease = data.TotalDecrease[i].Amount;
+                account.LatestDecreaseDate = data.TotalDecrease[i].LatestDate;
+                account.Amount = account.TotalIncrease + account.TotalDecrease;
+            }
+        });
+
     });
 
 })();
