@@ -199,19 +199,28 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // insert updatedStock here
             Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
 
-            Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.FindNotFullfilled);
+            Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.GetWaitingForOrder);
+
+            Get["/admin/tables/inventoryitem/__waitingforinbound"] = this.HandleRequest(this.GetWaitingForInbound);
 
             Get["/admin/tables/inventoryitem/__instock"] = this.HandleRequest((arg) =>
             {
                 return this.SiteDatabase.Query("SELECT ProductId, SUM(BuyingCost) as Price, SUM(1) as Qty FROM InventoryItem WHERE IsFullfilled = 0 AND InboundDate > 0 AND SaleOrderId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0, Qty = 0 });
             });
+
+            Get["/admin/tables/inventoryitem/__averageprice"] = this.HandleRequest((arg) =>
+            {
+                return this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingCost) as Price FROM InventoryItem WHERE BuyingCost > 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0 });
+            });
+
+            
         }
         
         /// <summary>
         /// List the products that were not fullfilled
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<object> FindNotFullfilled(dynamic args)
+        private IEnumerable<object> GetWaitingForOrder(dynamic args)
         {
             var productLookup = this.SiteDatabase.Query<Product>().ToDictionary(p => p.Id);
             
@@ -230,6 +239,31 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         ProductId = product.Id,
                         InventoryItem = item
                     };
+        }
+
+        /// <summary>
+        /// List the products that is not yet inbound
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<object> GetWaitingForInbound(dynamic args)
+        {
+            var productLookup = this.SiteDatabase.Query<Product>().ToDictionary(p => p.Id);
+
+            var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
+                                    .Where(ivitm => ivitm.InboundDate >= DateTime.Now.Date)
+                                    .OrderBy(ivitm => ivitm.RequestedDate).ToList();
+
+            return from item in notFullfilled
+                   let product = productLookup[item.ProductId]
+                   where product.Attributes != null
+                   let supplier = JObject.Parse((string)product.Attributes.supplier) as dynamic
+                   where supplier != null
+                   select new
+                   {
+                       SupplierId = supplier.id,
+                       ProductId = product.Id,
+                       InventoryItem = item
+                   };
         }
     }
 }

@@ -89,7 +89,10 @@
                     <td data-title="'Related Party'"
                         sortable="'DebtorLoanerName'"
                         filter="{ 'DebtorLoanerName': 'text' }">
-                        {{item.DebtorLoanerName }}
+                        <b>{{item.DebtorLoanerName }}</b><br/>
+                        
+                        <a ng-if="item.SaleOrderId != 0" target="_blank"
+                           href="{{'/Admin/tables/saleorder/' + item.SaleOrderId}}">SO-{{item.SaleOrderId}}</a>
                     </td>
                     <td data-title="'Project'"
                         sortable="'ProjectName'"

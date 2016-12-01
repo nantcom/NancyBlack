@@ -7,24 +7,56 @@
         $me = this;
         $scope.totalBuying = 0;
         $scope.totalSelling = 0;
+        $scope.averagePrices = [];
 
-        $http.get("/admin/tables/inventoryitem/__notfullfilled").success(function (data) {
+        $http.get("/admin/tables/inventoryitem/__averageprice").success(function (data) {
+
+            for (var i = 0; i < data.length; i++) {
+                var key = data[i].ProductId;
+                $scope.averagePrices[key] = data[i].Price;
+            }
+
+            $http.get("/admin/tables/inventoryitem/__notfullfilled").success(function (data) {
+
+                $scope.data = data;
+
+                var totalSellingPrice = 0;
+                var totalAveragePrice = 0;
+                for (var i = 0; i < data.length; i++) {
+
+                    var avgPrice = $scope.averagePrices[data[i].ProductId]
+
+                    totalAveragePrice += (avgPrice == null ? 0 : avgPrice);
+                    totalSellingPrice += data[i].InventoryItem.SellingPrice;
+                }
+
+                $scope.totalSelling = totalSellingPrice;
+                $scope.totalBuying = totalAveragePrice;
+            });
+
+        });
+
+    });
+
+    module.controller("InventoryNotInbound", function ($scope, $rootScope, $http) {
+
+        $me = this;
+        $scope.totalBuying = 0;
+
+        $http.get("/admin/tables/inventoryitem/__waitingforinbound").success(function (data) {
 
             $scope.data = data;
 
-            var totalSellingPrice = 0;
-            var totalAveragePrice = 0;
+            var totalBuying = 0;
             for (var i = 0; i < data.length; i++) {
 
-                totalAveragePrice += window.averagePrices[data[i].ProductId];
-                totalSellingPrice += data[i].InventoryItem.SellingPrice;
+                totalBuying += data[i].InventoryItem.BuyingCost;
             }
 
-            $scope.totalSelling = totalSellingPrice;
-            $scope.totalBuying = totalAveragePrice;
+            $scope.totalBuying = totalBuying;
         })
     });
-    
+
     module.controller("InventoryInstock", function ($scope, $rootScope, $http) {
 
         $me = this;
