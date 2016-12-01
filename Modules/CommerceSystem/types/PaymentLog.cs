@@ -26,12 +26,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __updatedAt { get; set; }
 
         public DateTime PaymentDate { get; set; }
-
-        /// <summary>
-        /// Payment Method
-        /// </summary>
-        public string PaymentMethod { get; set; }
-
+        
         /// <summary>
         /// Id of the sale order
         /// </summary>

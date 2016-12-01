@@ -23,8 +23,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
             Get["/admin/tables/suplier"] = this.HandleViewRequest("/Admin/suppliermanager", null);
-            Get["/admin/tables/purchaseorder"] = this.HandleRequest(this.HandlePurchaseOrderManagerPage);
-
+            
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
 
             Post["/admin/commerce/api/uploadlogo"] = this.HandleRequest((arg) =>
@@ -68,31 +67,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             #endregion
         }
-
-        private dynamic HandlePurchaseOrderManagerPage(dynamic arg)
-        {
-            if (!this.CurrentUser.HasClaim("admin"))
-            {
-                return 403;
-            }
-
-            var statusType = (string)this.Request.Query.status;
-            if (statusType == null)
-            {
-                statusType = SaleOrderStatus.WaitingForOrder;
-            }
-
-            var dummyPage = new Page();
-
-            var data = new
-            {
-                PurchaseOrderStatus = StatusList.GetAllStatus<PurchaseOrderStatus>(),
-                PendingPurchaseOrders = PurchaseOrderManager.GetPendingPurchaseOrders(this.SiteDatabase, statusType).ToList()
-            };
-
-            return View["/Admin/purchaseordermanager", new StandardModel(this, dummyPage, data)];
-        }
-
+        
         private dynamic HandlePayRequest(dynamic arg)
         {
             if (!this.CurrentUser.HasClaim("admin"))
