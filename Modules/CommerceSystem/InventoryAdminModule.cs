@@ -2,10 +2,13 @@
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
+using Nancy.Security;
+using Nancy.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Newtonsoft.Json;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
@@ -15,7 +18,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             NancyBlackDatabase.ObjectUpdated += NancyBlackDatabase_ObjectUpdated;
         }
-        
+
         /// <summary>
         /// Occurred when inventory has finished extracting products from sale order, use this event to
         /// transforms the inventory items such as combining the components into one SKU.
@@ -36,7 +39,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 return;
             }
-            
+
             // if previous status is already waiting for order - do nothing
             if (db.GetOlderVersions(saleOrder).First().Status == SaleOrderStatus.WaitingForOrder)
             {
@@ -73,7 +76,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             // distribute discount into items which has actual sell price
-            var discountToDistribute = saleOrder.TotalDiscount / items.Where( item => item.SellingPrice > 0 ).Count();
+            var discountToDistribute = saleOrder.TotalDiscount / items.Where(item => item.SellingPrice > 0).Count();
             foreach (var item in items)
             {
                 if (item.SellingPrice > 0)
@@ -105,7 +108,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // we will always create new inventory item for this sale order
                 // and clear out old ones
 
-                foreach (var item in db.Query<InventoryItem>().Where( ivt => ivt.SaleOrderId == saleOrder.Id ).ToList())
+                foreach (var item in db.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == saleOrder.Id).ToList())
                 {
                     if (item.IsFullfilled)
                     {
@@ -123,92 +126,43 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     db.UpsertRecord(item);
                 }
             });
-            
+
         }
 
         public InventoryAdminModule()
         {
+            this.RequiresClaims("admin");
+
             // insert updatedStock here
-            Get["/admin/tables/inventorymovement"] = this.HandleRequest(OpenInventoryManager);
+            Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
 
-            Get["/admin/inventory/api/stock"] = this.HandleRequest(GetStock);
-
-            #region Quick Actions
-
-            Post["/admin/commerce/api/copystock"] = this.HandleRequest(this.CopyStock);
-
-            #endregion
-        }
-
-        private dynamic OpenInventoryManager(dynamic arg)
-        {
-            return 200;
-
-            //if (!this.CurrentUser.HasClaim("admin"))
-            //{
-            //    return 403;
-            //}
-
-            //var unsummarizedStock = InventorySummary.GetUnsummarizedStocks(this.SiteDatabase);
-
-            //// Update stock if last month stock never been update yet
-            //if (unsummarizedStock != null)
-            //{
-            //    foreach (var summary in InventorySummary.GetUnsummarizedStocks(this.SiteDatabase))
-            //    {
-            //        this.SiteDatabase.UpsertRecord(summary);
-            //    }
-            //}
-
-
-            //var currentStocks = InventorySummary.GetStocks(DateTime.Now, this.SiteDatabase).ToList();
-
-            //var dummyPage = new Page();
-
-            //var data = new
-            //{
-            //    CurrentStocks = currentStocks
-            //};
-
-            //return View["/Admin/Inventorymanager", new StandardModel(this, dummyPage, data)];
-        }
-
-        private dynamic GetStock(dynamic arg)
-        {
-            return 200;
-
-            //if (!this.CurrentUser.HasClaim("admin"))
-            //{
-            //    return 403;
-            //}
-
-            //var param = ((JObject)arg.body.Value);
-            //var checkingDate = param.Value<DateTime>("checkingDate").ToLocalTime();
-
-            //return InventorySummary.GetStocks(checkingDate, this.SiteDatabase).ToList();
+            Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.FindNotFullfilled);
+            
         }
         
-        private dynamic CopyStock(dynamic arg)
+        /// <summary>
+        /// List the products that were not fullfilled
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<object> FindNotFullfilled(dynamic args)
         {
-            //TableSecModule.ThrowIfNoPermission(this.Context, "Product", TableSecModule.PERMISSON_UPDATE);
+            var productLookup = this.SiteDatabase.Query<Product>().ToDictionary(p => p.Id);
+            
+            var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
+                                    .Where(ivitm => ivitm.IsFullfilled == false)
+                                    .OrderBy(ivitm => ivitm.RequestedDate).ToList();
 
-            //this.SiteDatabase.Transaction(() =>
-            //{
-            //    foreach (var item in this.SiteDatabase.Query<Product>()
-            //                            .Where(p => p.IsVariation == true)
-            //                            .AsEnumerable())
-            //    {
-
-            //        var movements = this.SiteDatabase.Query<InventoryMovement>()
-            //                            .Where(mv => mv.ProductId == item.Id)
-            //                            .ToList();
-
-            //        item.Stock = movements.Sum(mv => mv.InboundAmount);
-            //        this.SiteDatabase.UpsertRecord<Product>(item);
-            //    }
-            //});
-
-            return 200;
+            return from item in notFullfilled
+                   let product = productLookup[item.ProductId]
+                   where product.Attributes != null
+                   let supplier = JObject.Parse((string)product.Attributes.supplier) as dynamic
+                   where supplier != null
+                    select new
+                    {
+                        SupplierId = supplier.id,
+                        ProductId = product.Id,
+                        InventoryItem = item
+                    };
         }
     }
 }

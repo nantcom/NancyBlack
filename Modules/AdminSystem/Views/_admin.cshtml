@@ -20,6 +20,18 @@
 
 @helper DisplayMenu() {
 
+    <li style="margin-top: 20px"><b>Commerce</b></li>
+    <li><a href="/Admin/tables/saleorder">Sell</a></li>
+    <li><a href="/Admin/tables/investment">Sell Report</a></li>
+    <li><a href="/Admin/tables/suplier">Supplier</a></li>
+    <li><a href="/Admin/tables/product">Product</a></li>
+    <li><a href="/Admin/tables/inventoryitem">Stock</a></li>
+    <li><a href="/Admin/commerce/settings">Settings</a></li>
+
+    <li style="margin-top: 20px"><b>Accounting</b></li>
+    <li><a href="/Admin/tables/accountingentry">Accounting Entry</a></li>
+    <li><a href="/admin/commerce/printreceipt">Receipt Print</a></li>
+
     <li style="margin-top: 20px"><b>System</b></li>
     <li><a href="/Admin/Membership">Membership</a></li>
     <li><a href="/Admin/sitesettings">Settings</a></li>
@@ -27,19 +39,6 @@
     <li><a href="/Admin/Tablesec">REST API Access</a></li>
     <li><a href="/Admin/DataWatcher">Data Watch</a></li>
 
-    <li style="margin-top: 20px"><b>Accounting</b></li>
-    <li><a href="/Admin/tables/accountingentry">Accounting Entry</a></li>
-    <li><a href="/Admin/tables/purchaseorder">Purchase Order</a></li>
-
-    <li style="margin-top: 20px"><b>Commerce</b></li>
-    <li><a href="/Admin/tables/saleorder">Sale Order</a></li>
-    <li><a href="/admin/commerce/printreceipt">Receipt Print</a></li>
-    <li><a href="/Admin/tables/investment">Sale Report</a></li>
-    <li><a href="/Admin/tables/product">Product</a></li>
-    <li><a href="/Admin/tables/suplier">Supplier</a></li>
-    <li><a href="/Admin/tables/inventorymovement">Inventory</a></li>
-    <li><a href="/Admin/commerce/settings">Settings</a></li>
-    
     <li><b>Manage Data</b></li>
     @foreach (var item in this.Database.DataType.RegisteredTypes.OrderBy(item => item.NormalizedName))
     {
