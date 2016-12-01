@@ -61,6 +61,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public Decimal TotalTax { get; set; }
 
         /// <summary>
+        /// Account that were used for payment
+        /// </summary>
+        public string PaymentAccount { get; set; }
+
+        /// <summary>
         /// Attachments
         /// </summary>
         public dynamic[] Attachments { get; set; }

@@ -200,7 +200,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
 
             Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.FindNotFullfilled);
-            
+
+            Get["/admin/tables/inventoryitem/__instock"] = this.HandleRequest((arg) =>
+            {
+                return this.SiteDatabase.Query("SELECT ProductId, SUM(BuyingCost) as Price, SUM(1) as Qty FROM InventoryItem WHERE IsFullfilled = 0 AND InboundDate > 0 AND SaleOrderId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0, Qty = 0 });
+            });
         }
         
         /// <summary>
@@ -212,7 +216,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var productLookup = this.SiteDatabase.Query<Product>().ToDictionary(p => p.Id);
             
             var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
-                                    .Where(ivitm => ivitm.IsFullfilled == false)
+                                    .Where(ivitm => ivitm.IsFullfilled == false && ivitm.InboundDate == DateTime.MinValue)
                                     .OrderBy(ivitm => ivitm.RequestedDate).ToList();
 
             return from item in notFullfilled

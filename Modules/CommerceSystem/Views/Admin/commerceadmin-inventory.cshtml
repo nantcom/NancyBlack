@@ -24,8 +24,6 @@
             window.averagePrices[key] = priceData[i].Price;
         }
 
-        window.instockData = @this.Html.Raw(this.GetJson( this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, COUNT(ProductId) as Qty FROM InventoryItem WHERE IsFullfilled = 0 AND InboundDate > 0 AND SaleOrderId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0, Qty = 0 }) ));
-
     </script>
 }
 <div ng-module="InventoryAdminModule">
@@ -52,8 +50,12 @@
                             Waiting for Order
 
                             <span class="pull-right">
-                                <b>{{totalBuying | number:2}}</b> /
-                                {{totalSelling | number:2}}
+                                <b class="text-danger">
+                                    {{totalBuying | number:2}}
+                                </b> /
+                                <span class="text-info">
+                                    {{totalSelling | number:2}}
+                                </span>
                             </span>
                         </h2>
                         <div class="row">
@@ -87,7 +89,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
 
                 </div>
@@ -131,7 +133,7 @@
                                         <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
                                     </td>
                                     <td>
-                                        {{item.Price}}
+                                        {{item.Qty}}
                                     </td>
                                 </tr>
                             </tbody>
@@ -145,6 +147,7 @@
             </div>
 
         </tab>
+
         <tab heading="List">
             <div ncb-datacontext table="InventoryItem">
 
@@ -153,12 +156,10 @@
             </div>
 
         </tab>
+
         <tab heading="Inbound List">
 
             <div ncb-datacontext table="InventoryInbound">
-                <h2 class="page-header text-primary">
-                    Inbound List
-                </h2>
 
                 <ncb-ngtable tabletemplate="'inboundlist.html'" modalid="InventoryInboundModal">
                 </ncb-ngtable>
@@ -181,9 +182,9 @@
                             </td>
                             <td data-title="'Items'"
                                 sortable="'Items'">
-                                <ul ng-repeat="subitem in item.Items">
+                                <ul ng-repeat="(key,item) in item.Items | groupBy : 'ProductId'">
                                     <li>
-                                        <span ncb-vlookup="Product" key="{{subitem.ProductId}}">
+                                        {{item.length}} x <span ncb-vlookup="Product" key="{{key}}">
                                         </span>
                                     </li>
                                 </ul>
@@ -529,6 +530,14 @@
                                             format="'dd MMMM yyyy'"
                                             model="object.InboundDate"></ncb-datepicker>
 
+
+                            <input type="text" name="PaymentAccount" title="Account that were used to Pay for this Inbound"
+                                   ncb-textbox
+                                   ng-model="object.PaymentAccount"
+                                   typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
+
+
+
                             <div class="form-group"
                                  ncb-lookupscope
                                  table="Supplier" labelpath="Name" filter="$filter=startswith(name, $key)">
@@ -678,6 +687,7 @@
 
                 <ncb-footer>
                     <button class="btn btn-primary btn-lg"
+                            ng-disabled="ctrl.canSave(object) == false"
                             ng-click="ctrl.save(object)">
                         <span ng-show="object.id == null">Create</span>
                         <span ng-show="object.id != null">Save</span>

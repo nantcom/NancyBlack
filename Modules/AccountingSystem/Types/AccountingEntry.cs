@@ -62,12 +62,12 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem.Types
         /// <summary>
         /// Amount that increase
         /// </summary>
-        public double IncreaseAmount { get; set; }
+        public Decimal IncreaseAmount { get; set; }
 
         /// <summary>
         /// Amount that decrease
         /// </summary>
-        public double DecreaseAmount { get; set; }
+        public Decimal DecreaseAmount { get; set; }
 
         /// <summary>
         /// Id of Sale Order that create this income transaction
@@ -80,8 +80,8 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem.Types
         public int PurchaseOrderId { get; set; }
 
         /// <summary>
-        /// Id of the product that was bought
+        /// Id of the Inbound that create this buy transaction
         /// </summary>
-        public int ProductId { get; set; }
+        public int InventoryInboundId { get; set; }
     }
 }

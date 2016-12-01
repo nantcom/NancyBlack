@@ -29,22 +29,41 @@
 
         $me = this;
         $scope.totalValue = 0;
-        $scope.data = window.instockData;
+        
+        $http.get("/admin/tables/inventoryitem/__instock").success(function (data) {
 
-        for (var i = 0; i < $scope.data.length; i++) {
-            $scope.totalValue += $scope.data[i].Price;
-        }
+            $scope.data = data;
+
+            var total = 0;
+            for (var i = 0; i < $scope.data.length; i++) {
+                total += $scope.data[i].Price;
+            }
+
+            $scope.totalValue = total;
+        });
+
     });
     
     module.controller("InboundController", function ($scope, $rootScope, $http) {
 
         $me = this;
         $scope.object = {};
+        $scope.autocomplete = {};
         $scope.totalToDistribute = 0;
+
+        $http.get("/admin/tables/accountingentry/__autocompletes").success(function (data) {
+
+            $scope.autocomplete = data;
+
+        });
 
         $me.getTotal = function (obj) {
 
             if (obj == null) {
+                return;
+            }
+
+            if (obj.Items == null) {
                 return;
             }
 
@@ -100,6 +119,18 @@
                 $scope.object = newData;
             });
 
+        };
+
+        $me.canSave = function (object) {
+
+            var result =
+                object.SupplierId != 0 &&
+                object.InboundDate != null &&
+                (object.Items != null && object.Items.length > 0)
+                object.PaymentAccount != null &&
+                object.PaymentAccount != "";
+
+            return result;
         };
     });
 
