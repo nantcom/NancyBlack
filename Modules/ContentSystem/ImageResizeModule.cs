@@ -466,20 +466,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 return this.Response.AsRedirect(resizeRelativePath, Nancy.Responses.RedirectResponse.RedirectType.Permanent);
             }
 
-            resizeRelativePath = (string)arg.path + "-imageresize/" + parameterKey + Path.GetExtension( file );
+            resizeRelativePath = "site/imageresize/" + (string)arg.path + "/" + parameterKey + Path.GetExtension( file );
 
             var rootPath = this.RootPath;
-            // conflict with our _FileList caching
-            //if (File.Exists("D:\\DATALOSS_WARNING_README.txt")) // running in azure
-            //{
-            //    rootPath = "D:\\ImageResize";
-            //    if (!Directory.Exists(rootPath))
-            //    {
-            //        Directory.CreateDirectory(rootPath);
-            //    }
-            //}
-
-            var resizeDirectory = Path.Combine(rootPath, (string)arg.path + "-imageresize");
+            var resizeDirectory = Path.Combine(rootPath, "Site", "imageresize", (string)arg.path);
             Directory.CreateDirectory(resizeDirectory);
 
             var resizeFile = Path.Combine(rootPath, resizeRelativePath);
