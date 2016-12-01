@@ -89,6 +89,19 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.LogoutAndRedirect("/");
             };
 
+            Post["/__membership/login"] = p =>
+            {
+                var loginParams = this.Bind<LoginParams>();
+
+                var user = UserManager.Current.GetUserFromLogin(this.SiteDatabase, loginParams.Email, loginParams.Password);
+                if (user == null)
+                {
+                    return 403;
+                }
+
+                return this.ProcessLogin(user);
+            };
+
             Post["/__membership/loginfacebook"] = this.HandleRequest( p =>
             {
                 var input = p.body.Value;
