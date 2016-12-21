@@ -7,8 +7,8 @@
 }
 
 @section Head{
-    <link href="/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
-    <link href="/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
     <style>
         body {
             -webkit-print-color-adjust: exact;
@@ -26,7 +26,7 @@
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
         window.formType = '@type';
     </script>
-    <script src="/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
 }
 <div class="printform"
      ng-cloak
@@ -418,7 +418,7 @@
                         <div class="col-md-6 text-right">
 
                             <a class="pull-right">
-                                <img src="/Modules/CommerceSystem/images/ipsb_01.png" />
+                                <img src="/NancyBlack/Modules/CommerceSystem/images/ipsb_01.png" />
                             </a>
                             <form id="paysbuy_form" name="formpaysbuy" method="post"
                                   action=""
@@ -459,10 +459,8 @@
                                         <div class="collector" style="bottom: auto; top: 35px">ผู้รับสินค้า / Received By</div>
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
-                                            @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 30px;"
-                                                src="~/Modules/CommerceSystem/images/JP-Signature.png" />*@
                                             <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
-                                                 src="~/Modules/CommerceSystem/images/TS-Signature.png" />
+                                                 src="/Site/images/billing/cashiersignature.png" />
                                         }
                                         <div class="collector">ผู้รับเงิน / Collector</div>
                                         <div class="collect-date">
@@ -477,7 +475,7 @@
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
                                             <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
-                                                 src="~/Modules/CommerceSystem/images/Company-Stemp.png" />
+                                                 src="/Site/images/billing/companystamp.png" />
                                         }
                                     </div>
                                 </td>
@@ -485,10 +483,8 @@
                                     <div class="fitted">
                                         @if (true || this.CurrentUser.HasClaim("admin"))
                                         {
-                                            @*<img style="position: absolute; -webkit-transform: rotate(20deg); width: 140px; transform: rotate(20deg); top: 5px; left: 46px;"
-                                                src="~/Modules/CommerceSystem/images/JP-Signature.png" />*@
                                             <img style="position: absolute; width: 140px; top: 35px; left: 46px;"
-                                                 src="~/Modules/CommerceSystem/images/TS-Signature.png" />
+                                                 src="/Site/images/billing/cashiersignature.png" />
                                         }
                                         <div class="by-name">ในนาม</div>
                                         <div class="company-name">{{billing.name}}</div>

@@ -793,6 +793,13 @@
                 $scope.target = $scope.$parent.$eval(attrs.target);
             });
 
+            $scope.copy = function (item) {
+
+                $scope.newItem = JSON.parse(JSON.stringify(item));
+                delete $scope.newItem.$$hashKey;
+                $scope.add();
+            };
+
             $scope.remove = function (item) {
 
                 var target = $scope.$parent.$eval(attrs.target);

@@ -19,11 +19,6 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
         private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string table, dynamic obj)
         {
-            if (table == "InventoryInbound")
-            {
-                AccountingSystemModule.ProcessInventoryInboundCreation(db, obj);
-            }
-
             if (table == "Receipt")
             {
                 AccountingSystemModule.ProcessReceiptCreation(db, obj);
@@ -31,14 +26,20 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
         }
 
         private static DateTime TaxSystemEpoch = new DateTime(2016, 12, 1);
-        
-        private static void ProcessReceiptCreation(NancyBlackDatabase db, Receipt obj)
+
+        internal static void ProcessReceiptCreation(NancyBlackDatabase db, Receipt obj)
         {
             // When payment receipt is created, create accounting entry
             db.Transaction(() =>
             {
                 var saleorder = db.GetById<SaleOrder>(obj.SaleOrderId);
                 var paymentlog = db.GetById<PaymentLog>(obj.PaymentLogId);
+
+                if (saleorder == null || paymentlog == null)
+                {
+                    // bogus receipt
+                    throw new InvalidOperationException("Invalid Receipt was created");
+                }
 
                 // Ensures all sale order logic has been ran
                 // if the sale order was created before new system change
@@ -52,7 +53,7 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
                 // TODO: Mapping from PaymentSource to Account
                 AccountingEntry entry1 = new AccountingEntry();
-                entry1.TransactionDate = DateTime.Now;
+                entry1.TransactionDate = paymentlog.__createdAt;
                 entry1.TransactionType = "income";
                 entry1.DebtorLoanerName = "Customer";
                 entry1.IncreaseAccount = paymentlog.PaymentSource;
@@ -61,29 +62,29 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
                 db.UpsertRecord(entry1);
 
-                if (saleorder.TotalTax == 0)
+                if (saleorder.TotalTax > 0)
                 {
-                    return;
+                    // 2) paid tax is decreased
+                    // (ภาษีขาย ทำให้ภาษีซื้อลดลง, ภาษีซื้อ บันทึกไว้ตอน InventoryInbound)
+                    AccountingEntry entry2 = new AccountingEntry();
+                    entry2.TransactionDate = paymentlog.__createdAt;
+                    entry2.TransactionType = "expense";
+                    entry2.DebtorLoanerName = "Tax";
+                    entry2.DecreaseAccount = "Paid Tax";
+                    entry2.DecreaseAmount = saleorder.TotalTax * -1;
+                    entry2.SaleOrderId = saleorder.Id;
+
+                    db.UpsertRecord(entry2);
                 }
 
-                // 2) paid tax is decreased
-                // (ภาษีขาย ทำให้ภาษีซื้อลดลง, ภาษีซื้อ บันทึกไว้ตอน InventoryInbound)
-                AccountingEntry entry2 = new AccountingEntry();
-                entry2.TransactionDate = DateTime.Now;
-                entry2.TransactionType = "expense";
-                entry2.DebtorLoanerName = "Tax";
-                entry2.DecreaseAccount = "Paid Tax";
-                entry2.DecreaseAmount = saleorder.TotalTax * -1;
-                entry2.SaleOrderId = saleorder.Id;
-
-                db.UpsertRecord(entry2);
             });
         }
-
-        private static void ProcessInventoryInboundCreation(NancyBlackDatabase db, InventoryInbound obj)
+        
+        internal static void ProcessInboundCompleted(NancyBlackDatabase db, InventoryInbound inbound, List<InventoryItem> items)
         {
+            // this already in transaction
+
             // When inventory inbound is created, record into GL about current asset
-            db.Transaction(() =>
             {
                 var supplierLookup = db.Query<Supplier>().ToDictionary(s => s.Id);
 
@@ -91,73 +92,75 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 // 1) inventory increase and account decrease (without tax amount)
 
                 AccountingEntry entry1 = new AccountingEntry();
-                entry1.TransactionDate = DateTime.Now;
+                entry1.TransactionDate = inbound.PaymentDate;
                 entry1.TransactionType = "buy";
-                entry1.DebtorLoanerName = supplierLookup[obj.SupplierId].Name;
+                entry1.DebtorLoanerName = supplierLookup[inbound.SupplierId].Name;
                 entry1.IncreaseAccount = "Inventory";
-                entry1.IncreaseAmount = obj.TotalAmountWithoutTax;
-                entry1.DecreaseAccount = obj.PaymentAccount;
-                entry1.DecreaseAmount = obj.TotalAmountWithoutTax * -1;
-                entry1.InventoryInboundId = obj.Id;
+                entry1.IncreaseAmount = inbound.TotalAmountWithoutTax;
+                entry1.DecreaseAccount = inbound.PaymentAccount;
+                entry1.DecreaseAmount = inbound.TotalAmountWithoutTax * -1;
+                entry1.InventoryInboundId = inbound.Id;
 
                 db.UpsertRecord(entry1);
 
                 // 2) paid tax increase and account decrease (tax only amount)
                 // (ภาษีซื้อทำให้ภาษีขายที่ต้องจ่ายลดลง)
-                if (obj.TotalTax == 0)
+                if (inbound.TotalTax > 0)
                 {
-                    return;
+                    AccountingEntry entry2 = new AccountingEntry();
+                    entry2.TransactionDate = inbound.PaymentDate;
+                    entry2.TransactionType = "expense";
+                    entry2.DebtorLoanerName = "Tax";
+                    entry2.IncreaseAccount = "Paid Tax";
+                    entry2.IncreaseAmount = inbound.TotalTax;
+                    entry2.DecreaseAccount = inbound.PaymentAccount;
+                    entry2.DecreaseAmount = inbound.TotalTax * -1;
+                    entry2.InventoryInboundId = inbound.Id;
+
+                    db.UpsertRecord(entry2);
                 }
 
-                AccountingEntry entry2 = new AccountingEntry();
-                entry2.TransactionDate = DateTime.Now;
-                entry2.TransactionType = "expense";
-                entry2.DebtorLoanerName = "Tax";
-                entry2.IncreaseAccount = "Paid Tax";
-                entry2.IncreaseAmount = obj.TotalTax;
-                entry2.DecreaseAccount = obj.PaymentAccount;
-                entry2.DecreaseAmount = obj.TotalTax * -1;
-                entry2.InventoryInboundId = obj.Id;
+            }
 
-                db.UpsertRecord(entry2);
-            });
-        }
-        
-        private static void ProcessInboundCompleted(NancyBlackDatabase db, InventoryInbound inbound, List<InventoryItem> items)
-        {
-            // this already in transaction
-            var allFullfilled = from item in items
-                                where item.IsFullfilled == true
-                                select item;
-
-            // the inventory is withdrawn as expense
-            AccountingEntry entry1 = new AccountingEntry();
-            entry1.TransactionDate = DateTime.Now;
-            entry1.TransactionType = "expense";
-            entry1.DebtorLoanerName = "Inventory Used";
-            entry1.DecreaseAccount = "Inventory";
-            entry1.DecreaseAmount = allFullfilled.Sum( item => item.BuyingCost ) * -1;
-            entry1.Notes = "Inventory Used by Sale Order: " + string.Join(",", allFullfilled.Select(item => item.SaleOrderId)) +
-                           "From Inbound Id:" + inbound.Id;
-
-            db.UpsertRecord(entry1);
-
-            // if there is net profit/loss - record it
-            // but does not remove the amount from account
-            var totalAmountBuy = allFullfilled.Sum(i => i.BuyingCost);
-            var totalAmountSold = allFullfilled.Sum(i => i.SellingPrice);
-
-            if (totalAmountBuy != totalAmountSold)
+            // record that inventory was withdrawn
             {
-                AccountingEntry entry2 = new AccountingEntry();
-                entry2.TransactionDate = DateTime.Now;
-                entry2.TransactionType = "income";
-                entry2.DebtorLoanerName = "n/a";
-                entry2.IncreaseAccount = "Gross Profit - " + inbound.PaymentAccount;
-                entry2.IncreaseAmount = totalAmountSold - totalAmountBuy;
-                entry2.Notes = "From Inbound Id:" + inbound.Id + " the item were used. Profit/Loss is calculated and recorded into Profit(Loss) account for each account";
+                var allFullfilled = from item in items
+                                    where item.IsFullfilled == true
+                                    select item;
 
-                db.UpsertRecord(entry2);
+                if (allFullfilled.Count() > 0)
+                {
+                    // the inventory is withdrawn as expense
+                    AccountingEntry entry1 = new AccountingEntry();
+                    entry1.TransactionDate = inbound.PaymentDate;
+                    entry1.TransactionType = "expense";
+                    entry1.DebtorLoanerName = "Inventory Used";
+                    entry1.DecreaseAccount = "Inventory";
+                    entry1.DecreaseAmount = allFullfilled.Sum(item => item.BuyingCost) * -1;
+                    entry1.Notes = "Inventory Used by Sale Order: " + string.Join(",", allFullfilled.Select(item => item.SaleOrderId)) +
+                                   "From Inbound Id:" + inbound.Id;
+
+                    db.UpsertRecord(entry1);
+
+                    // if there is net profit/loss - record it
+                    // but does not remove the amount from account
+                    var totalAmountBuy = allFullfilled.Sum(i => i.BuyingCost);
+                    var totalAmountSold = allFullfilled.Sum(i => i.SellingPrice);
+
+                    if (totalAmountBuy != totalAmountSold)
+                    {
+                        AccountingEntry entry2 = new AccountingEntry();
+                        entry2.TransactionDate = inbound.PaymentDate;
+                        entry2.TransactionType = "income";
+                        entry2.DebtorLoanerName = "n/a";
+                        entry2.IncreaseAccount = "Gross Profit";
+                        entry2.IncreaseAmount = totalAmountSold - totalAmountBuy;
+                        entry2.Notes = "From Inbound Id:" + inbound.Id + " the item were used. Profit/Loss is calculated and recorded into Profit(Loss) account for each account";
+
+                        db.UpsertRecord(entry2);
+                    }
+                }
+
             }
         }
 
@@ -167,9 +170,7 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
             Get["/admin/tables/accountingentry"] = this.HandleViewRequest("/Admin/accountingsystem-gl", null);
 
             Get["/admin/tables/accountingentry/__autocompletes"] = this.HandleRequest(this.GenerateAutoComplete);
-
-            Get["/admin/tables/accountingentry/__replaysaleorder"] = this.HandleRequest(this.ReplySaleorder);
-
+            
             Get["/admin/tables/accountingentry/__accountsummary"] = this.HandleRequest((arg)=>
             {
                 var totalIncrease = this.SiteDatabase.Query(
@@ -192,17 +193,7 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
             });
         }
-
-        /// <summary>
-        /// Replay Sale Order
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private dynamic ReplySaleorder( dynamic args )
-        {
-            return "OK";
-        }
-
+        
         private dynamic GenerateAutoComplete( dynamic args)
         {
             var projects = this.SiteDatabase.Query("SELECT DISTINCT ProjectName AS Name FROM AccountingEntry", new { Name = "" }).Select( item => ((dynamic)item).Name as string ).Where( s => string.IsNullOrEmpty(s) == false ).ToList();

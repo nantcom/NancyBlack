@@ -224,9 +224,14 @@
             if (window.location.pathname == "/__membership/login") {
 
                 var target = utils.Querystring("returnUrl");
+                var isAdmin = $scope.membership.currentUser.Claims.indexOf("admin") > -1;
 
                 if (target == null || target == undefined) {
                     target = "/";
+                }
+
+                if (target == "/" && isAdmin) {
+                    target = "/admin";
                 }
 
                 window.location.href = target;

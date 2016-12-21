@@ -36,6 +36,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime InboundDate { get; set; }
 
         /// <summary>
+        /// Date of payment
+        /// </summary>
+        public DateTime PaymentDate { get; set; }
+
+        /// <summary>
+        /// Account that were used for payment
+        /// </summary>
+        public string PaymentAccount { get; set; }
+
+        /// <summary>
         /// Id of Supplier
         /// </summary>
         public int SupplierId { get; set; }
@@ -60,10 +70,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public Decimal TotalTax { get; set; }
 
-        /// <summary>
-        /// Account that were used for payment
-        /// </summary>
-        public string PaymentAccount { get; set; }
 
         /// <summary>
         /// Attachments

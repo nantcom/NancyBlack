@@ -148,7 +148,8 @@
 
             $scope.data.save(obj, function (newData) {
 
-                $scope.object = newData;
+                $scope.object = {};
+                $scope.totalToDistribute = 0;
             });
 
         };
