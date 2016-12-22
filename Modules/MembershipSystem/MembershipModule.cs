@@ -49,7 +49,6 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             user.PasswordHash = null;            
 
             DateTime nextDay = DateTime.Now.AddDays(+1);
-
             var response = this.LoginWithoutRedirect(user.Guid, nextDay);
             response.Contents = (s) =>
             {

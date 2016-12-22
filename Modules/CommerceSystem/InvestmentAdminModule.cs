@@ -36,7 +36,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var dummyPage = new Page();
             
-            List<InvestedProductReport> productReports = null;
             AngularChart revenueChart = null;
             AngularChart soldLaptopChart = null;
             var paidSaleOrders = this.SiteDatabase.Query<SaleOrder>()
@@ -46,15 +45,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 Task.Run(() => revenueChart = this.GetSummarizedRevenueChart(paidSaleOrders)),
                 Task.Run(() => soldLaptopChart = this.GetLaptopSoldChart(paidSaleOrders, this.SiteDatabase))
             ).Wait();
-
-            var summarizedProductReport = InvestedProductReport.MergeReports(
-                "Summarized Report", productReports.Select(report => report.MonthlyReports).ToArray()
-                );
             
             var data = new
             {
-                SummarizedReports = summarizedProductReport,
-                ProductReports = productReports,
                 SummarizedRevenueChart = revenueChart,
                 SoldLaptopChart = soldLaptopChart
             };
