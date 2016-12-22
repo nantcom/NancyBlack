@@ -756,7 +756,16 @@ namespace NantCom.NancyBlack
 
             if (result == null)
             {
-                // does not match any type
+                types.Clear();
+                types.Add("default");
+                types.Add("UserUpload");
+
+                result = types.Select(type => (this.GetAttachments(content, type) as IEnumerable<dynamic>).ToList())
+                            .FirstOrDefault(list => list.Count > 0);
+            }
+
+            if (result == null)
+            {
                 return string.Empty;
             }
 
