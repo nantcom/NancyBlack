@@ -284,7 +284,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// <returns></returns>
         private IEnumerable<object> GetWaitingForOrder(dynamic args)
         {
-            var productLookup = this.SiteDatabase.Query<Product>().ToDictionary(p => p.Id);
+            var productLookup = this.SiteDatabase.Query<Product>().ToLookup(p => p.Id);
 
             var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
                                     .Where(ivitm => ivitm.IsFullfilled == false && ivitm.InboundDate == DateTime.MinValue)
@@ -308,7 +308,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             };
 
             return from item in notFullfilled
-                   let product = productLookup[item.ProductId]
+                   let product = productLookup[item.ProductId].FirstOrDefault()
+                   where product != null
                    select new
                    {
                        SupplierId = findSupplier(product),

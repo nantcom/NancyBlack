@@ -289,6 +289,30 @@
 
                                             </div>
 
+                                            <div class="col-xs-6">
+
+                                                <div class="form-group"
+                                                     ncb-lookupscope
+                                                     table="Supplier" labelpath="Name" filter="$filter=startswith(Name, $key)">
+
+                                                    <label class="control-label" for="SupplierId">
+                                                        Supplier
+                                                        <i class="fa fa-spin fa-circle-o-notch"
+                                                           ng-show="isBusy"></i>
+                                                    </label>
+                                                    <ui-select theme="bootstrap" ng-model="object.SupplierId"
+                                                               reset-search-input="false">
+                                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                                           refresh="refreshLookup($select.search)"
+                                                                           refresh-delay="0">
+                                                            <span>{{item.label}}</span>
+                                                        </ui-select-choices>
+                                                    </ui-select>
+                                                </div>
+
+                                            </div>
+
                                         </div>
 
                                         <div>

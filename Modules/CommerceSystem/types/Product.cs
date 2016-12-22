@@ -66,7 +66,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// SKU Number
         /// </summary>
         public string SKUNumber { get; set; }
-        
+
+        /// <summary>
+        /// Id of supplier who supplies this product
+        /// </summary>
+        public int SupplierId { get; set; }
+
         /// <summary>
         /// Full Price of this product in home currency (non-promotion discount)
         /// </summary>
