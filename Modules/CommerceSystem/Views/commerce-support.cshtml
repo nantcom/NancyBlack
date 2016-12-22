@@ -92,8 +92,7 @@
                 <h2>หมายเลขคำสั่งซื้อของคุณคือ: {{object.SaleOrderIdentifier}}</h2>
                 <p>
                     การสั่งซื้อของคุณได้รับการยืนยันแล้ว กรุณาตรวจสอบข้อมูลอีกครั้งและทำการชำระเงิน เพื่อให้เราเริ่มดำเนินการคำสั่งซื้อของคุณ<br />
-                    <span id="clockdiv" ng-controller="CountDownTimerController"
-                          ng-show="days < 1">
+                    <span id="clockdiv" ng-controller="CountDownTimerController">
                         คำสั่งซื้อนี้จะหมดอายุใน
 
                         <span ng-cloak ng-show="days > 1">{{days}} วัน</span>

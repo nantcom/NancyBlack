@@ -205,6 +205,18 @@
 
                         <tr ng-repeat="item in tableParams.data">
 
+                            <td data-title="'PaymentDate'"
+                                sortable="'PaymentDate'">
+                                {{item.PaymentDate | date: 'd MMMM yyyy'}}<br/>
+
+                                <span class="text-muted">
+                                    Paid with: {{item.PaymentAccount}}
+                                </span>
+                            </td>
+                            <td data-title="'InboundDate'"
+                                sortable="'InboundDate'">
+                                {{item.InboundDate | date: 'd MMMM yyyy'}}
+                            </td>
                             <td data-title="'Supplier'"
                                 sortable="'SupplierId'">
                                 <span ncb-vlookup="Supplier" key="{{item.SupplierId}}" label="Name">
@@ -221,7 +233,8 @@
                             </td>
                             <td data-title="'TotalAmount'"
                                 sortable="'TotalAmount'">
-                                {{item.TotalAmount | number:2 }}
+                                {{item.TotalAmount | number:2 }}<br/>
+                                <span class="text-muted">Tax: {{item.TotalTax | number:2}}</span>
                             </td>
                             <td style="white-space: nowrap">
 
@@ -354,7 +367,9 @@
                 <td data-title="'FullFilled'"
                     sortable="'IsFullfilled'"
                     filter="{ 'IsFullfilled': 'text' }">
-                    {{item.IsFullfilled }}
+                    {{item.IsFullfilled }}<br/>
+                    <a ng-if="item.SaleOrderId > 0" target="_blank"
+                       href="{{'/Admin/tables/saleorder/' + item.SaleOrderId}}">SO - {{item.SaleOrderId}}</a>
                 </td>
                 <td data-title="'RequestedDate'"
                     sortable="'RequestedDate'">
@@ -396,155 +411,6 @@
 
     </script>
 
-    <ncb-modal id="InventoryItemModal"
-               title="{{object.id == null ? 'Create InventoryItem' : 'Edit InventoryItem'}}"
-               closebutton deletebutton>
-        <form role="form" name="InventoryItemForm">
-
-            <tabset>
-                <tab heading="General">
-
-                    <ncb-datepicker placeholder="RequestedDate"
-                                    format="'dd MMMM yyyy'"
-                                    model="object.RequestedDate"></ncb-datepicker>
-                    <ncb-datepicker placeholder="InboundDate"
-                                    format="'dd MMMM yyyy'"
-                                    model="object.InboundDate"></ncb-datepicker>
-                    <ncb-datepicker placeholder="OutboundDate"
-                                    format="'dd MMMM yyyy'"
-                                    model="object.OutboundDate"></ncb-datepicker>
-                    <div class="form-group"
-                         ncb-lookupscope
-                         table="Product" labelpath="Title" filter="$filter=startswith(name, $key)">
-
-                        <label class="control-label" for="ProductId">
-                            ProductId
-                            <i class="fa fa-spin fa-circle-o-notch"
-                               ng-show="isBusy"></i>
-                        </label>
-
-                        <ui-select theme="bootstrap" ng-model="object.ProductId"
-                                   reset-search-input="false">
-                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                               refresh="refreshLookup($select.search)"
-                                               refresh-delay="0">
-                                <span>{{item.label}}</span>
-                            </ui-select-choices>
-                        </ui-select>
-                    </div>
-                    <div class="form-group"
-                         ncb-lookupscope
-                         table="PurchaseOrder" labelpath="Title" filter="$filter=startswith(name, $key)">
-
-                        <label class="control-label" for="PurchaseOrderId">
-                            PurchaseOrderId
-                            <i class="fa fa-spin fa-circle-o-notch"
-                               ng-show="isBusy"></i>
-                        </label>
-
-                        <ui-select theme="bootstrap" ng-model="object.PurchaseOrderId"
-                                   reset-search-input="false">
-                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                               refresh="refreshLookup($select.search)"
-                                               refresh-delay="0">
-                                <span>{{item.label}}</span>
-                            </ui-select-choices>
-                        </ui-select>
-                    </div>
-                    <div class="form-group"
-                         ncb-lookupscope
-                         table="SaleOrder" labelpath="Title" filter="$filter=startswith(name, $key)">
-
-                        <label class="control-label" for="SaleOrderId">
-                            SaleOrderId
-                            <i class="fa fa-spin fa-circle-o-notch"
-                               ng-show="isBusy"></i>
-                        </label>
-
-                        <ui-select theme="bootstrap" ng-model="object.SaleOrderId"
-                                   reset-search-input="false">
-                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                               refresh="refreshLookup($select.search)"
-                                               refresh-delay="0">
-                                <span>{{item.label}}</span>
-                            </ui-select-choices>
-                        </ui-select>
-                    </div>
-                    <input type="text" name="Note" title="Note"
-                           ncb-textbox
-                           ng-model="object.Note" />
-                    <input type="text" name="BuyingCost" title="BuyingCost"
-                           ncb-textbox
-                           ng-model="object.BuyingCost" />
-                    <input type="text" name="BuyingTax" title="BuyingTax"
-                           ncb-textbox
-                           ng-model="object.BuyingTax" />
-                    <input type="text" name="SellingPrice" title="SellingPrice"
-                           ncb-textbox
-                           ng-model="object.SellingPrice" />
-                    <input type="text" name="SellingTax" title="SellingTax"
-                           ncb-textbox
-                           ng-model="object.SellingTax" />
-                    <input type="text" name="IsFullfilled" title="IsFullfilled"
-                           ncb-textbox
-                           ng-model="object.IsFullfilled" />
-                </tab>
-                <tab heading="Attachments">
-                    <table class="table table-hover"
-                           ncb-listeditor
-                           target="object.Attachments">
-                        <thead>
-                            <tr>
-                                <th>Attachments</th>
-                                <th width="16px"></th>
-                            </tr>
-                        </thead>
-                        <tr ng-repeat="element in target">
-                            <td>
-                                <input class="form-control"
-                                       placeholder="Attachments" disabled
-                                       ng-model="element" />
-                            </td>
-                            <td>
-                                <button class="btn btn-danger"
-                                        ng-click="remove(element)">
-                                    <i class="glyphicon glyphicon-remove"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input class="form-control"
-                                       placeholder="Attachments"
-                                       ng-model="newItem" />
-                            </td>
-                            <td>
-                                <button class="btn btn-success"
-                                        ng-click="add()">
-                                    <i class="glyphicon glyphicon-plus"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </table>
-
-                </tab>
-
-            </tabset>
-
-        </form>
-
-        <ncb-footer>
-            <button class="btn btn-primary btn-lg"
-                    ng-click="data.save(object)">
-                <span ng-show="object.id == null">Create</span>
-                <span ng-show="object.id != null">Save</span>
-            </button>
-        </ncb-footer>
-    </ncb-modal>
-
     <div ncb-datacontext table="InventoryInbound">
 
         <div ng-controller="InboundController as ctrl">
@@ -558,21 +424,22 @@
                     <tabset>
                         <tab heading="General">
 
-                            <ncb-datepicker placeholder="Inbound Date"
+                            <ncb-datepicker placeholder="Payment Date"
                                             format="'dd MMMM yyyy'"
-                                            model="object.InboundDate"></ncb-datepicker>
-
+                                            model="object.PaymentDate"></ncb-datepicker>
 
                             <input type="text" name="PaymentAccount" title="Account that were used to Pay for this Inbound"
                                    ncb-textbox
                                    ng-model="object.PaymentAccount"
                                    typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
 
-
+                            <ncb-datepicker placeholder="Inbound Date"
+                                            format="'dd MMMM yyyy'"
+                                            model="object.InboundDate"></ncb-datepicker>
 
                             <div class="form-group"
                                  ncb-lookupscope
-                                 table="Supplier" labelpath="Name" filter="$filter=startswith(name, $key)">
+                                 table="Supplier" labelpath="Name" filter="$filter=startswith(Name, $key)">
 
                                 <label class="control-label" for="SupplierId">
                                     Supplier
@@ -598,7 +465,7 @@
                                         <th width="50%">Product</th>
                                         <th>Price</th>
                                         <th>Tax</th>
-                                        <th width="16px"></th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tr ng-repeat="element in target">
@@ -611,7 +478,11 @@
                                     <td>
                                         {{element.Tax | number:2 }}
                                     </td>
-                                    <td>
+                                    <td style="white-space:nowrap">
+                                        <button class="btn btn-default"
+                                                ng-click="copy(element); totalToDistribute = ctrl.getTotal(object)">
+                                            <i class="fa fa-copy"></i>
+                                        </button>
                                         <button class="btn btn-danger"
                                                 ng-disabled="object.id != null"
                                                 ng-click="remove(element)">
@@ -621,7 +492,7 @@
                                 </tr>
                                 <tr>
                                     <td ncb-lookupscope
-                                        table="Product" labelpath="Title" filter="$filter=startswith(Title, $key) and (startswith(Url, '/products/archive') eq False)">
+                                        table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/archive') eq False)&$orderby=Title">
 
                                         <ui-select theme="bootstrap" ng-model="newItem.ProductId"
                                                    reset-search-input="false">
@@ -629,7 +500,12 @@
                                             <ui-select-choices repeat="item.Id as item in lookup track by $index"
                                                                refresh="refreshLookup($select.search)"
                                                                refresh-delay="0">
-                                                <span>{{item.label}}</span>
+                                                <span class="text-muted">
+                                                    {{item.Id}} - 
+                                                </span>
+                                                <span>
+                                                    {{item.label}}
+                                                </span>
                                             </ui-select-choices>
                                         </ui-select>
                                     </td>
@@ -650,12 +526,12 @@
                                     </td>
                                     <td>
                                         <input type="number" class="form-control"
-                                               placeholder="Tax" ng-model="newItem.Tax" readonly>
+                                               placeholder="Tax" ng-model="newItem.Tax">
                                     </td>
                                     <td>
                                         <button class="btn btn-success"
                                                 ng-click="add(); totalToDistribute = ctrl.getTotal(object)">
-                                            <i class="glyphicon glyphicon-plus"></i>
+                                            <i class="fa fa-plus-square-o"></i>
                                         </button>
                                     </td>
                                 </tr>

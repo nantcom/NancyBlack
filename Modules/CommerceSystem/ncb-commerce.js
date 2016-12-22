@@ -480,7 +480,7 @@
                     e.preventDefault();
 
                     if (scope.modalsource == null) {
-                        scope.modalsource = "/modules/commercesystem/templates/ncg-cartmodal.html";
+                        scope.modalsource = "/NancyBlack/Modules/commercesystem/templates/ncg-cartmodal.html";
                     }
 
                     scope.showcartmodal();
