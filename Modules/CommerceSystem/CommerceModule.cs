@@ -119,10 +119,26 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return new StandardModel(404); ;
                 }
 
-                var receipt = this.SiteDatabase.Query<Receipt>()
+                var receipts = this.SiteDatabase.Query<Receipt>()
                     .Where(r => r.SaleOrderId == so.Id)
+                    .ToList();
+
+                Receipt receipt;
+
+                if (this.Request.Query.index == null && receipts.Count == 1)
+                {
+                    receipt = receipts.FirstOrDefault();
+                }
+                else if (this.Request.Query.index == null && receipts.Count > 1)
+                {
+                    receipt = new Receipt() { Identifier = "Specify Index" };
+                }
+                else
+                {
+                    receipt = receipts
                     .Skip(this.Request.Query.index == null ? 0 : (int)this.Request.Query.index)
                     .FirstOrDefault();
+                }
 
                 if (receipt == null)
                 {
