@@ -101,8 +101,14 @@
                     <a href="/rma/{{item.RMAIdentifier}}" target="_blank">
                         {{item.RMAIdentifier}}
                     </a>
+
+                    <p class="text-muted">
+                        <i class="fa fa-clock-o"></i>
+                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                    </p>
                 </td>
                 <td data-title="'Title'"
+                    sortable="'Title'"
                     filter="{ 'Title': 'text' }">
                     {{item.Title}}
                 </td>
@@ -119,15 +125,12 @@
                     {{item.PrivateNote}}
                 </td>
                 <td data-title="'Customer'"
-                    sortable="'Customer'"
                     filter="{ 'Customer': 'text' }">
                     {{item.Customer.FirstName}} {{item.Customer.LastName}}
-                </td>
-                <td data-title="'Phone'">
-                    {{item.Customer.PhoneNumber}}
-                </td>
-                <td data-title="'Email'">
-                    {{item.Customer.Email}}
+                    <p class="text-muted">
+                        <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br />
+                        <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
+                    </p>
                 </td>
             </tr>
         </table>
