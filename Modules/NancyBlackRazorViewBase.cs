@@ -724,7 +724,7 @@ namespace NantCom.NancyBlack
                    where item.AttachmentType == type
                    select item;
         }
-
+        
         /// <summary>
         /// Get attachment of given type for specified content
         /// </summary>
@@ -746,24 +746,14 @@ namespace NantCom.NancyBlack
             {
                 types.AddRange(secondaryTypes);
             }
-
+            
             types.Add("default");
             types.Add("UserUpload");
 
 
             var result = types.Select( type => (this.GetAttachments(content, type) as IEnumerable<dynamic>).ToList() )
                         .FirstOrDefault(list => list.Count > 0 );
-
-            if (result == null)
-            {
-                types.Clear();
-                types.Add("default");
-                types.Add("UserUpload");
-
-                result = types.Select(type => (this.GetAttachments(content, type) as IEnumerable<dynamic>).ToList())
-                            .FirstOrDefault(list => list.Count > 0);
-            }
-
+            
             if (result == null)
             {
                 return string.Empty;
