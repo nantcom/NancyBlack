@@ -18,7 +18,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/support/{saleOrderIdentifier}"] = this.HandleRequest(HandleSupportPage);
             Post["/support/{saleOrderIdentifier}/save/attachment/message"] = this.HandleRequest(HandleCustomerSaveAttachmentMessage);
-            Post["/support/login"] = this.HandleRequest(HandleSupportLogin);
+            //Post["/support/login"] = this.HandleRequest(HandleSupportLogin);
             Post["/support/notify/payment"] = this.HandleRequest(HandleNotifyForPayment);
         }
 
@@ -113,23 +113,23 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return 200;
         }
 
-        private dynamic HandleSupportLogin(dynamic arg)
-        {
-            var input = arg.body.Value as JObject;
-            var so = this.SiteDatabase.Query<SaleOrder>()
-                        .Where(row => row.SaleOrderIdentifier == input.Value<string>("SaleOrderId"))
-                        .FirstOrDefault();
+        //private dynamic HandleSupportLogin(dynamic arg)
+        //{
+        //    var input = arg.body.Value as JObject;
+        //    var so = this.SiteDatabase.Query<SaleOrder>()
+        //                .Where(row => row.SaleOrderIdentifier == input.Value<string>("SaleOrderId"))
+        //                .FirstOrDefault();
 
-            if (((JObject)so.Customer).Value<string>("Email") == input.Value<string>("Email"))
-            {
+        //    if (((JObject)so.Customer).Value<string>("Email") == input.Value<string>("Email"))
+        //    {
 
-            }
-            else
-            {
-                return 403;
-            }
+        //    }
+        //    else
+        //    {
+        //        return 403;
+        //    }
 
-            return 200;
-        }
+        //    return 200;
+        //}
     }
 }
