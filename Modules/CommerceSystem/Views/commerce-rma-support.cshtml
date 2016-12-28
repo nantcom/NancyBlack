@@ -21,6 +21,15 @@
             padding-top: 7px;
             display: block;
         }
+
+        .facebook-profile-image-container:hover{
+            text-decoration: none;
+        }
+
+        .facebook-profile-image-container > img{
+            border-radius: 75px; 
+            -webkit-border-radius: 75px;
+        }
     </style>
 }
 @section Script
@@ -183,7 +192,7 @@
                                             </div>
                                         </li>
                                         <li class="timeline-inverted" ng-show="StatusState < 2">
-                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'CheckingIssues'}"><i class="glyphicon glyphicon-plane"></i></div>
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'CheckingIssues'}"><i class="glyphicon glyphicon-scale"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
                                                     <h4 class="timeline-title">Checking Issues: กำลังตรวจสอบปัญหา</h4>
@@ -194,7 +203,7 @@
                                             </div>
                                         </li>
                                         <li ng-show="StatusState < 3">
-                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'ResearchOnSolution'}"><i class="glyphicon glyphicon-home"></i></div>
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'ResearchOnSolution'}"><i class="glyphicon glyphicon-search"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
                                                     <h4 class="timeline-title">Research on Solution: กำลังตรวจสอบวิธีแก้ไข</h4>
@@ -364,12 +373,6 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-sm-4 control-label">สาเหตุของปัญหา</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" class="form-control" ng-model="object.CauseOfIssue" />
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
                                         <label class="col-sm-4 control-label">อยู่ในเงื่อนไขการรับประกัน</label>
                                         <div class="col-sm-8">
                                             <span class="prob-value">
@@ -402,6 +405,13 @@
                                         <label class="col-sm-4 control-label">อีเมล์</label>
                                         <div class="col-sm-8">
                                             <input type="email" class="form-control" ng-model="object.Customer.Email" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">facebook Id</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Customer.FacebookId" />
                                         </div>
                                     </div>
 
@@ -594,7 +604,13 @@
 
                     <div class="well">
                         <p>
-                            <h2 class="text-info">{{object.RMAIdentifier}}</h2>
+                            <div class="text-center" ng-show="object.Customer.FacebookId != null && object.Customer.FacebookId != ''">
+                                <a class="facebook-profile-image-container" href="https://www.facebook.com/profile.php?id={{object.Customer.FacebookId}}" target="_blank">
+                                    <img style="border-radius: 75px; -webkit-border-radius: 75px;" ng-src="http://graph.facebook.com/{{object.Customer.FacebookId}}/picture?type=square" />
+                                </a>
+                                <br />
+                            </div>
+                            <h2 class="text-info" style="margin-top: 5px;">{{object.RMAIdentifier}}</h2>
                             <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3>
                             <div>
                                 <i class="fa fa-phone"></i> {{object.Customer.PhoneNumber}}

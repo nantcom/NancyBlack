@@ -22,25 +22,9 @@
         console.log("WARNING: Using Status list from client side");
 
         me.getTrackUrl = function (dhlTrackingNumber) {
-            if ($scope.object.DHLTrackingNumber != null) {
-                $scope.trackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + dhlTrackingNumber);
+            if (dhlTrackingNumber != null) {
+                return $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + dhlTrackingNumber);
             }
-        }
-
-        //if ($scope.object.CustomData == null) {
-        //    $scope.object.CustomData = {};
-        //}
-
-
-        me.saveAttachmentMessage = function (url, message) {
-
-            $http.post("/support/" + $scope.object.SaleOrderIdentifier + "/save/attachment/message", { Url: url, Message: message })
-                .then(function (success) {
-                    alert("Sucess!");
-                }, function (error) {
-                    alert(error.message);
-                });
-
         }
 
         me.showTransferInfo = function () {

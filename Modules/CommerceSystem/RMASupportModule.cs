@@ -18,8 +18,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         public RMASupportModule()
         {
             Get["/admin/tables/rma"] = this.HandleRequest(this.RMAManagerPage);
-            Get["/rma/{saleOrderIdentifier}"] = this.HandleRequest(HandleSupportPage);
-            Post["/rma/{saleOrderIdentifier}/save/attachment/message"] = this.HandleRequest(HandleCustomerSaveAttachmentMessage);
+            Get["/rma/{RMAIdentifier}"] = this.HandleRequest(HandleSupportPage);
             Post["/admin/tables/rma/new"] = this.HandleRequest(this.NewRMA);
             //Post["/support/login"] = this.HandleRequest(HandleSupportLogin);
         }
@@ -67,11 +66,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic HandleSupportPage(dynamic arg)
         {
-            var id = (string)arg.saleOrderIdentifier;
+            var id = (string)arg.RMAIdentifier;
             var rma = this.SiteDatabase.Query<RMA>()
                         .Where(row => row.RMAIdentifier == id)
                         .FirstOrDefault();
-            
+
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                rma.PrivateNote = null;
+            }
 
             var dummyPage = new Page();
 
@@ -81,33 +84,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             };
 
             return View["commerce-rma-support", new StandardModel(this, dummyPage, data)];
-        }
-
-        private dynamic HandleCustomerSaveAttachmentMessage(dynamic arg)
-        {
-            var para = arg.body.Value as JObject;
-            var id = (string)arg.saleOrderIdentifier;
-            var so = this.SiteDatabase.Query<SaleOrder>()
-                        .Where(row => row.SaleOrderIdentifier == id)
-                        .FirstOrDefault();
-
-            if (so == null)
-            {
-                return 404;
-            }
-
-            foreach (JObject item in so.Attachments)
-            {
-                if (item.Value<string>("Url") == para.Value<string>("Url"))
-                {
-                    item["Caption"] = para.Value<string>("Message");
-                    break;
-                }
-            }
-
-            this.SiteDatabase.UpsertRecord(so);
-
-            return 200;
         }
     }
 }
