@@ -39,7 +39,16 @@
                 <tab heading="Pending Work">
 
                     <ncb-ngtable tabletemplate="'template.html'"
-                                 alwaysfilter="(Status neq 'ReadyToShip') or (Status neq 'Shipped') or (Status neq 'Delivered')"
+                                 alwaysfilter="(Status eq 'InQueue') or (Status eq 'CheckingIssues') or (Status eq 'ResearchOnSolution') or (Status eq 'ReassembleAndTesting')"
+                                 defaultSort="{ 'id' : 'asc' }">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Waiting For Parts">
+
+                    <ncb-ngtable tabletemplate="'template.html'"
+                                 alwaysfilter="Status eq 'WaitingForParts'"
                                  defaultSort="{ 'id' : 'asc' }">
                     </ncb-ngtable>
 
