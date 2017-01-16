@@ -21,9 +21,17 @@
 
         console.log("WARNING: Using Status list from client side");
 
-        me.getTrackUrl = function (dhlTrackingNumber) {
-            if (dhlTrackingNumber != null) {
-                return $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + dhlTrackingNumber);
+        me.getTrackUrl = function (trackingNumber, method) {
+            if (trackingNumber == null) {
+                return null;
+            }
+
+            if (method == $scope.methods[0]) {
+                return $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + trackingNumber);
+            }
+
+            if (method == $scope.methods[1]) {
+                return $sce.trustAsResourceUrl('https://th.kerryexpress.com/th/track/?track=' + trackingNumber);
             }
         }
 

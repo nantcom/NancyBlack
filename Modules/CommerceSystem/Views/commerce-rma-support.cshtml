@@ -174,7 +174,7 @@
                                  ng-hide="object.Status == 'Shipped' || object.InboundShipment.TrackingCode == null || object.InboundShipment.TrackingCode == '' ">
                                 <div class="col-xs-12" id="dhltracking">
                                     <h2 class="text-info">สถานะการรับสินค้า</h2>
-                                    <iframe ng-src="{{ctrl.getTrackUrl(object.InboundShipment.TrackingCode)}}"></iframe>
+                                    <iframe ng-src="{{ctrl.getTrackUrl(object.InboundShipment.TrackingCode, object.InboundShipment.Method)}}"></iframe>
                                 </div>
                             </div>
 
@@ -282,7 +282,7 @@
                                  ng-if="object.Status == 'Shipped' && object.Status != 'Delivered'">
                                 <div class="col-xs-12" id="dhltracking">
                                     <h2 class="text-info">สถานะการจัดส่ง</h2>
-                                    <iframe ng-src="{{ctrl.getTrackUrl(object.OutboundShipment.TrackingCode)}}"></iframe>
+                                    <iframe ng-src="{{ctrl.getTrackUrl(object.OutboundShipment.TrackingCode, object.OutboundShipment.Method)}}"></iframe>
                                 </div>
                             </div>
 
