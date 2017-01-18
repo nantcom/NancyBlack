@@ -20,6 +20,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/tables/rma"] = this.HandleRequest(this.RMAManagerPage);
             Get["/rma/{RMAIdentifier}"] = this.HandleRequest(HandleSupportPage);
             Post["/admin/tables/rma/new"] = this.HandleRequest(this.NewRMA);
+            Post["/rma/{RMAIdentifier}/add"] = this.HandleRequest(this.HandleAddRMAItem);
             //Post["/support/login"] = this.HandleRequest(HandleSupportLogin);
         }
 
@@ -80,10 +81,31 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var data = new
             {
-                RMA = rma
+                RMA = rma,
+                RMAItems = rma.GetRMAItems(this.SiteDatabase)
             };
 
             return View["commerce-rma-support", new StandardModel(this, dummyPage, data)];
+        }
+
+        private dynamic HandleAddRMAItem(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+            
+            var id = (string)arg.RMAIdentifier;
+            var rma = this.SiteDatabase.Query<RMA>()
+                        .Where(row => row.RMAIdentifier == id)
+                        .FirstOrDefault();
+            
+            var para = arg.body.Value as JObject;
+            RMAItem rmaItem = para.ToObject<RMAItem>();
+
+            rma.AddRMAItem(this.SiteDatabase, rmaItem);
+
+            return 200;
         }
     }
 }

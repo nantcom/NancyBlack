@@ -17,17 +17,17 @@
             border: none !important;
         }
 
-        .prob-value{
+        .prob-value {
             padding-top: 7px;
             display: block;
         }
 
-        .facebook-profile-image-container:hover{
+        .facebook-profile-image-container:hover {
             text-decoration: none;
         }
 
-        .facebook-profile-image-container > img{
-            border-radius: 75px; 
+        .facebook-profile-image-container > img {
+            border-radius: 75px;
             -webkit-border-radius: 75px;
         }
     </style>
@@ -116,7 +116,7 @@
                                             <label class="col-sm-4 control-label">วันที่สร้าง RMA</label>
                                             <div class="col-sm-8">
                                                 <span class="prob-value">{{object.__createdAt | date:'dd MMMM yyyy, HH:mm'}}</span>
-                                                
+
                                             </div>
                                         </div>
 
@@ -421,6 +421,50 @@
                                             <input type="number" class="form-control" ng-model="object.BillToSaleOrderId" />
                                         </div>
                                     </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="panel panel-info">
+                                            <div class="panel-heading">Exchange parts</div>
+                                            <div class="panel-body">
+
+                                                <table class="table table-striped">
+                                                    <tr><th>PrductId</th><th>Serial</th><th>Note</th></tr>
+                                                    <tr ng-repeat="rmaItem in rmaItems">
+                                                        <td>{{rmaItem.ProductId}}</td>
+                                                        <td>
+                                                            From:{{rmaItem.FromSerial}}<br />
+                                                            To:{{rmaItem.ToSerial}}
+                                                        </td>
+                                                        <td>{{rmaItem.Note}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><input class="form-control" ng-model="newRMAItem.ProductId" type="number" /></td>
+                                                        <td>
+                                                            <input class="form-control" placeholder="From" ng-model="newRMAItem.FromSerial" type="text" /><br />
+                                                            <input class="form-control" placeholder="To" ng-model="newRMAItem.ToSerial" type="text" />
+                                                        </td>
+                                                        <td><input class="form-control" ng-model="newRMAItem.Note" type="text" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td></td>
+                                                        <td>Please save before adding</td>
+                                                        <td>
+                                                            <button class="btn btn-success btn-sm"
+                                                                    ng-click="ctrl.addRMAItem()">
+                                                                <span class="fa fa-circle-o-notch fa-spin"
+                                                                      ng-show="isSerialSaving == true"></span>
+                                                                <span class="fa fa-save"></span>
+                                                                Add
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="row">
@@ -627,6 +671,7 @@
                         <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
                             <option ng-repeat="status in allStatus">{{status}}</option>
                         </select>
+
                         <p style="margin-top: 30px">
                             <button class="btn btn-success btn-lg"
                                     ng-click="data.save(object)">

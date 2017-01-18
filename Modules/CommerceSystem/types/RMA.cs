@@ -24,7 +24,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public int BillToSaleOrderId { get; set; }
 
-        public List<int> RMAItemsId { get; set; }
+        private List<int> _RMAItemsId;
+        public List<int> RMAItemsId
+        {
+            get
+            {
+                if (_RMAItemsId == null)
+                {
+                    _RMAItemsId = new List<int>();
+                }
+                return _RMAItemsId;
+            }
+            set
+            {
+                _RMAItemsId = value;
+            }
+        }
 
         public RMAShipment InboundShipment { get; set; }
 
