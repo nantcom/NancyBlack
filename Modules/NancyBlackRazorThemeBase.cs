@@ -169,6 +169,21 @@ namespace NantCom.NancyBlack
             return first.Url;
         }
 
+        /// <summary>
+        /// Renders the section, with default content
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="defaultContents"></param>
+        /// <returns></returns>
+        public NonEncodedHtmlString RenderSectionWithDefault(string name, Func<object, object> defaultContents)
+        {
+            if (this.IsSectionDefined(name))
+            {
+                return new NonEncodedHtmlString(RenderSection(name).ToString());
+            }
+
+            return new NonEncodedHtmlString(defaultContents(null).ToString());
+        }
 
     }
 }

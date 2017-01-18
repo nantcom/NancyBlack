@@ -124,14 +124,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     .ToList();
 
                 Receipt receipt;
-                
-                if (this.Request.Query.index == null && receipts.Count > 1 || so.PaymentStatus == PaymentStatus.Deposit)
-                {
-                    receipt = new Receipt() { Identifier = "Specify Index" };
-                }
-                else if (this.Request.Query.index == null && receipts.Count == 1)
+
+                if (this.Request.Query.index == null && receipts.Count == 1)
                 {
                     receipt = receipts.FirstOrDefault();
+                }
+                else if (this.Request.Query.index == null && receipts.Count > 1)
+                {
+                    receipt = new Receipt() { Identifier = "Specify Index" };
                 }
                 else
                 {
