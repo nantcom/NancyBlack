@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
 
     var ncbEditor = angular.module("editor-frame", ['ngAnimate', 'angular-sortable-view']);
 
@@ -389,13 +389,14 @@
                 }
 
                 $scope.editing.content = $scope.currentContent;
-                $scope.editing.original = $scope.currentContent.ContentParts[$scope.editing.name].trim();
 
-                if ($scope.editing.original == null) {
+                if ($scope.currentContent.ContentParts[$scope.editing.name] == null) {
 
-                    // default value from database
                     $scope.editing.original = $scope.editing.element.html();
+                } else {
+                    $scope.editing.original = $scope.currentContent.ContentParts[$scope.editing.name].trim();
                 }
+
 
             }, 400);
 
@@ -432,6 +433,23 @@
                             return;
                         }
                     }
+
+
+                // remove owl-carousel
+                if (item.element.is(".owl-loaded")) {
+
+                    var child = item.element.find(".owl-item").not(".cloned");
+                    child.each(function (index, element) {
+
+                        $(element).children().unwrap();
+                    });
+
+                    item.element.find(".owl-item").remove();
+                    item.element.find(".owl-controls").remove();
+
+                    item.element.find(".owl-stage").unwrap();                    
+                    item.element.find(".owl-stage").children().unwrap();
+                }
 
                     content.ContentParts[$scope.editing.name] = $scope.editing.element.html();
 
