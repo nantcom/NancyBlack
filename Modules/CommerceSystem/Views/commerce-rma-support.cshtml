@@ -184,7 +184,7 @@
                                     <h2 class="text-info">ไทม์ไลน์สถานะ</h2>
                                     <ul class="timeline">
                                         <li ng-show="StatusState == 0">
-                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'InQueue'}"><i class="glyphicon glyphicon-plane"></i></div>
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'InQueue'}"><i class="fa fa-clock-o"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
                                                     <h4 class="timeline-title">In Queue: สินค้าอยู่ในระหว่างการรอคิว</h4>
@@ -192,7 +192,7 @@
                                             </div>
                                         </li>
                                         <li class="timeline-inverted" ng-show="StatusState < 2">
-                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'CheckingIssues'}"><i class="glyphicon glyphicon-scale"></i></div>
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'CheckingIssues'}"><i class="fa fa-search-minus"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
                                                     <h4 class="timeline-title">Checking Issues: กำลังตรวจสอบปัญหา</h4>
@@ -203,7 +203,7 @@
                                             </div>
                                         </li>
                                         <li ng-show="StatusState < 3">
-                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'ResearchOnSolution'}"><i class="glyphicon glyphicon-search"></i></div>
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'ResearchOnSolution'}"><i class="fa fa-search-plus"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
                                                     <h4 class="timeline-title">Research on Solution: กำลังตรวจสอบวิธีแก้ไข</h4>
