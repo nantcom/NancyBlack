@@ -146,7 +146,7 @@
                             <td>
                                 <div id="date">
 
-                                    @if (type == "invoice")
+                                    @if (type == "invoice" || type == "quotation")
                                     {
                                         <text>
                                             <span>{{so.__createdAt | date:'dd/MM/yyyy'}}</span>
@@ -192,8 +192,23 @@
                                     </td>
                                 </tr>
                             </text>
-                        }
-                        else
+                        } else if (type == "quotation")
+                        {
+                            <text>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>ราคาที่เสนอ/Amount Quoted</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paid">
+                                            {{so.TotalAmount | number:2 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </text>
+                        } else
                         {
                             <text>
                                 <tr>
