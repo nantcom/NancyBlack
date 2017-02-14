@@ -537,6 +537,12 @@
 
                     <div class="well">
                         <p>
+                            <div class="text-center" ng-show="object.Customer.FacebookId != null && object.Customer.FacebookId != ''">
+                                <a class="facebook-profile-image-container" href="https://www.facebook.com/profile.php?id={{object.Customer.FacebookId}}" target="_blank">
+                                    <img style="border-radius: 75px; -webkit-border-radius: 75px;" ng-src="http://graph.facebook.com/{{object.Customer.FacebookId}}/picture?type=square" />
+                                </a>
+                                <br />
+                            </div>
                             <h2 class="text-info">{{object.SaleOrderIdentifier}}</h2>
                             <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3>
                             <div>

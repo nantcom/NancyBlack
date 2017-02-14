@@ -16,3 +16,11 @@ We want the system to be simple to use, and simple to create new website with it
 - Copy-and-Paste Deployment : we want server code/data and local code/data to be 1:1 to reduce deployment risk and easy for debugging the problem with live website.
 
 - Easy for site admin to maintain : we want the website to backup itself and can be managed remotely without remote desktop access. 
+
+## Current Status
+We already using this system in many of our production projects. Only part that was not developed is the tool to restore website database from backup.
+
+## Licensing
+MS-PL
+https://opensource.org/licenses/MS-PL
+
