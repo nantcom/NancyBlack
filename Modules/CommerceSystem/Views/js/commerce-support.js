@@ -9,7 +9,7 @@
         $scope.object = window.allData.SaleOrder;
         $scope.branding = window.branding;
         $scope.isAdmin = window.isAdmin == "True" ? true : false;
-        $scope.allStatus = ["New", "Confirmed", "WaitingForOrder", "AtLEVEL51", "Building", "Testing", "ReadyToShip", "Shipped", "Delivered", "Cancel"];
+        $scope.allStatus = ["New", "Confirmed", "WaitingForOrder", "Delay", "AtLEVEL51", "Building", "Testing", "ReadyToShip", "Shipped", "Delivered", "Cancel"];
         $scope.allPaymentStatus = window.allData.PaymentStatusList;
         $scope.paymentLogs = window.allData.PaymentLogs;
 

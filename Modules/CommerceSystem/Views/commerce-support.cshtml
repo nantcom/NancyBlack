@@ -158,7 +158,18 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <li ng-show="StatusState < 4">
+                                        <li class="timeline-inverted" ng-show="StatusState == 3">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Delay'}"><i class="fa fa-clock-o"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Delay: สินค้าได้รับล่าช้ากว่ากำหนด</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>อยู่ระหว่างการรอรับสินค้าจากต่างประเทศ สินค้าอาจจะได้รับล่าช้าไปบ้างนะครับ แต่ทางเรากำลังติดตามให้อยู่ครับ :)</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 5">
                                             <div class="timeline-badge" ng-class="{'warning': object.Status == 'AtLEVEL51'}"><i class="glyphicon glyphicon-home"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
@@ -169,7 +180,7 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <li class="timeline-inverted" ng-show="StatusState < 5">
+                                        <li class="timeline-inverted" ng-show="StatusState < 6">
                                             <div class="timeline-badge" ng-class="{'warning': object.Status == 'Building'}"><i class="glyphicon glyphicon-wrench"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
@@ -180,7 +191,7 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <li ng-show="StatusState < 6">
+                                        <li ng-show="StatusState < 7">
                                             <div class="timeline-badge" ng-class="{'warning': object.Status == 'Testing'}"><i class="fa fa-tachometer"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
@@ -191,7 +202,7 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <li class="timeline-inverted" ng-show="StatusState < 7">
+                                        <li class="timeline-inverted" ng-show="StatusState < 8">
                                             <div class="timeline-badge" ng-class="{'success': object.Status == 'ReadyToShip'}"><i class="glyphicon glyphicon-gift"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
@@ -202,11 +213,11 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <li ng-show="StatusState < 8">
+                                        <li ng-show="StatusState < 9">
                                             <div class="timeline-badge" ng-class="{'warning': object.Status == 'Shipped'}"><i class="fa fa-truck"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
-                                                    <h4 class="timeline-title">Shiping: สิงค้าอยู่ระหว่างการจัดส่ง</h4>
+                                                    <h4 class="timeline-title">Shiping: สินค้าอยู่ระหว่างการจัดส่ง</h4>
                                                 </div>
                                                 <div class="timeline-body">
                                                     <p>
@@ -219,7 +230,7 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <li class="timeline-inverted" ng-show="StatusState < 9">
+                                        <li class="timeline-inverted" ng-show="StatusState < 10">
                                             <div class="timeline-badge" ng-class="{'success': object.Status == 'Delivered'}"><i class="glyphicon glyphicon-heart"></i></div>
                                             <div class="timeline-panel">
                                                 <div class="timeline-heading">
