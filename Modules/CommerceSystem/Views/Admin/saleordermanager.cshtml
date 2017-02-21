@@ -49,7 +49,7 @@
                 <tab heading="Pending Order">
 
                     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
-                                 alwaysfilter="(Status eq 'WaitingForOrder')"
+                                 alwaysfilter="(Status eq 'WaitingForOrder') or (Status eq 'Delay')"
                                  defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
                                  edit-fn="ctrl.viewOrderDetail(id)">
                     </ncb-ngtable>
