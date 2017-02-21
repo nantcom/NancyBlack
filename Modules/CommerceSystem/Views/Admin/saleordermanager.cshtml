@@ -34,6 +34,12 @@
     <div class="page-header">
         <h1>Sale Order</h1>
     </div>
+	<!--only work in level51 web-->
+    <div class="pull-right">
+        <button class="btn btn-info" ng-click="ctrl.showMergeItems()">
+            Show Supplies from Selected items
+        </button>
+    </div>
 
             <tabset>
 
@@ -51,7 +57,7 @@
                     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
                                  alwaysfilter="(Status eq 'WaitingForOrder') or (Status eq 'Delay')"
                                  defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
-                                 edit-fn="ctrl.viewOrderDetail(id)">
+                                 edit-fn="ctrl.checkedSaleOrder(id)">
                     </ncb-ngtable>
 
                 </tab>
@@ -127,6 +133,9 @@
                show-filter="true">
 
             <tr ng-repeat="item in tableParams.data">
+                <td>
+                    <input type="checkbox" class="form-control" ng-click="editFn({id: item.id})" style="width: 16px" />
+                </td>
                 <td data-title="'Order#'"
                     sortable="'SaleOrderIdentifier'"
                     filter="{ 'SaleOrderIdentifier': 'text' }">
@@ -200,10 +209,6 @@
                     {{item.TotalAmount | number:2 }}
                 </td>
                 <td style="white-space: nowrap">
-
-                    <a href="/Admin/saleorder/{{item.id}}" class="btn btn-info">
-                        <i class="fa fa-edit"></i>
-                    </a>
 
                     <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
                        class="btn btn-primary" target="_blank"

@@ -11,14 +11,9 @@
         /* jshint validthis:true */
         var vm = this;
 
-        vm.viewOrderDetail = _viewOrderDetail;
         vm.createSaleOrder = _createSaleOrder;
 
-        function _viewOrderDetail(id) {                           
-            $window.location = "/Admin/tables/saleorder/" + id;
-        };
-
-        $scope.object = {}; 
+        $scope.object = {};
 
         function _createSaleOrder() {
 
@@ -29,6 +24,25 @@
                 alert(error.data.Message);
             });
         };
+
+		//only work in level51 web
+        $scope.selectedSaleOrders = [];
+        vm.checkedSaleOrder = function (id) {
+            var index = $scope.selectedSaleOrders.indexOf(id);
+            if (index > -1) {
+                $scope.selectedSaleOrders.splice(index, 1);
+            }
+            else {
+                $scope.selectedSaleOrders.push(id);
+            }
+        }
+
+        vm.showMergeItems = function () {
+            //$window.location = "/Admin/inventoryitem/byselectedsaleorder?selectedos=" + $scope.selectedSaleOrder.join();
+            window.open("/Admin/inventoryitem/byselectedsaleorder?selectedos=" + $scope.selectedSaleOrders.join(), '_blank');
+        }
+
+        
         
     }
 })();
