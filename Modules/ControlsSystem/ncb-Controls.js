@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
 
     function addIcon(element, iconName) {
 
@@ -1995,7 +1995,7 @@
                 });
             }
 
-            function updateUrl(url) {
+            function updateUrl_old(url) {
 
                 if (url == null) {
                     return;
@@ -2099,6 +2099,104 @@
                 if (lastSrc == finalUrl) {
                     return;
                 }
+
+                var heavyImage = new Image();
+                heavyImage.src = finalUrl;
+                heavyImage.onload = function () {
+                    element.attr("src", finalUrl);
+                };
+
+            }
+            
+            function updateUrl(url) {
+
+                if (url == null) {
+                    return;
+                }
+                var lastSrc = element.attr("src");
+                var reference = element.parents(attrs.refer);
+
+                var w = 0;
+                var h = 0;
+                var mode = "Fill";
+
+                if (attrs.width != null && attrs.width != "") {
+
+                    w = attrs.width;
+                    if (w == "100%") {
+                        w = element.width();
+
+                        if (reference.length > 0) {
+                            w = reference.width();
+                        }
+                    }
+                }
+
+                if (attrs.height != null && attrs.height != "") {
+
+                    h = attrs.height;
+                    if (h == "100%") {
+                        h = element.height();
+
+                        if (reference.length > 0) {
+                            h = reference.height();
+                        }
+                    }
+                }
+
+                if ((attrs.width == null && attrs.height == null) ||
+                    (attrs.width == "" && attrs.height == "")) {
+
+                    // widht and height cannot be identified
+                    // try the refer attribute to look for parents where
+                    // we will get size from
+                    if (reference.length > 0) {
+
+                        w = reference.width();
+                        h = reference.height();
+
+
+                    } else {
+
+                        var found = false;
+                        w = element.width();
+                        h = element.height();
+
+                        // ok, try to find height using parent
+                        element.parents().each(function (i, e) {
+
+                            if (found) {
+                                return;
+                            }
+
+                            w = $(e).width();
+                            h = $(e).height();
+
+                            found = (w != 0) && (h != 0);
+                        });
+
+                        if (found == false) {
+
+                            // try again in 1 second
+                            window.setTimeout(function () {
+
+                                updateUrl(url);
+                            }, 1000);
+
+                            return;
+                        }
+                    }
+
+                }
+
+                if (attrs.mode) {
+
+                    mode = attrs.mode;
+                }
+
+                var finalUrl = String.format("/__resize2/{0}/{1}/{2}/image={3}",
+                    w, h, mode, url
+                );
 
                 var heavyImage = new Image();
                 heavyImage.src = finalUrl;

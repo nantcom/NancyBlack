@@ -212,6 +212,23 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 this.FileName = fileName;
             }
 
+
+            /// <summary>
+            /// Create new image filtration parameters
+            /// </summary>
+            /// <param name="ctx"></param>
+            public ImageFiltrationParameters(dynamic pathArg, string fileName)
+            {
+                this.TargetWidth = pathArg.w == null ? 0 : (int)pathArg.w;
+                this.TargetHeight = pathArg.h == null ? 0 : (int)pathArg.h;
+                this.Mode = pathArg.mode == null ? ImageResizeMode.Fit :
+                            (ImageResizeMode)Enum.Parse(typeof(ImageResizeMode), (string)pathArg.mode);
+                this.Filters = pathArg.filters == null ? null : ((string)pathArg.filters).Split(',');
+                this.IsProcessResize = false;
+                this.ImageOffsetAndSize = RectangleF.Empty;
+                this.FileName = fileName;
+            }
+
             /// <summary>
             /// Create new instance of image filtration parameters
             /// </summary>
@@ -439,8 +456,14 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
         public ImageResizeModule()
         {
+            //Get["/__resize2/{w:int}/{h:int}/image={path*}"] = this.ResizeImage_NoCache;
+
+            Get["/__resize2/{w}/{h}/{mode}/{path*}"] = this.ResizeImage_NoCache;
+
+            //Get["/__resize2/{w:int}/{h:int}/{mode}/{filters}/image={path*}"] = this.ResizeImage_NoCache;
+
             Get["/__resize/{path*}"] = this.ResizeImage;
-            
+
         }
 
         private dynamic ResizeImage(dynamic arg)
@@ -498,6 +521,50 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 return this.Response.AsRedirect("/" + resizeRelativePath, Nancy.Responses.RedirectResponse.RedirectType.Permanent);
             }
 
+        }
+
+        private Dictionary<string, HashSet<string>> _AttackPrevention = new Dictionary<string, HashSet<string>>();
+
+        /// <summary>
+        /// Resize the image without using disk cache
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic ResizeImage_NoCache(dynamic arg)
+        {
+            var file = Path.Combine(this.RootPath, (string)arg.path);
+            if (File.Exists(file) == false)
+            {
+                return 404;
+            }
+
+            var parameter = new ImageResizeModule.ImageFiltrationParameters(arg, file);
+            var parameterKey = parameter.GetHashCode().ToString();
+
+            HashSet<string> set;
+            if (_AttackPrevention.TryGetValue( file, out set ) == false)
+            {
+                set = new HashSet<string>();
+                _AttackPrevention.Add(file, set);
+            }
+
+            // this file contains too much unique parameter request
+            if (set.Contains(parameterKey) == false && set.Count > MAX_PER_FILE)
+            {
+                return 404;
+            }
+
+            set.Add(parameterKey);
+
+            var result = ImageResizeModule.ResizeAndFilterImage(file, parameter);
+            var response = new Response();
+            response.ContentType = result.ContentType;
+            response.Contents = (s) =>
+            {
+                result.Output.CopyTo(s);
+            };
+
+            return response;
         }
 
         /// <summary>
