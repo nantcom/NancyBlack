@@ -1,0 +1,54 @@
+﻿[
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/ControlsSystem/ncb-Controls.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/ControlsSystem/ncb-Controls.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/ContentSystem/Views/editor-editframe.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/ContentSystem/Views/editor-editframe.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/ContentSystem/Views/editor-editarea.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/ContentSystem/Views/editor-editarea.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/DatabaseSystem/ncb-datacontext.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/DatabaseSystem/ncb-datacontext.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/ncb-commerce.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/ncb-commerce.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/Admin/product.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/Admin/product.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/AdminSystem/Views/admin.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/AdminSystem/Views/admin.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/Admin/saleordermanager.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/Admin/saleordermanager.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/ContentSystem/ncb-content.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/ContentSystem/ncb-content.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/css/commerce-print.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/css/commerce-print.less"
+  },
+  {
+    "outputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/css/commerce-support.css",
+    "inputFile": "NancyBlack/NancyBlack/Modules/CommerceSystem/Views/css/commerce-support.less"
+  },
+  {
+    "outputFile": "Site/style.css",
+    "inputFile": "Site/style.less"
+  },
+  {
+    "outputFile": "Site/styles/StyleSheet.css",
+    "inputFile": "Site/styles/StyleSheet.less"
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "outputFileName": "Content/Scripts/ncb-dependencies.js",
+    "inputFiles": [
+      "Content/Scripts/sweetalert-master/dist/sweetalert.min.js",
+      "Content/scripts/stringformat/stringformat-1.09.min.js",
+      "Content/Scripts/jquery-2.1.1.min.js",
+      "Content/scripts/underscore.js",
+      "Content/Scripts/bootstrap.min.js",
+      "Content/Scripts/angular.min.js",
+      "Content/Scripts/angular-animate.min.js",
+      "Content/Scripts/angular-sanitize.min.js",
+      "Content/Scripts/angular-cookies.min.js",
+      "Content/Scripts/angular-local-storage.min.js",
+      "Content/Scripts/angular-ui/ui-bootstrap-tpls.min.js",
+      "Content/Scripts/angular-ui/ui-validate.min.js",
+      "Content/Scripts/MobileServices.Web-1.2.5.min.js",
+      "Content/scripts/angular-ui-select/select.min.js",
+      "Content/scripts/ng-table/ng-table.min.js"
+    ]
+  },
+  {
+    "outputFileName": "Content/ncb-dependencies.css",
+    "inputFiles": [
+      "Content/bootstrap.min.css",
+      "Content/fontawesome/css/font-awesome.min.css",
+      "Content/ionicons/css/ionicons.min.css",
+      "Content/Scripts/angular-ui-select/select.min.css",
+      "Content/scripts/ng-table/ng-table.min.css",
+      "Content/Scripts/sweetalert-master/dist/sweetalert.css"
+    ],
+    "minify": {
+      "enabled": true,
+      "termSemicolons": true
+    }
+  }
+]

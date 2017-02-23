@@ -1,0 +1,202 @@
+﻿@inherits NantCom.NancyBlack.Site.Modules.WhererOnSaleViewBase
+@using NantCom.NancyBlack.Site.Modules.Types
+@using Newtonsoft.Json.Linq
+
+@{
+    Layout = "_theme";
+
+    //var featureCate = this.Database.GetById<Categories>(54);
+    var features = this.Database.QueryAsDynamic("WhereOnSaleContent", "indexof(CatsId, '54') gt 0", "__createdAt desc", take: "6");
+    var recents = this.Database.Query<WhereOnSaleContent>();
+}
+
+
+<div class="row">
+    <div class="col-sm-12">
+        <ul class="tag-list clearfix">
+            <li class="trending">#Trending</li>
+            <li><a href="page_tags.html">Windows 10</a></li>
+            <li><a href="page_tags.html">FIFA 2015</a></li>
+            <li><a href="page_tags.html">iPhone 6</a></li>
+            <li><a href="page_tags.html">Flappy Bird</a></li>
+            <li><a href="page_tags.html">World Cup</a></li>
+            <li><a href="page_tags.html">WeChat desktop</a></li>
+            <li><a href="page_tags.html">Clash of Clans</a></li>
+            <li><a href="page_tags.html">Apple Watch</a></li>
+            <li><a href="page_tags.html">CES 2015</a></li>
+            <li><a href="page_tags.html">Lego</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row featured-wrapper">
+    <div class="col-md-12">
+        <div class="flexslider">
+            <div class="featured-slider">
+                @{
+                    var featuresEnumerator = features.GetEnumerator();
+                }
+
+                @for (int i = 0; i < 2; i++)
+                {
+                    @{
+                        featuresEnumerator.MoveNext();
+                        var item = ((JObject)featuresEnumerator.Current).ToObject<WhereOnSaleContent>();
+                    }
+                        <div class="slider-item">
+                            <div class="row">
+                                <div class="col-md-8 omega">
+                                    <div class="featured-big">
+                                        <a href="@item.Url" class="featured-href">
+                                            <img src="@this.GetAttachmentUrl(item,"default")" alt="@item.Title" />
+                                            <div class="featured-header">
+                                                <span class="category">
+                                                    @foreach (var cat in this.GetCategories(item))
+                                                    {
+                                                        <span class="bgcolor5">@cat.Title</span>
+                                                    }
+                                                </span>
+                                                <h2>@item.Title</h2>
+                                                <p class="simple-share">
+                                                    @*by <a href="#"><b>John Doe</b></a> -*@
+                                                    <span class="article-date">@item.__createdAt.ToString("MMM dd, yyyy")</span>
+                                                </p>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 alpha">
+
+                                    @for (int j = 0; j < 2; j++)
+                                    {
+                                        @{
+                                            featuresEnumerator.MoveNext();
+                                            item = ((JObject)featuresEnumerator.Current).ToObject<WhereOnSaleContent>();
+                                        }
+
+                                            <div class="featured-small featured-top">
+                                                <a href="@item.Url" class="featured-href">
+                                                    <img src="@this.GetAttachmentUrl(item,"default")" alt="@item.Title" />
+                                                    <div class="featured-header">
+                                                        <span class="category">
+                                                            @foreach (var cat in this.GetCategories(item))
+                                                            {
+                                                                <span class="bgcolor5">@cat.Title</span>
+                                                            }
+                                                        </span>
+                                                        <h2>@item.Title</h2>
+                                                        <p class="simple-share">
+                                                            @*by <a href="#"><b>John Doe</b></a> -*@
+                                                            <span class="article-date">@item.__createdAt.ToString("MMM dd, yyyy")</span>
+                                                        </p>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                            }
+                                </div>
+                            </div><!-- .row -->
+                        </div><!-- .slider-item -->
+                                            }
+
+            </div><!-- .featured-slider -->
+        </div><!-- .flexslider -->
+    </div>
+</div><!-- .featured-wrapper -->
+
+<div class="row main-body">
+
+    <div class="col-md-6">
+
+        <h3 class="block-title top-title"><span>Popular</span></h3>
+
+        @foreach (var item in recents.Take(4))
+        {
+            <article class="news-block">
+                <a href="@item.Url" class="overlay-link">
+                    <figure class="image-overlay">
+                        <img src="@this.GetAttachmentUrl(item,"default")" alt="@item.Title" />
+                    </figure>
+                </a>
+                <span class="category">
+                    @foreach (var cat in this.GetCategories(item))
+                    {
+                        <a href="@cat.Part" class="bgcolor5">@cat.Title</a>
+                    }
+                </span>
+                <header class="news-details">
+                    <h3 class="news-title">
+                        <a href="@item.Url">
+                            @item.Title
+                        </a>
+                    </h3>
+                    <p>I can't get involved! I've got work to do! It's not that I like the Empire, I hate it, but there's nothing I can do about it right now. It's such a long way from here.</p>
+                    <p class="simple-share">
+                        @*by <a href="#"><b>John Doe</b></a> -*@
+                        <span class="article-date"><i class="fa fa-calendar"></i> @item.__createdAt.ToString("MMM dd, yyyy")</span>
+                    </p>
+                </header>
+            </article><!-- News block -->
+        }
+
+    </div><!-- big-block -->
+
+    <div class="col-md-4">
+
+        <h3 class="top-title block-title"><span>Trending</span></h3>
+
+        @foreach (var item in recents.Skip(4).Take(6))
+        {
+            <article class="news-block small-block">
+                <a href="@item.Url" class="overlay-link">
+                    <figure class="image-overlay">
+                        <img src="@this.GetAttachmentUrl(item,"default")" alt="@item.Title" />
+                    </figure>
+                </a>
+                <span class="category">
+                    @foreach (var cat in this.GetCategories(item))
+                    {
+                        <a href="@cat.Part" class="bgcolor5">@cat.Title</a>
+                    }
+                </span>
+                <header class="news-details">
+                    <h3 class="news-title">
+                        <a href="@item.Url">
+                            @item.Title
+                        </a>
+                    </h3>
+                    <p class="simple-share">
+                        @*by <a href="#"><b>John Doe</b></a> -*@
+                        <span class="article-date"><i class="fa fa-calendar"></i> @item.__createdAt.ToString("MMM dd, yyyy")</span>
+                    </p>
+                </header>
+            </article><!-- News block -->
+        }
+
+
+    </div><!-- .col-md-6 -->
+
+    <div class="col-md-2">
+        <h3 class="top-title block-title"><span>Latest</span></h3>
+
+
+        @foreach (var item in recents.Skip(10).Take(11))
+        {
+            <article class="small-article">
+                <figure class="feed-image">
+                    <a href="@item.Url"><img src="@this.GetAttachmentUrl(item,"default")" alt="@item.Title" /></a>
+                </figure>
+                <h3>
+                    <a href="@item.Url">@item.Title</a>
+                </h3>
+                <p><span>@item.__createdAt.ToString("MMM dd, yyyy")</span></p>
+            </article>
+        }
+
+    </div><!-- .col-md-2 -->
+
+</div>
+
+<div class="load-more">
+    <button type="button" class="btn btn-lg btn-block">Load more</button>
+</div>
