@@ -1,0 +1,297 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head
+{
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        body {
+            overflow-x: scroll;
+        }
+    </style>
+    <link href="/NancyBlack/Modules/CommerceSystem/Views/Admin/saleordermanager.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
+}
+
+@section Scripts
+{
+    <script src="/NancyBlack/Content/Scripts/Chart.js-master/Chart.min.js"></script>
+    <script src="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/Admin/js/saleorder.js"></script>
+
+}
+
+<div ng-module="saleorder"
+     ng-controller="saleorder_list as ctrl"
+     ncb-datacontext table="SaleOrder"
+     id="ManageSaleorder">
+
+    <div class="page-header">
+        <h1>Sale Order</h1>
+    </div>
+	<!--only work in level51 web-->
+    <div class="pull-right">
+        <button class="btn btn-info" ng-click="ctrl.showMergeItems()">
+            Show Supplies from Selected items
+        </button>
+    </div>
+
+            <tabset>
+
+                <tab heading="View by Customer">
+
+                    <ncb-ngtable tabletemplate="'tablecustomertemplate.html'"
+                                 alwaysfilter="(PaymentStatus eq 'PaymentReceived')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Pending Order">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'WaitingForOrder') or (Status eq 'Delay')"
+                                 defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                                 edit-fn="ctrl.checkedSaleOrder(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Pending Work">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'AtLEVEL51') or (Status eq 'Building') or (Status eq 'Testing')"
+                                 defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Ready to Ship">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'ReadyToShip')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Shipped">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'Shipped')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="Delivered">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'Delivered')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="New">
+
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                                 alwaysfilter="(Status eq 'New')"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+
+                </tab>
+
+                <tab heading="All">
+
+                    <div class="pull-right">
+                        <button class="btn btn-success" ng-click="ctrl.createSaleOrder()">
+                            <i class="fa fa-plus"></i>
+                            New SO
+                        </button>
+                    </div>
+                    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SaleOrderModal"
+                                 edit-fn="ctrl.viewOrderDetail(id)">
+                    </ncb-ngtable>
+                </tab>
+            </tabset>
+
+
+
+    <script type="text/ng-template" id="tablecustomtemplate.html">
+
+        <table ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td>
+                    <input type="checkbox" class="form-control" ng-click="editFn({id: item.id})" style="width: 16px" />
+                </td>
+                <td data-title="'Order#'"
+                    sortable="'SaleOrderIdentifier'"
+                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
+                        {{item.SaleOrderIdentifier }}
+                    </a>
+                    <p class="text-muted">
+                        <i class="fa fa-clock-o"></i>
+                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                    </p>
+                    <p>
+                        <a href="/support/{{item.SaleOrderIdentifier}}" target="_blank" class="btn btn-info">
+                            <i class="fa fa-life-ring"></i> Support
+                        </a>
+                    </p>
+                </td>
+                <td data-title="'Status'"
+                    sortable="'Status'"
+                    filter="{ 'Status': 'text' }">
+                    {{item.Status }}
+                </td>
+                <td data-title="'PaymentStatus'"
+                    sortable="'PaymentStatus'"
+                    filter="{ 'PaymentStatus': 'text' }">
+                    {{item.PaymentStatus }}
+                </td>
+                <td data-title="'PaymentReceivedDate'"
+                    sortable="'PaymentReceivedDate'"
+                    filter="{ 'PaymentReceivedDate': 'text' }">
+                    {{item.PaymentReceivedDate | date:'dd MMMM yyyy, HH:mm' }}
+                </td>
+                <td data-title="'Customer, S&H'"
+                    sortable="'Customer'"
+                    filter="{ 'Customer': 'text' }">
+
+                    <div class="text-left">
+                        {{item.Customer.FirstName}}
+                        {{item.Customer.LastName}}
+
+                        <p class="text-muted">
+                            <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br />
+                            <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
+                        </p>
+
+                        <div ng-repeat="(k,v) in item.ShippingDetails">
+                            <b>{{k}}</b>: {{v}}
+                        </div>
+
+                        <b>Shipping Address:</b><br/>
+                        {{item.ShipTo.To || 'empty'}}<br />
+                        {{item.ShipTo.Address || 'empty'}}<br />
+                        {{item.ShipTo.SubDistrict || 'empty'}}
+                        {{item.ShipTo.District || 'empty'}}<br />
+                        {{item.ShipTo.State || 'empty'}},
+                        {{item.ShipTo.PostalCode || 'empty'}}<br/>
+                    </div>
+
+                </td>
+
+                <td data-title="'Products'" style="min-width: 250px">
+                    <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
+                        <a href="{{product.Url}}" target="_blank">
+                            {{product.Title}}
+                        </a>
+                    </div>
+                </td>
+
+                <td data-title="'Total (net)'"
+                    sortable="'TotalAmount'"
+                    filter="{ 'TotalAmount': 'text' }">
+                    {{item.TotalAmount | number:2 }}
+                </td>
+                <td style="white-space: nowrap">
+
+                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
+                       class="btn btn-primary" target="_blank"
+                       ng-disabled="object.PaymentStatus != 'PaymentReceived'">
+                        <span class="icon ion-printer"></span> IV
+                    </a>
+                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
+                       class="btn btn-success" target="_blank"
+                       ng-disabled="object.PaymentStatus == 'PaymentReceived'">
+                        <span class="icon ion-printer"></span> R
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+
+    <script type="text/ng-template" id="tablecustomertemplate.html">
+        
+
+
+        <table ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td data-title="'Order#'"
+                    sortable="'SaleOrderIdentifier'"
+                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
+                        {{item.SaleOrderIdentifier }}
+                    </a>
+                </td>
+                <td data-title="'Customer'"
+                    sortable="'Customer'"
+                    filter="{ 'Customer': 'text' }">
+                    {{item.Customer.FirstName}} {{item.Customer.LastName}}
+                </td>
+                <td data-title="'Phone'">
+                    {{item.Customer.PhoneNumber}}
+                </td>
+                <td data-title="'Email'">
+                    {{item.Customer.Email}}
+                </td>
+                <td data-title="'Shipping Address'">
+                    <div ng-if="item.ShipTo.To != null">
+                        {{item.ShipTo.To}}<br />
+                        {{item.ShipTo.Address}}<br />
+                        {{item.ShipTo.SubDistrict}}
+                        {{item.ShipTo.District}}<br />
+                        {{item.ShipTo.State}},
+                        {{item.ShipTo.PostalCode}}
+                    </div>
+                    <div ng-if="item.ShipTo.To == null">
+                        (Pick Up)
+                    </div>
+                </td>
+                <td data-title="'Billing Address'">
+
+                    <div ng-if="item.UseBillingAddress">
+                        {{item.BillTo.To }}<br />
+                        {{item.BillTo.Address}}<br />
+                        {{item.BillTo.SubDistrict}}
+                        {{item.BillTo.District}}<br />
+                        {{item.BillTo.State}},
+                        {{item.BillTo.PostalCode}}
+                    </div>
+
+                    <div ng-if="item.UseBillingAddress == false">
+                        (not used)
+                    </div>
+                </td>
+                <td data-title="'Total (net)'"
+                    sortable="'TotalAmount'"
+                    filter="{ 'TotalAmount': 'text' }">
+                    {{item.TotalAmount | number:2 }}
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+</div>

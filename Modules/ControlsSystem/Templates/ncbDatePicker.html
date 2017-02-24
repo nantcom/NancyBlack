@@ -1,0 +1,24 @@
+﻿<div class="dropdown form-group">
+
+    <label class="control-label"></label>
+
+    <p class="input-group">
+
+        <input type="text"
+               class="form-control"
+               placeholder="Date"
+               ng-model="model"
+               datepicker-popup="{{format}}"
+               is-open="isopen"
+               close-text="Close" />
+
+        <span class="input-group-btn">
+            <button type="button"
+                    class="btn btn-default"
+                    ng-click="opendatepicker($event)">
+                <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+        </span>
+    </p>
+
+</div>

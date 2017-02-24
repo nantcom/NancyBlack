@@ -1,0 +1,630 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+
+    var IsAdmin = this.CurrentUser.HasClaim("admin");
+}
+
+@section Head
+{
+    <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
+    <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
+    <title>คำสั่งซื้อ</title>
+    <style>
+        .sweet-alert fieldset {
+            border: none !important;
+        }
+    </style>
+}
+@section Script
+{
+    <script>
+        window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
+        window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
+        window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
+        window.bankInfo = {
+            title: "Money Transfer",
+            text: '<p>Please make transfer to:</p>' +
+
+                  '<p>Kasikorn Bank (KBANK)<br/>' +
+                  'Account Number: 0183278193<br/>' +
+                  'Account Name: NantCom Co., Ltd.</p>' +
+
+                  '<p style="margin-top: 20px">After you have made payment, please take photo of transfer slip and upload to our system via <b>Upload Transfer Slip</b> tab</p>',
+            html: true
+        };
+        window.notifyMessage = {
+            title: "Payment Verification Request",
+            text: 'Thank you very much for your payment, we will verify your payment as soon as possible.',
+            html: true
+        }
+    </script>
+    <script src="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-support.js"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            $('#bookmarkme').click(function() {
+                if (window.sidebar && window.sidebar.addPanel) { // Mozilla Firefox Bookmark
+                    window.sidebar.addPanel(document.title,window.location.href,'');
+                } else if(window.external && ('AddFavorite' in window.external)) { // IE Favorite
+                    window.external.AddFavorite(location.href,document.title);
+                } else if(window.opera && window.print) { // Opera Hotlist
+                    this.title=document.title;
+                    return true;
+                } else { // webkit - safari/chrome
+                    alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != - 1 ? 'Command/Cmd' : 'CTRL') + ' + D to bookmark this page.');
+                }
+            });
+        });
+    </script>
+
+}
+
+<div ng-cloak
+     ng-module="Page"
+     ng-controller="PageController as ctrl"
+     ncb-datacontext-integrated
+     table="SaleOrder">
+
+
+
+    <div class="supportpage">
+
+        <div class="container">
+
+            <div id="header"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                TRACK YOUR ORDER
+            </div>
+
+            <div class="jumbotron" ng-show="object.Status == 'New'">
+                <h1>We are confirming your order</h1>
+                <h2>Your order number is: {{object.SaleOrderIdentifier}}</h2>
+
+                We will check with our supplier about the waiting time of your order and will get back to you.
+            </div>
+
+            <div class="jumbotron" ng-show="object.Status == 'Confirmed' && (object.PaymentStatus=='WaitingForPayment' || object.PaymentStatus=='Deposit')">
+                <h1 class="text-success">Your Order is confirmed.</h1>
+                <h2>Your order number is: {{object.SaleOrderIdentifier}}</h2>
+                <p>
+                    Please verify all the details of the order and please kindly make payment to us to proceed with the order.<br />
+                    <span id="clockdiv" ng-controller="CountDownTimerController">
+                        This order will be valid for
+
+                        <span ng-cloak ng-show="days > 1">{{days}} Day{{days > 1 ? "s" : ""}}</span>
+                        <span ng-cloak ng-show="days < 1">{{hours}} Hour{{hours > 1 ? "s" : ""}}</span>
+                        <span ng-cloak ng-show="days < 1 && hours < 1">{{minutes}} Minute</span>
+                        <span ng-cloak ng-show="days < 1 && hours < 1">{{seconds}} Seconds</span>
+                    </span>
+                </p>
+                <p>
+
+                    <a href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/invoice"
+                       ng-if="object.IsPayWithCreditCart"
+                       target="_blank" class="btn btn-success btn-lg">
+                        <span ng-show="object.PaymentStatus=='Deposit'">Additional</span> Pay with Creditcard.
+                    </a>
+
+                    <a ng-click="ctrl.showTransferInfo()" class="btn btn-success btn-lg">
+                        View Bank Information
+                    </a>
+                </p>
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-8">
+
+                    <tabset>
+
+                        <tab heading="General">
+
+                            <div class="row">
+
+                                <div class="col-md-6">
+                                    <h2 class="text-info">Last Update</h2>
+                                    {{object.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h2 class="text-info">Order Date</h2>
+                                    {{object.__createdAt | date:'dd MMMM yyyy, HH:mm'}}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h2 class="text-info">Payment Status</h2>
+                                    {{object.PaymentStatus}}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h2 class="text-info">Order Status</h2>
+                                    {{object.Status}}
+                                </div>
+
+                                <div class="col-md-12" ng-show="object.Status != 'Cancel' && object.Status != 'Confirmed'">
+                                    <h2 class="text-info">Timeline</h2>
+                                    <ul class="timeline">
+                                        <li class="timeline-inverted" ng-show="StatusState == 2">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'WaitingForOrder'}"><i class="glyphicon glyphicon-plane"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Waiting For Order</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>Your laptop is being imported. Waiting time is 2-4 weeks.</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState == 3">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Delay'}"><i class="fa fa-clock-o"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Delay</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>Your laptop is being delay on imported but we are chasing shipment for you :) Please do not worry</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 5">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'AtLEVEL51'}"><i class="glyphicon glyphicon-home"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">At LEVEL51</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>
+                                                        We have received your laptop, we are procuring some parts and will begin
+                                                        building your laptop soon.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 6">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Building'}"><i class="glyphicon glyphicon-wrench"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Building</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>Your laptop is being built.</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 7">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Testing'}"><i class="fa fa-tachometer"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Testing</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>We are stress-testing your laptop.</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 8">
+                                            <div class="timeline-badge" ng-class="{'success': object.Status == 'ReadyToShip'}"><i class="glyphicon glyphicon-gift"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Ready to Ship</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>Your laptop was built and the stress-tested. It is ready for pickup by your or delivery courier</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 9">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Shipped'}"><i class="fa fa-truck"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Shiping</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>
+                                                        Your laptop is underway.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 10">
+                                            <div class="timeline-badge" ng-class="{'success': object.Status == 'Delivered'}"><i class="glyphicon glyphicon-heart"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Delivered</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>Our record have indicated that you have recieved your laptop.</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="row"
+                                 ng-if="object.Status == 'Shipped'">
+                                <div class="col-xs-12" id="dhltracking">
+                                    <h2 class="text-info">Shipping Information</h2>
+                                    <iframe ng-src="{{trackingUrl}}"></iframe>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-xs-12">
+
+                                    <h2 class="text-info">Save</h2>
+                                    <div class="alert alert-info" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">We currently have no information.</div>
+
+                                    <div class="row" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
+
+                                        <div class="col-xs-8">
+                                            <div class="well" ng-if="isAdmin == false">
+                                                {{atta.Caption}}
+                                            </div>
+
+                                            <div class="well" ng-if="isAdmin">
+                                                <textarea class="form-control" rows="3"
+                                                          ng-model="atta.Caption"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-xs-4">
+                                            <a href="{{atta.Url}}" target="_blank">
+                                                <img class="img-rounded img-responsive" ng-src="{{atta.Url}}" />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    @if (this.CurrentUser.HasClaim("admin"))
+                                    {
+
+                                        <div class="row">
+
+                                            <div class="col-xs-8">
+                                                <div class="well">
+                                                    (เพิ่มภาพก่อนจึงจะสามารถใส่บันทึกได้)
+
+
+                                                    <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </tab>
+
+                        <tab heading="Detail">
+
+                            <table id="items" class="table"
+                                   ncg-productresolver saleorder="object">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th><div class="text-right">Qty.</div></th>
+                                        <th>
+                                            <div class="text-right">
+                                                Unit Price (THB)
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div class="text-right">
+                                                Line Total (THB)
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tr ng-repeat="item in object.ItemsDetail">
+                                    <td>
+                                        <div class="form-control-static">
+                                            {{$index + 1}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            {{item.Title}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            {{item.Attributes.Qty}}
+                                        </div>
+                                    </td>
+                                    <td>
+
+                                        <div class="form-control-static text-right">
+                                            {{item.Price | number:2}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            {{(item.Price * item.Attributes.Qty) | number:2}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="blank" colspan="3"> </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            <b>Shipping</b>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            <b>{{object.ShippingFee | number:2 }}</b>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="blank" colspan="3"> </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            <b>Shipping Insurance</b>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            <b>{{object.ShippingInsuranceFee | number:2 }}</b>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="blank" colspan="3"> </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            <b>Payment Processing Fee</b>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            <b>{{object.PaymentFee | number:2 }}</b>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="blank" colspan="3"> </td>
+                                    <td>
+                                        <div class="form-control-static">
+                                            <b>Total (net)</b>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-control-static text-right">
+                                            <b>{{object.TotalAmount | number:2 }}</b>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </tab>
+
+                        <tab heading="Payment Record">
+
+                            <div ng-hide="paymentLogs != null && paymentLogs.length > 0"
+                                 class="alert alert-info">
+                                No Data
+                            </div>
+
+                            <div ng-show="paymentLogs != null && paymentLogs.length > 0">
+
+                                <h3>Payment Transactions</h3>
+
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Method</th>
+                                            <th>Approval Code</th>
+                                            <th>Status</th>
+                                            <th><div class="text-right">Amount</div></th>
+                                            <th>Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in paymentLogs">
+                                        <td>
+                                            {{$index + 1}}
+                                        </td>
+                                        <td>
+                                            {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
+                                        </td>
+                                        <td>
+                                            {{item.PaymentMethod}}
+                                        </td>
+                                        <td>
+                                            {{item.ApCode}}
+                                        </td>
+                                        <td>
+                                            {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
+                                        </td>
+                                        <td>
+                                            THB {{item.Amount | number:2}}
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                <a ng-href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt"
+                                                   ng-show="paymentLogs.length == 1 && object.PaymentStatus == 'PaymentReceived'"
+                                                   class="btn btn-success">
+                                                    <span class="icon ion-printer"></span>
+                                                </a>
+                                                <a ng-href="/__commerce/saleorder/{{object.SaleOrderIdentifier}}/receipt?index={{$index}}"
+                                                   ng-show="paymentLogs.length > 1"
+                                                   class="btn btn-success">
+                                                    <span class="icon ion-printer"></span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+
+                        </tab>
+
+                        <tab heading="Upload Transfer Slip"
+                             ng-if="object.Status != 'New' && object.PaymentStatus != 'PaymentReceived'">
+
+
+                            <div class="panel panel-info"
+                                 ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'payment-slip'}">
+                                <div class="panel-heading">{{atta.CreateDate | date:'dd MMMM yyyy'}}</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="simple-inline-block">
+                                            <img style="max-width: 300px;" ng-src="{{atta.Url}}" />
+                                        </div>
+                                        <div class="simple-inline-block" ng-show="isAdmin == true">
+                                            <pre style="width: 700px; font-family: Leelawadee"><b>Note :&ensp;</b>{{atta.Caption}}</pre>
+                                        </div>
+                                        <div class="simple-inline-block" ng-hide="isAdmin == true" style="width: 700px">
+                                            <p>
+                                                <label>Note</label>
+                                                <textarea class="form-control" style="min-height: 150px"
+                                                          ng-model="atta.Caption"></textarea>
+                                            </p>
+                                            <div class="text-right">
+                                                <button class="btn btn-success" ng-click="ctrl.saveAttachmentMessage(atta.Url, atta.Caption)"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">Add Transfer Slip</div>
+                                <div class="panel-body">
+                                    <ncb-attachmentmanager attachment-type="'payment-slip'"></ncb-attachmentmanager>
+                                </div>
+                            </div>
+
+                            <p>
+                                <button class="btn btn-large btn-success" ng-click="ctrl.notifyForCheckingPayment()">
+                                    <span class="glyphicon glyphicon-envelope"></span> Request Payment Verification
+                                </button>
+                            </p>
+
+
+                        </tab>
+
+                        @if (this.CurrentUser.HasClaim("admin"))
+                        {
+                            <tab heading="Admin: Serial">
+
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Item</th>
+                                            <th><div>Serial</div></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in object.CustomData.SerialNumbers">
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{$index + 1}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{item.Title}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input class="form-control" ng-model="item.Serial" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </tab>
+                        }
+
+                    </tabset>
+                </div>
+
+                <div class="col-md-4 "
+                     id="side">
+
+                    <div class="well">
+                        <p>
+                            <div class="text-center" ng-show="object.Customer.FacebookId != null && object.Customer.FacebookId != ''">
+                                <a class="facebook-profile-image-container" href="https://www.facebook.com/profile.php?id={{object.Customer.FacebookId}}" target="_blank">
+                                    <img style="border-radius: 75px; -webkit-border-radius: 75px;" ng-src="http://graph.facebook.com/{{object.Customer.FacebookId}}/picture?type=square" />
+                                </a>
+                                <br />
+                            </div>
+                            <h2 class="text-info">{{object.SaleOrderIdentifier}}</h2>
+                            <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3>
+                            <div>
+                                <i class="fa fa-phone"></i> {{object.Customer.PhoneNumber}}
+                            </div>
+                            <div>
+                                <i class="fa fa-envelope"></i> <a href="mailto:{{object.Customer.Email}}">{{object.Customer.Email}}</a>
+                            </div>
+                            <div ng-if="object.CustomData.Note">
+                                <b>Notes:</b>
+                                {{object.CustomData.Note}}
+                            </div>
+                        </p>
+
+                        <div ng-if="object.UseBillingAddress">
+                            <h2>Billing Information:</h2>
+                            <b>{{object.BillTo.To}}</b><br />
+                            {{object.BillTo.Address}}<br />
+                            {{object.BillTo.SubDistrict}}, {{object.BillTo.District}}<br />
+                            {{object.BillTo.State}},{{object.BillTo.Country}}<br />
+                            {{object.BillTo.PostalCode}}
+                        </div>
+                        <div>
+                            <h2>Shipping Information</h2>
+                            <b>{{object.ShipTo.To}}</b><br />
+                            {{object.ShipTo.Address}}<br />
+                            {{object.ShipTo.SubDistrict}}, {{object.ShipTo.District}}<br />
+                            {{object.ShipTo.State}},{{object.ShipTo.Country}}<br />
+                            {{object.ShipTo.PostalCode}}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" ng-show="isAdmin">
+                        <h2>Admin</h2>
+                        <h3>Status:</h3>
+                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                            <option ng-repeat="status in allStatus">{{status}}</option>
+                        </select>
+                        <p>
+                            <h3>Payment:</h3>
+                            <select class="form-control" ng-model="object.PaymentStatus" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                                <option ng-repeat="status in allPaymentStatus">{{status}}</option>
+                            </select>
+                        </p>
+                        <p style="margin-top: 30px">
+                            <button class="btn btn-success btn-lg"
+                                    ng-click="data.save(object)">
+                                <span class="fa fa-circle-o-notch fa-spin"
+                                      ng-show="isBusy == true"></span>
+                                <span class="fa fa-save"></span>
+                                Save
+                            </button>
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</div>

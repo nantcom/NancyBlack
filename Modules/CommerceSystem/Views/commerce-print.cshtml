@@ -1,0 +1,519 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+
+    var type = this.Model.Content.ContentParts.Type;
+}
+
+@section Head{
+    <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
+    <style>
+        body {
+            -webkit-print-color-adjust: exact;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+}
+@section Script{
+    <script>
+        window.data = @this.Html.Raw(this.GetJson(this.Model.Data));
+        window.billing = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.billing));
+        window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
+        window.formType = '@type';
+    </script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-print.js"></script>
+}
+<div class="printform"
+     ng-cloak
+     ng-module="Page"
+     ng-controller="PageController as ctrl">
+
+    <div id="page-wrap">
+
+        @if (type == "receipt")
+        {
+            <div id="header" style="height: auto; line-height: 20px; letter-spacing: normal"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                ใบเสร็จรับเงิน / ใบกำกับภาษี / ใบส่งสินค้า<br />receipt / tax invoice / shipping invoice
+            </div>
+        }
+        else
+        {
+            <div id="header"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                @type
+            </div>
+        }
+
+
+        <div class="row">
+            <div class="row">
+
+                <div class="col-xs-8">
+                    <b>{{billing.name}}</b><br />
+                    หมายเลขประจำตัวผู้เสียภาษี/ Tax ID: {{billing.regid}}<br />
+                    <span ng-bind-html="billing.address | newline"></span>
+                </div>
+
+                <div id="logo" class="col-xs-4">
+
+                    <img ng-src="{{branding.logo}}" />
+                </div>
+
+            </div>
+
+            <div id="customer" class="row">
+
+                <div id="customer-title" class="col-xs-6">
+
+                    <div ng-if="so.UseBillingAddress">
+                        <b>ลูกค้า / Customer</b>
+                        <div>
+                            <div><b>{{so.BillTo.To}}</b></div>
+                            <div ng-if="so.BillTo.TaxId != null">
+                                หมายเลขประจำตัวผู้เสียภาษี: {{so.BillTo.TaxId}}
+                            </div>
+
+                            {{so.BillTo.Address}}<br />
+                            {{so.BillTo.SubDistrict}}
+                            {{so.BillTo.District}}<br />
+                            {{so.BillTo.State}}
+                            {{so.BillTo.Country}}
+                            {{so.BillTo.PostalCode}}
+                        </div>
+                    </div>
+                    <div ng-if="so.UseBillingAddress == false && so.ShipTo != null && so.ShipTo.To != null">
+                        <b>ลูกค้า / Customer</b>
+                        <div>
+                            <b>{{so.ShipTo.To}}</b><br />
+                            {{so.ShipTo.Address}}<br />
+                            {{so.ShipTo.SubDistrict}}
+                            {{so.ShipTo.District}}<br />
+                            {{so.ShipTo.State}}
+                            {{so.ShipTo.Country}}
+                            {{so.ShipTo.PostalCode}}
+                        </div>
+                    </div>
+
+                    <div ng-if="so.UseBillingAddress == false && (so.ShipTo == null || so.ShipTo.To == null)">
+                        <b>ลูกค้า / Customer</b>
+                        <div>
+                            <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br />
+                            {{so.Customer.PhoneNumber}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xs-6">
+
+                    <table id="meta">
+                        <tr>
+                            <td class="meta-head">
+                                <div class="editabe" id="saleordernumber">
+                                    Order No.
+                                </div>
+                            </td>
+                            <td>{{so.SaleOrderIdentifier}}</td>
+                        </tr>
+
+                        @{
+                            if (type == "receipt")
+                            {
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="receiptnumber">
+                                            เลขที่/No.
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{rc.Identifier}}
+                                    </td>
+                                </tr>
+                            }
+                        }
+
+                        <tr>
+                            <td class="meta-head">
+                                <div class="editabe" id="date">
+                                    วันที่/Date
+                                </div>
+                            </td>
+                            <td>
+                                <div id="date">
+
+                                    @if (type == "invoice" || type == "quotation")
+                                    {
+                                        <text>
+                                            <span>{{so.__createdAt | date:'dd/MM/yyyy'}}</span>
+                                        </text>
+                                    }
+                                    else
+                                    {
+                                        <text>
+                                            <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yyyy'}}</span>
+                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | date:'dd/MM/yyyy'}}</span>
+                                        </text>
+                                    }
+                                </div>
+                            </td>
+
+                        </tr>
+
+                        @if (type == "invoice")
+                        {
+                            <text>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>ยอดชำระ/Amount Paid</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paid">
+                                            {{(so.TotalAmount - paymentDetail.PaymentRemaining) | number:2 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>ต้องชำระเพิ่ม</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="due">
+                                            {{paymentDetail.PaymentRemaining | number:2 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </text>
+                        } else if (type == "quotation")
+                        {
+                            <text>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>ราคาที่เสนอ/Amount Quoted</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paid">
+                                            {{so.TotalAmount | number:2 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </text>
+                        } else
+                        {
+                            <text>
+                                <tr>
+                                    <td class="meta-head">
+                                        <div class="editabe" id="amountpaid">
+                                            <span>ยอดชำระ/Amount Paid</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paid">
+                                            <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
+                                                {{so.TotalAmount | number:2 }}
+                                            </span>
+                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
+                                                {{getTotalFromSplitedPayment() | number:2 }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </text>
+                        }
+
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <table id="items" class="table"
+                   ncg-productresolver saleorder="so">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>
+                            สินค้า/รายละเอียด
+                            <br />
+                            Product/Description
+                        </th>
+                        <th>
+                            จำนวน<br />
+                            Quantity
+                        </th>
+                        <th>
+                            ราคาต่อหน่วย<br />
+                            Unit Price
+                        </th>
+                        <th>
+                            จำนวนเงินรวม<br />
+                            Amount
+                        </th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="item in ItemsDetail | orderBy: 'Price' : true">
+                    <td>
+                        <div class="form-control-static">
+                            {{$index + 1}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{item.Title}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{item.Attributes.Qty}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{ item.Price | number:2 }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-control-static">
+                            {{item.Price * item.Attributes.Qty | number:2 }}
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-if="discount.Price < 0">
+                    <td class="blank" colspan="2"></td>
+                    <td class="total-line" colspan="2">
+                        ส่วนลด DISCOUNT
+                    </td>
+                    <td class="total-value">
+                        {{discount.Price | number: 2}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="2"
+                        style="vertical-align: middle; background-color: lightblue">
+                        ( {{getBathText( getProductTotal() + discount.Price )}} )
+                    </td>
+                    <td class="total-line" colspan="2">
+                        รวมเงินทั้งสิ้น GRAND TOTAL
+                    </td>
+                    <td class="total-value">
+                        {{ getProductTotal() + discount.Price  | number : 2}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="2"></td>
+                    <td class="total-line" colspan="2">
+                        ภาษีมูลค่าเพิ่ม VALUE ADDED TAX
+                    </td>
+                    <td class="total-value">
+                        {{ getVat() | number: 2}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="blank" colspan="2">
+                        @if (type == "receipt")
+                        {
+                            <div class="fitted">
+                                <div class="eoe" style="text-align: left">
+                                    <div ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
+                                        <b>หมายเหตุ</b> ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
+                                    </div>
+                                    ผิด ตก ยกเว้น E. & O.E.
+                                </div>
+                            </div>
+                        }
+                    </td>
+                    <td class="total-line" colspan="2">
+                        รวมมูลค่าสินค้า TOTAL
+                    </td>
+                    <td class="total-value">
+                        {{ getProductValue() | number : 2}}
+                    </td>
+                </tr>
+            </table>
+
+            <div class="row"
+                 style="margin-top: 20px"></div>
+
+            @if (type == "invoice")
+            {
+                <div ng-hide="so.Status == 'New'"
+                     ng-controller="PaysbuyBySaleOrderController as psbCtrl">
+
+                    <div class="row" ng-show="so.IsPayWithCreditCart">
+
+                        <div class="col-md-6">
+                            <div style="margin-bottom: 10px">
+                                ชำระผ่าน <b>PAYSBUY</b> (สามารถใช้บริการผ่อนชำระได้)<br />
+                                Payment via Paysbuy
+                            </div>
+
+                            <div class="btn-group" role="group" aria-label="..."
+                                 ng-show="paymentType != 'Split'">
+                                <button class="btn btn-md btn-primary"
+                                        ng-click="psbCtrl.pay()">
+                                    ชำระเงินทั้งหมด / Full Amount
+                                </button>
+                                <button class="btn btn-md btn-primary"
+                                        ng-click="paymentType = 'Split'">
+                                    แบ่งชำระ / Split Payment
+                                </button>
+                            </div>
+
+                            <div ng-show="paymentType == 'Split'">
+                                <div ng-show="paymentDetail.TransactionLog.length > 0">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>วันที่ชำระ / Date</th>
+                                                <th class="text-center">จำนวนเงินที่ชำระ / Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
+                                            <td>{{paymentLog.PaymentDate | date:'dd MMMM yyyy HH:mm'}}</td>
+                                            <td>
+                                                <div class="text-right">
+                                                    {{paymentLog.Amount | number:2}}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="total-line">
+                                                <div class="text-right" style="font-weight: bold">
+                                                    ชำระแล้วทั้งสิ้น / Total Paid
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-right" style="color:green">
+                                                    {{paymentDetail.TotalPaid | number:2}}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="total-line">
+                                                <div class="text-right" style="font-weight: bold">
+                                                    ชำระเพิ่ม / Additional Payment
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-right" style="font-weight: bold">
+                                                    {{paymentDetail.PaymentRemaining | number:2}}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ... / Amount..."
+                                           ng-model="toPay">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-primary" type="button"
+                                                ng-click="psbCtrl.splitPay(toPay)"
+                                                ng-disabled="ctrl.checkAmount(toPay) == false">
+                                            <i class="fa fa-shopping-cart"></i> ชำระ / Pay
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="row"
+                                 style="margin-top: 20px"></div>
+                        </div>
+
+                        <div class="col-md-6 text-right">
+
+                            <a class="pull-right">
+                                <img src="/NancyBlack/Modules/CommerceSystem/images/ipsb_01.png" />
+                            </a>
+                            <form id="paysbuy_form" name="formpaysbuy" method="post"
+                                  action=""
+                                  style="display: none;">
+                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                                <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
+                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                            </form>
+                            <form id="paysbuy_split_form" name="formpaysbuy" method="post"
+                                  action=""
+                                  style="display: none;">
+                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
+                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
+                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
+                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
+                                <input Type="Hidden" Name="amt" ng-value="splitValue" />
+                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
+                            </form>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+            }
+            else if (type == "receipt")
+            {
+                <div class="row">
+                    <div class="col-md-12">
+                        <table style="width: 100%; margin-top: 0; margin-bottom: 40px; height: 120px">
+                            <tr>
+                                <td>
+                                    <div class="fitted">
+                                        <div class="collector" style="bottom: auto; top: 35px">ผู้รับสินค้า / Received By</div>
+                                        @if (true || this.CurrentUser.HasClaim("admin"))
+                                        {
+                                            <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
+                                                 src="/Site/images/billing/cashiersignature.png" />
+                                        }
+                                        <div class="collector">ผู้รับเงิน / Collector</div>
+                                        <div class="collect-date">
+                                            <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b>
+                                            <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | date:'dd/MM/yy'}}</b>
+                                            <br />วันที่/Date
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fitted">
+                                        @if (true || this.CurrentUser.HasClaim("admin"))
+                                        {
+                                            <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
+                                                 src="/Site/images/billing/companystamp.png" />
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fitted">
+                                        @if (true || this.CurrentUser.HasClaim("admin"))
+                                        {
+                                            <img style="position: absolute; width: 140px; top: 35px; left: 46px;"
+                                                 src="/Site/images/billing/cashiersignature.png" />
+                                        }
+                                        <div class="by-name">ในนาม</div>
+                                        <div class="company-name">{{billing.name}}</div>
+                                        <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            }
+
+
+        </div>
+
+    </div>
+</div>

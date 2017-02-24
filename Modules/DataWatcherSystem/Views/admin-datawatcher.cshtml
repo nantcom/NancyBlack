@@ -1,0 +1,350 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin";
+}
+@section Title
+{
+    Administration
+}
+@section Head
+{
+    <style>
+
+        .AutoPrintButton {
+            width: 100%;
+        }
+
+    </style>
+}
+
+
+<div ng-module="PageModule"
+     ng-controller="PageController as ctrl">
+
+    <h1 class="page-header">
+        Change Tracking
+
+        <button class="btn btn-lg btn-primary pull-right"
+                ncb-savebutton>
+            Save Changes
+        </button>
+    </h1>
+    <ul>
+        <li>
+            Enabla Notifications to get email when row in data type was created, updated or deleted.
+        </li>
+        <li>
+            Enable <b>Versioning</b> to let NancyBlack keep records of changes made to each data types.
+        </li>
+    </ul>
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>
+                    Data Types
+                </th>
+                <th width="20%">
+                    Create Notify
+                </th>
+                <th width="20%">
+                    Update Notify
+                </th>
+                <th width="20%">
+                    Delete Notify
+                </th>
+                <th width="20%">
+                    Versioning
+                </th>
+                <th width="20%">
+                    Auto Print Attachment
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="(key, item) in object.watcher">
+                <td>
+                    <p class="form-control-static">
+                        {{item.name}}
+                    </p>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" placeholder="email address"
+                               ng-model="item.create.sendTo"
+                               ng-disabled="item.create.enable == false"
+                               class="form-control" />
+                        <span class="input-group-btn">
+
+                            <ncb-onoff ng-model="item.create.enable"></ncb-onoff>
+                        </span>
+                    </div>
+                    <div ng-include="'autoprintbuttontemplate_create.html'"></div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" placeholder="email address"
+                               ng-model="item.update.sendTo"
+                               ng-disabled="item.update.enable == false"
+                               class="form-control" />
+                        <span class="input-group-btn">
+
+                            <ncb-onoff ng-model="item.update.enable"></ncb-onoff>
+                        </span>
+                    </div>
+                    <div ng-include="'autoprintbuttontemplate_edit.html'"></div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" placeholder="email address"
+                               ng-model="item.deleted.sendTo"
+                               ng-disabled="item.deleted.enable == false"
+                               class="form-control" />
+                        <span class="input-group-btn">
+
+                            <ncb-onoff ng-model="item.deleted.enable"></ncb-onoff>
+                        </span>
+                    </div>
+                    <div ng-include="'autoprintbuttontemplate_delete.html'"></div>
+                </td>
+                <td>
+                    <ncb-onoff ng-model="item.version"></ncb-onoff>
+                </td>
+                <td>
+                    <ncb-onoff ng-model="item.autoPrintAttachment"></ncb-onoff>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ncb-modal id="AutoPrintModal"
+               title="Auto Print Setting"
+               closebutton deletebutton>
+
+        <form role="form" name="AutoPrintForm">
+
+            <div class="pull-right">
+                <ncb-onoff ng-model="autoPrintObj[autoPrintObj.state].autoGeneratePDF.enable"></ncb-onoff>
+            </div>
+
+            <input type="text" name="PrintformUrl" title="PrintformUrl"
+                   ncb-textbox
+                   ng-model="autoPrintObj[autoPrintObj.state].autoGeneratePDF.printformUrl" />
+
+            <input type="text" name="UploadFileUrl" title="UploadFileUrl"
+                   ncb-textbox
+                   ng-model="autoPrintObj[autoPrintObj.state].autoGeneratePDF.uploadFileUrl" />
+
+        </form>
+
+        <ncb-footer>
+            <button class="btn btn-primary btn-lg"
+                    ng-click="saveData(autoPrintObj)">
+                <span ng-show="autoPrintObj[autoPrintObj.state].autoGeneratePDF == null">Create</span>
+                <span ng-show="autoPrintObj[autoPrintObj.state].autoGeneratePDF != null">Save</span>
+            </button>
+        </ncb-footer>
+    </ncb-modal>
+
+</div>
+
+<script type="text/ng-template" id="autoprintbuttontemplate_create.html">
+
+    <div class="input-group AutoPrintButton">
+        <button data-toggle="modal" data-target="#AutoPrintModal"
+                ng-class="checkAutoPrintButton(item, 'create', key)"
+                ng-disabled="false"
+                ng-click="openAutoPrintModal(item, 'create', key)">
+            <span>
+                Auto Generate PDF
+            </span>
+        </button>       
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="autoprintbuttontemplate_edit.html">
+
+    <div class="input-group AutoPrintButton">
+        <button data-toggle="modal" data-target="#AutoPrintModal"
+                ng-class="checkAutoPrintButton(item, 'edit', key)"
+                ng-disabled="false"
+                ng-click="openAutoPrintModal(item, 'edit', key)">
+            <span>
+                Auto Generate PDF
+            </span>
+        </button>
+    </div>
+    
+</script>
+
+<script type="text/ng-template" id="autoprintbuttontemplate_delete.html">
+
+    <div class="input-group AutoPrintButton">
+        <button data-toggle="modal" data-target="#AutoPrintModal"
+                ng-class="checkAutoPrintButton(item, 'delete', key)"
+                ng-disabled="false"
+                ng-click="openAutoPrintModal(item, 'delete', key)">
+            <span>
+                Auto Generate PDF
+            </span>
+        </button>        
+    </div>
+
+</script>
+
+
+
+
+
+
+
+@section Scripts
+{
+    <script>
+
+        (function () {
+
+
+
+            var page = angular.module("PageModule", []);
+            page.controller("PageController", function ($scope, $http) {
+
+                $scope.autoPrintObj = {};
+
+                $scope.checkAutoPrintButton = function (item, state) {
+
+                    var enableClass = "btn btn-success pull-right AutoPrintButton";
+                    var disableClass = "btn btn-default pull-right AutoPrintButton";                    
+
+                    try{
+                        if ( item[state].autoGeneratePDF.enable == true ) {
+                            return enableClass;
+                        }
+                    }catch( Exception ) {
+                        return disableClass;
+                    }
+
+                    return disableClass;
+                                      
+                };
+
+                $scope.openAutoPrintModal = function (item, state, normalizedName) {
+
+                    $scope.autoPrintObj = item;
+
+                    $scope.autoPrintObj.state = state;
+                    $scope.autoPrintObj.normalizedName = normalizedName;
+
+                };
+
+                $scope.saveData = function(data) {
+
+                    var normalizedName = data.normalizedName;
+                    // Strip State
+                    if ( data.state != null ) {
+                        delete data.state;
+                    }
+                    if ( data.normalizedName != null ) {
+                        delete data.normalizedName;
+                    }
+                    
+                    $scope.object.watcher[normalizedName] = data;
+
+                    $scope.data.save();                    
+
+                    //$scope.autoPrintObj = {};
+                }
+
+                $scope.data = {};
+                $scope.data.save = function() {
+
+                    $http.post( '/Admin/sitesettings/current', $scope.object ).
+                      success(function(data, status, headers, config) {
+
+                          $scope.isBusy = false;
+                      }).
+                      error(function(data, status, headers, config) {
+
+                          $scope.isBusy = false;
+                      });
+                };
+
+                $scope.datatypes = @Html.Raw( this.GetJson(this.Database.DataType.RegisteredTypes) );
+                $scope.object = @Html.Raw(this.GetJson(this.Site));
+
+                if ($scope.object.watcher == null) {
+
+                    $scope.object.watcher = {};
+                }
+
+                $scope.datatypes.forEach( function( item ){
+
+                    if (item.NormalizedName == "rowversion") {
+                        return;
+                    }
+
+                    if (item.NormalizedName == "sitesettings") {
+                        return;
+                    }
+
+                    if (item.NormalizedName == "mailsenderlog") {
+                        return;
+                    }
+
+                    if ( $scope.object.watcher[ item.NormalizedName ] == null )
+                    {
+                        $scope.object.watcher[ item.NormalizedName ] = {
+
+                            name: item.OriginalName,
+                            version: false,
+                            autoPrintAttachment: false,
+
+                            create: {
+                                enable: false,
+                                emailSubject: '@@Model.DataTypeName was created.',
+                                emailTemplate: '@@Model.AffectedRow',
+
+                                autoGeneratePDF: {
+                                    enable: false,
+                                    printformUrl: 'printform/{Id}',
+                                    uploadFileUrl: 'tables/{TableName}/{Id}/Files',
+                                },
+
+                            },
+
+                            update: {
+                                enable: false,
+                                emailSubject: '@@Model.DataTypeName was updated.',
+                                emailTemplate: '@@Model.AffectedRow',
+
+                                autoGeneratePDF: {
+                                    enable: false,
+                                    printformUrl: 'printform/{Id}',
+                                    uploadFileUrl: 'tables/{TableName}/{Id}/Files',
+                                },
+
+                            },
+
+                            deleted: {
+                                enable: false,
+                                emailSubject: '@@Model.OriginalName was deleted.',
+                                emailTemplate: '@@Model.AffectedRow',
+
+                                autoGeneratePDF: {
+                                    enable: false,
+                                    printformUrl: 'printform/{Id}',
+                                    uploadFileUrl: 'tables/{TableName}/{Id}/Files',
+                                },
+
+                            }
+                        };
+                    }
+                });
+
+            });
+
+
+        })();
+
+    </script>
+}

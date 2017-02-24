@@ -1,6 +1,3 @@
-
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/nantcom/NancyBlack/" property="cc:attributionName" rel="cc:attributionURL">NantCom Co., Ltd.</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/nantcom/NancyBlack/" rel="dct:source">https://github.com/nantcom/NancyBlack/</a>.
-=======
 # NancyBlack
 A website system built on top of NancyFX. The goal is to create an reusable website backend which will allow us to easily create new website faster and easier with one shared code base. It is very useful for us, and to ensure that customers can continue to support their websites if we someday no longer has a team - we decided to put it on Github.
 

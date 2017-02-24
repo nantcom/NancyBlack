@@ -1,0 +1,310 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin";
+}
+@section Title
+{
+    Administration - Commerce Settings
+}
+
+<div ng-module="SiteSettingsModule"
+     ng-controller="SiteSettingsController as ctrl">
+    <h1 class="page-header">
+        Settings
+        <i class="fa fa-spin fa-cog"
+           ng-show="isBusy"></i>
+
+        <button class="btn btn-primary btn-lg pull-right"
+                ng-disabled="isBusy"
+                ng-click="ctrl.save()">
+            Save
+        </button>
+
+    </h1>
+    <ncb-alerts alerts="alerts"></ncb-alerts>
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <h2>PaySbuy</h2>
+
+            <input type="number" title="PSB ID"
+                   ncb-textbox ng-model="object.paysbuy.psb" />
+
+            <input type="text" title="Secure Code"
+                   ncb-textbox ng-model="object.paysbuy.securecode" />
+
+            <input type="email" title="Login Email"
+                   ncb-textbox ng-model="object.paysbuy.biz" />
+
+            <input type="text" title="Product Name (Shown in Payment Page)"
+                   ncb-textbox ng-model="object.paysbuy.itm" />
+
+            <select ng-model="object.paysbuy.lang"
+                    ncb-select title="Payment Page Language">
+                <option value="t">Thai</option>
+                <option value="e">English</option>
+            </select>
+
+            <div class="form-group">
+                <a href="/admin/commerce/testthankyoupage" target="_blank">Test Thankyou Page</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+
+            <h2>Billing</h2>
+
+            <input type="text" title="Company Name/Benefactor Name"
+                   ncb-textbox ng-model="object.commerce.billing.name" />
+
+            <input type="text" title="Company Registration Number/Citizen ID"
+                   ncb-textbox ng-model="object.commerce.billing.regid" />
+
+            <textarea title="Billing Address" rows="5"
+                      ncb-textbox ng-model="object.commerce.billing.address"></textarea>
+
+            <div class="form-group">
+                <label>TAX</label><br />
+                <a class="btn btn-default" btn-radio="''" ng-model="object.commerce.billing.vattype">None</a>
+                <a class="btn btn-default" btn-radio="'addvat'" ng-model="object.commerce.billing.vattype">Add TAX</a>
+                <a class="btn btn-default" btn-radio="'includevat'" ng-model="object.commerce.billing.vattype">Price Included Tax</a>
+
+            </div>
+
+            <div class="form-group">
+
+                <div class="input-group">
+                    <input type="number" class="form-control" placeholder="VAT/TAX/GST Percentage" ng-model="object.commerce.billing.vatpercent">
+                    <span class="input-group-addon" id="basic-addon2">%</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <h2>Fees</h2>
+
+            <input type="number" title="Credit Card Rate"
+                   ncb-textbox ng-model="object.commerce.creditCardRate" />
+
+            <input type="number" title="Flat Shipping Fee"
+                   ncb-textbox ng-model="object.commerce.shipping.fee" />
+
+            <input type="number" title="Flat Insurance Rate"
+                   ncb-textbox ng-model="object.commerce.shipping.insuranceRate" />
+        </div>
+
+        <div class="col-md-4 "
+             ncg-currencylist>
+
+            <h2>Multi-Currency</h2>
+            <select ng-model="object.commerce.multicurrency.home" disabled
+                    ncb-select title="Home Currency">
+                <option ng-repeat="currency in currencyList"
+                        ng-selected="{{currency.code == object.commerce.multicurrency.home}}"
+                        value="{{currency.code}}">{{currency.code}} - {{currency.name}}</option>
+            </select>
+
+            <alert type="warning">
+                Changing home currency is not yet possible in current release.
+            </alert>
+
+            <div class="form-group"
+                 ncb-listeditor target="object.commerce.multicurrency.available">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Available Currencies</th>
+                            <th width="30px"></th>
+                        </tr>
+                    </thead>
+                    <tr ng-repeat="currency in object.commerce.multicurrency.available">
+                        <td>
+                            <p class="form-control-static">
+                                {{currency}}
+                            </p>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger"
+                                    ng-click="remove(currency)"><i class="fa fa-remove"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <select ng-model="newItem" class="form-control">
+                                <option ng-repeat="currency in currencyList"
+                                        value="{{currency.code}}">
+                                    {{currency.code}} - {{currency.name}}
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-success"
+                                    ng-click="add()">
+                                <i class="fa fa-plus-circle"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <h2>Branding</h2>
+            <div class="row">
+                <div class="col-xs-4">
+                    <img ng-src="{{object.commerce.branding.logo}}"
+                         style="height: 135px; margin-bottom: 15px;" />
+                </div>
+                <div class="col-xs-6 printform">
+
+                    <h1 id="header"
+                        ng-style="{ 'background-color' : object.commerce.branding.bgcolor, color : object.commerce.branding.fgcolor }">
+                        Header
+                    </h1>
+
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Billing Logo</label>
+                <input type="file" class="form-control" id="logouploader" />
+            </div>
+
+            <input type="text" title="Header Background Color"
+                   ncb-textbox ng-model="object.commerce.branding.bgcolor" />
+
+            <input type="text" title="Header Text Color"
+                   ncb-textbox ng-model="object.commerce.branding.fgcolor" />
+
+            <input type="text" title="Accent Text Color"
+                   ncb-textbox ng-model="object.commerce.branding.accentcolor" />
+        </div>
+
+
+        <div class="col-md-4">
+
+            <h2>Email Notification</h2>
+
+            <input type="text" title="Send Notifications to"
+                   ncb-textbox ng-model="object.commerce.email.notification" />
+        </div>
+
+    </div>
+
+
+</div>
+
+@section Script
+{
+    <script>
+
+        (function () {
+
+            var module = angular.module('SiteSettingsModule', []);
+
+            module.controller("SiteSettingsController", function ($scope, $rootScope, $http ) {
+
+                var $me = this;
+
+                $scope.object = @this.Html.Raw(this.GetJson(this.Site));
+                $scope.alerts = [];
+
+                $me.save = function() {
+
+                    $http.post( '/Admin/sitesettings/current', $scope.object )
+                        .success( function() {
+
+                            $scope.alerts.push( { type: 'success', msg: 'Settings Saved.'});
+                        })
+                        .error ( function( data ) {
+
+                            $scope.alerts.push( { type: 'danger', msg: 'Save Failed.' + data});
+                        });
+
+                };
+
+                $scope.data = {};
+                $("#logouploader").on("change", function (e) {
+
+                    var files = $("#logouploader")[0].files;
+
+
+                    var targetUrl = "/admin/commerce/api/uploadlogo";
+
+                    var fd = new FormData();
+                    fd.append("fileToUpload", files[0]);
+                    fd.append("attachmentType", "UserUpload");
+
+                    $scope.data.uploadProgress = 0;
+                    $scope.data.uploadStatus = "uploading";
+
+                    var req = $.ajax({
+                        url: targetUrl,
+                        type: "POST",
+                        data: fd,
+                        processData: false,
+                        contentType: false,
+                        xhr: function () {
+                            var req = $.ajaxSettings.xhr();
+                            if (req) {
+                                req.upload.addEventListener('progress', function (event) {
+                                    if (event.lengthComputable) {
+                                        var percent = event.loaded / event.total * 100;
+                                        if (percent % 10 > 5) {
+
+                                            $scope.$apply(function () {
+                                                $scope.data.uploadProgress = percent;
+                                                $scope.data.uploading = true;
+                                            });
+                                        }
+                                    }
+                                }, false);
+                            }
+                            return req;
+                        },
+                    });
+
+                    req.done(function (result) {
+
+                        $scope.$apply(function () {
+
+                            if ($scope.object.commerce.branding == null) {
+                                $scope.object.commerce.branding = {};
+                            }
+
+                            $scope.object.commerce.branding.logo = result;
+                            $scope.alerts.push({
+
+                                type: 'success',
+                                msg: 'Logo was uploaded'
+                            });
+
+                            $me.save();
+
+                        });
+                    });
+
+                    req.fail(function (jqXHR, jqXHR, textStatus) {
+
+                        $scope.$apply(function () {
+                            $scope.alerts.push({
+
+                                type: 'danger',
+                                msg: 'Upload failed:' + textStatus
+
+                            });
+                        });
+                    });
+
+                });
+            });
+
+        })();
+    </script>
+}

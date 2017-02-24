@@ -1,0 +1,13 @@
+﻿<p ncb-formstatic title="title">
+    <select ng-model="tempDate"
+            ng-options="item for item in oneTo31"
+            ng-change="date.setDate(tempDate)"></select>
+
+    <select ng-model="tempMonth"
+            ng-options="item for item in oneTo12"
+            ng-change="date.setMonth(tempMonth)"></select>
+
+    <select ng-model="tempYear"
+            ng-options="item for item in years"
+            ng-change="date.setYear(tempYear)"></select>
+</p>

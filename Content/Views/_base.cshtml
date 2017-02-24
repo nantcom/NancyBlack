@@ -1,0 +1,35 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_base_plain";
+}
+
+@section Head {
+
+    @this.RenderSection("Head", false)
+}
+
+@section Style {
+
+    <link href="/NancyBlack/Content/ncb-dependencies.css" rel="stylesheet" />
+
+    <style>
+        .modal-backdrop {
+            position: fixed;
+        }
+    </style>
+
+    @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.Css)
+
+    @this.RenderSection("Style", false)
+}
+
+@section Scripts {
+    @RenderSection("Scripts", false)
+}
+
+@section Script {
+    @RenderSection("Script", false)
+}
+
+
+@RenderBody()

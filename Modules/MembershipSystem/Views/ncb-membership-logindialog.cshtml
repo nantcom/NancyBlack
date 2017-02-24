@@ -1,0 +1,121 @@
+﻿
+<div ng-controller="MemberShip-LoginController as ctrl"
+     ng-cloak>
+
+
+    <ncb-modal id="loginDialog" sm
+               title="Hello!"
+               class="login-dialog"
+               ng-init="mode = 'login'">
+
+        <div ng-show="membership.currentUser.Id != 0">
+
+            <p>
+                Hello, {{membership.currentUser.Profile.Name}}.
+                You already logged in.
+            </p>
+        </div>
+
+        <div ng-show="membership.currentUser.Id == 0">
+
+            <p>
+                Login or signup over here!
+            </p>
+
+            <form name="LoginForm">
+
+                <input ncb-textbox required
+                       type="email"
+                       title="Email"
+                       ng-model="login.email" />
+
+                <input ncb-textbox required
+                       type="password"
+                       title="Password"
+                       ng-model="login.password" />
+
+                <div ng-show="mode == 'register'">
+
+                    <input ncb-textbox
+                           type="password"
+                           title="Confirm Password"
+                           ng-model="login.passwordConfirm" />
+                </div>
+
+            </form>
+
+            <div style="margin-top: 10px">
+                <alert ng-repeat="alert in membership.alerts"
+                       type="{{alert.type}}"
+                       close="membership.closeAlert($index)">
+                    {{alert.msg}}
+                </alert>
+            </div>
+        </div>
+
+        <ncb-footer>
+
+            <div ng-show="membership.currentUser.Id == 0">
+
+                <p class="form-control-static"
+                   ng-show="mode == 'register'">
+
+                    <a href="#"
+                       ng-click="mode = 'login'">
+                        want to login?
+                    </a>
+                </p>
+                <p class="form-control-static"
+                   ng-show="mode == 'login' && login.email != null">
+
+                    <a href ng-click="ctrl.forget()">
+                        forget password?
+                    </a>
+                </p>
+                <button class="btn btn-primary btn-block fblogin"
+                        ng-show="mode != 'register'"
+                        ng-click="ctrl.loginfacebook()">
+                    <i class="fa fa-facebook-official"></i>
+                    Login with Facebook
+                </button>
+                <button class="btn btn-primary btn-block"
+                        ng-show="mode != 'register'"
+                        ng-click="ctrl.login()"
+                        style="margin-top: 10px">
+                    <i class="ion-ios-unlocked-outline"></i>
+                    Login
+                </button>
+                <button class="btn btn-success btn-block"
+                        ng-show="mode != 'register'"
+                        ng-click="mode = 'register'">
+                    <i class="ion-ios-personadd-outline"></i>
+                    Register
+                </button>
+                <button class="btn btn-success btn-block"
+                        ng-show="mode == 'register'"
+                        ng-disabled="login.password == null || login.email == null || login.password != login.passwordConfirm"
+                        ng-click="ctrl.register()">
+                    <i class="ion-ios-personadd-outline"></i>
+                    Register
+                </button>
+
+            </div>
+
+            <div ng-show="membership.currentUser.Id != 0">
+
+                <a class="btn btn-success btn-block"
+                   href="/__membership/enroll">
+                    <i class="ion-ios-locked"></i>
+                    Activate Permission
+                </a>
+                <a class="btn btn-warning btn-block"
+                   href="/__membership/logout">
+                    <i class="ion-ios-unlocked-outline"></i>
+                    Logout
+                </a>
+            </div>
+        </ncb-footer>
+
+    </ncb-modal>
+
+</div>

@@ -1,0 +1,290 @@
+@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Title
+    {
+    Administration - InventoryMovement
+}
+
+@section Script
+{
+
+    <script>
+        (function () {
+            
+            window.data = @this.Html.Raw(this.GetJson(this.Model.Data));
+            var mod = angular.module("page", []);
+            mod.controller("PageController", function ($scope, $rootScope, $timeout) {
+
+                var $me = this;
+
+                $me.create = function () {
+
+                    $("#InventoryMovementModal").modal("show");
+                    $scope.object = {
+                        MovementDate: new Date()
+                    };
+                };
+
+                $scope.currentStocks = window.data.CurrentStocks;
+
+                $rootScope.$on("inserted", function (e, args) {
+
+                    //$("#InventoryMovementModal").modal("hide");
+
+                    //$timeout(function () {
+
+                    //    var temp = JSON.parse(JSON.stringify(args.args));
+                    //    delete temp.id;
+
+                    //    $scope.object = temp;
+                    //    $scope.$apply();
+                    //    $("#InventoryMovementModal").modal("show");
+
+                    //}, 1000);
+
+
+                });
+
+            });
+
+        })();
+    </script>
+
+}
+
+<div ncb-datacontext table="InventoryMovement"
+     ng-module="page" ng-controller="PageController as ctrl">
+
+    <h1 class="page-header">
+        Inventory Manager
+        <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+    </h1>
+
+    <div style="margin-bottom: 30px">
+        This page helps you tracks Inventory Changes. <b>When edit id, the lookup field will not be changed until refresh the page.</b>
+    </div>
+
+    <div>
+        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">
+            {{alert.msg}}
+        </alert>
+    </div>
+
+    <tabset>
+        <tab heading="Movement">
+            <div class="pull-right">
+                <a class="btn btn-primary" href="/tables/InventoryMovement.xlsx" target="_blank">
+                    <i class="fa fa-download"></i>
+                    <span>
+                        Excel
+                    </span>
+                </a>
+
+                <button class="btn btn-success pull-right"
+                        ng-click="ctrl.create()">
+                    <span class="glyphicon glyphicon-plus-sign"></span>
+                    <span>
+                        Inventory Change
+                    </span>
+                </button>
+            </div>
+
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="InventoryMovementModal">
+            </ncb-ngtable>
+
+            <ncb-modal id="InventoryMovementModal"
+                       title="{{object.id == null ? 'Create Movement' : 'Edit Movement id ' + object.id}}"
+                       closebutton
+                       deletebutton="object.id != null">
+
+                <form role="form" name="InventoryMovementForm">
+
+                    <tabset>
+                        <tab heading="General">
+
+                            <div class="form-group form-group-lg"
+                                 ncb-lookupscope
+                                 table="Product" labelpath="Title" filter="$filter=(HasVariation eq 0 or IsVariation eq 1) and startswith(Title,$key)">
+
+                                <label class="control-label" for="ProductId">
+                                    Product
+                                    <i class="fa fa-spin fa-circle-o-notch"
+                                       ng-show="isBusy"></i>
+                                </label>
+
+                                <ui-select theme="bootstrap" ng-model="object.ProductId"
+                                           reset-search-input="false">
+                                    <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                    <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                       refresh="refreshLookup($select.search)"
+                                                       refresh-delay="0">
+                                        <span>id {{item.Id}} : {{item.label}}</span>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+
+                            <div class="form-group row">
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="ProductId"
+                                           ncb-textbox
+                                           ng-model="object.ProductId" />
+                                </div>
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="Change"
+                                           ncb-textbox
+                                           ng-model="object.Change" />
+                                </div>
+
+                            </div>
+
+                            <div class="form-group row">
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="PurchaseOrderId"
+                                           ncb-textbox
+                                           ng-model="object.PurchaseOrderId" />
+                                </div>
+
+                                <div class="col-xs-6">
+                                    <input type="number" title="SaleOrderId"
+                                           ncb-textbox
+                                           ng-model="object.SaleOrderId" />
+                                </div>
+
+                            </div>
+
+                            <div class="form-group row">
+
+                                <div class="col-xs-12">
+                                    <input type="text" title="Note"
+                                           ncb-textbox
+                                           ng-model="object.Note" />
+                                </div>
+
+                            </div>
+
+                        </tab>
+                    </tabset>
+
+                </form>
+
+                <ncb-footer>
+                    <button class="btn btn-primary btn-lg"
+                            ng-click="data.save(object);">
+                        <span ng-show="object.id == null">Create</span>
+                        <span ng-show="object.id != null">Save</span>
+                    </button>
+                </ncb-footer>
+            </ncb-modal>
+        </tab>
+        <tab heading="Current Stock">
+            <table class="table table-striped table-hover"
+                   style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>
+                            CheckingDate
+                        </th>
+                        <th>
+                            Product
+                        </th>
+                        <th>
+                            Stock
+                        </th>
+                        <th>
+                            UpdateFrom
+                        </th>
+                        <th>
+                            TransactionsId
+                        </th>
+                    </tr>
+                </thead>
+
+                <tr ng-repeat="stock in currentStocks">
+                    <td>
+                        {{stock.SummaryDate | date:'dd/MM/yyyy, HH:mm' }}
+                    </td>
+                    <td>
+                        Id {{stock.ProductId}} : <span ncb-vlookup="product" key="{{stock.ProductId}}"></span>
+                    </td>
+                    <td>
+                        {{stock.Stock }}
+                    </td>
+                    <td>
+                        {{stock.LastSummaryId}}
+                    </td>
+                    <td>
+                        <ul>
+                            <li ng-repeat="transactionId in stock.MovementTransactionsId">{{transactionId}}</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </tab>
+    </tabset>
+
+
+    <script type="text/ng-template" id="tablecustomtemplate.html">
+
+        <table id="NcbNgTable"
+               ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+
+                <td data-title="'MovementDate'"
+                    sortable="'MovementDate'">
+                    {{item.MovementDate | date:'dd/MM/yyyy' }}
+                </td>
+                <td data-title="'Product'"
+                    sortable="'ProductId'"
+                    filter="{ 'ProductId': 'text' }">
+                    Id {{item.ProductId}} : <span ncb-vlookup="product" key="{{item.ProductId}}"></span>
+                </td>
+                <td data-title="'Purchase Order'"
+                    sortable="'PurchaseOrderId'"
+                    filter="{ 'PurchaseOrderId': 'text' }">
+                    <a href="/admin/tables/purchaseorder" target="_blank">
+                        <span ncb-vlookup="purchaseorder" key="{{item.PurchaseOrderId}}" label="PurchaseOrderIdentifier">
+                        </span>
+                    </a>
+                </td>
+                <td data-title="'Sale Order'"
+                    sortable="'SaleOrderId'"
+                    filter="{ 'SaleOrderId': 'text' }">
+                    <a href="/admin/tables/saleorder/{{item.SaleOrderId}}" target="_blank">
+                        <span ncb-vlookup="saleorder" key="{{item.SaleOrderId}}" label="SaleOrderIdentifier">
+                        </span>
+                    </a>
+                </td>
+                <td data-title="'Change'"
+                    sortable="'Change'">
+                    {{item.Change }}
+                </td>
+                <td data-title="'Note'"
+                    sortable="'Note'"
+                    filter="{ 'Note': 'text' }">
+                    {{item.Note}}
+                </td>
+                <td style="white-space: nowrap">
+                    <button class="btn btn-info"
+                            data-toggle="modal" data-target="#InventoryMovementModal"
+                            ng-click="data.view(item)">
+                        <i class="fa fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+
+</div>

@@ -1,0 +1,36 @@
+﻿<div ng-include="tableTemplateId"></div>
+
+<div ng-if="tableTemplateId == null">
+    <table id="NcbNgTable" 
+           ncb-datatable
+           class="table table-striped table-hover"
+           style="width: 100%"
+           ng-table-dynamic="tableParams with cols"
+           show-filter="true">
+
+        <tr ng-repeat="row in tableParams.data">
+            <td ng-repeat="col in $columns">
+                <span ng-if="col.datatype == 'DateTime'">
+                    {{row[col.field] | date:'medium'}}
+                </span>
+                <span ng-if="col.datatype == 'String'">
+                    {{row[col.field]}}
+                </span>
+                <span ng-if="col.datatype == 'Int32'">
+                    {{row[col.field]}}
+                </span>
+                <span ng-if="col.datatype == 'Actions'"
+                      style="white-space: nowrap" class="commandColumn">
+
+                    <button class="btn btn-info"
+                            data-toggle="modal" data-target="#{{modalId}}"
+                            ng-click="data.view(row)">
+                        <i class="fa fa-edit"></i>
+                    </button>
+
+                </span>
+            </td>
+        </tr>
+
+    </table>
+</div>

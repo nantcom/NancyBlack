@@ -1,0 +1,35 @@
+﻿<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"
+     data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <button type="button"
+                        class="close text-warning ncb-modal-delete"
+                        style="margin-right: 10px">
+                    <span class="glyphicon glyphicon-trash"></span>
+                </button>
+                <h2 class="modal-title"></h2>
+            </div>
+            <div class="modal-body">
+
+                <div ng-transclude></div>
+
+                <div style="margin-top: 10px">
+                    <alert ng-repeat="alert in alerts"
+                           type="{{alert.type}}"
+                           close="closeAlert($index)">
+                        {{alert.msg}}
+                    </alert>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>

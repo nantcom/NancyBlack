@@ -1,0 +1,27 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+<div ng-controller="MemberShip-ProfileController as ctrl"
+     ng-cloak>
+    <ncb-modal id="profileDialog"
+               class="profile-dialog">
+
+        <tabset>
+            <tab heading="ข้อมูลทั่วไป">
+                @this.Html.Partial("ncb-membership-profiledialog-userprofile")
+            </tab>
+        </tabset>
+
+
+        <div style="margin-top: 10px">
+            <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
+        </div>
+
+        <ncb-footer>
+            <button class="btn btn-success btn-lg"
+                    ng-click="ctrl.save()">
+                Save
+            </button>
+
+        </ncb-footer>
+    </ncb-modal>
+</div>

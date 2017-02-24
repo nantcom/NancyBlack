@@ -1,0 +1,10 @@
+﻿<div>
+    <a id="cartbutton" href="#"
+       ng-click="viewCart($event)">
+        <i class="ion-ios-cart-outline"></i>
+        <span class="counter">
+            {{shoppingcart.cart.items.length}}
+        </span>
+    </a>
+    <div ng-include="modalsource"></div>
+</div>

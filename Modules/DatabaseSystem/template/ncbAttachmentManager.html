@@ -1,0 +1,47 @@
+﻿<div>
+    
+    <div class="uploader"
+         ng-show="attachmentManager.readonly == false">
+        <div class="uploadprogress"
+             ng-class="{ 'success' : (data.uploadStatus == 'success') }"></div>
+        <i class="ion-ios-plus-outline"></i>
+    </div>
+    <ul class="filelist"
+        sv-root sv-part="object.Attachments"
+        sv-on-sort="attachmentManager.reorder()">
+        
+        <li ng-repeat="item in object.Attachments | filter:attachmentManager.includes"
+            ng-click="attachmentManager.view(item)"
+            sv-element>
+
+            <i class="ion-ios-photos-outline">
+            </i>
+
+            <img ncb-resize="{{item.Url}}" width="80" />
+            <div sv-handle ng-if="attachmentManager.readonly == true"></div> 
+        </li>
+    </ul>
+    <ncb-modal class="attachmentView" closebutton
+               deletebutton="attachmentManager.readonly == false"
+               ondelete="attachmentManager.delete(viewing)"
+               title="Attachment">
+
+        <img ncb-resize="viewing.Url" width="500" />
+
+        <div>
+
+            <input type="text" placeholder="type" maxlength="25"
+                   ng-change="attachmentManager.save(viewing)"
+                   ncb-textbox ng-model="viewing.AttachmentType"/>
+
+        </div>
+
+        <ncb-footer>
+            <button ng-show="selecttext != null" 
+                    ng-click="onattachmentselect(viewing)"
+                    class="btn btn-default">
+                {{selecttext}}
+            </button>
+        </ncb-footer>
+    </ncb-modal>
+</div>

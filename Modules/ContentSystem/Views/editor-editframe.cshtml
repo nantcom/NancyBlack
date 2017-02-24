@@ -1,0 +1,597 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_base";
+
+}
+
+@{
+    var localeSuffix = "";
+    if (!string.IsNullOrEmpty(this.Language))
+    {
+        localeSuffix = "_" + this.Language;
+    }
+}
+
+
+@section Title
+{
+    NancyWhite
+}
+
+@section Head
+{
+    <link href="/NancyBlack/Modules/ContentSystem/Views/editor-editframe.min.css" rel="stylesheet" />
+    <style>
+        .tags {
+           display: inline-block;
+           margin-bottom: 5px;
+        } 
+
+        .tags .tag {
+           display: inline-block;
+           margin-right: 5px;
+           font-size: 13px;
+        }
+  
+        .tag .close {
+           font-size: 14px;
+           margin-left: 5px;
+        }
+    </style>
+}
+
+@section Script
+{
+    <script>
+        window.sitesettings = @this.Html.Raw( this.GetJson(this.Site) );
+
+    </script>
+    <script src="/NancyBlack/Content/Scripts/angular-animate.min.js"></script>
+    <script src="/NancyBlack/Content/Scripts/ckeditor/ckeditor.js"></script>
+    <script src="/NancyBlack/Modules/ContentSystem/Views/angular-sortable-view.js"></script>
+    <script src="/NancyBlack/Modules/ContentSystem/Views/editor-editframe.js"></script>
+
+}
+
+<script type="text/ng-template" id="editframe-homemenu.html">
+
+    <div id="mainmenu">
+        <h1>
+            Nancy<span>White</span>
+        </h1>
+        <ul>
+            <li ng-class="{ 'disabled' : siteView.areas.length == 0}">
+                <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
+            </li>
+            <li>
+                <a ng-click="switchMenu( $event, 'editframe-attachments.html')">Attachments</a>
+            </li>
+            <li>
+                <a ng-click="switchMenu( $event, 'editframe-pagelayout.html')">Layout</a>
+            </li>
+            <li>
+                <a ng-click="switchMenu( $event, 'editframe-pagesettings.html')">
+                    Settings &amp; SEO
+                </a>
+            </li>
+            <li ng-class="{ 'disabled' : siteView.collections == null || siteView.collections.length == 0}">
+                <h2>List</h2>
+            </li>
+            <li ng-repeat="col in siteView.collections">
+                <a href="#"
+                   ng-click="globals.activecollection=col;switchMenu( $event, 'editframe-pages.html')">{{col.name}}</a>
+            </li>
+        </ul>
+        <ul>
+            <li>
+                <h2>Site</h2>
+            </li>
+
+            <li ng-class="{ 'disabled' : siteView.themeareas.length == 0}">
+                <a ng-click="switchMenu( $event, 'editframe-themecontents.html')">Theme Content</a>
+            </li>
+            <li>
+                <a ng-click="globals.activecollection={ url: '/', table: 'page', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">
+                    Main Pages
+                </a>
+            </li>
+            <li>
+                <a ng-click="globals.activecollection={ url: '/__/', table: 'page', layout: 'content' }; switchMenu( $event, 'editframe-pages.html')">
+                    System Pages
+                </a>
+            </li>
+            <li>
+                <a ng-click="switchMenu( $event, 'editframe-siteseo.html')">SEO</a>
+            </li>
+            <li>
+                <a ng-click="switchMenu( $event, 'editframe-apikeys.html')">API Keys</a>
+            </li>
+        </ul>
+    </div>
+</script>
+
+<script type="text/ng-template" id="editframe-pagecontents.html">
+
+    <div class="editableList"
+         ng-controller="NcbPageContent as ctrl">
+        <h1>CONTENT</h1>
+        <h2>Blocks:</h2>
+        <ul>
+            <li ng-repeat="item in siteView.areas">
+
+                <a ng-click="ctrl.edit($event,item)"
+                   ng-mouseenter="ctrl.hoverarea(item)"
+                   ng-mouseleave="ctrl.hoverarea(item)">
+                    <i class="ion-ios-paper-outline"></i>
+                    {{item.name}}
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-themecontents.html">
+
+    <div class="editableList"
+         ng-controller="NcbThemeContent as ctrl">
+        <h1>THEME CONTENT</h1>
+        <h2>Blocks:</h2>
+        <ul>
+            <li ng-repeat="item in siteView.themeareas">
+
+                <a ng-click="ctrl.edit($event,item)"
+                   ng-mouseenter="ctrl.hoverarea(item)"
+                   ng-mouseleave="ctrl.hoverarea(item)">
+                    <i class="ion-ios-paper-outline"></i>
+                    {{item.name.replace('Theme_', '')}}
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-pagelayout.html">
+
+    <div ncb-datacontext-integrated table="{{currentTable}}"
+         ng-controller="NcbPageLayoutEdit as ctrl">
+        <h1>Layout</h1>
+        <h3>choose the available layouts for this content. changes are automatically saved.</h3>
+        <ul>
+            <li ng-repeat="item in layouts">
+
+                <a ng-click="ctrl.changelayout($event,item)"
+                   ng-class="{ 'text-success' : currentContent.Layout == item }">
+                    <i class="ion-grid"></i>
+                    {{item}}
+                </a>
+            </li>
+        </ul>
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-pagesettings.html">
+
+    <div ncb-datacontext-integrated table="{{currentTable}}"
+         ng-controller="NcbPagePropertyEdit as ctrl">
+        <h1>Settings &amp; SEO</h1>
+
+        <input type="text" ncb-textbox title="Title"
+               placeholder="Shows in tab title"
+               ng-model="object.Title" />
+
+        <h3>
+            Title of the page, this may be used internally by system.
+        </h3>
+
+        <input type="number" ncb-textbox title="Display Order"
+               placeholder="0"
+               ng-model="object.DisplayOrder" />
+
+        <h3>
+            Display Order, use number less than 0 to hide from list.
+        </h3>
+
+        <ncb-modal id="attributesEditor" lg title="Edit Attributes">
+
+            <div>
+                <tabset>
+
+                    <tab heading="Attributes">
+
+                        <table class="table"
+                                style="margin-top: 10px"
+                               ncb-attributeeditor table="currentTable" target="object.Attributes">
+                            <thead>
+                                <tr>
+                                    <th style="width: 150px">Attribute</th>
+                                    <th>Value</th>
+                                    <th style="width: 30px"></th>
+                                </tr>
+                            </thead>
+                            <tr ng-repeat="(key,value) in target">
+                                <td>
+                                    {{key}}
+                                </td>
+                                <td>
+                                    {{value}}
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger"
+                                            ng-click="remove(key)"
+                                            ng-hide="object.IsVariation">
+                                        <i class="fa fa-remove"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="text" ncb-textbox
+                                           ng-model="newItem.Key"
+                                           typeahead="n for n in defaultAttributes | filter:$viewValue | limitTo:8" />
+                                </td>
+                                <td>
+                                    <input type="text" ncb-textbox
+                                           ng-model="newItem.Value" />
+
+                                </td>
+                                <td>
+                                    <button class="btn btn-success"
+                                            ng-click="add()">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </tab>
+
+                    <tab heading="Tags">
+                        
+                        <div style="margin-top: 10px">
+
+                            <ncb-tagmanager target="object.Tags"
+                                            table="currentTable"></ncb-tagmanager>
+
+                            <h3 style="margin-top: 15px">
+                                Tags use for categorize related subject together. use ',' for sapperate tag. ex: home,office,condo
+                            </h3>
+
+                        </div>
+
+                    </tab>
+
+                </tabset>
+
+            </div>
+
+            <ncb-footer>
+
+                <button class="btn btn-primary"
+                        onclick="$('#attributesEditor').modal('hide')">
+                    Close
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+
+        <button class="btn btn-primary"
+                onclick="$('#attributesEditor').modal('show')">Attributes and Tags</button>
+
+        <h3 style="margin-top: 10px">
+            Attributes are special descriptor of an item. Tags are used to categorize the item.
+        </h3>
+
+        <h2>SEO:</h2>
+
+        <input type="text" ncb-textbox title="Title"
+               placeholder="Shows in tab title"
+               ng-model="object.SEOTranslations.Title@(localeSuffix)" />
+
+        <h3>
+            Title of the page, vary by language
+        </h3>
+
+        <input type="text" ncb-textbox title="Meta Keywords"
+               placeholder="keywords to describe this page"
+               ng-model="object.SEOTranslations.MetaKeywords@(localeSuffix)" />
+
+        <textarea type="text" ncb-textbox title="Meta Description"
+                  placeholder="description about this page"
+                  rows="5" ng-model="object.SEOTranslations.MetaDescription@(localeSuffix)"></textarea>
+
+        <h3>
+            meta tags were beleived to help you with search engine ranking -
+            although its effectiveness still a myth.
+            [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
+        </h3>
+
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-editcontent.html">
+
+    <div ng-controller="NcbContentEditor as ctrl">
+        <h1>Content editor</h1>
+        <h2 style="text-transform: none">
+            <i class="ion-ios-paper-outline"></i>
+            {{editing.name}}
+        </h2>
+        <h3>
+            edit the content hilighted, click save when done.
+        </h3>
+        <h3>
+            <button class="btn btn-danger"
+                    ng-click="ctrl.reset()">
+                Reset to default
+            </button>
+        </h3>
+
+        <div ng-include="'editframe-attachments.html'"></div>
+    </div>
+</script>
+
+<script type="text/ng-template" id="editframe-attachments.html">
+
+    <div ncb-datacontext-integrated table="{{currentTable}}"
+         ng-controller="NcbAttachments as ctrl">
+
+        <h2>
+            Attachments
+        </h2>
+        <h3>
+            files, pictures related with this page.
+            drop file into the following button to save it to server.
+        </h3>
+        <ncb-attachmentmanager onselect="ctrl.addToContentBlock" selecttext="Insert">
+        </ncb-attachmentmanager>
+    </div>
+</script>
+
+<script type="text/ng-template" id="editframe-siteseo.html">
+
+    <div ncb-datacontext-integrated table="sitesettings"
+         ng-controller="NcbSiteSettingsEdit as ctrl">
+        <h1>SITE</h1>
+        <h2>SEO:</h2>
+        <h3>
+            edit meta tags, which were beleived to help you with search engine ranking -
+            although it is still a myth on its effectiveness.
+            [<a href="https://en.wikipedia.org/wiki/Meta_element" target="_blank">why?</a>]
+        </h3>
+
+
+        <input type="text" ncb-textbox title="Meta Keywords"
+               placeholder="keywords to describe this page"
+               ng-model="object.seo.MetaKeywords@(localeSuffix)" />
+
+        <textarea type="text" ncb-textbox title="Meta Description"
+                  placeholder="description about this page"
+                  rows="5" ng-model="object.seo.MetaDescription@(localeSuffix)"></textarea>
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-apikeys.html">
+
+    <div ncb-datacontext-integrated table="sitesettings"
+         ng-controller="NcbSiteSettingsEdit as ctrl">
+        <h1>SITE</h1>
+        <h2>API Keys</h2>
+
+        <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
+               ncb-textbox ng-model="object.application.GoogleAnalyticsId" />
+        <h3>
+            google analytics tracking code (eg: UA-XXX) is an identifier for tracking
+            page view using google analytics services.
+        </h3>
+
+        <input type="text" title="Facebook Application Id"
+               ncb-textbox ng-model="object.application.FacebookAppId" />
+        <h3>
+            facebook application id is used by various facebook social plugins.
+        </h3>
+
+    </div>
+
+</script>
+
+<script type="text/ng-template" id="editframe-pages.html">
+
+    <div ncb-datacontext-integrated table="{{collection.table}}"
+         ng-controller="NcbPageEdit as ctrl">
+        <h1>
+            {{itemwording}}s
+            <span ng-show="rootUrl != '/'">
+                under:
+            </span>
+            <span ng-show="rootUrl != '/'"
+                  class="text-muted">
+                <br />
+                <span ng-repeat="part in rootUrl.substring(1).split('/')">
+                    /{{part}}<br/>
+                </span>
+            </span>
+        </h1>
+        <h2 ng-show="collection != null && collection.table.toLowerCase() != 'page'">
+            Type: {{collection.table}}
+        </h2>
+        <h3 ng-show="collection != null && collection.table.toLowerCase() != 'page'">
+            the item is created in {{collection.table}} table.
+            which can be accessed by: <a ng-href="/Admin/tables/{{collection.name}}" target="_blank">Admin Interface</a>
+        </h3>
+
+        <ul class="pages"
+            sv-root sv-part="pages" sv-on-sort="ctrl.update()">
+            <li>
+                <a ng-click="ctrl.add($event)">
+                    <i class="ion-ios-plus-outline"></i>
+                    new {{itemwording}}
+                </a>
+                <a ng-click="ctrl.massadd($event)">
+                    <i class="ion-ios-plus-outline"></i>
+                    lots of new {{itemwording}}s
+                </a>
+            </li>
+            <li ng-repeat="item in pages" sv-element="opts">
+                <div>
+                    <a ng-click="ctrl.delete($event, item)"
+                       ng-show="item.Url != '/' && item.Url.indexOf('/__/') != 0"
+                       class="leftaction">
+                        <i class="ion ion-ios-trash-outline"></i>
+                    </a>
+
+                    <i class="ion ion-ios-bookmarks-outline hideover"></i>
+
+                    <img ncb-resize="{{item.Attachments[0].Url}}" height="200" />
+
+                    {{item.Title}}
+
+                    <a ng-click="ctrl.view($event, item)"
+                       class="rightaction">
+                        <i class="ion-android-open"></i>
+                    </a>
+                </div>
+            </li>
+        </ul>
+
+        <ncb-modal id="newitemmodal" closebutton
+                   title="Create new Page">
+
+            <input type="text" title="Title"
+                   ng-model="newItem.Title"
+                   ncb-textbox />
+
+            <div>
+                <p>
+                    <b>The URL for this page will be:</b><br />
+                    <span ng-show="rootUrl == '/'">
+                        {{ rootUrl + ctrl.convertToSlug( newItem.Title )}}
+                    </span>
+                    <span ng-show="rootUrl != '/'">
+                        {{ rootUrl + '/' + ctrl.convertToSlug( newItem.Title )}}
+                    </span>
+
+                </p>
+                <p>
+                    In order to make your search rank better, make sure you have a readable url.
+                </p>
+                <p ng-show="isBusy">
+                    <i class="fa fa-spin fa-circle-o-notch"></i>
+                    checking for duplicates...
+                </p>
+            </div>
+
+            <ncb-footer>
+                <button class="btn btn-success"
+                        ng-disabled="isBusy || newItem.Title == null || newItem.Title == ''"
+                        ng-click="ctrl.commitAdd()">
+                    Create
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+
+        <ncb-modal id="massnewitemmodal" closebutton
+                   title="Mass Add">
+
+            Drag and drop pictures in to the area below to quickly add new {{itemwording}}
+            for each dropped picture. You will be able to change url of each
+            later.
+
+            <div ncb-dropable whendrop="ctrl.massAddUsingFiles">
+                <i class="ion-ios-plus-outline"></i>
+            </div>
+
+        </ncb-modal>
+
+    </div>
+
+</script>
+
+<div id="editframe" class="loading"
+     ng-module="editor-frame"
+     ng-controller="NancyWhite as ctrl">
+
+    <div id="menu">
+        <div>
+            <a class="backbutton" href="#"
+                ng-click="ctrl.goback($event)"
+                ng-cloak
+                ng-show="menu.stack.length > 1">
+                <i class="ion-ios-arrow-thin-left"></i>
+                {{menu.backbuttonText}}
+            </a>
+            <a class="pull-right" href="#"
+                ng-click="ctrl.cancel($event)"
+                ng-cloak
+                ng-show="menu.altbuttonText != null">
+                {{menu.altbuttonText}}
+            </a>
+        </div>
+        <div id="menucontent">
+            <div ng-include="menu.content">
+            </div>
+        </div>
+
+        <i id="menuloading" class="fa fa-spin fa-circle-o-notch fa-2x"></i>
+    </div>
+
+    <div id="siteContent">
+        <div ncb-fillheight offset="-20"
+             ncb-fillwidth="-260">
+            <div id="toolbarcontainer">
+                <div id="toolbar1">
+
+                </div>
+                <div id="toolbar2">
+
+                </div>
+            </div>
+            <div>
+                <iframe id="siteview" name="siteview"></iframe>
+            </div>
+            <div id="toggleview">
+                <a href="#" ng-click="ctrl.view(375, $event)">
+                    <i class="ion-iphone"></i>
+                </a>
+                <a href="#" ng-click="ctrl.view(768, $event)">
+                    <i class="ion-ipad"></i>
+                </a>
+                <a href="#" ng-click="ctrl.view(1200, $event)">
+                    <i class="ion-laptop"></i>
+                </a>
+                <a href="#" ng-click="ctrl.view('none', $event)">
+                    <i class="ion-monitor"></i>
+                </a>
+
+                <div class="pull-right">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="currentUrl">
+                        <span class="input-group-btn">
+
+                            <button class="btn btn-default" ng-click="reloadSiteView(currentUrl)">
+                                <i class="fa fa-refresh"></i>
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="working">
+        <div>
+            <i class="fa fa-spin fa-circle-o-notch fa-3x"></i>
+            <div>working on it...</div>
+
+        </div>
+    </div>
+</div>

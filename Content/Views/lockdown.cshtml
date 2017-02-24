@@ -1,0 +1,25 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_basecode";
+}
+
+<div class="container">
+
+    <div class="jumbotron"
+         style="margin-top: 20px">
+        <h1>
+            <i class="fa fa-lock"></i>
+            @this.Site.lockdown.message
+        </h1>
+
+        <h2 ng-show="'@this.Site.lockdown.showreturndate'">
+
+            We will be back by:
+            <div>
+                @(this.Site.lockdown.returndate.ToString( "dd MMMM yyyy" ))
+            </div>
+
+        </h2>
+    </div>
+</div>

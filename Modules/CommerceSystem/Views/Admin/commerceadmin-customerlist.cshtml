@@ -1,0 +1,128 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin";
+}
+@section Title
+{
+    Administration - Commerce - Customer List
+}
+
+
+<div ncb-datacontext table="SaleOrder"
+     id="ManageSaleorder">
+
+    <div class="page-header">
+        <h1>Customer List</h1>
+    </div>
+
+    <ncb-ngtable tabletemplate="'tablecustomtemplate.html'"
+                 alwaysfilter="(Status eq 'WaitingForOrder')"
+                 defaultSort="{ 'PaymentReceivedDate' : 'asc' }"
+                 edit-fn="ctrl.viewOrderDetail(id)">
+    </ncb-ngtable>
+
+    <script type="text/ng-template" id="tablecustomtemplate.html">
+
+        <table id="sotable"
+               ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td data-title="'Order#'"
+                    sortable="'SaleOrderIdentifier'"
+                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
+                        {{item.SaleOrderIdentifier }}
+                    </a>
+                    <p class="text-muted">
+                        <i class="fa fa-clock-o"></i>
+                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                    </p>
+                    <p>
+                        <a href="/support/{{item.SaleOrderIdentifier}}" target="_blank" class="btn btn-info">
+                            <i class="fa fa-life-ring"></i> Support
+                        </a>
+                    </p>
+                </td>
+                <td data-title="'Status'"
+                    sortable="'Status'"
+                    filter="{ 'Status': 'text' }">
+                    {{item.Status }}
+                </td>
+                <td data-title="'PaymentStatus'"
+                    sortable="'PaymentStatus'"
+                    filter="{ 'PaymentStatus': 'text' }">
+                    {{item.PaymentStatus }}
+                </td>
+                <td data-title="'PaymentReceivedDate'"
+                    sortable="'PaymentReceivedDate'"
+                    filter="{ 'PaymentReceivedDate': 'text' }">
+                    {{item.PaymentReceivedDate | date:'dd MMMM yyyy, HH:mm' }}
+                </td>
+                <td data-title="'Customer, S&H'"
+                    sortable="'Customer'"
+                    filter="{ 'Customer': 'text' }">
+
+                    <div class="text-left">
+                        {{item.Customer.FirstName}}
+                        {{item.Customer.LastName}}
+
+                        <p class="text-muted">
+                            <i class="fa fa-envelope"></i> : {{item.Customer.Email}}<br />
+                            <i class="fa fa-mobile-phone"></i> : {{item.Customer.PhoneNumber}}
+                        </p>
+
+                        <div ng-repeat="(k,v) in item.ShippingDetails">
+                            <b>{{k}}</b>: {{v}}
+                        </div>
+
+                        <b>Shipping Address:</b><br />
+                        {{item.ShipTo.To || 'empty'}}<br />
+                        {{item.ShipTo.Address || 'empty'}}<br />
+                        {{item.ShipTo.SubDistrict || 'empty'}}
+                        {{item.ShipTo.District || 'empty'}}<br />
+                        {{item.ShipTo.State || 'empty'}},
+                        {{item.ShipTo.PostalCode || 'empty'}}<br />
+                    </div>
+
+                </td>
+
+                <td data-title="'Products'" style="min-width: 250px">
+                    <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
+                        <a href="{{product.Url}}" target="_blank">
+                            {{product.Title}}
+                        </a>
+                    </div>
+                </td>
+
+                <td data-title="'Total (net)'"
+                    sortable="'TotalAmount'"
+                    filter="{ 'TotalAmount': 'text' }">
+                    {{item.TotalAmount | number:2 }}
+                </td>
+                <td style="white-space: nowrap">
+
+                    <a href="/Admin/saleorder/{{item.id}}" class="btn btn-info">
+                        <i class="fa fa-edit"></i>
+                    </a>
+
+                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
+                       class="btn btn-primary"
+                       ng-disabled="object.Status == 'PaymentReceived'">
+                        <span class="icon ion-printer"></span> IV
+                    </a>
+                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
+                       class="btn btn-success"
+                       ng-disabled="object.Status != 'PaymentReceived'">
+                        <span class="icon ion-printer"></span> R
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+</div>

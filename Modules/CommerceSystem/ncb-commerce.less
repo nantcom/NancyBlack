@@ -1,0 +1,550 @@
+﻿
+table.saleorder {
+    margin-top: 20px;
+
+    th {
+        font-weight: bold;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+        text-align: center;
+        width: 5%;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+        text-align: center;
+        width: 100px;
+
+        img {
+            width: 100%;
+            border: 1px solid silver;
+        }
+    }
+
+    td:nth-child(3) {
+        ul {
+            padding-left: 15px;
+        }
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+        text-align: center;
+        width: 15%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+        text-align: center;
+        width: 15%;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6) {
+        text-align: right;
+        width: 15%;
+    }
+}
+
+#cartForm {
+    font-style: normal;
+    font-family: 'Leelawadee UI', Leelawadee, Tahoma;
+    font-weight: 100;
+
+    .carousel {
+        min-height: 300px;
+        margin-bottom: 60px;
+
+        h2 {
+            margin-top: 0;
+            font-size: 150%;
+        }
+
+        .carousel-inner {
+
+            .item {
+                text-align: left !important;
+            }
+
+            > .item:nth-child(4) {
+
+                .btn {
+                    margin-bottom: 10px;
+                }
+            }
+        }
+
+        .carousel-control {
+            background-image: none !important;
+            height: 50px !important;
+            color: green;
+            opacity: 0.5;
+            top: auto;
+            bottom: -55px;
+            width: auto;
+            padding: 20px;
+            cursor: pointer;
+
+            &:hover {
+                opacity: 1;
+            }
+
+            &.left {
+                color: white;
+            }
+
+            &.right {
+                opacity: 0.2;
+                pointer-events: none;
+                cursor: not-allowed;
+            }
+        }
+
+        .carousel-indicators {
+            bottom: -50px;
+            pointer-events: none;
+
+            li {
+                border-radius: 0;
+                border-color: transparent;
+                background-color: silver;
+                margin-right: 5px;
+            }
+
+            li.active {
+                background-color: green;
+            }
+        }        
+    }
+
+    &.next-enabled {
+            .carousel {
+                .carousel-control {
+                    &.right {
+                        opacity: 1 !important;
+                        pointer-events: all !important;
+                        cursor: pointer !important;
+                    }
+                }            
+        }
+    }
+
+
+    #memberPage {
+
+        > div {
+            width: 40%;
+            margin: auto;
+        }
+    }
+
+    #profilePage {
+        height: 550px;
+    }
+
+    form {
+        margin-top: 20px;
+    }
+
+    .disabled {
+        opacity: 0.2;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    .paymentpage {
+
+        .row {
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .col-sm-3 {
+            button {
+                width: 100%;
+            }
+        }
+
+        .col-sm-8 {
+        }
+    }
+}
+
+#notifypayment {
+}
+
+#working {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: table;
+    z-index: 99999;
+    background-color: rgba(255,255,255,0.9);
+    box-shadow: inset white 0 0 50px;
+    visibility: collapse;
+    opacity: 0;
+    -moz-transition: opacity ease 1s;
+    -o-transition: opacity ease 1s;
+    -webkit-transition: opacity ease 1s;
+    transition: opacity ease 1s;
+    color: darkgreen;
+
+    > span {
+        display: table-cell;
+        text-align: center;
+        vertical-align: middle;
+
+        > i {
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+    }
+
+    &.show {
+        display: table !important;
+        visibility: visible;
+        opacity: 1;
+    }
+}
+
+#productlist {
+
+    #LeftMenuTree {
+        width: 300px;
+        height: 100%;
+        top: 0;
+        z-index: 9999;
+        padding-top: 65px;
+        overflow-x: hidden;
+        position: fixed;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+
+        > div[ui-tree] {
+            height: 100%;
+            overflow-y: auto;
+        }
+    }
+
+    .carousel {
+
+        .slide {
+            height: 360px;
+            width: 360px;
+            margin: auto;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: inline-block;
+        }
+    }
+}
+
+.supportpage {
+    
+    #header {
+        height: 30px;
+        width: 100%;
+        margin: 20px 0;
+        background: #222;
+        text-align: center;
+        color: white;
+        font: bold 15px Sans-Serif;
+        padding: 8px 0px;
+        text-transform: uppercase;
+    }
+
+    .tab-content {
+        padding-top: 20px;
+    }
+    
+    #dhltracking {
+        iframe {
+            border: 0;
+            width: 100%;
+            height: 300px;
+        }
+    }
+}
+
+.printform {
+    /*
+	 CSS-Tricks Example
+	 by Chris Coyier
+	 http://css-tricks.com
+*/
+    font: 14px/1.4 Leelawadee,Sans-serif;
+
+    #page-wrap {
+        width: 18cm;
+        margin: 0 auto;
+    }
+
+    textarea {
+        border: 0;
+        overflow: hidden;
+        resize: none;
+    }
+
+    table {
+        border: 1px solid black;
+        border-collapse: collapse;
+        margin-top: 40px;
+
+        th {
+            background-color: #eee;
+        }
+    }
+
+    table td, table th {
+        border: 1px solid black;
+        padding: 5px;
+    }
+
+    #header {
+        height: 30px;
+        width: 100%;
+        margin: 20px 0;
+        background: #222;
+        text-align: center;
+        color: white;
+        font: bold 15px Sans-Serif;
+        letter-spacing: 20px;
+        padding: 8px 0px;
+        text-transform: uppercase;
+    }
+
+    #address {
+        width: 250px;
+        height: 150px;
+        float: left;
+    }
+
+    #customer {
+        margin-top: 20px;
+    }
+
+    #logo {
+        text-align: right;
+
+        > img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+    }
+
+    #customer-title {
+        float: left;
+    }
+
+    #meta {
+        margin-top: 1px;
+        width: 300px;
+        float: right;
+    }
+
+    #meta td {
+        text-align: right;
+    }
+
+    #meta td.meta-head {
+        text-align: left;
+        background: #eee;
+    }
+
+    #meta td textarea {
+        width: 100%;
+        height: 20px;
+        text-align: right;
+    }
+
+    #items {
+        clear: both;
+        width: 100%;
+        margin: 30px 0 0 0;
+        border: 1px solid black;
+
+        tr {
+            th:nth-child(1) {
+                width: 5%;
+                text-align: center;
+            }
+
+            th:nth-child(2) {
+                width: 40%;
+                text-align: left;
+            }
+
+            th:nth-child(3) {
+                width: 10%;
+                text-align: center;
+            }
+
+            th:nth-child(4) {
+                width: 15%;
+                text-align: center;
+            }
+
+            th:nth-child(5) {
+                width: 15%;
+                text-align: center;
+            }
+
+
+            td:nth-child(1), td:nth-child(3) {
+                text-align: center;
+            }
+
+            td:nth-child(4), td:nth-child(5) {
+                text-align: right;
+            }
+        }
+
+        td.total-line {
+            border-left: 0;
+            border-right: 1px solid black;
+            text-align: right;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        td.total-value {
+            text-align: right !important;
+            vertical-align: middle;
+        }
+    }
+
+    #items td.blank {
+        border: 0;
+    }
+
+    #terms {
+        text-align: center;
+        margin: 20px 0 0 0;
+    }
+
+    #terms h5 {
+        text-transform: uppercase;
+        letter-spacing: 10px;
+        border-bottom: 1px solid black;
+        padding: 0 0 8px 0;
+        margin: 0 0 8px 0;
+    }
+}
+
+
+.demoprintform {
+    padding: 40px;
+
+    > .printform {
+        margin: auto;
+        padding-top: 1.5cm;
+        width: 210mm;
+        height: 297mm;
+        background-color: white;
+        box-shadow: 0 0 20px fade(black, 40%);
+    }
+}
+
+@media only screen and (max-device-width : 400px) {
+
+    #cartForm {
+
+        #memberPage > div {
+            width: 100% !important;
+        }
+
+        .form-group {
+            padding-left: 20px;
+
+            .col-xs-3 {
+                width: 100%;
+            }
+
+            .col-xs-9 {
+                width: 100%;
+            }
+        }
+
+        .btn[btn-radio] {
+            width: 100%;
+            margin-bottom: 0 !important;
+        }
+
+        .carousel-inner > .item:last-child {
+
+            .col-sm-4 {
+                text-align: center;
+            }
+
+            .col-sm-8 {
+                margin-top: 20px;
+                text-align: center;
+            }
+        }
+
+        .carousel-indicators {
+            bottom: -65px !important;
+        }
+    }
+}
+
+
+@media only screen and (max-device-width : 640px) {
+
+    table.saleorder {
+
+        thead {
+            display: none;
+        }
+
+        tr {
+            width: 100%;
+            display: block;
+            border-bottom: 1px solid;
+            clear: both;
+            padding-bottom: 10px;
+        }
+
+        td {
+            display: inline-block;
+            border: none !important;
+            vertical-align: top;
+        }
+
+        tr > td:nth-child(1) {
+            width: 5%;
+        }
+
+        tr > td:nth-child(2) {
+            width: 115px;
+        }
+
+        tr > td:nth-child(3) {
+            width: 50%;
+        }
+
+        tr > td:nth-child(4) {
+            display: block;
+            padding-left: 28px;
+        }
+
+        tr > td:nth-child(5) {
+            width: 40%;
+            text-align: left;
+            padding-left: 28px;
+            opacity: 0.3;
+        }
+
+        tr > td:nth-child(6) {
+            width: 50%;
+            text-align: right;
+            float: right;
+            font-size: 150%;
+        }
+    }
+}

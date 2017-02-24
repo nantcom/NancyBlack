@@ -1,0 +1,65 @@
+﻿
+<div class="container-fluid"
+     ng-module="ncb-angular-membership"
+     ng-controller="LoginController as ctrl">
+    <!-- Modal -->
+    <div class="modal fade" id="loginDialog" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog login-dialog">
+            <div class="modal-content">
+
+                <div class="modal-body">
+                    
+                </div> <!-- Modal Body -->
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="profileDialog" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog login-dialog">
+            <div class="modal-content">
+
+                <div class="modal-body">
+
+                    <div role="tabpanel">
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>
+                            <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
+                            <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="profile">
+
+                                <form name="userProfile"></form>
+
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="messages">
+
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="settings">
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div style="margin-top: 10px">
+                        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="ctrl.closeAlert($index)">{{alert.msg}}</alert>
+                    </div>
+
+                </div> <!-- Modal Body -->
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">ออกจากระบบ</button>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+</div>

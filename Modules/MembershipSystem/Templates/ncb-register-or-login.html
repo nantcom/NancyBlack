@@ -1,0 +1,102 @@
+﻿<div>
+
+    <div class="text-center"
+         ng-show="membership.isAnonymous()"
+         ng-controller="MemberShip-LoginController as mctrl">
+
+        <div ng-show="mode =='register'">
+            <h2>
+                ลงทะเบียน
+            </h2>
+            <p>
+                กรุณาใส่อีเมลล์ที่ติดต่อได้<br />
+                เนื่องจากเราต้องส่งรหัสยืนยันทางอีเมลล์ของคุณ
+            </p>
+        </div>
+        <div ng-show="mode =='login'">
+            <h2>
+                เข้าสู่ระบบ
+            </h2>
+        </div>
+
+        <form name="login">
+
+            <div class="form-group">
+                <input type="email" name="email" class="form-control" placeholder="Email"
+                       ng-model="login.email" />
+            </div>
+
+            <div class="form-group">
+                <input type="password" name="password" class="form-control" placeholder="password"
+                       ng-model="login.password" />
+            </div>
+
+            <div class="form-group">
+                <input type="password" class="form-control" placeholder="confirm password"
+                       ng-show="mode=='register'" ng-model="login.passwordConfirm" />
+            </div>
+            <div class="form-group text-right"
+                 ng-show="mode=='login'">
+                <a href="/__membership/forgot" target="_blank">
+                    ลืมรหัสผ่าน ?
+                </a>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-success"
+                        ng-show="mode == 'register'"
+                        ng-disabled="login.password != login.passwordConfirm"
+                        ng-click="mctrl.register()">
+                    ลงทะเบียน
+                </button>
+
+                <button class="btn btn-success"
+                        ng-show="mode =='login'"
+                        ng-click="mctrl.login()">
+                    เข้าสู่ระบบ
+                </button>
+
+                <a class="btn btn-default"
+                   ng-click="mode='login'"
+                   ng-show="mode=='register'">
+                    เข้าสู่ระบบ
+                </a>
+
+                <a class="btn btn-default" ng-click="mode='register'"
+                   ng-show="mode=='login'">
+                    ลงทะเบียน
+                </a>
+            </div>
+
+            <div class="form-group">
+                <alert ng-repeat="alert in membership.alerts"
+                       type="{{alert.type}}" close="membership.closeAlert($index)">
+                    {{alert.msg}}
+                </alert>
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="text-center"
+         ng-show="membership.isLoggedIn()">
+
+        <h2>
+            สวัสดี
+        </h2>
+
+        คุณได้เข้าสู่ระบบโดยใช้ชื่อ :<br />
+        <b>{{membership.currentUser.UserName}}</b>
+
+        <form>
+            <div class="form-group">
+                <button class="btn btn-default"
+                        ng-click="membership.logout()">
+                    ต้องการเข้าสู่ระบบด้วยบัญชีอื่น
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>

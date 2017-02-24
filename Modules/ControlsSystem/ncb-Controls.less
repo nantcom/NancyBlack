@@ -1,0 +1,280 @@
+﻿@import url('/NancyBlack/Modules/ControlsSystem/select2.css');
+
+input.ng-invalid, textarea.ng-invalid {
+    border-color: rgba(242, 148, 148, 0.60);
+    box-shadow: 0 0 8px rgba(242, 148, 148, 0.60);
+
+    &:focus {
+        border-color: red;
+        box-shadow: 0 0 8px rgba(247, 82, 82, 0.60);
+    }
+}
+
+input.ng-untouched, textarea.ng-untouched {
+    border-color: #ccc;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+
+    &:focus {
+        border-color: #66afe9;
+        box-shadow: 0 0 8px rgba(102,175,233,0.6);
+    }
+}
+
+ul.nav-tabs > li.active > a, ul.nav-tabs > li.active > a:focus, ul.nav-tabs > li.active > a:hover {
+    border-top: 3px solid #ff4e00;
+}
+
+ncb-picturelist {
+
+    &.selectable {
+
+        li {
+            cursor: pointer;
+        }
+    }
+
+    > ul {
+        overflow-x: hidden;
+        overflow-y: scroll;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        > li:first-child {
+
+            > div {
+                height: auto;
+            }
+        }
+
+        > li {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 5px;
+            display: inline-block;
+            height: 100px;
+            overflow: hidden;
+
+            > .img {
+                background-color: whitesmoke;
+                text-align: center;
+                width: 100px;
+                height: 90px;
+                overflow: hidden;
+                line-height: 90px;
+                margin: 0;
+
+                img {
+                    width: 100px;
+                    display: inline-block;
+                    vertical-align: middle;
+                }
+            }
+
+            > div {
+                display: inline-block;
+                vertical-align: top;
+                margin: 5px;
+                width: 45px;
+                height: 90px;
+
+                button {
+                    margin-top: 5px;
+                    width: 45px;
+                }
+            }
+        }
+
+        > li:hover {
+            background-color: #c2e2ed;
+        }
+    }
+}
+
+
+/* Image Upload Control */
+.ncb-uploader {
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+
+    > .btn {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 10px;
+    }
+
+    > input[type='file'] {
+        opacity: 0;
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        z-index: 999;
+    }
+
+    > .progress {
+        width: 100px;
+        margin-top: 5px;
+    }
+}
+
+
+
+.login-dialog {
+    > .modal-dialog {
+
+        .modal-body {
+            position: relative;
+        }
+
+        .modal-body .facebooklogin {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+        }
+
+        .modal-body > .row > div:first-child {
+            border-right: 1px inset black;
+
+            > h1 {
+                margin-bottom: 20px;
+            }
+        }
+
+        .modal-body > .row > div {
+            > h1 {
+                margin-top: 0;
+                margin-bottom: 20px;
+            }
+        }
+
+        .btn {
+
+            > i {
+                margin-right: 5px;
+            }
+        }
+    }
+}
+
+.toggle-switch {
+    border: 1px solid #888;
+    cursor: pointer;
+    display: inline-block;
+    text-align: left;
+    overflow: hidden;
+    min-width: 80px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+
+    &.disabled > div > span.knob {
+        background: #AAA;
+    }
+
+    span {
+        cursor: pointer;
+        display: inline-block;
+        float: left;
+        height: 100%;
+        line-height: 25px;
+        padding: 4px;
+        text-align: center;
+        width: 33%;
+        white-space: nowrap;
+        font-size: 10px;
+        box-sizing: border-box;
+        -o-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+    }
+
+    > div {
+        position: relative;
+        width: 150%;
+    }
+
+    .knob {
+        background: red;
+        border-left: 1px solid #aaa;
+        border-right: 2px solid #ddd;
+        background-color: #f5f5f5;
+        width: 34%;
+        z-index: 100;
+    }
+
+    .switch-on {
+        left: 0%;
+    }
+
+    .switch-off {
+        left: -50%;
+    }
+
+    .switch-left, .switch-right {
+        z-index: 1;
+    }
+
+    .switch-left {
+        background: rgba(102, 187, 102, 1);
+        color: white;
+        text-shadow: 0 0 5px white;
+        font-weight: bold;
+    }
+
+    .switch-right {
+        background: rgb(191, 56, 37);
+        box-shadow: inset 0 0 10px rgb(107, 14, 1);
+        color: rgb(107, 14, 1);
+    }
+}
+
+.input-group-addon, .input-group-btn {
+
+    .toggle-switch {
+        margin-left: -3px;
+
+        span {
+            line-height: 24px;
+            min-width: 10px;
+        }
+    }
+}
+
+.toggle-switch-animate {
+    transition: left 0.2s ease-out;
+    -o-transition: left 0.2s ease-out;
+    -moz-transition: left 0.2s ease-out;
+    -webkit-transition: left 0.2s ease-out;
+}
+
+fieldset {
+    border: 1px solid #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+
+    legend {
+        border: 0 !important;
+        width: auto;
+        padding: 0 10px;
+
+        font-size: 18px;
+        font-weight: bold;
+
+        color: gray;
+    }
+}
+
+.gap-right {
+    margin-right: 15px;
+}
+
+.gap-left {
+    margin-left: 15px;
+}

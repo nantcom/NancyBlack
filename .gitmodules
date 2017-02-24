@@ -1,5 +1,0 @@
-[submodule "NantCom.NancyBlack/NancyBlack"]
-	
-	path = NantCom.NancyBlack/NancyBlack
-	
-	url = https://github.com/nantcom/NancyBlack.git

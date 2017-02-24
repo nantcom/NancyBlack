@@ -1,0 +1,696 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = "_base";
+
+    var IsAdmin = this.CurrentUser.HasClaim("admin");
+}
+
+@section Head
+{
+    <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
+    <link href="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.css" rel="stylesheet" />
+    <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-support.min.css" rel="stylesheet" />
+    <title>RMA</title>
+    <style>
+        .sweet-alert fieldset {
+            border: none !important;
+        }
+
+        .prob-value {
+            padding-top: 7px;
+            display: block;
+        }
+
+        .facebook-profile-image-container:hover {
+            text-decoration: none;
+        }
+
+        .facebook-profile-image-container > img {
+            border-radius: 75px;
+            -webkit-border-radius: 75px;
+        }
+    </style>
+}
+@section Script
+{
+    <script>
+        window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
+        window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
+        window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
+    </script>
+    <script src="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
+    <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-rma-support.js"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            $('#bookmarkme').click(function() {
+                if (window.sidebar && window.sidebar.addPanel) { // Mozilla Firefox Bookmark
+                    window.sidebar.addPanel(document.title,window.location.href,'');
+                } else if(window.external && ('AddFavorite' in window.external)) { // IE Favorite
+                    window.external.AddFavorite(location.href,document.title);
+                } else if(window.opera && window.print) { // Opera Hotlist
+                    this.title=document.title;
+                    return true;
+                } else { // webkit - safari/chrome
+                    alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != - 1 ? 'Command/Cmd' : 'CTRL') + ' + D to bookmark this page.');
+                }
+            });
+        });
+    </script>
+
+}
+
+<div ng-cloak
+     ng-module="Page"
+     ng-controller="PageController as ctrl"
+     ncb-datacontext-integrated
+     table="RMA">
+
+    <div class="supportpage">
+
+        <div class="container">
+
+            <div id="header"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                Return Merchandise Authorization
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-8" style="padding-bottom: 30px;">
+
+                    <tabset>
+
+                        <tab heading="ข้อมูลทั่วไป">
+
+                            <div class="row">
+
+                                <div class="panel panel-info">
+
+                                    <div class="panel-heading">Info</div>
+                                    <div class="panel-body form-horizontal">
+
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">RMA #</label>
+                                            <div class="col-sm-8">
+                                                <span class="prob-value">{{object.RMAIdentifier}}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">สินค้า</label>
+                                            <div class="col-sm-8">
+                                                <span class="prob-value">{{object.Title}}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">การเปลี่ยนแปลงล่าสุด</label>
+                                            <div class="col-sm-8">
+                                                <span class="prob-value">{{object.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">วันที่สร้าง RMA</label>
+                                            <div class="col-sm-8">
+                                                <span class="prob-value">{{object.__createdAt | date:'dd MMMM yyyy, HH:mm'}}</span>
+
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">ปัญหาที่ได้รับแจ้ง</label>
+                                            <div class="col-sm-8">
+                                                <span class="prob-value">{{object.Issue}}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">สาเหตุของปัญหา</label>
+                                            <div class="col-sm-8">
+                                                <span class="prob-value">{{object.CauseOfIssue}}</span>
+                                            </div>
+                                        </div>
+
+                                        @if (IsAdmin)
+                                        {
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label">บันทึกลับของ Admin</label>
+                                                <div class="col-sm-8">
+                                                    <span class="prob-value">{{object.PrivateNote}}</span>
+                                                </div>
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                                @*<div class="col-md-6">
+                                        <h2 class="text-info">การเปลี่ยนแปลงล่าสุด</h2>
+                                        {{object.__updatedAt | date:'dd MMMM yyyy, HH:mm'}}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h2 class="text-info">วันที่สร้าง RMA</h2>
+                                        {{object.__createdAt | date:'dd MMMM yyyy, HH:mm'}}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h2 class="text-info">หมายเลข RMA</h2>
+                                        {{object.RMAIdentifier}}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h2 class="text-info">สถานะล่าสุด</h2>
+                                        {{object.Status}}
+                                    </div>*@
+
+                            </div>
+
+                            <div class="row"
+                                 ng-hide="object.Status == 'Shipped' || object.InboundShipment.TrackingCode == null || object.InboundShipment.TrackingCode == '' ">
+                                <div class="col-xs-12" id="dhltracking">
+                                    <h2 class="text-info">สถานะการรับสินค้า</h2>
+                                    <iframe ng-src="{{ctrl.getTrackUrl(object.InboundShipment.TrackingCode, object.InboundShipment.Method)}}"></iframe>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-md-12">
+                                    <h2 class="text-info">ไทม์ไลน์สถานะ</h2>
+                                    <ul class="timeline">
+                                        <li ng-show="StatusState == 0">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'InQueue'}"><i class="fa fa-clock-o"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">In Queue: สินค้าอยู่ในระหว่างการรอคิว</h4>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 2">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'CheckingIssues'}"><i class="fa fa-search-minus"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Checking Issues: กำลังตรวจสอบปัญหา</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>อยู่ระหว่างการตรวจสอบปัญหาที่ได้แจ้งเข้ามา</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 3">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'ResearchOnSolution'}"><i class="fa fa-search-plus"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Research on Solution: กำลังตรวจสอบวิธีแก้ไข</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>ตรวจพบปัญหาที่ได้รับแจ้งเข้ามา กำลังดำเนินการแก้ไขปัญหาของสินค้า</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 4">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'WaitingForParts'}"><i class="glyphicon glyphicon-wrench"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Waiting for Parts: กำลังรออะไหล่สินค้าจากต่างประเทศ</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>กำลังสั่งอะไหล่สินค้าจากต่างประเทศ ระยะเวลาในการจัดส่งขึ้นอยู่กับอะไหล่แต่ละชนิด</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 5">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'ReassembleAndTesting'}"><i class="fa fa-tachometer"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Reassemble &amp; Testing: ดำเนินการประกอบและทดสอบ</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>กำลังทำการประกอบเครื่องและทดสอบผลการแก้ไขปัญหา</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 6">
+                                            <div class="timeline-badge" ng-class="{'success': object.Status == 'ReadyToShip'}"><i class="glyphicon glyphicon-gift"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Ready to Ship: สินค้าพร้อมจัดส่ง</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>สินค้าพร้อมจัดส่ง อยู่ระหว่างการรอส่งสินค้า</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li ng-show="StatusState < 7">
+                                            <div class="timeline-badge" ng-class="{'warning': object.Status == 'Shipped'}"><i class="fa fa-truck"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Shiping: สิงค้าอยู่ระหว่างการจัดส่ง</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>
+                                                        ทางทีมงานได้จัดเตรียมสินค้าและจัดส่งเรียบร้อยแล้ว ทางผู้จัดส่ง (DHL)
+                                                        จะทำการโทรไปติดต่อยืนยันเวลาจัดส่งอีกครั้งตามเบอร์ที่ลูกค้าให้ไว้
+                                                        สินค้าอยู่ระหว่างการขนส่งโดยระยะเวลาขึ้นอยู่กับจังหวัดที่ขนส่ง เช่น
+                                                        หากอยู่ในหรือใกล้กรุงเทพจะใช้เวลาจัดส่งใน 1 วัน
+                                                        หากอยู่ไกลจากกรุงเทพออกไปจะต้องใช้เวลาจัดส่งมากขึ้น
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="timeline-inverted" ng-show="StatusState < 8">
+                                            <div class="timeline-badge" ng-class="{'success': object.Status == 'Delivered'}"><i class="glyphicon glyphicon-heart"></i></div>
+                                            <div class="timeline-panel">
+                                                <div class="timeline-heading">
+                                                    <h4 class="timeline-title">Delivered: สินค้าถูกส่งมอบเรียบร้อย</h4>
+                                                </div>
+                                                <div class="timeline-body">
+                                                    <p>สินค้าถูกส่งมอบเรียบร้อย ขอบคุณที่ใช้บริการกับเรา Level51</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="row"
+                                 ng-if="object.Status == 'Shipped' && object.Status != 'Delivered'">
+                                <div class="col-xs-12" id="dhltracking">
+                                    <h2 class="text-info">สถานะการจัดส่ง</h2>
+                                    <iframe ng-src="{{ctrl.getTrackUrl(object.OutboundShipment.TrackingCode, object.OutboundShipment.Method)}}"></iframe>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-xs-12">
+
+                                    <h2 class="text-info">บันทึก</h2>
+                                    <div class="alert alert-info" ng-show="object.Attachments == null || object.Attachments.length == 0" role="alert">ขณะนี้ยังไม่มีข้อมูลค่ะ</div>
+
+                                    <div class="row" ng-repeat="atta in object.Attachments | filter:{AttachmentType: 'support'}">
+
+                                        <div class="col-xs-8">
+                                            <div class="well" ng-if="isAdmin == false">
+                                                {{atta.Caption}}
+                                            </div>
+
+                                            <div class="well" ng-if="isAdmin">
+                                                <textarea class="form-control" rows="3"
+                                                          ng-model="atta.Caption"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-xs-4">
+                                            <a href="{{atta.Url}}" target="_blank">
+                                                <img class="img-rounded img-responsive" ng-src="{{atta.Url}}" />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    @if (this.CurrentUser.HasClaim("admin"))
+                                    {
+
+                                        <div class="row">
+
+                                            <div class="col-xs-8">
+                                                <div class="well">
+                                                    (เพิ่มภาพก่อนจึงจะสามารถใส่บันทึกได้)
+
+
+                                                    <ncb-attachmentmanager attachment-type="'support'"></ncb-attachmentmanager>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </tab>
+
+
+                        @if (this.CurrentUser.HasClaim("admin"))
+                        {
+                            <tab heading="Admin">
+
+                                <div class="row form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">สินค้า</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Title" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">ปัญหาที่ลูกค้าแจ้ง</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Issue" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">สาเหตุของปัญหา</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.CauseOfIssue" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">บันทึกลับ</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.PrivateNote" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">ซื้อจาก SO</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" class="form-control" ng-model="object.FromSaleOrderId" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">อยู่ในเงื่อนไขการรับประกัน</label>
+                                        <div class="col-sm-8">
+                                            <span class="prob-value">
+                                                <input type="checkbox" ng-model="object.IsInWarranty" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">ชื่อลูกค้า</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Customer.FirstName" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">นามสกุล</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Customer.LastName" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">เบอร์โทร</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Customer.PhoneNumber" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">อีเมล์</label>
+                                        <div class="col-sm-8">
+                                            <input type="email" class="form-control" ng-model="object.Customer.Email" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">facebook Id</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="object.Customer.FacebookId" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">ค่าใช้จ่ายคิดจาก SO</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" class="form-control" ng-model="object.BillToSaleOrderId" />
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="panel panel-info">
+                                            <div class="panel-heading">Exchange parts</div>
+                                            <div class="panel-body">
+
+                                                <table class="table table-striped">
+                                                    <tr><th>PrductId</th><th>Serial</th><th>Note</th></tr>
+                                                    <tr ng-repeat="rmaItem in rmaItems">
+                                                        <td>{{rmaItem.ProductId}}</td>
+                                                        <td>
+                                                            From:{{rmaItem.FromSerial}}<br />
+                                                            To:{{rmaItem.ToSerial}}
+                                                        </td>
+                                                        <td>{{rmaItem.Note}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><input class="form-control" ng-model="newRMAItem.ProductId" type="number" /></td>
+                                                        <td>
+                                                            <input class="form-control" placeholder="From" ng-model="newRMAItem.FromSerial" type="text" /><br />
+                                                            <input class="form-control" placeholder="To" ng-model="newRMAItem.ToSerial" type="text" />
+                                                        </td>
+                                                        <td><input class="form-control" ng-model="newRMAItem.Note" type="text" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td></td>
+                                                        <td>Please save before adding</td>
+                                                        <td>
+                                                            <button class="btn btn-success btn-sm"
+                                                                    ng-click="ctrl.addRMAItem()">
+                                                                <span class="fa fa-circle-o-notch fa-spin"
+                                                                      ng-show="isSerialSaving == true"></span>
+                                                                <span class="fa fa-save"></span>
+                                                                Add
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="panel panel-info">
+                                            <div class="panel-heading">Inbound</div>
+                                            <div class="panel-body form-horizontal">
+
+                                                <div class="form-group">
+                                                    <label class="col-sm-4 control-label">วิธีการรับสินค้า</label>
+                                                    <div class="col-sm-8">
+                                                        <select class="form-control" ng-model="object.InboundShipment.Method">
+                                                            <option ng-repeat="method in methods">{{method}}</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-4 control-label">วันที่รับสินค้า</label>
+                                                    <div class="col-sm-8">
+                                                        <span class="prob-value">{{object.InboundShipment.ShipmentDate | date}}</span>
+                                                        <input type="date" class="form-control" ng-model="object.InboundShipment.ShipmentDate" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-4 control-label">TrackingCode</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.TrackingCode" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="To" class="col-sm-4 control-label">To</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.To" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="Address" class="col-sm-4 control-label">Address</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.Address" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="Country" class="col-sm-4 control-label">Country</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.Country" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="State" class="col-sm-4 control-label">State</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.State" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="District" class="col-sm-4 control-label">District</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.District" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.SubDistrict" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.InboundShipment.Location.PostalCode" />
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="panel panel-info">
+                                            <div class="panel-heading">Outbound</div>
+                                            <div class="panel-body form-horizontal">
+
+                                                <div class="form-group">
+                                                    <label class="col-sm-4 control-label">วิธีการจัดส่ง</label>
+                                                    <div class="col-sm-8">
+                                                        <select class="form-control" ng-model="object.OutboundShipment.Method">
+                                                            <option ng-repeat="method in methods">{{method}}</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-4 control-label">วันที่ส่งสินค้า</label>
+                                                    <div class="col-sm-8">
+                                                        <span class="prob-value">{{object.OutboundShipment.ShipmentDate | date}}</span>
+                                                        <input type="date" class="form-control" ng-model="object.OutboundShipment.ShipmentDate" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-4 control-label">TrackingCode</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.TrackingCode" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="CopyAddress" class="col-sm-4 control-label">Copy from Inbound</label>
+                                                    <div class="col-sm-8">
+                                                        <button type="button" class="btn btn-default" id="CopyAddress"
+                                                                ng-click="object.OutboundShipment.Location = object.InboundShipment.Location">
+                                                            Copy from Inbound
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="To" class="col-sm-4 control-label">To</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.To" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="Address" class="col-sm-4 control-label">Address</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.Address" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="Country" class="col-sm-4 control-label">Country</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.Country" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="State" class="col-sm-4 control-label">State</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.State" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="District" class="col-sm-4 control-label">District</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.District" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.SubDistrict" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" ng-model="object.OutboundShipment.Location.PostalCode" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </tab>
+                        }
+
+                    </tabset>
+                </div>
+
+                <div class="col-md-4 "
+                     id="side">
+
+                    <div class="well">
+                        <p>
+                            <div class="text-center" ng-show="object.Customer.FacebookId != null && object.Customer.FacebookId != ''">
+                                <a class="facebook-profile-image-container" href="https://www.facebook.com/profile.php?id={{object.Customer.FacebookId}}" target="_blank">
+                                    <img style="border-radius: 75px; -webkit-border-radius: 75px;" ng-src="http://graph.facebook.com/{{object.Customer.FacebookId}}/picture?type=square" />
+                                </a>
+                                <br />
+                            </div>
+                            <h2 class="text-info" style="margin-top: 5px;">{{object.RMAIdentifier}}</h2>
+                            <h3>{{object.Customer.FirstName}}&ensp;{{object.Customer.LastName}}</h3>
+                            <div>
+                                <i class="fa fa-phone"></i> {{object.Customer.PhoneNumber}}
+                            </div>
+                            <div>
+                                <i class="fa fa-envelope"></i> <a href="mailto:{{object.Customer.Email}}">{{object.Customer.Email}}</a>
+                            </div>
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info" ng-show="isAdmin">
+                        <h2>Admin</h2>
+                        <h3>Status:</h3>
+                        <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">
+                            <option ng-repeat="status in allStatus">{{status}}</option>
+                        </select>
+
+                        <p style="margin-top: 30px">
+                            <button class="btn btn-success btn-lg"
+                                    ng-click="data.save(object)">
+                                <span class="fa fa-circle-o-notch fa-spin"
+                                      ng-show="isBusy == true"></span>
+                                <span class="fa fa-save"></span>
+                                Save
+                            </button>
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</div>

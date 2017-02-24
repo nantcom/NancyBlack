@@ -1,0 +1,19 @@
+﻿<ul>
+    <li>
+        <ncb-uploader model="object" table="table"></ncb-uploader>
+    </li>
+    <li ng-repeat="item in object.Pictures"
+        ng-click="select(item)">
+        <div class="img">
+            <img ng-src="{{item.Url}}" />
+        </div>
+        <div>
+            <input type="text"
+                   class="form-control"
+                   placeholder="ลำดับ"
+                   ng-model="item.DisplayOrder" />
+            <button ncb-del
+                    ng-click="remove(item)"></button>
+        </div>
+    </li>
+</ul>
