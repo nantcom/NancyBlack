@@ -40,11 +40,6 @@
     <link rel="manifest" href="/__favicon/manifest.json">
     <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
 
-    <!-- Facebook Open Graph Tag-->
-    <meta property="og:url" content="@this.Request.Url" />
-    <meta property="og:type" content="article" />
-    <meta property="fb:app_id" content="@(this.Site.Application.FacebookAppId)" />
-
     @if (this.Content != null)
     {
         <meta property="og:title" content="@this.SEOContent.Title" />
@@ -53,9 +48,14 @@
     }
 
 
-    @if (this.Site.Application.GoogleSiteVerification != null)
+    @if (this.Site.Application != null && this.Site.Application.GoogleSiteVerification != null)
     {
         <meta name="google-site-verification" content="@(this.Site.Application.GoogleSiteVerification)" />
+
+        <!-- Facebook Open Graph Tag-->
+        <meta property="og:url" content="@this.Request.Url" />
+        <meta property="og:type" content="article" />
+        <meta property="fb:app_id" content="@(this.Site.Application.FacebookAppId)" />
     }
 
     @this.RenderSection("Style", false)
