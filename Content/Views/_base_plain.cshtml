@@ -108,7 +108,7 @@
     <script src="/NancyBlack/Content/Scripts/ncb-dependencies.js"></script>
 
 
-    @if (this.Request.Url.HostName == "localhost" || this.Request.Url.HostName.StartsWith("beta"))
+    @if (this.Request.Url.HostName == "localhost" || this.Request.Url.HostName.StartsWith("local"))
     {
         @this.Html.Raw(NantCom.NancyBlack.Configuration.ModuleResource.JS)
     }

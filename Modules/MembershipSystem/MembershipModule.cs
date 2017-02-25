@@ -11,10 +11,14 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using NantCom.NancyBlack.Configuration;
+using Nancy.Bootstrapper;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
-    public class MembershipModule : NancyBlack.Modules.BaseModule
+    public class MembershipModule : NancyBlack.Modules.BaseModule, IPipelineHook
     {
         private class LoginParams
         {
@@ -40,6 +44,55 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         }
 
         /// <summary>
+        /// Gets MD5 Hash
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private string GetHash(string input )
+        {
+            using (var md5 = MD5.Create())
+            {
+                var hash = md5.ComputeHash(Encoding.ASCII.GetBytes(input));
+
+                // Create a new Stringbuilder to collect the bytes
+                // and create a string.
+                StringBuilder sBuilder = new StringBuilder();
+
+                // Loop through each byte of the hashed data 
+                // and format each one as a hexadecimal string.
+                for (int i = 0; i < hash.Length; i++)
+                {
+                    sBuilder.Append(hash[i].ToString("x2"));
+                }
+
+                return sBuilder.ToString();
+            }
+
+        }
+
+        /// <summary>
+        /// Hooks the login process
+        /// </summary>
+        /// <param name="p"></param>
+        public void Hook(IPipelines p)
+        {
+            p.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
+            {
+                // Auto-Login Facebook User
+                if (ctx.Request.Cookies.ContainsKey("_ncbfbuser"))
+                {
+                    var userName = "fb_" + ctx.Request.Cookies["_ncbfbuser"];
+                    var user = UserManager.Current.Register(this.SiteDatabase, userName, this.GetHash(userName), false, true);
+                    var response = this.LoginWithoutRedirect(user.Guid);
+
+                    ctx.Request.Cookies["_ncfa"] = response.Cookies[0].Value;
+                }
+
+                return null;
+            });
+        }
+
+        /// <summary>
         /// Performs the login sequence
         /// </summary>
         /// <param name="user"></param>
@@ -58,6 +111,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 sw.Flush();
             };
 
+            if (user.UserName.StartsWith("fb_"))
+            {
+                response = response.WithCookie("_ncbfbuser", user.UserName.Substring(3), nextDay);
+            }
+            
             return response;
         }
 
@@ -85,7 +143,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             Get["/__membership/logout"] = p =>
             {
-                return this.LogoutAndRedirect("/");
+                var response = this.LogoutAndRedirect("/");
+                response = response.WithCookie("_ncbfbuser", "0", DateTime.Now.AddDays(-10));
+
+                return response;
             };
 
             Post["/__membership/login"] = p =>
@@ -109,7 +170,9 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     return 400;
                 }
 
-                var user = UserManager.Current.Register(this.SiteDatabase, "fb_" + input.me.id, (string)input.me.name, false, true, input.me);
+                var userName = "fb_" + input.me.id;
+
+                var user = UserManager.Current.Register(this.SiteDatabase, userName, this.GetHash( userName ), false, true, input.me);
                 return this.ProcessLogin(user);
             });
 
@@ -234,6 +297,4 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         }
 
     }
-
-
 }

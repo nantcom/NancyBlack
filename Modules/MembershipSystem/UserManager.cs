@@ -403,6 +403,13 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {  
                 if (returnExisting == true)
                 {
+                    // Update the profile
+                    if (initialProfile != null)
+                    {
+                        existing.Profile = initialProfile;
+                        db.UpsertRecord(existing);
+                    }
+
                     return existing;
                 }
 

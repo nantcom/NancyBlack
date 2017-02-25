@@ -556,11 +556,22 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
             set.Add(parameterKey);
 
-            var result = ImageResizeModule.ResizeAndFilterImage(file, parameter);
+            var cacheKey = file + "&&" + parameter.GetHashCode();
+            var result = MemoryCache.Default.Get(cacheKey) as ResizeResult;
+
+            if (result == null)
+            {
+                var resizeResult = ImageResizeModule.ResizeAndFilterImage(file, parameter);
+                result = resizeResult;
+
+                MemoryCache.Default.Add(cacheKey, result, DateTimeOffset.Now.AddMinutes(10));
+            }
+            
             var response = new Response();
             response.ContentType = result.ContentType;
             response.Contents = (s) =>
             {
+                result.Output.Position = 0;
                 result.Output.CopyTo(s);
             };
 

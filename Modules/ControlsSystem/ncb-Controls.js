@@ -2194,7 +2194,7 @@
                     mode = attrs.mode;
                 }
 
-                var finalUrl = String.format("/__resize2/{0}/{1}/{2}/image={3}",
+                var finalUrl = String.format("/__resize2/{0}/{1}/{2}/{3}",
                     w, h, mode, url
                 );
 

@@ -74,7 +74,7 @@
                 </p>
                 <button class="btn btn-primary btn-block fblogin"
                         ng-show="mode != 'register'"
-                        ng-click="ctrl.loginfacebook()">
+                        ng-click="membership.loginfacebook()">
                     <i class="fa fa-facebook-official"></i>
                     Login with Facebook
                 </button>
@@ -109,7 +109,7 @@
                     Activate Permission
                 </a>
                 <a class="btn btn-warning btn-block"
-                   href="/__membership/logout">
+                   ng-click="membership.logout()">
                     <i class="ion-ios-unlocked-outline"></i>
                     Logout
                 </a>
