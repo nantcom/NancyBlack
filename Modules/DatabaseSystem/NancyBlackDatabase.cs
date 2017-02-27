@@ -77,7 +77,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         #region Dynamic Types
-        
+
         /// <summary>
         /// Queries the specified database
         /// </summary>
@@ -95,7 +95,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 table = table.Where(modelFilter.FilterExpression);
             }
-            
+
             if (modelFilter.SortDescriptions.Count() > 0)
             {
                 foreach (var sort in modelFilter.SortDescriptions)
@@ -113,9 +113,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                                          method => method.Name == orderbyName)
                                          .MakeGenericMethod(returnType)
                                          .Invoke(table, new object[] { lambda });
-                    
+
                     table = (TableQuery<T>)applyResult;
-                    
+
                 }
             }
 
@@ -377,7 +377,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 inputObject.__createdAt = DateTime.Now;
                 inputObject.__updatedAt = DateTime.Now;
-                
+
                 NancyBlackDatabase.ObjectCreating(this, entityName, inputObject);
 
                 _db.Insert((object)inputObject, actualType);
@@ -457,7 +457,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
                 // needs to convert to object to get Id later
                 dynamic toInsert = jObject.ToObject(actualType);
-                
+
                 NancyBlackDatabase.ObjectCreating(this, entityName, toInsert);
 
                 _db.Insert(toInsert, actualType);
@@ -517,14 +517,14 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var deleting = this.GetById(entityName, id.Value); // get the object out before delete
-            
+
             NancyBlackDatabase.ObjectDeleting(this, entityName, deleting);
 
             _db.Delete(deleting);
 
             NancyBlackDatabase.ObjectDeleted(this, entityName, deleting);
         }
-        
+
         #endregion
 
         #region Static Types
@@ -554,7 +554,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Runs the given action in SQLite transaction
         /// </summary>
         /// <param name="action"></param>
-        public void Transaction( Action action )
+        public void Transaction(Action action)
         {
             _db.RunInTransaction(action);
         }
@@ -610,7 +610,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var entityName = actualType.Name;
 
             var deleting = this.GetById<T>(input.Id); // get the object out before delete
-            
+
             NancyBlackDatabase.ObjectDeleting(this, entityName, deleting);
 
             _db.Delete(deleting);
@@ -622,14 +622,14 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Execute the specified sql command and g
         /// </summary>
         /// <param name="commandText"></param>
-        public IEnumerable<object> Query( string commandText, object sampleOutput )
+        public IEnumerable<object> Query(string commandText, object sampleOutput)
         {
             var cmd = _db.CreateCommand(commandText);
             var resultType = sampleOutput.GetType();
 
             // create data type on the fly for query
             // since anonymous type cannot be created
-            var dt = DataType.FromJObject(resultType.Name.Replace("<>", "aa" ).Replace("`", "b"), JObject.FromObject(sampleOutput));
+            var dt = DataType.FromJObject(resultType.Name.Replace("<>", "aa").Replace("`", "b"), JObject.FromObject(sampleOutput));
             var mapping = new TableMapping(dt.GetCompiledType());
 
             // dynamically invoke the method on SQLite database to read data with specified command
@@ -648,9 +648,22 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
-        private static void BZip(string inputFile, string outputFile, int level = 1 )
+        private static void BZip(string inputFile, string outputFile, int level = 1)
         {
-            var temp = outputFile + ".tmp";
+            var temp = string.Empty;
+            var tempOutputFile = outputFile;
+
+            if (File.Exists("D:\\DATALOSS_WARNING_README.txt")) // Running on Azure
+            {
+                // copy temp file to local storage
+                temp = Path.Combine("D:\\", Path.GetFileName(outputFile)) + ".tmp";
+                tempOutputFile = Path.Combine("D:\\", Path.GetFileName(outputFile));
+            }
+            else
+            {
+                temp = outputFile + ".tmp";
+            }
+
             File.Copy(inputFile, temp, true);
             File.WriteAllBytes(outputFile, new byte[0]); // touches the output file to prevent further backup
 
@@ -661,12 +674,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 {
                     // not using parallel because it will slow down the entire server
                     using (var fs = File.Open(temp, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    using (var bz = new Ionic.BZip2.BZip2OutputStream(File.OpenWrite(outputFile), level))
+                    using (var bz = new Ionic.BZip2.ParallelBZip2OutputStream(File.OpenWrite(tempOutputFile), level))
                     {
                         fs.CopyTo(bz);
                     }
+
+                    if (tempOutputFile != outputFile)
+                    {
+                        File.Copy(tempOutputFile, outputFile, true);
+                    }
                 }
-                catch( Exception )
+                catch (Exception)
                 {
                     File.Delete(outputFile);
                 }
@@ -696,10 +714,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
                 var path = Path.Combine(rootPath, "Site");
                 var fileName = Path.Combine(path, "data.sqlite");
-                
+
                 var backupPath = Path.Combine(path, "Backups");
                 Directory.CreateDirectory(path);
                 Directory.CreateDirectory(backupPath);
+
+#if !DEBUG
 
                 if (File.Exists(fileName))
                 {
@@ -712,7 +732,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     else
                     {
                         // check modified date
-                        if ( File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date )
+                        if (File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date)
                         {
                             // it was the yesterday's file, replace it
                             NancyBlackDatabase.BZip(fileName, backupFile);
@@ -743,6 +763,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     }
                 }
 
+
+#endif
                 var db = new SQLiteConnection(fileName, true);
                 cached = new NancyBlackDatabase(db);
 
@@ -774,7 +796,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var db = new SQLiteConnection(fileName, true);
             return new NancyBlackDatabase(db);
         }
-        
+
         /// <summary>
         /// Find older version of given object, the latest version is returned first
         /// </summary>

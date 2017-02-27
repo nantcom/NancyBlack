@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
 
     if (!window.location.origin) {
         window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
@@ -163,6 +163,7 @@
                     }
 
                     $scope.$emit(emittedEvents.refreshed, { sender: $scope, args: results });
+                    $scope.$broadcast(emittedEvents.refreshed, { sender: $scope, args: results });
                 });
 
             }, $me.handleError);
@@ -244,6 +245,7 @@
                         }
 
                         $scope.$emit(emittedEvents.updated, { sender: $scope, args: object });
+                        $scope.$broadcast(emittedEvents.updated, { sender: $scope, args: object });
 
                         $scope.$apply(function () {
 
@@ -276,6 +278,7 @@
                         }
 
                         $scope.$emit(emittedEvents.inserted, { sender: $scope, args: object });
+                        $scope.$broadcast(emittedEvents.inserted, { sender: $scope, args: object });
 
                         $scope.$apply(function () {
 
@@ -437,6 +440,7 @@
                         }
 
                         $scope.$emit(emittedEvents.deleted, { sender: $scope, args: object });
+                        $scope.$broadcast(emittedEvents.deleted, { sender: $scope, args: object });
 
                         if ($scope.object != null) {
 
@@ -551,6 +555,7 @@
                     });
 
                     $scope.$emit(emittedEvents.uploaded, { sender: $scope, args: result });
+                    $scope.$broadcast(emittedEvents.uploaded, { sender: $scope, args: result });
                 });
             });
 
@@ -613,6 +618,7 @@
                     });
 
                     $scope.$emit(emittedEvents.updated, { sender: $scope, args: result });
+                    $scope.$broadcast(emittedEvents.updated, { sender: $scope, args: result });
                 });
             });
 
@@ -1148,7 +1154,11 @@
 
             $scope.$watch("data.uploadProgress", function () {
 
-                uploader.find(".uploadprogress").css("width", $scope.data.uploadProgress + "%");
+                if ( $scope.data != null )
+                {
+                    uploader.find(".uploadprogress").css("width", $scope.data.uploadProgress + "%");
+                }
+
             });
 
             //#endregion
@@ -1214,6 +1224,85 @@
             templateUrl: '/NancyBlack/Modules/DatabaseSystem/template/ncbAttachmentManager.html'
         };
     }]);
+    
+    ncb.directive('ncbAttachmentuploadbutton', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+            
+            $scope.$on("ncb-datacontext.uploaded", function (o, e) {
+
+                if (attrs.uploadcomplete != null) {
+
+                    $scope.$eval(attrs.uploadcomplete);
+                }
+            });
+            
+            //#region Drag Upload
+
+            var uploader = element;
+            var handleEnter = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                uploader.addClass("hintdrop");
+            };
+            var cancel = function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            };
+
+            uploader.on('dragenter', handleEnter);
+            uploader.on('dragover', cancel);
+            $(document).on('dragenter', cancel);
+            $(document).on('dragover', handleEnter);
+            $(document).on('drop', cancel);
+
+            uploader.on('drop', function (e) {
+
+                e.preventDefault();
+                var files = e.originalEvent.dataTransfer.files;
+
+                $scope.data.upload(files[0], null, null, attrs.attachmentType, false);
+            });
+            uploader.on('dragleave', function (e) {
+
+                cancel(e);
+                uploader.removeClass("hintdrop");
+
+            });
+
+            //#endregion
+
+            //#region Click Upload
+
+            uploader.click(function () {
+
+                if (uploader.input == null) {
+
+                    uploader.input = $(document.createElement('input'));
+                    uploader.input.attr("type", "file");
+                    uploader.input.on("change", function (e) {
+
+                        var files = uploader.input[0].files;
+                        $scope.data.upload(files[0], null, null, attrs.attachmentType, false);
+                    });
+                }
+
+                uploader.input.trigger('click');
+                return false;
+            });
+
+            //#endregion
+            
+        }
+
+        return {
+            restrict: 'A',
+            replace: false,
+            link: link,
+            scope: false
+        };
+    }]);
+
 
     var lookup = {};
     ncb.directive('ncbVlookup', function ($http) {

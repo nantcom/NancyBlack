@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Nancy.Bootstrapper;
+using System.Runtime.Caching;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -51,66 +52,123 @@ namespace NantCom.NancyBlack.Modules
                     return;
                 }
 
-                //lastPageViewId have to be saved on setting (but we will re-count everytime for now)
-                var lastPageViewId = 0;
-                var results = this.SiteDatabase.Query
-                    (string.Format("SELECT TableName, ContentId, Request, COUNT(Id) as Hit FROM PageView WHERE Id > {0} GROUP BY TableName, ContentId", lastPageViewId),
-                    new
-                    {
-                        TableName = "test",
-                        ContentId = 0,
-                        Hit = 0,
-                        Request = ""
-                    }).ToList();
-
-                // update lastPageViewId back and save to setting (but we will re-count everytime for now)
-                //lastPageViewId = this.SiteDatabase.Query<PageView>().LastOrDefault().Id;
-
-                foreach (dynamic pageView in results)
+                try
                 {
-                    string tableName = pageView.TableName;
-                    int contentId = pageView.ContentId;
-                    var summary = this.SiteDatabase.Query<PageViewSummary>()
-                        .Where(rec => rec.TableName == tableName && rec.ContentId == contentId).FirstOrDefault();
-
-                    if (summary == null)
-                    {
-                        var request = JObject.Parse(pageView.Request);
-                        summary = new PageViewSummary()
-                        {
-                            ContentId = contentId,
-                            TableName = tableName,
-                            PageViews = pageView.Hit,
-                            Url = request.Value<string>("Path")
-                        };
-                    }
-                    else
-                    {
-                        // if exist should be just update the pageview (but we will re-count everytime for now)
-                        //summary.PageViews += pageView.Hit;
-                        summary.PageViews = pageView.Hit;
-                    }
-
-                    this.SiteDatabase.UpsertRecord(summary);
+                    this.UpdatePageViewSummary(null);
+                }
+                catch (Exception)
+                {
                 }
 
                 _LastPageViewUpdated = DateTime.Now;
             });
         }
         
-
         public ContentModule()
         {
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
 
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
 
+            Get["/__content/updatepageview"] = this.HandleRequest(this.UpdatePageViewSummary);
+
+            Get["/__content/pageviewcount/{table}/{id}"] = this.HandleRequest(this.GetPageViewCount);
+            
             _RootPath = this.RootPath;
 
             SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
             NancyBlackDatabase.ObjectCreated += InsertTag_ObjectCreate;
             NancyBlackDatabase.ObjectUpdated += UpdateTag_ObjectUpdate;
 
+        }
+
+        /// <summary>
+        /// Get Page View Count
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic GetPageViewCount(dynamic arg)
+        {
+            var table = (string)arg.table;
+            var id = (int)arg.id;
+
+            // invalid data type, also  prevent SQL Injection attack when we replace string
+            if ( this.SiteDatabase.DataType.FromName( table ) == null )
+            {
+                return 400;
+            }
+
+            dynamic cached = MemoryCache.Default.Get(table + id);
+            if (cached != null)
+            {
+                return cached.Hit.ToString("0,0");
+            }
+            
+            dynamic result = this.SiteDatabase.Query
+                            (string.Format("SELECT PageViews as Hit FROM PageViewSummary WHERE ContentId = {0} AND TableName = '{1}'", id, table),
+                            new
+                            {
+                                Hit = 0
+                            }).ToList().FirstOrDefault();
+            
+            if (result == null)
+            {
+                result = JObject.FromObject(new { Hit = 0 });
+            }
+            else
+            {
+                result = JObject.FromObject(result);
+            }
+
+            MemoryCache.Default.Add(table + id, result, DateTimeOffset.Now.AddMinutes(10));
+            return result.Hit.ToString("0,0");
+        }
+
+        private dynamic UpdatePageViewSummary(dynamic arg)
+        {
+            //lastPageViewId have to be saved on setting (but we will re-count everytime for now)
+            var lastPageViewId = 0;
+            var results = this.SiteDatabase.Query
+                (string.Format("SELECT TableName, ContentId, COUNT(Id) as Hit FROM PageView WHERE Id > {0} GROUP BY TableName, ContentId", lastPageViewId),
+                new
+                {
+                    TableName = "test",
+                    ContentId = 0,
+                    Hit = 0
+                }).ToList();
+
+            // update lastPageViewId back and save to setting (but we will re-count everytime for now)
+            //lastPageViewId = this.SiteDatabase.Query<PageView>().LastOrDefault().Id;
+
+            foreach (dynamic pageView in results)
+            {
+                string tableName = pageView.TableName;
+                int contentId = pageView.ContentId;
+                var summary = this.SiteDatabase.Query<PageViewSummary>()
+                    .Where(rec => rec.TableName == tableName && rec.ContentId == contentId).FirstOrDefault();
+
+                if (summary == null)
+                {
+                    var request = JObject.Parse(pageView.Request);
+                    summary = new PageViewSummary()
+                    {
+                        ContentId = contentId,
+                        TableName = tableName,
+                        PageViews = pageView.Hit,
+                        Url = request.Value<string>("Path")
+                    };
+                }
+                else
+                {
+                    // if exist should be just update the pageview (but we will re-count everytime for now)
+                    //summary.PageViews += pageView.Hit;
+                    summary.PageViews = pageView.Hit;
+                }
+
+                this.SiteDatabase.UpsertRecord(summary);
+            }
+
+            return "OK";
         }
 
         #region Update Tag Table

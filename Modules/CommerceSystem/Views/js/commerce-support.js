@@ -18,7 +18,6 @@
                 $scope.StatusState = i;
             }
         }
-        
 
         console.log("WARNING: Using Status list from client side");
 
@@ -154,7 +153,7 @@
         if (window.allData.SaleOrder.Status == "Confirmed") {
             var createdAt = new Date(window.allData.SaleOrder.__createdAt);
             // 14 * 24 * 60 * 60 * 1000 = 1209600000 (2 weeks), 86400000 = 1 วัน
-            var deadline = new Date(createdAt.setUTCSeconds(0) + 1209600000);
+            var deadline = new Date(createdAt.setUTCSeconds(0) + 432000000);
             //var deadline = new Date(2016, 4, 16, 23, 59, 59);
 
             function update() {

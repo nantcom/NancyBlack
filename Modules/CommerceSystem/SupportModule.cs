@@ -34,15 +34,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 404;
             }
 
-            var isExpired = so.PaymentStatus == PaymentStatus.WaitingForPayment
-                    && so.Status == SaleOrderStatus.Confirmed
-                    && (so.__createdAt.AddDays(14) < DateTime.Now);
+            //var isExpired = so.PaymentStatus == PaymentStatus.WaitingForPayment
+            //        && so.Status == SaleOrderStatus.Confirmed
+            //        && (so.__createdAt.AddDays(14) < DateTime.Now);
             
-            if (isExpired)
-            {
-                so.Status = SaleOrderStatus.Cancel;
-                this.SiteDatabase.UpsertRecord(so);
-            }
+            //if (isExpired)
+            //{
+            //    so.Status = SaleOrderStatus.Cancel;
+            //    this.SiteDatabase.UpsertRecord(so);
+            //}
 
             var statusList = StatusList.GetAllStatus<SaleOrderStatus>();
 

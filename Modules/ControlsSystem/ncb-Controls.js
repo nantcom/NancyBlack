@@ -2524,6 +2524,28 @@
             scope: false,
         };
     });
+    
+    module.directive('ncbGettext', function ($timeout, $http) {
+
+        function link($scope, element, attrs) {
+
+            $timeout(function () {
+
+                $http.get(attrs.url).success(function (data) {
+
+                    element.text(data);
+                });
+
+            }, 1000);
+        };
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false,
+        };
+    });
+
 
     
 })();
