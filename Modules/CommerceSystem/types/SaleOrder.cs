@@ -138,7 +138,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public decimal ShippingInsuranceFee { get; set; }
 
         /// <summary>
-        /// this boolean will be true when payment was made with PaymentReceived Status
+        /// this boolean will be true when payment was made after PaymentReceived Status
         /// </summary>
         public bool IsDuplicatePayment { get; set; }
 
