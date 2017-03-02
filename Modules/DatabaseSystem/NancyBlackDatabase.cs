@@ -682,6 +682,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     if (tempOutputFile != outputFile)
                     {
                         File.Copy(tempOutputFile, outputFile, true);
+                        File.Delete(tempOutputFile);
                     }
                 }
                 catch (Exception)
