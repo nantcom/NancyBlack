@@ -66,6 +66,11 @@ namespace NantCom.NancyBlack.Modules
         
         public ContentModule()
         {
+            Get["/robots.txt"] = this.HandleRequest((arg) =>
+            {
+                return "User-agent: *\nDisallow: ";
+            });
+
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
 
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
@@ -129,12 +134,13 @@ namespace NantCom.NancyBlack.Modules
             //lastPageViewId have to be saved on setting (but we will re-count everytime for now)
             var lastPageViewId = 0;
             var results = this.SiteDatabase.Query
-                (string.Format("SELECT TableName, ContentId, COUNT(Id) as Hit FROM PageView WHERE Id > {0} GROUP BY TableName, ContentId", lastPageViewId),
+                (string.Format("SELECT TableName, ContentId, COUNT(Id) as Hit, Request FROM PageView WHERE Id > {0} GROUP BY TableName, ContentId", lastPageViewId),
                 new
                 {
                     TableName = "test",
                     ContentId = 0,
-                    Hit = 0
+                    Hit = 0,
+                    Request = ""
                 }).ToList();
 
             // update lastPageViewId back and save to setting (but we will re-count everytime for now)
@@ -155,7 +161,7 @@ namespace NantCom.NancyBlack.Modules
                         ContentId = contentId,
                         TableName = tableName,
                         PageViews = pageView.Hit,
-                        Url = request.Value<string>("Path")
+                        Url = Uri.UnescapeDataString( request.Value<string>("Path") )
                     };
                 }
                 else

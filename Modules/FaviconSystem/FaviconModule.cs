@@ -14,6 +14,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
         public FaviconModule()
         {
             Get["/__favicon/{w}x{h}.{type}"] = this.CreateIcon;
+            Get["/__favicon/ms-icon-{w}x{h}.{type}"] = this.CreateIcon;
         }
 
         private dynamic CreateIcon(dynamic arg)

@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
 
-    public class NancyBlackDatabase
+    public class NancyBlackDatabase : IDisposable
     {
         /// <summary>
         /// Fires when object is being created. (before insert) Parameters of Action are Database, Entity Name and the object that is being inserted.
@@ -52,6 +52,20 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
 
+        /// <summary>
+        /// Root path
+        /// </summary>
+        public string RootPath { get; private set; }
+
+        /// <summary>
+        /// Directory of the database
+        /// </summary>
+        public string DatabaseDirectory { get; set; }
+
+        /// <summary>
+        /// Full Path of Database file
+        /// </summary>
+        public string DatabaseFileName { get; set; }
 
         private SQLiteConnection _db;
         private DataTypeFactory _dataType;
@@ -622,10 +636,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Execute the specified sql command and g
         /// </summary>
         /// <param name="commandText"></param>
-        public IEnumerable<object> Query(string commandText, object sampleOutput)
+        public IEnumerable<object> Query(string commandText, object sampleOutput, object[] parameters = null)
         {
             var cmd = _db.CreateCommand(commandText);
             var resultType = sampleOutput.GetType();
+
+            if (parameters != null)
+            {
+                foreach (var item in parameters)
+                {
+                    cmd.Bind(item);
+                }
+            }
 
             // create data type on the fly for query
             // since anonymous type cannot be created
@@ -642,6 +664,27 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         }
 
         #endregion
+
+        /// <summary>
+        /// Find older version of given object, the latest version is returned first
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public IEnumerable<T> GetOlderVersions<T>(T input) where T : IStaticType
+        {
+            var typeName = input.GetType().Name;
+            var createdAt = input.__updatedAt;
+            var id = input.Id;
+
+            var oldVersions = this.Query<RowVersion>().Where(rv => rv.DataType == typeName && rv.RowId == id && rv.__createdAt < createdAt)
+                .OrderByDescending(rv => rv.__createdAt);
+
+            foreach (var item in oldVersions)
+            {
+                yield return JsonConvert.DeserializeObject<T>(item.js_Row);
+            }
+        }
 
         /// <summary>
         /// Background compression of input file to output file. Input file will be copied first in main thread to temp file.
@@ -696,7 +739,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             });
 
         }
-
+        
         /// <summary>
         /// Gets site database from given Context
         /// </summary>
@@ -704,87 +747,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         public static NancyBlackDatabase GetSiteDatabase(string rootPath)
         {
-            var key = "SiteDatabase";
-            lock (key)
-            {
-                var cached = MemoryCache.Default.Get(key) as NancyBlackDatabase;
-                if (cached != null)
-                {
-                    return cached;
-                }
+            var path = Path.Combine(rootPath, "Site");
+            var fileName = Path.Combine(path, "data.sqlite");
+            
+            var db = new SQLiteConnection(fileName, true);
+            var ndb = new NancyBlackDatabase(db);
+            ndb.DatabaseFileName = fileName;
+            ndb.DatabaseDirectory = path;
 
-                var path = Path.Combine(rootPath, "Site");
-                var fileName = Path.Combine(path, "data.sqlite");
-
-                var backupPath = Path.Combine(path, "Backups");
-                Directory.CreateDirectory(path);
-                Directory.CreateDirectory(backupPath);
-
-#if !DEBUG
-
-                if (File.Exists(fileName))
-                {
-                    // create hourly backup
-                    var backupFile = Path.Combine(backupPath, string.Format("hourlybackup-{0:HH}.sqlite.bz2", DateTime.Now));
-                    if (File.Exists(backupFile) == false)
-                    {
-                        NancyBlackDatabase.BZip(fileName, backupFile);
-                    }
-                    else
-                    {
-                        // check modified date
-                        if (File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date)
-                        {
-                            // it was the yesterday's file, replace it
-                            NancyBlackDatabase.BZip(fileName, backupFile);
-                        }
-                    }
-
-                    // create daily backup
-                    var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));
-                    if (File.Exists(dailybackupFile) == false)
-                    {
-                        NancyBlackDatabase.BZip(fileName, dailybackupFile, 9); // max compression for daily backup
-                    }
-
-                    var backupFiles = Directory.GetFiles(backupPath, "dailybackup-*.sqlite.bz2");
-                    var now = DateTime.Now;
-                    foreach (var file in backupFiles)
-                    {
-                        if (now.Subtract(File.GetCreationTime(file)).TotalDays > 30)
-                        {
-                            try
-                            {
-                                File.Delete(file); // delete backup older than 30 days
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        }
-                    }
-                }
-
-
-#endif
-                var db = new SQLiteConnection(fileName, true);
-                cached = new NancyBlackDatabase(db);
-
-                // touch all data types to trigger table generation/migrations
-                cached.DataType.RegisteredTypes.ToList();
-
-                // cache in memory for 1 hour, dispose after removed
-                var policy = new CacheItemPolicy();
-                policy.AbsoluteExpiration = DateTimeOffset.Now.AddHours(1);
-                policy.RemovedCallback = (arg) =>
-                {
-                    var ncbdb = arg.CacheItem.Value as NancyBlackDatabase;
-                    ncbdb._db.Dispose();
-                };
-                MemoryCache.Default.Add(key, cached, policy);
-
-
-                return cached;
-            }
+            return ndb;
         }
 
         /// <summary>
@@ -797,26 +768,90 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             var db = new SQLiteConnection(fileName, true);
             return new NancyBlackDatabase(db);
         }
+        
+        /// <summary>
+        /// Dispose the underlying database and this instance
+        /// </summary>
+        public void Dispose()
+        {
+            _db.Dispose();
+            this.PerformBackup();
+        }
+        
+        /// <summary>
+        /// Last Time that the backup was checked
+        /// </summary>
+        private static DateTime _LastBackupCheck;
 
         /// <summary>
-        /// Find older version of given object, the latest version is returned first
+        /// Performs the regular backup
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public IEnumerable<T> GetOlderVersions<T>(T input) where T : IStaticType
+        public void PerformBackup()
         {
-            var typeName = input.GetType().Name;
-            var createdAt = input.__updatedAt;
-            var id = input.Id;
-
-            var oldVersions = this.Query<RowVersion>().Where(rv => rv.DataType == typeName && rv.RowId == id && rv.__createdAt < createdAt)
-                .OrderByDescending(rv => rv.__createdAt);
-
-            foreach (var item in oldVersions)
+            if (DateTime.Now.Subtract(_LastBackupCheck).TotalMinutes > 30)
             {
-                yield return JsonConvert.DeserializeObject<T>(item.js_Row);
+                _LastBackupCheck = DateTime.Now;
             }
+            else
+            {
+                // No Need to do the backup now
+                return;
+            }
+
+            try
+            {
+                var path = this.DatabaseDirectory;
+                var fileName = this.DatabaseFileName;
+
+                var backupPath = Path.Combine(path, "Backups");
+                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(backupPath);
+
+                // create hourly backup
+                var backupFile = Path.Combine(backupPath, string.Format("hourlybackup-{0:HH}.sqlite.bz2", DateTime.Now));
+                if (File.Exists(backupFile) == false)
+                {
+                    NancyBlackDatabase.BZip(fileName, backupFile);
+                }
+                else
+                {
+                    // check modified date
+                    if (File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date)
+                    {
+                        // it was the yesterday's file, replace it
+                        NancyBlackDatabase.BZip(fileName, backupFile);
+                    }
+                }
+
+                // create daily backup
+                var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));
+                if (File.Exists(dailybackupFile) == false)
+                {
+                    NancyBlackDatabase.BZip(fileName, dailybackupFile, 9); // max compression for daily backup
+                }
+
+                var backupFiles = Directory.GetFiles(backupPath, "dailybackup-*.sqlite.bz2");
+                var now = DateTime.Now;
+                foreach (var file in backupFiles)
+                {
+                    if (now.Subtract(File.GetCreationTime(file)).TotalDays > 30)
+                    {
+                        try
+                        {
+                            File.Delete(file); // delete backup older than 30 days
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // retry backup again
+                _LastBackupCheck = DateTime.MinValue;
+            }
+            
         }
     }
 

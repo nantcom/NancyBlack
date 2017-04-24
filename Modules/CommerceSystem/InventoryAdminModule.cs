@@ -63,38 +63,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                     foreach (var item in obj.Items)
                     {
-                        var pId = item.ProductId;
-                        var oldestRequestForProduct = db.Query<InventoryItem>()
-                                                        .Where(i => i.IsFullfilled == false && i.ProductId == pId && i.SaleOrderId != 0)
-                                                        .OrderBy(i => i.RequestedDate)
-                                                        .FirstOrDefault();
+                        InventoryItem ivitm = new InventoryItem();
+                        ivitm.InboundDate = obj.InboundDate;
+                        ivitm.InventoryInboundId = obj.Id;
+                        ivitm.ProductId = item.ProductId;
+                        ivitm.BuyingCost = item.Price;
+                        ivitm.BuyingTax = item.Tax;
 
-                        if (oldestRequestForProduct != null) // there is a request for this product
-                        {
-                            oldestRequestForProduct.InboundDate = obj.InboundDate;
-                            oldestRequestForProduct.OutboundDate = obj.InboundDate;
-                            oldestRequestForProduct.InventoryInboundId = obj.Id;
-                            oldestRequestForProduct.IsFullfilled = true;
-                            oldestRequestForProduct.BuyingCost = item.Price;
-                            oldestRequestForProduct.BuyingTax = item.Tax;
+                        db.UpsertRecord(ivitm);
 
-                            db.UpsertRecord(oldestRequestForProduct);
-
-                            inboundItems.Add(oldestRequestForProduct);
-                        }
-                        else // there is no request for this product, create as item
-                        {
-                            InventoryItem ivitm = new InventoryItem();
-                            ivitm.InboundDate = obj.InboundDate;
-                            ivitm.InventoryInboundId = obj.Id;
-                            ivitm.ProductId = item.ProductId;
-                            ivitm.BuyingCost = item.Price;
-                            ivitm.BuyingTax = item.Tax;
-
-                            db.UpsertRecord(ivitm);
-
-                            inboundItems.Add(ivitm);
-                        }
+                        inboundItems.Add(ivitm);
                     }
 
                     InventoryAdminModule.InboundCompleted(db, obj, inboundItems);

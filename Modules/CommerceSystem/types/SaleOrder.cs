@@ -522,16 +522,34 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             if (codeProduct.Attributes.require != null)
             {
-                if (this.Items.Contains((int)codeProduct.Attributes.require) == false)
+                if (codeProduct.Attributes.require.ToString().Contains(","))
                 {
-                    return new PromotionApplyResult()
+                    string list = codeProduct.Attributes.require.ToString();
+                    int[] idList = list.Split(',').Select(s => int.Parse(s)).ToArray();
+
+                    if (idList.All( id => this.Items.Contains( id )) == true )
                     {
-                        code = code,
-                        success = false,
-                        attributes = codeProduct.Attributes,
-                        error = PromotionApplyResult.ERROR_REQUIRE_PRODUCT
-                    };
+                        goto OK;
+                    }
                 }
+                else
+                {
+                    if (this.Items.Contains((int)codeProduct.Attributes.require) == true)
+                    {
+                        goto OK;
+                    }
+                }
+
+                return new PromotionApplyResult()
+                {
+                    code = code,
+                    success = false,
+                    attributes = codeProduct.Attributes,
+                    error = PromotionApplyResult.ERROR_REQUIRE_PRODUCT
+                };
+
+                OK:
+                ;
             }
 
             if (codeProduct.Attributes.until != null)

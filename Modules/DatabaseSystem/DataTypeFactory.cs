@@ -310,6 +310,10 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var created = new DataTypeFactory(db);
+
+            // Triggers migration
+            created.RegisteredTypes.ToList();
+
             MemoryCache.Default.Add(key, created, DateTimeOffset.MaxValue );
 
             return created;

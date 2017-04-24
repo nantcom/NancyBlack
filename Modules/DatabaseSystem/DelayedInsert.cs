@@ -23,7 +23,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        private static dynamic CreateBuffer(NancyBlackDatabase db, Type t)
+        private static dynamic CreateBuffer(string fileName, Type t)
         {
             if (typeof(IStaticType).IsAssignableFrom(t) == false)
             {
@@ -31,7 +31,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var typedBuffer = typeof(InsertBuffer<>).MakeGenericType(t);
-            return Activator.CreateInstance(typedBuffer, db);
+            return Activator.CreateInstance(typedBuffer, fileName);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
             else
             {
-                buffer = DelayedInsertExt.CreateBuffer(db, t);
+                buffer = DelayedInsertExt.CreateBuffer(db.DatabaseFileName, t);
             }
         }
 
@@ -62,7 +62,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             dynamic buffer;
             if (_buffers.TryGetValue(t, out buffer) == false)
             {
-                buffer = DelayedInsertExt.CreateBuffer(db, t);
+                buffer = DelayedInsertExt.CreateBuffer(db.DatabaseFileName, t);
                 _buffers.AddOrUpdate(t, buffer, new Func<Type, object, object>( (tin, o)=> o ));
             }
 
@@ -108,21 +108,37 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Initializes new instance of Buffer
         /// </summary>
         /// <param name="flushDelay">Time interval for each flush</param>
-        public InsertBuffer( NancyBlackDatabase db )
+        public InsertBuffer( string dbFilename )
         {
             _flushTimer = new Timer(buffer =>
             {
                 int count = _buffer.Count;
-                db.Transaction(() =>
+                List<T> inserted = new List<T>();
+                try
                 {
-                    // only get items up until current number of items we have
-                    T result;
-                    while ( count >= 0 && _buffer.TryDequeue(out result))
+                    using (var dbConnection = new SQLite.SQLiteConnection(dbFilename))
                     {
-                        count--;
-                        db.UpsertRecord(result);
+                        dbConnection.RunInTransaction(() =>
+                        {
+                            // only get items up until current number of items we have
+                            T result;
+                            while (count >= 0 && _buffer.TryDequeue(out result))
+                            {
+                                count--;
+                                dbConnection.Insert(result);
+                                inserted.Add(result);
+                            }
+                        });
                     }
-                });
+                }
+                catch (Exception)
+                {
+                    // in case of exception, add them back to queue
+                    foreach (var item in inserted)
+                    {
+                        _buffer.Enqueue(item);
+                    }
+                }
 
             }, _buffer, this.FlushDelay, this.FlushDelay);
         }
