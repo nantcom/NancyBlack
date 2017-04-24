@@ -1,0 +1,46 @@
+﻿<div ng-controller="TreePayBySaleOrderController as tpCtrl"  >
+    <div class="col-md-12" ng-init="tpCtrl.init(object, paymentLogs)">
+        <div class="btn-group" role="group" aria-label="...">
+            <div>
+                <b>วิธีที่การชำระ</b><br />
+                <select name="repeatSelect" ng-model="tpCtrl.paymentMethod" ng-options="option.title for option in tpCtrl.paymentMethods track by option.code"></select>
+            </div>
+            <button class="button"
+                    ng-click="tpCtrl.paymentType = 'AllRemaining'; tpCtrl.pay()">
+                <span>ชำระเงินทั้งหมด</span>
+            </button>
+            <button class="button"
+                    ng-click="tpCtrl.paymentType = tpCtrl.paymentType == 'Split' ? 'AllRemaining' : 'Split'; tpCtrl.selectedAmout = tpCtrl.remainingAmount"
+                    ng-class="{ 'check' : tpCtrl.paymentType == 'Split' }">
+                <span>แบ่งชำระด้วยบัตรหลายใบ</span>
+            </button>
+            <div collapse="tpCtrl.paymentType != 'Split'">
+                <b>จำนวนที่ต้องการจะแบ่งชำระ</b>
+                <input ng-model="tpCtrl.selectedAmout" style="background-color: white" />
+                <button class="button"
+                        ng-click="tpCtrl.pay()">
+                    <span>ชำระเงินตามจำนวน</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div>
+        <form id="treepay_form" name="treepay_form"
+              style="display: none;">
+            <input Type="Hidden" Name="ret_url" ng-value="tpCtrl.settings.postUrl" />
+            <input type="Hidden" Name="user_id" ng-value="tpCtrl.settings.user_id" />
+            <input Type="Hidden" Name="order_no" ng-value="tpCtrl.orderNo" />
+            <input Type="Hidden" Name="good_name" ng-value="'ProductName'" />
+            <input Type="Hidden" Name="trade_mony" ng-value="tpCtrl.confirmedSelectedAmout" />
+            <input Type="Hidden" Name="order_first_name" ng-value="tpCtrl.saleOrder.Customer.FirstName" />
+            <input Type="Hidden" Name="order_last_name" ng-value="tpCtrl.saleOrder.Customer.LastName" />
+            <input Type="Hidden" Name="order_email" ng-value="tpCtrl.saleOrder.Customer.Email" />
+            <input Type="Hidden" Name="pay_type" ng-value="tpCtrl.paymentMethod.code" />
+            <input Type="Hidden" Name="currency" ng-value="tpCtrl.settings.currency" />
+            <input Type="Hidden" Name="tp_langFlag" ng-value="tpCtrl.settings.tp_langFlag" />
+            <input Type="Hidden" Name="site_cd" ng-value="tpCtrl.settings.site_cd" />
+            <input Type="Hidden" Name="hash_data" ng-value="tpCtrl.settings.hash_data" />
+        </form>
+    </div>
+</div>
+<div class="clearfix"></div>
