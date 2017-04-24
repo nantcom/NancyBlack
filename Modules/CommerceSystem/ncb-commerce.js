@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     //Commerce is 'Green' or NCG
 
     function generateUUID() {
@@ -757,6 +757,118 @@
 
                 getPaysbuySettings();
             });
+
+        };
+
+    });
+
+    ncg.controller("TreePayBySaleOrderController", function ($scope, $http, $timeout) {
+        
+        var $me = this;
+
+        $me.selectedAmout = null;
+        $me.remainingAmount = 0;
+        $me.saleOrder = {};
+        $me.orderNo = "";
+        $me.confirmedSelectedAmout = 0;
+
+        var soPaymentLogs = {}
+
+        $me.paymentMethods = [
+            { code: "PACA", title: "Debit/Credit Card" },
+            { code: "PAIN", title: "ผ่อนชำระ/Installment" },
+            { code: "PABK", title: "Internet Banking" }
+        ]
+
+        function FormatNumberLength(num, length) {
+            var r = "" + num;
+            while (r.length < length) {
+                r = "0" + r;
+            }
+            return r;
+        }
+
+        var setOrderNO = function () {
+            if ($me.selectedAmout == $me.saleOrder.TotalAmount && soPaymentLogs.length == 0) {
+                $me.orderNo = $me.saleOrder.SaleOrderIdentifier;
+            }
+            else {
+                $me.orderNo = $me.saleOrder.SaleOrderIdentifier + "-" + FormatNumberLength(soPaymentLogs.length, 2);
+            }
+        }
+
+        $me.init = function (saleorder, paymentLogs) {
+            soPaymentLogs = paymentLogs;
+            $me.saleOrder = saleorder;
+
+            // set remaining payment
+            $me.remainingAmount = $me.saleOrder.TotalAmount;
+            $me.selectedAmout = $me.remainingAmount;
+            if (paymentLogs != null && paymentLogs.length > 0) {
+                $me.remainingAmount = $me.saleOrder.TotalAmount;
+                for (var i = 0; i < paymentLogs.length; i++) {
+                    if (paymentLogs[i].IsPaymentSuccess) {
+                        $me.remainingAmount = $me.remainingAmount - paymentLogs[i].Amount;
+                    }
+                }
+            }
+
+            // set default method
+            // CreditCart is a typo and we know it
+            if ($me.saleOrder.IsPayWithCreditCart == 1) {
+                $me.paymentMethod =  $me.paymentMethods[0];
+            }
+            else {
+                $me.paymentMethods.splice(0, 2);
+                $me.paymentMethod = $me.paymentMethods[0];
+            }
+        }
+
+        $me.pay = function () {
+
+            if ($me.paymentType == "AllRemaining") {
+                $me.selectedAmout = $me.remainingAmount;
+            }
+            else if ($me.selectedAmout > $me.remainingAmount) {
+                alert("ขอโทษค่ะ จำนวนเงินเกินยอดที่ต้องชำระค่ะ");
+                return;
+            }
+
+            // in treepay 230.50 need to convert to 23050
+            $me.confirmedSelectedAmout = parseInt($me.selectedAmout * 100, 10);
+
+            $("#working").addClass("show");
+            setOrderNO();
+
+            $http.post("/treepay/hashdata", { orderNo: $me.orderNo, soIdentifier: $me.saleOrder.SaleOrderIdentifier, trade_mony: $me.confirmedSelectedAmout, pay_type: $me.paymentMethod.code })
+                .success(function (data) {
+
+                    var hashData = data;
+
+                    //get treepay settings
+                    $http.post("/__commerce/treepay/settings")
+                        .success(function (data) {
+
+                            swal({
+                                title: "Pending...",
+                                text: "Navigating to TreePay",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            setTimeout(function () {
+                                $scope.$apply(function () {
+                                    $me.settings = data;
+                                    $me.settings.hash_data = hashData;
+                                });
+
+                                // need to include https://pay.treepay.co.th/js/plugin.tp script tag in using page
+                                // Call TreePay payment window
+                                TP_Pay_Execute(document.treepay_form);
+                            }, 2000);
+
+                        });
+                });
 
         };
 
