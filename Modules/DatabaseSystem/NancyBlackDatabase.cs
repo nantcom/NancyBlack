@@ -798,6 +798,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return;
             }
 
+#if !DEBUG
+
             try
             {
                 var path = this.DatabaseDirectory;
@@ -851,7 +853,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 // retry backup again
                 _LastBackupCheck = DateTime.MinValue;
             }
-            
+#endif
         }
     }
 
