@@ -50,6 +50,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var dummyPage = new Page();
 
+            so.SiteSettings = null;
+
             var data = new
             {
                 StatusList = statusList,

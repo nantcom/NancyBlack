@@ -1,28 +1,44 @@
 ﻿<div ng-controller="TreePayBySaleOrderController as tpCtrl"  >
-    <div class="col-md-12" ng-init="tpCtrl.init(object, paymentLogs)">
-        <div class="btn-group" role="group" aria-label="...">
-            <div>
-                <b>วิธีที่การชำระ</b><br />
+    <div ng-init="tpCtrl.init(object, paymentLogs)">
+
+        <div class="row">
+            <div class="col-sm-5">
+
+                <a href="http://www.treepay.co.th/en/" target="_blank">
+                    <img style="width:100%" src="/NancyBlack/Modules/CommerceSystem/images/treepay-logo.png" />
+                </a>
+
+            </div>
+            <div class="col-sm-7">
                 <select name="repeatSelect" ng-model="tpCtrl.paymentMethod" ng-options="option.title for option in tpCtrl.paymentMethods track by option.code"></select>
             </div>
-            <button class="button"
-                    ng-click="tpCtrl.paymentType = 'AllRemaining'; tpCtrl.pay()">
-                <span>ชำระเงินทั้งหมด</span>
-            </button>
-            <button class="button"
-                    ng-click="tpCtrl.paymentType = tpCtrl.paymentType == 'Split' ? 'AllRemaining' : 'Split'; tpCtrl.selectedAmout = tpCtrl.remainingAmount"
-                    ng-class="{ 'check' : tpCtrl.paymentType == 'Split' }">
-                <span>แบ่งชำระด้วยบัตรหลายใบ</span>
-            </button>
-            <div collapse="tpCtrl.paymentType != 'Split'">
-                <b>จำนวนที่ต้องการจะแบ่งชำระ</b>
-                <input ng-model="tpCtrl.selectedAmout" style="background-color: white" />
-                <button class="button"
-                        ng-click="tpCtrl.pay()">
-                    <span>ชำระเงินตามจำนวน</span>
-                </button>
-            </div>
         </div>
+
+        <button class="button"  style="width: 48%"
+                ng-click="tpCtrl.paymentType = 'AllRemaining'; tpCtrl.pay()">
+            <span>ชำระ {{object.TotalAmount | number:0}}.-</span>
+        </button>
+        <button class="button" style="width: 48%"
+                ng-click="tpCtrl.paymentType = tpCtrl.paymentType == 'Split' ? 'AllRemaining' : 'Split'; tpCtrl.selectedAmout = tpCtrl.remainingAmount"
+                ng-class="{ 'check' : tpCtrl.paymentType == 'Split' }">
+            <span>ระบุยอดที่ต้องการ</span>
+        </button>
+        <div collapse="tpCtrl.paymentType != 'Split'">
+            <b>จำนวนที่ต้องการจะแบ่งชำระ</b>
+            <input ng-model="tpCtrl.selectedAmout" style="background-color: white" />
+            <button class="button"
+                    ng-click="tpCtrl.pay()">
+                <span>ชำระเงินตามจำนวน</span>
+            </button>
+
+            <p>
+                การแบ่งชำระ<b>ไม่ใช่การผ่อนผ่านบัตรเครดิต</b>นะคะ หากต้องการชำระแบบผ่อนชำระเป็นรายเดือน
+                ให้เลือกวิธีการชำระเงินเป็น "ผ่อนชำระ/Installment" ค่ะ
+            </p>
+
+        </div>
+
+
     </div>
     <div>
         <form id="treepay_form" name="treepay_form"
@@ -30,7 +46,7 @@
             <input Type="Hidden" Name="ret_url" ng-value="tpCtrl.settings.postUrl" />
             <input type="Hidden" Name="user_id" ng-value="tpCtrl.settings.user_id" />
             <input Type="Hidden" Name="order_no" ng-value="tpCtrl.orderNo" />
-            <input Type="Hidden" Name="good_name" ng-value="'ProductName'" />
+            <input Type="Hidden" Name="good_name" ng-value="'LEVEL51 -' + object.SaleOrderIdentifier" />
             <input Type="Hidden" Name="trade_mony" ng-value="tpCtrl.confirmedSelectedAmout" />
             <input Type="Hidden" Name="order_first_name" ng-value="tpCtrl.saleOrder.Customer.FirstName" />
             <input Type="Hidden" Name="order_last_name" ng-value="tpCtrl.saleOrder.Customer.LastName" />

@@ -63,6 +63,15 @@
 
     <link href="~/NancyBlack/Modules/ContentSystem/ncb-content.min.css" rel="stylesheet" />
 
+    @if (this.Request.Url.HostName == "localhost")
+    {
+        <script type="text/javascript" src="https://paytest.treepay.co.th/js/plugin.tp"></script>
+    }
+    else
+    {
+        <script type="text/javascript" src="https://pay.treepay.co.th/js/plugin.tp"></script>
+    }
+
 </head>
 <body ncb-membership
       ng-module="BaseModule"

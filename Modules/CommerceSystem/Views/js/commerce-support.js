@@ -146,6 +146,25 @@
             swal(window.bankInfo);
 
         };
+
+        if (window.location.href.indexOf("?paymentsuccess") > 0) {
+
+            var trackpayment = (function () {
+
+                if (typeof(fbq) == "undefined") {
+                    window.setTimeout(trackpayment, 1000);
+                    return;
+                }
+
+                fbq('track', 'Purchase', {
+                    value: $scope.object.TotalAmount,
+                    currency: 'THB'
+                });
+            });
+
+            trackpayment();
+
+        }
     });
 
     mod.controller('CountDownTimerController', function ($scope, $http) {

@@ -23,6 +23,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private string PostbackPath = "/__commerce/treepay/postback";
 
+
         private dynamic GetTreePaySettings(dynamic arg)
         {
             dynamic settings = new JObject(this.CurrentSite.treepay);
@@ -100,20 +101,40 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var paymentDateString = log.FormResponse.Value<int>("trade_ymd").ToString();
             var paymentTimeString = log.FormResponse.Value<int>("trade_hms").ToString();
-            DateTime paymentDate;
+
+            if (paymentTimeString.Length < 6)
+            {
+                paymentTimeString = "0" + paymentTimeString;
+            }
+
+            DateTime paymentDate = DateTime.Now;
 
             if (!log.IsErrorCode)
             {
-                paymentDate = DateTime.ParseExact(paymentDateString + paymentTimeString, "yyyyMMddHHmmss", new CultureInfo("th-TH"));
+                if ( DateTime.TryParseExact(paymentDateString + paymentTimeString, 
+                    "yyyyMMddHHmmss", CultureInfo.InvariantCulture, 
+                    DateTimeStyles.AssumeLocal, out paymentDate) == false )
+                {
+                    paymentDate = DateTime.Now;
+                }
             }
-            else
+
+            // find existing payment of same sale order
+            var existing = this.SiteDatabase.Query<PaymentLog>().Where(l => l.SaleOrderIdentifier == log.SaleOrderIdentifier).ToList();
+
+            // check for same auth_no, if it is already exists
+            // return
+            foreach (var item in existing)
             {
-                paymentDate = DateTime.Now;
+                if ( log.FormResponse.auth_no == item.FormResponse.auth_no )
+                {
+                    return this.Response.AsRedirect("/support/" + log.SaleOrderIdentifier);
+                }
             }
 
             CommerceModule.HandlePayment(this.SiteDatabase, log, paymentDate);
 
-            return this.Response.AsRedirect("/support/" + log.SaleOrderIdentifier);
+            return this.Response.AsRedirect("/support/" + log.SaleOrderIdentifier + "?paymentsuccess");
         }
 
     }

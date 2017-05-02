@@ -776,8 +776,8 @@
 
         $me.paymentMethods = [
             { code: "PACA", title: "Debit/Credit Card" },
-            { code: "PAIN", title: "ผ่อนชำระ/Installment" },
-            { code: "PABK", title: "Internet Banking" }
+            { code: "PAIN", title: "ผ่อนชำระ/Installment" }
+            //,            { code: "PABK", title: "Internet Banking" }
         ]
 
         function FormatNumberLength(num, length) {
@@ -832,6 +832,11 @@
             else if ($me.selectedAmout > $me.remainingAmount) {
                 alert("ขอโทษค่ะ จำนวนเงินเกินยอดที่ต้องชำระค่ะ");
                 return;
+            }
+
+            try {
+                fbq('track', 'InitiateCheckout');
+            } catch (e) {
             }
 
             // in treepay 230.50 need to convert to 23050
