@@ -20,6 +20,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public string Identifier { get; set; }
 
+        /// <summary>
+        /// Whether the receipt is canceled
+        /// </summary>
+        public bool IsCanceled { get; set; }
+
         public void SetIdentifier()
         {
             this.Identifier = string.Format("RC{0:yyyy}-{1:000000}", DateTime.Today, this.Id);
