@@ -118,11 +118,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 {
                     using (var dbConnection = new SQLite.SQLiteConnection(dbFilename))
                     {
+                        // only do this for 400ms max
+                        var start = DateTime.Now.Ticks;
+                        var max = start + (TimeSpan.TicksPerMillisecond * 400);
+                        
                         dbConnection.RunInTransaction(() =>
                         {
                             // only get items up until current number of items we have
                             T result;
-                            while (count >= 0 && _buffer.TryDequeue(out result))
+                            while (
+                                DateTime.Now.Ticks < max &&
+                                count >= 0 &&
+                                _buffer.TryDequeue(out result))
                             {
                                 count--;
                                 dbConnection.Insert(result);

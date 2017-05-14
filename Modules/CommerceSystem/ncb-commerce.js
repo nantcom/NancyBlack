@@ -775,8 +775,8 @@
         var soPaymentLogs = {}
 
         $me.paymentMethods = [
-            { code: "PACA", title: "Debit/Credit Card" },
-            { code: "PAIN", title: "ผ่อนชำระ/Installment" }
+            { code: "PACA", title: "Full Payment (ชำระยอดเต็ม)" },
+            { code: "PAIN", title: "Installment (ผ่อนชำระ)" }
             //,            { code: "PABK", title: "Internet Banking" }
         ]
 

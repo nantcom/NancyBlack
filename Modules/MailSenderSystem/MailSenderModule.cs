@@ -15,7 +15,7 @@ namespace NantCom.NancyBlack.Modules
 {
     public class MailSenderModule : IPipelineHook
     {
-        private static ConcurrentBag<MailMessage> _Outbox;
+        private static ConcurrentQueue<MailMessage> _Outbox;
 
         /// <summary>
         /// Old method signature for compatibility
@@ -40,7 +40,7 @@ namespace NantCom.NancyBlack.Modules
         {
             if (_Outbox == null)
             {
-                _Outbox = new ConcurrentBag<MailMessage>();
+                _Outbox = new ConcurrentQueue<MailMessage>();
             }
 
             MailMessage mail = new MailMessage();
@@ -50,7 +50,7 @@ namespace NantCom.NancyBlack.Modules
             mail.Body = body;
             mail.IsBodyHtml = true;
 
-            _Outbox.Add(mail);
+            _Outbox.Enqueue(mail);
         }
 
         public void Hook(IPipelines p)
@@ -100,7 +100,7 @@ namespace NantCom.NancyBlack.Modules
                             log.Exception = e;
                         }
 
-                        db.UpsertRecord(log);
+                        db.DelayedInsert(log);
                     }
 
                 });
