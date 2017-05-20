@@ -43,6 +43,28 @@
         }
 
         
-        
+        $scope.modes = [
+            { Title: "Customer View", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(PaymentStatus eq 'PaymentReceived')" },
+            { Title: "Follow up", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(Status eq 'Confirmed') and (PaymentStatus eq 'WaitingForPayment')" },
+            { Title: "Waiting for Chasis", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'WaitingForOrder') or (Status eq 'Delayed')" },
+            { Title: "Work Queue", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'AtLEVEL51') or (Status eq 'Building') or (Status eq 'Testing')" },
+            { Title: "Ready To Ship", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'ReadyToShip')" },
+            { Title: "Shipped", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'Shipped')" }
+        ];
+
+        $scope.modeView = "";
+        vm.changeView = function (view) {
+            $scope.currentMode = view;
+            $scope.modeView = "";
+
+            window.setTimeout(function () {
+
+                $scope.$apply(function () {
+                    $scope.modeView = "tableview";
+                });
+
+            }, 400);
+        };
+        vm.changeView($scope.modes[0]);
     }
 })();

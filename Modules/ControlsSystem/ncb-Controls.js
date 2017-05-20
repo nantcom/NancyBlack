@@ -1323,6 +1323,27 @@
             $scope.alwaysfilter = attrs.alwaysfilter;
             $scope.defaultSort = attrs.defaultsort;
 
+            if (typeof($scope.defaultSort) == "string") {
+
+                try {
+                    $scope.defaultSort = JSON.parse(attrs.defaultsort);
+                } catch(e) {
+                    $scope.defaultSort = $scope.$parent.$eval(attrs.defaultsort);
+
+                    if (typeof($scope.defaultSort) == "string") {
+
+                        try {
+                            $scope.defaultSort = JSON.parse($scope.defaultSort);
+                        } catch(e) {
+                           $scope.defaultSort = { Id : 'desc'};
+                        }
+                    }
+
+                }
+            }
+
+            $scope.tableParams.sorting($scope.defaultSort);
+
             if (attrs.reloadwatch != null) {
                 $scope.$parent.$watch(attrs.reloadwatch, function () {
 
@@ -1378,7 +1399,7 @@
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
                 count: 10,          // count per page
-                sorting: { __updatedAt: 'asc' },
+                sorting: $scope.defaultSort,
                 filter: $scope.filters // initial filters
             }, {
                 total: 0, // length of data
@@ -1565,7 +1586,7 @@
                 tableTemplateId: '=tabletemplate',
                 modalTemplateId: '=modaltemplate',
                 modalId: '=modalid',
-                editFn: '&editFn',
+                editFn: '&editFn'
             },
             templateUrl: '/NancyBlack/Modules/ControlsSystem/Templates/ncbNgtable.html',
             controller: controller,
