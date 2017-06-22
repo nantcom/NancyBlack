@@ -1640,7 +1640,17 @@ namespace SQLite
                             sqlInsertCommand.Dispose();
                         }
                     }
+
+                    TryAgain:
+
                     var r = SQLite3.Close(Handle);
+
+                    if (r == SQLite3.Result.Busy)
+                    {
+                        Thread.Sleep(100);
+                        goto TryAgain;
+                    }
+
                     if (r != SQLite3.Result.OK)
                     {
                         string msg = SQLite3.GetErrmsg(Handle);
@@ -3420,6 +3430,9 @@ namespace SQLite
 
         public static IntPtr Prepare2(IntPtr db, string query)
         {
+            TryAgain:
+            double backoffFactor = 1;
+
             IntPtr stmt;
 #if NETFX_CORE
             byte[] queryBytes = System.Text.UTF8Encoding.UTF8.GetBytes (query);
@@ -3427,6 +3440,14 @@ namespace SQLite
 #else
             var r = Prepare2(db, query, System.Text.UTF8Encoding.UTF8.GetByteCount(query), out stmt, IntPtr.Zero);
 #endif
+            if (r == Result.Busy)
+            {
+                Thread.Sleep((int)(100 * backoffFactor));
+
+                backoffFactor *= 1.1;
+                goto TryAgain;
+            }
+
             if (r != Result.OK)
             {
                 throw SQLiteException.New(r, GetErrmsg(db));

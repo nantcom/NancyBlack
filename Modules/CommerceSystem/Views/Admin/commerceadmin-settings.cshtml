@@ -26,6 +26,29 @@
 
         <div class="col-md-4">
 
+            <h2>BX Bitcoin API</h2>
+            <input type="text" title="API Key"
+                   ncb-textbox ng-model="object.commerce.bx.apikey" />
+
+            <input type="text" title="API Secret"
+                   ncb-textbox ng-model="object.commerce.bx.apisecret" />
+
+            <div class="form-group">
+                <a class="btn btn-default" href="https://bx.in.th/account/" target="_blank">Generate new API Key</a>
+            </div>
+
+            <div class="form-group">
+                <p>
+                    <alert type="warning">
+                        Only Get Deposit Address and History Rights required.<br />
+                        <b>DO NOT</b> Enable other rights as the API Key and Secret is not securely stored on server.
+                    </alert>
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+
             <h2>PaySbuy</h2>
 
             <input type="number" title="PSB ID"
@@ -194,6 +217,7 @@
             <input type="text" title="Send Notifications to"
                    ncb-textbox ng-model="object.commerce.email.notification" />
         </div>
+
 
     </div>
 

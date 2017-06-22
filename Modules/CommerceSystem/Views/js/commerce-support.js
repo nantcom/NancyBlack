@@ -6,6 +6,7 @@
 
         var me = this;
 
+
         $scope.object = window.allData.SaleOrder;
         $scope.branding = window.branding;
         $scope.isAdmin = window.isAdmin == "True" ? true : false;
@@ -144,6 +145,47 @@
         me.showTransferInfo = function () {
 
             swal(window.bankInfo);
+
+        };
+        
+        $scope.thbToBTC = 94500;
+        me.getBTCRate = function () {
+            
+            $http.get("/__commerce/btcquote").
+                success(function (data, status, headers, config) {
+
+                    $scope.thbToBTC = data.data.low;
+                    console.log($scope.thbToBTC);
+
+                }).
+                error(function (data, status, headers, config) {
+
+                });
+        };
+        me.getBTCRate();
+
+        me.showBitCoinAddress = function () {
+
+            $http.get("/__commerce/" + $scope.object.Id + "/btcdepositinfo").
+                success(function (data, status, headers, config) {
+
+                    swal({
+                        title: "ชำระเงินด้วย Bitcoin",
+                        text: '<p>BTC Address:</p>' +
+
+                        '<b>' + data.address + '</b>' +
+                        '<p> จำนวน </p>' +
+                        '<b>' + data.amount + 'BTC</b>' +
+                        '<p><img src="' + data.qrcode + '" /></p>' +
+
+                        '<p style="margin-top: 20px">หลังการโอน BTC กรุณาอัพโหลดภาพ Screenshot เข้ามายังระบบ โดยใช้ปุ่ม <b>แจ้งตรวจสอบการชำระเงิน</b> ค่ะ</p>',
+                        html: true
+                    });
+
+                }).
+                error(function (data, status, headers, config) {
+
+                });
 
         };
 

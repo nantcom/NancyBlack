@@ -89,88 +89,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // Save User's cart
             Post["/__commerce/api/checkout"] = this.HandleRequest(this.Checkout);
 
-            Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", (arg) =>
-            {
-                int soId = 0;
-                var id = (string)arg.so_id;
-                SaleOrder so = null;
-                if (int.TryParse(id, out soId))
-                {
-                    so = this.SiteDatabase.GetById<SaleOrder>(soId);
-                }
-                else
-                {
-                    so = this.SiteDatabase.Query<SaleOrder>()
-                                .Where(row => row.SaleOrderIdentifier == id)
-                                .FirstOrDefault();
-
-                }
-
-                if (arg.form == "receipt" && !this.CurrentUser.HasClaim("admin"))
-                {
-                    if (so.PaymentStatus != PaymentStatus.PaymentReceived)
-                    {
-                        return new StandardModel(400);
-                    }
-                }
-
-                if (so == null)
-                {
-                    return new StandardModel(404); ;
-                }
-
-                var receipts = this.SiteDatabase.Query<Receipt>()
-                    .Where(r => r.SaleOrderId == so.Id)
-                    .ToList();
-
-                Receipt receipt;
-
-                if (this.Request.Query.index == null && receipts.Count == 1)
-                {
-                    receipt = receipts.FirstOrDefault();
-                }
-                else if (this.Request.Query.index == null && receipts.Count > 1)
-                {
-                    receipt = new Receipt() { Identifier = "Specify Index" };
-                }
-                else
-                {
-                    receipt = receipts
-                    .Skip(this.Request.Query.index == null ? 0 : (int)this.Request.Query.index)
-                    .FirstOrDefault();
-                }
-
-                if (receipt == null)
-                {
-                    receipt = new Receipt() { Identifier = so.ReceiptIdentifier };
-                }
-
-                var paymentlogs = this.SiteDatabase.Query<PaymentLog>()
-                            .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier && p.IsErrorCode == false)
-                            .OrderBy(log => log.PaymentDate)
-                            .ToList();
-                
-                var totalPaid = paymentlogs.Sum(log => log.Amount);
-
-                var paymentDetail = new
-                {
-                    TransactionLog = paymentlogs,
-                    PaymentRemaining = so.TotalAmount - totalPaid,
-                    TotalPaid = totalPaid,
-                    SplitedPaymentIndex = this.Request.Query.index == null ? -1 : (int)this.Request.Query.index
-                };
-
-                var dummyPage = new Page()
-                {
-                    Title = arg.form + " for " + so.SaleOrderIdentifier,
-                    ContentParts = JObject.FromObject(new
-                    {
-                        Type = (string)arg.form
-                    })
-                };
-
-                return new StandardModel(this, dummyPage, new { SaleOrder = so, PaymentDetail = paymentDetail, Receipt = receipt });
-            });
+            Get["/__commerce/saleorder/{so_id}/{form}"] = this.HandleViewRequest("commerce-print", this.HandleCommercePrint);
 
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
 
@@ -184,7 +103,90 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             });
 
             Post["/__commerce/api/checkpromotion"] = this.HandleRequest(this.HandlePromotionCheckRequest);
+            
+        }
 
+        private StandardModel HandleCommercePrint( dynamic arg )
+        {
+            int soId = 0;
+            var id = (string)arg.so_id;
+            SaleOrder so = null;
+            if (int.TryParse(id, out soId))
+            {
+                so = this.SiteDatabase.GetById<SaleOrder>(soId);
+            }
+            else
+            {
+                so = this.SiteDatabase.Query<SaleOrder>()
+                            .Where(row => row.SaleOrderIdentifier == id)
+                            .FirstOrDefault();
+
+            }
+
+            if (arg.form == "receipt" && !this.CurrentUser.HasClaim("admin"))
+            {
+                if (so.PaymentStatus != PaymentStatus.PaymentReceived)
+                {
+                    return new StandardModel(400);
+                }
+            }
+
+            if (so == null)
+            {
+                return new StandardModel(404); ;
+            }
+
+            var receipts = this.SiteDatabase.Query<Receipt>()
+                .Where(r => r.SaleOrderId == so.Id)
+                .ToList();
+
+            Receipt receipt;
+
+            if (this.Request.Query.index == null && receipts.Count == 1)
+            {
+                receipt = receipts.FirstOrDefault();
+            }
+            else if (this.Request.Query.index == null && receipts.Count > 1)
+            {
+                receipt = new Receipt() { Identifier = "Specify Index" };
+            }
+            else
+            {
+                receipt = receipts
+                .Skip(this.Request.Query.index == null ? 0 : (int)this.Request.Query.index)
+                .FirstOrDefault();
+            }
+
+            if (receipt == null)
+            {
+                receipt = new Receipt() { Identifier = so.ReceiptIdentifier };
+            }
+
+            var paymentlogs = this.SiteDatabase.Query<PaymentLog>()
+                        .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier && p.IsErrorCode == false)
+                        .OrderBy(log => log.PaymentDate)
+                        .ToList();
+
+            var totalPaid = paymentlogs.Sum(log => log.Amount);
+
+            var paymentDetail = new
+            {
+                TransactionLog = paymentlogs,
+                PaymentRemaining = so.TotalAmount - totalPaid,
+                TotalPaid = totalPaid,
+                SplitedPaymentIndex = this.Request.Query.index == null ? -1 : (int)this.Request.Query.index
+            };
+
+            var dummyPage = new Page()
+            {
+                Title = arg.form + " for " + so.SaleOrderIdentifier,
+                ContentParts = JObject.FromObject(new
+                {
+                    Type = (string)arg.form
+                })
+            };
+
+            return new StandardModel(this, dummyPage, new { SaleOrder = so, PaymentDetail = paymentDetail, Receipt = receipt });
         }
 
         private dynamic HandlePromotionCheckRequest(dynamic arg)
