@@ -366,7 +366,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var products = this.SiteDatabase.Query<Product>().AsEnumerable();
             Func<string, string> getUrlWithoutLeaf = (s) =>
             {
-                return Path.GetDirectoryName(s);
+                return s.Substring(0, s.LastIndexOf('/'));
             };
 
             var baseUrls = (from p in products
@@ -378,11 +378,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             int id = 0;
             foreach (var item in baseUrls)
             {
-                var parts = item.Split('\\').ToList();
+                var parts = item.Split('/').ToList();
                 for (int i = 1; i < parts.Count; i++)
                 {
-                    var parentPath = string.Join("\\", parts.Take(i));
-                    var fullPath = string.Join("\\", parts.Take(i + 1));
+                    var parentPath = string.Join("/", parts.Take(i));
+                    var fullPath = string.Join("/", parts.Take(i + 1));
 
                     if (parentPath == "")
                     {
@@ -395,7 +395,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         {
                             id = id++,
                             title = Path.GetFileName(parentPath),
-                            fullPath = parentPath.Replace('\\', '/'),
+                            fullPath = parentPath,
                         };
                     }
 
@@ -405,7 +405,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         {
                             id = id++,
                             title = Path.GetFileName(fullPath),
-                            fullPath = fullPath.Replace('\\', '/'),
+                            fullPath = fullPath,
                         };
 
                         tree[fullPath] = node;

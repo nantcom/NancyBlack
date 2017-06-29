@@ -2211,9 +2211,19 @@ namespace SQLite
             }
 
             var r = SQLite3.Result.OK;
+
+            TryAgain:
+
             var stmt = Prepare();
             r = SQLite3.Step(stmt);
             Finalize(stmt);
+            
+            if (r == SQLite3.Result.Busy)
+            {
+                Thread.Sleep(100);
+                goto TryAgain;
+            }
+
             if (r == SQLite3.Result.Done)
             {
                 int rowsAffected = SQLite3.Changes(_conn.Handle);
@@ -2583,6 +2593,12 @@ namespace SQLite
                     // Read JSON stored in the column
                     var json = SQLite3.ColumnString(stmt, index);
                     object result = null;
+
+                    if (json.Contains("aaf__AnonymousType"))
+                    {
+                        return JsonConvert.DeserializeObject(json, clrType, NoTypeNameHandlingJsonSettings.Instance);
+                    }
+
                     try
                     {
                         result = JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);
