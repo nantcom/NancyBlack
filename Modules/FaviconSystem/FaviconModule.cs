@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using NantCom.NancyBlack.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -19,7 +20,17 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
 
         private dynamic CreateIcon(dynamic arg)
         {
-            var sourceFile = Path.Combine(this.RootPath, "Site", "favicon.png");
+            // select sub website to use if none match will go for mainsite
+            string sourceFile;
+            string subSiteName = (string)this.Context.Items["SubSite"];
+            if (string.IsNullOrEmpty(subSiteName))
+            {
+                sourceFile = Path.Combine(this.RootPath, "Site", "favicon.png");
+            }
+            else
+            {
+                sourceFile = Path.Combine(this.RootPath, "Site", subSiteName, "favicon.png");
+            }
 
             if (File.Exists(sourceFile) == false)
             {

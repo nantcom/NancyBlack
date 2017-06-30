@@ -6,6 +6,7 @@ using NantCom.NancyBlack.Modules;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.IO;
 using System.Runtime.Caching;
 using System.Text.RegularExpressions;
@@ -192,20 +193,27 @@ namespace NantCom.NancyBlack.Configuration
 
             #region Sub Website View Conventions
 
-            // Generic View Location
+            // Generic View for SubWebsite Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                string directory = this.RootPathProvider.GetRootPath();
-                string folder = Path.Combine(directory, "Site", "SubSites");
-                var subSites = Directory.GetDirectories(folder);
-                var hostName = context.Context.Request.Url.HostName;
-                foreach (var subSiteName in subSites)
+                //string directory = this.RootPathProvider.GetRootPath();
+                //string folder = Path.Combine(directory, "Site", "SubSites");
+                //var subSiteDirectories = Directory.GetDirectories(folder);
+                //var hostName = context.Context.Request.Url.HostName;
+                //foreach (var subSiteName in subSites)
+                //{
+                //    if (hostName.Contains(subSiteName))
+                //    {
+                //        return "Site/" + subSiteName + "/" + viewName;
+                //    }
+                //}
+
+                string subSiteName = (string)context.Context.Items["SubSite"];
+                if (!string.IsNullOrEmpty(subSiteName))
                 {
-                    if (hostName.Contains(subSiteName))
-                    {
-                        return "Site/" + subSiteName + "/" + viewName;
-                    }
+                    return "Site/" + subSiteName + "/" + viewName;
                 }
+
                 return string.Empty;
             });
 
@@ -298,6 +306,12 @@ namespace NantCom.NancyBlack.Configuration
 
             pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
+                // Get Subsite Name if in main site will get null
+                string folder = Path.Combine(BootStrapper.RootPath, "Site", "SubSites");
+                var subSiteNames = from subDirectories in Directory.GetDirectories(folder) select Path.GetFileName(subDirectories);
+                var matchSubSiteName = (from subSite in subSiteNames where ctx.Request.Url.HostName.Contains(subSite) select subSite).FirstOrDefault();
+
+                ctx.Items["SubSite"] = matchSubSiteName;
                 ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
                 ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
                 ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
