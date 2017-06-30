@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using System.Web.Routing;
 using NantCom.NancyBlack.Configuration;
 using Nancy.Conventions;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace NantCom.NancyBlack
 {
@@ -185,9 +187,30 @@ namespace NantCom.NancyBlack.Configuration
                                          context.Context.Items["Language"]);
                 });
             }
-            
+
             #endregion
-            
+
+            #region Sub Website View Conventions
+
+            // Generic View Location
+            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            {
+                string directory = this.RootPathProvider.GetRootPath();
+                string folder = Path.Combine(directory, "Site", "SubSites");
+                var subSites = Directory.GetDirectories(folder);
+                var hostName = context.Context.Request.Url.HostName;
+                foreach (var subSiteName in subSites)
+                {
+                    if (hostName.Contains(subSiteName))
+                    {
+                        return "Site/" + subSiteName + "/" + viewName;
+                    }
+                }
+                return string.Empty;
+            });
+
+            #endregion
+
             #region View Conventions
 
             // Site's View Folder has most priority
