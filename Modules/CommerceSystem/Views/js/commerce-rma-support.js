@@ -46,7 +46,7 @@
             }
 
             if (method == $scope.methods[1]) {
-                return $sce.trustAsResourceUrl('https://th.kerryexpress.com/th/track/?track=' + trackingNumber);
+                return $sce.trustAsResourceUrl('https://track.aftership.com/kerry-logistics/' + trackingNumber);
             }
         }
 

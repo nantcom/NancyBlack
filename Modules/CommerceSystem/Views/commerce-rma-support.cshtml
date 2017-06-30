@@ -282,7 +282,7 @@
                                  ng-if="object.Status == 'Shipped' && object.Status != 'Delivered'">
                                 <div class="col-xs-12" id="dhltracking">
                                     <h2 class="text-info">สถานะการจัดส่ง</h2>
-                                    <iframe ng-src="{{ctrl.getTrackUrl(object.OutboundShipment.TrackingCode, object.OutboundShipment.Method)}}"></iframe>
+                                    <iframe style="height: 800px" ng-src="{{ctrl.getTrackUrl(object.OutboundShipment.TrackingCode, object.OutboundShipment.Method)}}"></iframe>
                                 </div>
                             </div>
 
