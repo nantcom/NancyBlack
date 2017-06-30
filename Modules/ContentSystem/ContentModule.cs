@@ -341,8 +341,18 @@ namespace NantCom.NancyBlack.Modules
                 // seems to be a collection
                 var typeName = parts[1].Substring(0, parts[1].Length - 1);
                 var datatype = this.SiteDatabase.DataType.FromName(typeName);
+                var subSiteName = (string)this.Context.Items["SubSite"];
+
+                // edit url when using subsite example: convert "/products/..." to "/products/subSiteName/..."
+                // for products, blogs (end with 's') and etc
+                if (!string.IsNullOrEmpty(subSiteName))
+                {
+                    url = Path.Combine("", parts[1], subSiteName);
+                    url = url + Path.Combine(parts.Skip(2).ToArray());
+                }
 
                 var result = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault();
+                
                 if (result != null)
                 {
                     // convert it to IContent
@@ -356,13 +366,20 @@ namespace NantCom.NancyBlack.Modules
                         requestedContent = JObject.FromObject(result).ToObject<Page>();
                         (requestedContent as Page).SetTableName(typeName);
                     }
-
                 }
             }
 
             // if it is not table, use content table instead
             if (requestedContent == null)
             {
+                var subSiteName = (string)this.Context.Items["SubSite"];
+
+                // edit url when using subsite example: convert "/contact" to "/subSiteName/contact"
+                if (!string.IsNullOrEmpty(subSiteName))
+                {
+                    url = "/" + subSiteName + url;
+                }
+
                 requestedContent = ContentModule.GetPage(this.SiteDatabase, url);
             }
 
