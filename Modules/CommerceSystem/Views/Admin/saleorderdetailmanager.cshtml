@@ -23,20 +23,16 @@
     <script src="/NancyBlack/Modules/CommerceSystem/Views/Admin/js/saleorderdetail.js"></script>
 }
 
-<div class="page-header">
-    <h1>SaleOrder Detail<small></small></h1>
-</div>
-
 <div ng-module="saleorderdetail"
      ng-controller="saleorderdetailview as ctrl"
      ncb-datacontext table="SaleOrder"
      ng-cloak>
 
-    <tabset>
 
-        <tab heading="Details">
-
-            <div class="col-md-12" style="padding-bottom: 10px;">
+    <div class="page-header">
+        <h1>{{object.SaleOrderIdentifier}}
+        
+            <span class="pull-right">
 
                 <button ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"
                         class="btn btn-primary">
@@ -44,18 +40,157 @@
                 </button>
 
                 <button ng-click="printDocument(object.SaleOrderIdentifier, 'receipt')"
+                        ng-enabled="object.PaymentStatus == 'PaymentReceived'"
                         class="btn btn-success">
                     <span class="icon ion-printer"></span> Receipt
                 </button>
 
                 <a ng-href="/support/{{object.SaleOrderIdentifier}}"
                    target="_blank"
-                   class="btn btn-primary"
-                   ng-enabled="object.Status == 'PaymentReceived'">
+                   class="btn btn-primary">
                     <span class="icon ion-ios-sunny"></span> Open Support Page
                 </a>
 
+            </span>
+        </h1>
+    </div>
+
+
+    <tabset>
+
+        <tab heading="Details">
+
+            <div class="col-md-12"
+                 ng-controller="PaymentController as ctrl">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-primary">
+
+                            <div class="panel-heading">
+                                Payment
+                            </div>
+
+                            <div class="panel-body">
+
+                                <div class="form-group row">
+                                    <div class="col-xs-6">
+                                        <ncb-datepicker model="paymentDetail.paidWhen" format="'dd MMMM yyyy'"
+                                                        title="Payment Date"></ncb-datepicker>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <select ncb-select title="Payment Time Hour"
+                                                ng-model="paymentTime.Hour">
+                                            @for (int i = 0; i < 24; i++)
+                                            {
+                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <select ncb-select title="Minute"
+                                                ng-model="paymentTime.Min">
+                                            @for (int i = 0; i < 60; i++)
+                                            {
+                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Paid to Account</label>
+                                    <select ng-options="pmethod for pmethod in paymentMethods"
+                                            ng-model="paymentDetail.paymentMethod"
+                                            class="form-control"></select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Approval Code (Creditcard payment)</label>
+                                    <input class="form-control" ng-model="paymentDetail.apCode" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Amount</label>
+                                    <input class="form-control" ng-model="paymentDetail.amount" />
+                                </div>
+
+                                <div class="form-group">
+                                    <button ng-click="ctrl.saveNewPayment()"
+                                            class="btn btn-primary">
+                                        Ok
+                                    </button>
+                                    <button ng-click="ctrl.cancel()"
+                                            class="btn btn-default">
+                                        Cancel
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="panel panel-primary">
+
+                            <div class="panel-heading">
+                                Payment Records
+                            </div>
+
+                            <div class="panel-body">
+
+
+                                <table class="table" ">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>to Account</th>
+                                            <th>Approval Code</th>
+                                            <th>Status</th>
+                                            <th><div class="text-right">Ammount ({{object.Currency}})</div></th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in paymentLogs">
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{$index + 1}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{item.PaymentMethod}}
+                                        </td>
+                                        <td>
+                                            {{item.ApCode}}
+                                        </td>
+                                        <td>
+                                            {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static text-right">
+                                                {{item.Amount | number:2}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
+
+
 
             <div class="col-md-6">
 
@@ -529,273 +664,152 @@
                 </form>
             </div>
 
-            <div class="col-md-12">
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
-                            Items
-                        </h3>
-                    </div>
+        </tab>
 
-                    <div class="panel-body">
-                        <table id="items" class="table"
-                               ncg-productresolver saleorder="object">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product</th>
-                                    <th><div class="text-right">Qty.</div></th>
-                                    <th><div class="text-right">Unit Price ({{object.Currency}})</div></th>
-                                    <th><div class="text-right">Line Total ({{object.Currency}})</div></th>
-                                </tr>
-                            </thead>
-                            <tr ng-repeat="item in object.ItemsDetail">
-                                <td>
-                                    <div class="form-control-static">
-                                        {{$index + 1}}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        {{item.Title}}
-                                        <div>
-                                            <a ng-href="/Admin/saleorder/{{object.Id}}/remove/{{item.Id}}">(remove)</a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        {{item.Attributes.Qty}}
-                                    </div>
-                                </td>
-                                <td>
+        <tab heading="Order Details">
 
-                                    <div class="form-control-static text-right">
-                                        {{item.Price | number:2}} 
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        {{(item.Price * item.Attributes.Qty) | number:2}} 
-                                    </div>
-                                </td>
-                            </tr>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Items
+                    </h3>
+                </div>
+
+                <div class="panel-body">
+                    <table id="items" class="table"
+                           ncg-productresolver saleorder="object">
+                        <thead>
                             <tr>
-                                <td class="blank" colspan="3"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Shipping Fee</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.ShippingFee | number:2 }} </b>
-                                    </div>
-                                </td>
+                                <th>#</th>
+                                <th>Product</th>
+                                <th><div class="text-right">Qty.</div></th>
+                                <th><div class="text-right">Unit Price ({{object.Currency}})</div></th>
+                                <th><div class="text-right">Line Total ({{object.Currency}})</div></th>
                             </tr>
-                            <tr>
-                                <td class="blank" colspan="3"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Insurence Fee</b>
+                        </thead>
+                        <tr>
+                            <td>
+                                <div class="form-control-static">
+                                    Add
+                                </div>
+                            </td>
+                            <td>
+
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="product id"
+                                           ng-model="newitem">
+                                    <span class="input-group-btn">
+                                        <a class="btn btn-default"
+                                           ng-href="/Admin/saleorder/{{object.Id}}/add/{{newitem}}">
+
+                                            <i class="fa fa-plus-circle"></i> Add
+
+                                        </a>
+                                    </span>
+                                </div>
+
+                            </td>
+                            <td>
+                                
+                            </td>
+                            <td>
+
+                            </td>
+                            <td>
+                                
+                            </td>
+                        </tr>
+                        <tr ng-repeat="item in object.ItemsDetail">
+                            <td>
+                                <div class="form-control-static">
+                                    {{$index + 1}}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static">
+                                    {{item.Title}}
+                                    <div>
+                                        <a ng-href="/Admin/saleorder/{{object.Id}}/remove/{{item.Id}}">(remove)</a>
                                     </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.ShippingInsuranceFee | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="3"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Payment Fee</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.PaymentFee | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="3"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Total (net)</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.TotalAmount | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    {{item.Attributes.Qty}}
+                                </div>
+                            </td>
+                            <td>
+
+                                <div class="form-control-static text-right">
+                                    {{item.Price | number:2}}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    {{(item.Price * item.Attributes.Qty) | number:2}}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="3"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Shipping Fee</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.ShippingFee | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="3"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Insurence Fee</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.ShippingInsuranceFee | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="3"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Payment Fee</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.PaymentFee | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="3"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Total (net)</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.TotalAmount | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
-            <div class="col-md-6" style="margin: 10px; margin-bottom: 200px">
-
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="product id"
-                           ng-model="newitem">
-                    <span class="input-group-btn">
-                        <a class="btn btn-default"
-                           ng-href="/Admin/saleorder/{{object.Id}}/add/{{newitem}}">
-
-                            <i class="fa fa-plus-circle"></i> Add Product to Sale Order
-
-                        </a>
-                    </span>
-                </div>
-            </div>
         </tab>
 
         <tab heading="Attachments">
             <ncb-attachmentmanager></ncb-attachmentmanager>
-        </tab>
-
-        <tab heading="Payment">
-
-            <div ng-controller="PaymentController as ctrl">
-
-                <div class="row">
-                    <div class="col-md-8 col-sm-12">
-                        <div class="panel panel-primary">
-
-                            <div class="panel-heading">
-                                Payment Form
-                            </div>
-
-                            <div class="panel-body">
-
-                                <div class="form-group row">
-                                    <div class="col-xs-6">
-                                        <ncb-datepicker model="paymentDetail.paidWhen" format="'dd MMMM yyyy'"
-                                                        title="วันที่การชำระเงิน"></ncb-datepicker>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <select ncb-select title="เวลาชำระเงิน"
-                                                ng-model="paymentTime.Hour">
-                                            @for (int i = 0; i < 24; i++)
-                                            {
-                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
-                                            }
-                                        </select>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <select ncb-select title="นาทีที่ชำระ"
-                                                ng-model="paymentTime.Min">
-                                            @for (int i = 0; i < 60; i++)
-                                            {
-                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
-                                            }
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>วิธีการชำระเงิน</label>
-                                    <select ng-options="pmethod for pmethod in paymentMethods"
-                                            ng-model="paymentDetail.paymentMethod"
-                                            class="form-control">
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>รหัสอนุมัติ (ใช้เมื่อจ่ายโดย PaySbuy)</label>
-                                    <input class="form-control" ng-model="paymentDetail.apCode" />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>จำนวนเงิน</label>
-                                    <input class="form-control" ng-model="paymentDetail.amount" />
-                                </div>
-
-                                <div class="form-group">
-                                    <button ng-click="ctrl.saveNewPayment()"
-                                            class="btn btn-primary">
-                                        Ok
-                                    </button>
-                                    <button ng-click="ctrl.cancel()"
-                                            class="btn btn-default">
-                                        Cancel
-                                    </button>
-                                </div>
-
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>วันที่ชำระเงิน</th>
-                            <th>ช่องทางการชำระเงิน</th>
-                            <th>รหัสอนุมัติ</th>
-                            <th>สถานะ</th>
-                            <th><div class="text-right">จำนวนเงินที่ชำระ (สกุล {{object.Currency}})</div></th>
-                        </tr>
-                    </thead>
-                    <tr ng-repeat="item in paymentLogs">
-                        <td>
-                            <div class="form-control-static">
-                                {{$index + 1}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
-                            </div>
-                        </td>
-                        <td>
-                            {{item.PaymentMethod}}
-                        </td>
-                        <td>
-                            {{item.ApCode}}
-                        </td>
-                        <td>
-                            {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
-                        </td>
-                        <td>
-                            <div class="form-control-static text-right">
-                                {{item.Amount | number:2}} 
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-
-            </div>
-
-        </tab>
-
-        <tab heading="RowVerions">
-            <div id="jsoneditor" style="width: 100%; height: 500px;"></div>
-            <script type="text/javascript">
-
-                try {
-                    $(document).ready(function() {
-
-                        // create the editor
-                        var container = document.getElementById("jsoneditor");
-                        var editor = new JSONEditor(container);
-
-                        // set json
-                        editor.set(window.allData.RowVerions);
-
-                    });
-                } catch (e) {
-    
-                }
-
-
-            </script>
         </tab>
 
     </tabset>

@@ -210,5 +210,15 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 supplier = supplier.Union(debtloan).ToList()
             };
         }
+        
+        /// <summary>
+        /// Get Receivable Account
+        /// </summary>
+        /// <param name="db"></param>
+        /// <returns></returns>
+        public static List<string> GetReceivableAccounts( NancyBlackDatabase db )
+        {
+            return db.Query("SELECT DISTINCT IncreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
+        }
     }
 }

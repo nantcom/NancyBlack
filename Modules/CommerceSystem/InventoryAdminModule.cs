@@ -270,17 +270,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Func<Product, int> findSupplier = (product) =>
             {
+
                 if (product.Attributes == null)
                 {
                     return 0;
                 }
 
-                if (product.Attributes.supplier == null)
+                dynamic attributes = JObject.FromObject(product.Attributes);
+
+                if (attributes.supplier == null)
                 {
                     return 0;
                 }
 
-                var supplier = JObject.Parse((string)product.Attributes.supplier) as dynamic;
+                var supplier = JObject.Parse((string)attributes.supplier) as dynamic;
                 return supplier.id;
 
             };

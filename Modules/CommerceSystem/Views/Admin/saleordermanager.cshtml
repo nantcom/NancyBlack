@@ -184,8 +184,11 @@
                         Paid On: {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
                     </span>
                 </td>
+                <td data-title="'PaymentReceivedDate'"
+                    sortable="'PaymentReceivedDate'">
+                    {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
+                </td>
                 <td data-title="'Customer'"
-                    sortable="'Customer'"
                     filter="{ 'Customer': 'text' }">
                     {{item.Customer.FirstName}} {{item.Customer.LastName}}
                 </td>

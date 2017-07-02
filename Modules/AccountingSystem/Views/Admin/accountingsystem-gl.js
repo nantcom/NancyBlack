@@ -7,9 +7,8 @@
         $me = this;
         $me.$scope = $scope;
 
-        $me.invertIncrease = 1;
-        $me.invertDecrease = 1;
-
+        $scope.object = {};
+        
         $me.refreshAutoComplete = function () {
 
             $http.get("/admin/tables/accountingentry/__autocompletes").success(function (data) {
@@ -18,79 +17,125 @@
 
             });
         };
+        1
+        $me.validate = function (object) {
+
+            var valid = false;
+
+            valid = object.TransactionDate != null;
+
+            if (object.TransactionType == "newaccount") {
+
+                valid &= object.IncreaseAccount != "" &&
+                    object.IncreaseAccount != null &&
+                    object.IncreaseAmount > 0
+            }
+
+            if (object.TransactionType == "newap") {
+
+                valid &= object.DecreaseAccount != "" &&
+                    object.DecreaseAccount != null &&
+                    object.DebtorLoanerName != null &&
+                    object.DecreaseAmount < 0
+            }
+
+            if (object.TransactionType == "newar") {
+
+                valid &= object.IncreaseAccount != "" &&
+                    object.IncreaseAccount != null &&
+                    object.DebtorLoanerName != null &&
+                    object.IncreaseAmount > 0
+            }
+
+            if (object.TransactionType == "transfer") {
+
+                valid &= object.IncreaseAccount != "" &&
+                    object.IncreaseAccount != null &&
+                    object.DecreaseAccount != "" &&
+                    object.DecreaseAccount != null &&
+                    object.IncreaseAmount > 0 &&
+                    object.DecreaseAmount == object.IncreaseAmount * -1
+            }
+
+            if (object.TransactionType == "appayment") {
+
+                valid &= object.IncreaseAccount == "Payable" 
+                    object.DecreaseAccount != "" &&
+                    object.DecreaseAccount != null &&
+                    object.IncreaseAmount > 0 &&
+                    object.DecreaseAmount == object.IncreaseAmount * -1
+            }
+
+            if (object.TransactionType == "arpayment") {
+
+                valid &= object.DecreaseAccount == "Receivable"
+                        object.IncreaseAccount != "" &&
+                        object.IncreaseAccount != null &&
+                        object.IncreaseAmount > 0 &&
+                        object.DecreaseAmount == object.IncreaseAmount * -1
+            }
+            
+            if (object.TransactionType == "buy") {
+
+                valid &= object.IncreaseAccount != null &&
+                        object.DecreaseAccount != "" &&
+                        object.DecreaseAccount != null &&
+                        object.IncreaseAmount > 0 &&
+                        object.DecreaseAmount == object.IncreaseAmount * -1
+                        object.DocumentNumber != null &&
+                        object.DocumentNumber != "" &&
+                        object.DebtorLoanerName != null &&
+                        object.DebtorLoanerName != ""
+            }
+            
+
+            return valid == false;
+        };
 
         $me.changeMode = function (object) {
 
-            $me.invertIncrease = 1;
-            $me.invertDecrease = 1;
+            console.log(object);
+
             object.DecreaseAccount = null;
             object.IncreaseAccount = null;
             object.IncreaseAmount = 0;
             object.DecreaseAmount = 0;
+            
+            if (object.TransactionType == "newar") {
 
-            if (object.TransactionType == "newclient") {
-
-                object.DecreaseAmount = 0;
-                object.DecreaseAccount = null;
-
+                object.Notes = "New Account Receivable";
                 object.IncreaseAccount = "Receivable";
-                object.IncreaseAmount = 0;
             }
 
-            if (object.TransactionType == "futureexpense") {
+            if (object.TransactionType == "newap") {
 
-                object.DecreaseAccount = null;
+                object.Notes = "New Account Payable";
+                object.DecreaseAccount = "Payable";
+            }
+
+            if (object.TransactionType == "newaccount") {
+
+                object.Notes = "New Account";
+            }
+            
+            if (object.TransactionType == "appayment") {
 
                 object.IncreaseAccount = "Payable";
-                $me.invertIncrease = -1;
             }
 
-            if (object.TransactionType == "income") {
+            if (object.TransactionType == "arpayment") {
 
-                object.IncreaseAccount = "Cash";
-                $me.invertDecrease = -1;
-            }
-
-            if (object.TransactionType == "expense") {
-
-                $me.invertDecrease = -1;
+                object.DecreaseAccount = "Receivable";
             }
 
             if (object.TransactionType == "buy") {
-
-                $me.invertDecrease = -1;
+                
             }
+            
         };
 
         $me.save = function (object) {
-
-            object.IncreaseAmount *= $me.invertIncrease;
-            object.DecreaseAmount *= $me.invertDecrease;
-
-            if ($me.ExpenseProjected == "Yes" && object.TransactionType == "expense") {
-
-                object.IncreaseAccount = "Payable";
-                object.IncreaseAmount = object.DecreaseAmount * -1;
-            }
-
-            if ($me.IncomeProjected == "Yes" && object.TransactionType == "income") {
-
-                object.DecreaseAccount = "Receivable";
-                object.DecreaseAmount = object.IncreaseAmount * -1;
-            }
-
-            if ($me.BuyAsEquipment == "Yes" && object.TransactionType == "buy") {
-
-                object.IncreaseAccount = "Asset";
-                object.IncreaseAmount = object.DecreaseAmount * -1;
-            }
-
-            if ($me.BuyAsEquipment == "No" && object.TransactionType == "buy") {
-
-                object.IncreaseAccount = "Inventory";
-                object.IncreaseAmount = object.DecreaseAmount * -1;
-            }
-
+            
             $scope.data.save(object, function () {
                 
                 $me.refreshAutoComplete();

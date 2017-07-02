@@ -582,7 +582,6 @@
                 }
             }
 
-
             if ($(window).width() < 400) {
 
                 element.find("input[placeholder='Date']").attr("type", "date");
@@ -597,7 +596,7 @@
 
                 scope.isopen = !scope.isopen;
             };
-
+            
         }
 
         return {

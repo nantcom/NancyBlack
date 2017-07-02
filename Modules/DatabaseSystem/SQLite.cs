@@ -1422,12 +1422,18 @@ namespace SQLite
             var insertCmd = map.GetInsertCommand(this, extra);
             int count;
 
+            TryAgain:
             try
             {
                 count = insertCmd.ExecuteNonQuery(vals);
             }
             catch (SQLiteException ex)
             {
+                if (ex.Result == SQLite3.Result.Busy)
+                {
+                    Thread.Sleep(100);
+                    goto TryAgain;
+                }
 
                 if (SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
                 {
