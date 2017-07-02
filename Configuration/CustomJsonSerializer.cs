@@ -14,7 +14,6 @@ namespace NantCom.NancyBlack.Configuration
             this.DefaultValueHandling = DefaultValueHandling.Include;
             this.Formatting = Formatting.None;
             this.TypeNameHandling = TypeNameHandling.None;
-            this.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
         }
 
     }

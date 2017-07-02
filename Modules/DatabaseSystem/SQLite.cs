@@ -2456,7 +2456,7 @@ namespace SQLite
                 {
                     if (storeDateTimeAsTicks)
                     {
-                        SQLite3.BindInt64(stmt, index, ((DateTime)value).Ticks);
+                        SQLite3.BindInt64(stmt, index, ((DateTime)value).ToUniversalTime().Ticks);
                     }
                     else
                     {
@@ -2536,7 +2536,7 @@ namespace SQLite
                 {
                     if (_conn.StoreDateTimeAsTicks)
                     {
-                        return new DateTime(SQLite3.ColumnInt64(stmt, index));
+                        return new DateTime(SQLite3.ColumnInt64(stmt, index), DateTimeKind.Utc);
                     }
                     else
                     {
@@ -2648,6 +2648,7 @@ namespace SQLite
 
             var r = SQLite3.Result.OK;
 
+            TryAgain:
             if (!Initialized)
             {
                 Statement = Prepare();
@@ -2680,6 +2681,11 @@ namespace SQLite
             {
                 SQLite3.Reset(Statement);
                 throw NotNullConstraintViolationException.New(r, SQLite3.GetErrmsg(Connection.Handle));
+            }
+            else if (r == SQLite3.Result.Busy)
+            {
+                Thread.Sleep(100);
+                goto TryAgain;
             }
             else
             {

@@ -52,7 +52,7 @@
                         ng-click="object = {}">
                     <span class="glyphicon glyphicon-plus-sign"></span>
                     <span>
-                        AccountingEntry
+                        Transaction
                     </span>
                 </button>
             </span>
@@ -71,7 +71,7 @@
             <div class="col-md-6">
 
                 <div class="panel panel-info"
-                     ng-controller="AccountingDashboard as ctrl">
+                     ng-controller="AccountingDashboard as dashboard">
 
                     <div class="panel-heading">
                         Account Summary
@@ -134,7 +134,7 @@
                         <div class="form-group">
                             <button class="btn btn-success btn-lg"                                    
                                     ng-disabled="ctrl.validate(object)"
-                                    ng-click="ctrl.save(object)">
+                                    ng-click="ctrl.save(object); object = {}">
 
                                 Create Transaction
                             </button>
@@ -151,7 +151,8 @@
 
         <div>
 
-            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="AccountingEntryModal">
+            <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="AccountingEntryModal"                         
+                       defaultsort="{ TransactionDate : 'desc' }">
             </ncb-ngtable>
 
             <script type="text/ng-template" id="tablecustomtemplate.html">
@@ -167,7 +168,7 @@
 
                         <td data-title="'Date'"
                             sortable="'Id'">
-                            {{item.TransactionDate | date:'dd MMMM yyyy, HH:mm' }}
+                            {{item.TransactionDate | date:'dd MMMM yyyy' }}
                         </td>
                         <td data-title="'Related Party'"
                             sortable="'DebtorLoanerName'"

@@ -151,36 +151,46 @@
         $me = this;
         $scope.AccountSummary = [];
 
-        $http.get("/admin/tables/accountingentry/__accountsummary").success(function (data) {
+        $me.refresh = function () {
 
-            for (var i = 0; i < data.TotalIncrease.length; i++) {
+            $http.get("/admin/tables/accountingentry/__accountsummary").success(function (data) {
 
-                var account = {
-                    Account: data.TotalIncrease[i].Account,
-                    TotalIncrease: data.TotalIncrease[i].Amount,
-                    LatestIncreaseDate: data.TotalIncrease[i].LatestDate,
-                };
+                $scope.AccountSummary.length = 0;
 
-                $scope.AccountSummary.push(account);
-                $scope.AccountSummary[data.TotalIncrease[i].Account] = account;
-            }
+                for (var i = 0; i < data.TotalIncrease.length; i++) {
 
-            for (var i = 0; i < data.TotalDecrease.length; i++) {
+                    var account = {
+                        Account: data.TotalIncrease[i].Account,
+                        TotalIncrease: data.TotalIncrease[i].Amount,
+                        LatestIncreaseDate: data.TotalIncrease[i].LatestDate,
+                    };
 
-                var account = $scope.AccountSummary[data.TotalDecrease[i].Account];
-
-                if (account == null) {
-                    account = {
-                        Account: data.TotalDecrease[i].Account,
-                    }
                     $scope.AccountSummary.push(account);
+                    $scope.AccountSummary[data.TotalIncrease[i].Account] = account;
                 }
 
-                account.TotalDecrease = data.TotalDecrease[i].Amount;
-                account.LatestDecreaseDate = data.TotalDecrease[i].LatestDate;
-                account.Amount = account.TotalIncrease + account.TotalDecrease;
-            }
-        });
+                for (var i = 0; i < data.TotalDecrease.length; i++) {
+
+                    var account = $scope.AccountSummary[data.TotalDecrease[i].Account];
+
+                    if (account == null) {
+                        account = {
+                            Account: data.TotalDecrease[i].Account,
+                        }
+                        $scope.AccountSummary.push(account);
+                    }
+
+                    account.TotalDecrease = data.TotalDecrease[i].Amount;
+                    account.LatestDecreaseDate = data.TotalDecrease[i].LatestDate;
+                    account.Amount = account.TotalIncrease + account.TotalDecrease;
+                }
+            });
+        };
+
+        $scope.$on('inserted', $me.refresh);
+        $scope.$on('updated', $me.refresh);
+
+        $me.refresh();
 
     });
 
