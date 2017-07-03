@@ -46,8 +46,10 @@
         $scope.modes = [
             { Title: "Customer View", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')" },
             { Title: "Follow up", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(Status eq 'Confirmed') and (PaymentStatus eq 'WaitingForPayment')" },
-            { Title: "Waiting for Chasis", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'WaitingForOrder') or (Status eq 'Delayed')" },
-            { Title: "Work Queue", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'AtLEVEL51') or (Status eq 'Building') or (Status eq 'Testing')" },
+            { Title: "Delay", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Delay')" },
+            { Title: "Waiting for Chasis", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForOrder') or (Status eq 'OrderProcessing') or (Status eq 'InTransit') or (Status eq 'CustomsClearance')" },
+            { Title: "Work Queue", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Inbound') or (Status eq 'AtLEVEL51') or (Status eq 'WaitingForParts') or (Status eq 'PartialBuilding') or (Status eq 'Building') or (Status eq 'Testing')" },
+            { Title: "Waiting for Parts", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForParts') or (Status eq 'PartialBuilding')" },
             { Title: "Ready To Ship", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'ReadyToShip')" },
             { Title: "Shipped", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'Shipped')" }
         ];
