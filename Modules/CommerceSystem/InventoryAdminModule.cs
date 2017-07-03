@@ -279,33 +279,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
                                     .Where(ivitm => ivitm.IsFullfilled == false && ivitm.InboundDate == DateTime.MinValue)
                                     .OrderBy(ivitm => ivitm.RequestedDate).ToList();
-
-            Func<Product, int> findSupplier = (product) =>
-            {
-
-                if (product.Attributes == null)
-                {
-                    return 0;
-                }
-
-                dynamic attributes = JObject.FromObject(product.Attributes);
-
-                if (attributes.supplier == null)
-                {
-                    return 0;
-                }
-
-                var supplier = JObject.Parse((string)attributes.supplier) as dynamic;
-                return supplier.id;
-
-            };
-
+            
             return from item in notFullfilled
                    let product = productLookup[item.ProductId].FirstOrDefault()
                    where product != null
                    select new
                    {
-                       SupplierId = findSupplier(product),
+                       SupplierId = product.SupplierId,
                        ProductId = product.Id,
                        InventoryItem = item
                    };
@@ -326,11 +306,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return from item in notFullfilled
                    let product = productLookup[item.ProductId]
                    where product.Attributes != null
-                   let supplier = JObject.Parse((string)product.Attributes.supplier) as dynamic
-                   where supplier != null
                    select new
                    {
-                       SupplierId = supplier.id,
+                       SupplierId = product.SupplierId,
                        ProductId = product.Id,
                        InventoryItem = item
                    };

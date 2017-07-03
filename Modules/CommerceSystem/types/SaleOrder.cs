@@ -325,6 +325,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
 
                 product.ContentParts = null;
+                product.MetaDescription = null;
+                product.MetaKeywords = null;
+                product.Layout = null;
 
                 // check for duplication
                 if (lookupItemDetail.ContainsKey(product.Id))

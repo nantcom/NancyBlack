@@ -44,24 +44,6 @@ namespace NantCom.NancyBlack.Modules
         /// <param name="p"></param>
         public void Hook(IPipelines p)
         {
-            // Update Page View every 5 minutes after request has ended
-            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
-            {
-                if (DateTime.Now.Subtract(_LastPageViewUpdated).TotalMinutes < PAGEVIEW_DELAYTIME)
-                {
-                    return;
-                }
-
-                try
-                {
-                    this.UpdatePageViewSummary(null);
-                }
-                catch (Exception)
-                {
-                }
-
-                _LastPageViewUpdated = DateTime.Now;
-            });
         }
         
         public ContentModule()
@@ -110,22 +92,13 @@ namespace NantCom.NancyBlack.Modules
             }
             
             dynamic result = this.SiteDatabase.Query
-                            (string.Format("SELECT PageViews as Hit FROM PageViewSummary WHERE ContentId = {0} AND TableName = '{1}'", id, table),
+                            (string.Format("SELECT COUNT(Id) as Hit FROM PageView WHERE ContentId = {0} AND TableName = '{1}'", id, table),
                             new
                             {
                                 Hit = 0
-                            }).ToList().FirstOrDefault();
+                            }).First();
             
-            if (result == null)
-            {
-                result = JObject.FromObject(new { Hit = 0 });
-            }
-            else
-            {
-                result = JObject.FromObject(result);
-            }
-
-            MemoryCache.Default.Add(table + id, result, DateTimeOffset.Now.AddMinutes(10));
+            MemoryCache.Default.Add(table + id, result.Hit, DateTimeOffset.Now.AddMinutes(10));
             return result.Hit.ToString("0,0");
         }
 
@@ -142,10 +115,7 @@ namespace NantCom.NancyBlack.Modules
                     Hit = 0,
                     Request = ""
                 }).ToList();
-
-            // update lastPageViewId back and save to setting (but we will re-count everytime for now)
-            //lastPageViewId = this.SiteDatabase.Query<PageView>().LastOrDefault().Id;
-
+            
             foreach (dynamic pageView in results)
             {
                 string tableName = pageView.TableName;
@@ -166,9 +136,7 @@ namespace NantCom.NancyBlack.Modules
                 }
                 else
                 {
-                    // if exist should be just update the pageview (but we will re-count everytime for now)
-                    //summary.PageViews += pageView.Hit;
-                    summary.PageViews = pageView.Hit;
+                    summary.PageViews += pageView.Hit;
                 }
 
                 this.SiteDatabase.UpsertRecord(summary);
@@ -177,7 +145,7 @@ namespace NantCom.NancyBlack.Modules
             return "OK";
         }
 
-        #region Update Tag Table
+#region Update Tag Table
 
         private void UpdateTag_ObjectUpdate(NancyBlackDatabase db, string table, dynamic obj)
         {
@@ -258,7 +226,7 @@ namespace NantCom.NancyBlack.Modules
             this.InsertTag(db, content);
         }
 
-        #endregion
+#endregion
 
         private void SiteMapModule_SiteMapRequested(NancyContext ctx, SiteMap sitemap)
         {
@@ -426,7 +394,7 @@ namespace NantCom.NancyBlack.Modules
             return View[(string)requestedContent.Layout, new StandardModel(this, requestedContent, requestedContent)];
         }
 
-        #region All Logic Related to Content
+#region All Logic Related to Content
 
         /// <summary>
         /// Get child content of given url
@@ -590,7 +558,7 @@ namespace NantCom.NancyBlack.Modules
             return createdContent;
         }
 
-        #endregion
+#endregion
 
     }
 
