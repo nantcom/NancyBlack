@@ -88,7 +88,7 @@ namespace NantCom.NancyBlack.Modules
             dynamic cached = MemoryCache.Default.Get(table + id);
             if (cached != null)
             {
-                return cached.Hit.ToString("0,0");
+                return cached.ToString("0,0");
             }
             
             dynamic result = this.SiteDatabase.Query

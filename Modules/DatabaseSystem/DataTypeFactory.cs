@@ -45,14 +45,20 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                     var dynamicTypes = _db.Table<DataType>().ToList();
                     var staticTypes = StaticDataType.GetStaticDataTypes();
 
-                    _CachedDataType = dynamicTypes.Concat(staticTypes).ToDictionary(k => k.NormalizedName);
+                    _CachedDataType = new Dictionary<string, DataType>();
 
                     // remaps all table to ensure the database
                     // get updated to latest type that was created on-the-fly
-                    foreach (var table in _CachedDataType.Values)
+                    foreach (var table in dynamicTypes.Concat(staticTypes))
                     {
+                        if (_CachedDataType.ContainsKey(table.NormalizedName) == true)
+                        {
+                            continue;
+                        }
+                        _CachedDataType.Add(table.NormalizedName, table);
+
                         var type = table.GetCompiledType();
-                        if (type.Name.StartsWith("aaf_"))
+                        if (type.Name.StartsWith("anonymous"))
                         {
                             continue;
                         }
@@ -63,6 +69,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                         {
                             _db.CreateIndex(type.Name, item.Name, item.Name == "Id");
                         }
+
                     }
                 }
                 return _CachedDataType;
@@ -118,6 +125,19 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 throw new InvalidOperationException("Cannot Update StaticType");
             }
 
+            // for anonymous type which we used for query - does not store it into database
+            // but cache it into memory
+            if (toRegister.NormalizedName.StartsWith("anonymoustype"))
+            {
+                if (this.Types.ContainsKey(toRegister.NormalizedName) == false)
+                {
+                    this.Types.Add(toRegister.NormalizedName, toRegister);
+                    return toRegister;
+                }
+
+                return this.Types[toRegister.NormalizedName];
+            }
+
             if (toRegister.Id == 0)
             {
                 if (this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault() != null)
@@ -133,7 +153,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 toRegister.EnsureHasNeccessaryProperties();
                 _db.Update(toRegister);
             }
-            
+
             _CachedDataType = null;
 
             var finalType = this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault();

@@ -1423,6 +1423,7 @@ namespace SQLite
             int count;
 
             TryAgain:
+            var backOffFactor = 1.0;
             try
             {
                 count = insertCmd.ExecuteNonQuery(vals);
@@ -1431,7 +1432,9 @@ namespace SQLite
             {
                 if (ex.Result == SQLite3.Result.Busy)
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep((int)(25 * backOffFactor));
+                    backOffFactor = backOffFactor * 1.1;
+
                     goto TryAgain;
                 }
 
@@ -1648,12 +1651,15 @@ namespace SQLite
                     }
 
                     TryAgain:
+                    var backOffFactor = 1.0;
 
                     var r = SQLite3.Close(Handle);
 
                     if (r == SQLite3.Result.Busy)
                     {
-                        Thread.Sleep(100);
+                        Thread.Sleep((int)(25 * backOffFactor));
+                        backOffFactor = backOffFactor * 1.1;
+
                         goto TryAgain;
                     }
 
@@ -2219,6 +2225,7 @@ namespace SQLite
             var r = SQLite3.Result.OK;
 
             TryAgain:
+            var backOffFactor = 1.0;
 
             var stmt = Prepare();
             r = SQLite3.Step(stmt);
@@ -2226,7 +2233,9 @@ namespace SQLite
             
             if (r == SQLite3.Result.Busy)
             {
-                Thread.Sleep(100);
+                Thread.Sleep((int)(25 * backOffFactor));
+                backOffFactor = backOffFactor * 1.1;
+
                 goto TryAgain;
             }
 
@@ -2649,6 +2658,8 @@ namespace SQLite
             var r = SQLite3.Result.OK;
 
             TryAgain:
+            var backOffFactor = 1.0;
+
             if (!Initialized)
             {
                 Statement = Prepare();
@@ -2684,7 +2695,9 @@ namespace SQLite
             }
             else if (r == SQLite3.Result.Busy)
             {
-                Thread.Sleep(100);
+                Thread.Sleep((int)(25 * backOffFactor));
+                backOffFactor = backOffFactor * 1.1;
+
                 goto TryAgain;
             }
             else
@@ -3459,7 +3472,7 @@ namespace SQLite
         public static IntPtr Prepare2(IntPtr db, string query)
         {
             TryAgain:
-            double backoffFactor = 1;
+            var backoffFactor = 1.0;
 
             IntPtr stmt;
 #if NETFX_CORE
@@ -3470,7 +3483,7 @@ namespace SQLite
 #endif
             if (r == Result.Busy)
             {
-                Thread.Sleep((int)(100 * backoffFactor));
+                Thread.Sleep((int)(25 * backoffFactor));
 
                 backoffFactor *= 1.1;
                 goto TryAgain;
