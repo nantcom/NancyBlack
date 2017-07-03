@@ -9,18 +9,23 @@
 
 <div ng-module="SiteSettingsModule"
      ng-controller="SiteSettingsController as ctrl">
-    <h1 class="page-header">
-        Settings
-        <i class="fa fa-spin fa-cog"
-           ng-show="isBusy"></i>
 
-        <button class="btn btn-primary btn-lg pull-right"
+
+    <div class="page-header">
+
+        <button class="btn btn-success btn-lg pull-right"
                 ng-disabled="isBusy"
                 ng-click="ctrl.save()">
             Save
         </button>
 
-    </h1>
+        <h1>
+            Settings
+            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+        </h1>
+
+    </div>
+
     <ncb-alerts alerts="alerts"></ncb-alerts>
     <div class="row">
 

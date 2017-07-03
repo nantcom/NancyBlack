@@ -38,43 +38,52 @@
      ng-cloak
      ncg-multicurrency>
 
+    <div class="page-header">
+        <h1>Products 
+            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+        </h1>
+    </div>
+
     <nav class="navbar navbar-default" style="margin: 20px 0;">
+
         <ul class="nav nav-pills">
             
             <li class="dropdown">
 
                 <a class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true" href="#" data-toggle="dropdown">
-                    <span ng-if="ctrl.currentNode == null">All Groups</span>
-                    <span ng-if="ctrl.currentNode != null">{{ctrl.currentNode.title}}</span>
+                    (Root)
                     <span class="caret"></span>
                 </a>
 
                 <ul class="dropdown-menu">
-                    <li>
-                        <a href="#" ng-click="ctrl.currentNode = null; ctrl.filterbyurl({fullPath = '/'});">All</a>
-                    </li>
-                    <li role="separator" class="divider"></li>
-                    <li ng-repeat="node in ctrl.list.nodes">
-                        <a href="#" ng-click="ctrl.currentNode = node;ctrl.filterbyurl(node); ">{{node.title}}</a>
+                    <li ng-repeat="node in ctrl.list.nodes"
+                        ng-class="{ 'active' : ctrl.breadcrumbs[0] == node}">
+                        <a href="#" 
+                           ng-click="ctrl.drilldownpath(node, 0)">{{node.fullPath}}</a>
                     </li>
                 </ul>
             </li>
 
             <li class="dropdown"
-                ng-class="{'active' : filters.Url.indexOf( node.fullPath ) >= 0}"
-                ng-repeat="node in ctrl.currentNode.nodes">
+                ng-repeat="crumb in ctrl.breadcrumbs track by $index">
 
-                <a class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true" href="#" data-toggle="dropdown">
-                    {{node.title}} <span class="caret"></span>
+                <a href="#" ng-click="ctrl.filterbyurl(crumb);"
+                   ng-if="crumb.nodes.length == 0">{{crumb.title}}</a>
+                
+                <a class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true" href="#" data-toggle="dropdown"
+                   ng-if="crumb.nodes.length > 0">
+                    / {{crumb.title}} <span class="caret"></span>
                 </a>
 
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu"
+                    ng-if="crumb.nodes.length > 0">
                     <li>
-                        <a href="#" ng-click="ctrl.filterbyurl(node);">All</a>
+                        <a href="#" ng-click="ctrl.filterbyurl(crumb);ctrl.breadcrumbs.splice($index + 1)">All</a>
                     </li>
                     <li role="separator" class="divider"></li>
-                    <li ng-repeat="node in node.nodes">
-                        <a href="#" ng-click="ctrl.filterbyurl(node);">{{node.title}}</a>
+                    <li ng-repeat="node in crumb.nodes"
+                        ng-class="{ 'active' : ctrl.breadcrumbs[$parent.$index + 1] == node}">
+                        <a href="#" ng-click="ctrl.drilldownpath(node, $parent.$index + 1)">{{node.title}}</a>
                     </li>
                 </ul>
             </li>

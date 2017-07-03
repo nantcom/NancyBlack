@@ -59,10 +59,21 @@
 <div ncb-datacontext table="Supplier"
      ng-module="page" ng-controller="PageController as ctrl">
 
-    <h1 class="page-header">
-        Suppliers
-        <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
-    </h1>
+    <div class="page-header">
+
+        <button class="btn btn-success pull-right"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>
+                Add new supplier
+            </span>
+        </button>
+
+        <h1>Supplier
+            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+        </h1>
+
+    </div>
 
     <div style="margin-bottom: 30px">
         This page helps you manage supplier's info.
@@ -75,13 +86,6 @@
     </div>
 
     <div class="pull-right">
-        <button class="btn btn-success pull-right"
-                ng-click="ctrl.create()">
-            <span class="glyphicon glyphicon-plus-sign"></span>
-            <span>
-                Add new supplier
-            </span>
-        </button>
     </div>
 
     <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="SupplierModal">

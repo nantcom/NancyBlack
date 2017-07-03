@@ -30,6 +30,7 @@
             $http.get('/__commerce/api/productstructure').
                   then(function (response) {
                       vm.list = response.data
+                      vm.breadcrumbs = [];
                   }, function (response) {
                       $log.error(response)
                   });
@@ -225,6 +226,21 @@
 
                     $scope.alerts.push({ type: 'success', msg: 'Successfully Copied stock for all products.' });
                 });
+        };
+
+        vm.breadcrumbs = [];
+        vm.drilldownpath = function (node, depth) {
+
+            if (depth == vm.breadcrumbs.length) {
+
+                vm.breadcrumbs.push(node);
+            } else {
+
+                vm.breadcrumbs.splice(depth);
+                vm.breadcrumbs.push(node);
+            }
+
+            vm.filterbyurl(node);
         };
     });
 
