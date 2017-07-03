@@ -68,9 +68,9 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                     // (ภาษีขาย ทำให้ภาษีซื้อลดลง, ภาษีซื้อ บันทึกไว้ตอน InventoryInbound)
                     AccountingEntry entry2 = new AccountingEntry();
                     entry2.TransactionDate = paymentlog.__createdAt;
-                    entry2.TransactionType = "expense";
+                    entry2.TransactionType = "taxcredit";
                     entry2.DebtorLoanerName = "Tax";
-                    entry2.DecreaseAccount = "Paid Tax";
+                    entry2.DecreaseAccount = "Tax Credit";
                     entry2.DecreaseAmount = saleorder.TotalTax * -1;
                     entry2.SaleOrderId = saleorder.Id;
 
@@ -109,9 +109,9 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 {
                     AccountingEntry entry2 = new AccountingEntry();
                     entry2.TransactionDate = inbound.PaymentDate;
-                    entry2.TransactionType = "expense";
+                    entry2.TransactionType = "taxcredit";
                     entry2.DebtorLoanerName = "Tax";
-                    entry2.IncreaseAccount = "Paid Tax";
+                    entry2.IncreaseAccount = "Tax Credit";
                     entry2.IncreaseAmount = inbound.TotalTax;
                     entry2.DecreaseAccount = inbound.PaymentAccount;
                     entry2.DecreaseAmount = inbound.TotalTax * -1;
@@ -163,11 +163,19 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
             }
         }
-
-
+        
         public AccountingSystemModule()
         {
             Get["/admin/tables/accountingentry"] = this.HandleViewRequest("/Admin/accountingsystem-gl", null);
+
+            Get["/admin/accounts"] = this.HandleViewRequest("/Admin/accountingsystem-accountsettings", (arg)=>
+            {
+                var account = this.SiteDatabase.Query("SELECT DISTINCT IncreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
+                var account2 = this.SiteDatabase.Query("SELECT DISTINCT DecreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
+                var allAccounts = account.Union(account2).ToList();
+
+                return new StandardModel(this, null, allAccounts);
+            });
 
             Get["/admin/tables/accountingentry/__autocompletes"] = this.HandleRequest(this.GenerateAutoComplete);
             
@@ -201,13 +209,15 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
             var account = this.SiteDatabase.Query("SELECT DISTINCT IncreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
             var account2 = this.SiteDatabase.Query("SELECT DISTINCT DecreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
             var supplier = this.SiteDatabase.Query("SELECT Name FROM Supplier", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
+            var documentnumber = this.SiteDatabase.Query("SELECT DISTINCT DocumentNumber as Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
 
             return new
             {
                 project = projects,
                 debtloan = debtloan,
                 account = account.Union(account2).ToList(),
-                supplier = supplier.Union(debtloan).ToList()
+                supplier = supplier.Union(debtloan).ToList(),
+                documentnumber = documentnumber
             };
         }
         

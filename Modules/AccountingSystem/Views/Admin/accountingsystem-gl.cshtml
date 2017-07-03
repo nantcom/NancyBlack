@@ -271,20 +271,24 @@
 
                 <div ng-if="object.Id == 0 || object.id == null">
 
-                    <select ncb-select ng-model="object.TransactionType"
+                    <select ncb-select lg ng-model="object.TransactionType"
                             ng-change="ctrl.changeMode(object)"
                             title="Type of Transaction">
 
-                        <option value="newaccount">New Account</option>
-                        <option value="newap">New Payable</option>
-                        <option value="newar">New Receivable</option>
+                        <option value="newaccount" style="background-color: lightyellow">New Account</option>
                         <option disabled>──────────</option>
-                        <option value="transfer">Withdraw / Transfer</option>
+                        <option value="newar"       style="background-color: lightgreen">New Receivable</option>
+                        <option value="arpayment"   style="background-color: lightgreen">Receive Payment from Receivable</option>
                         <option disabled>──────────</option>
-                        <option value="appayment">Make Payment to Payable / Pay Bill / Pay Salary</option>
-                        <option value="arpayment">Receive Payment from Receivable</option>
+                        <option value="newap"       style="background-color: lightsalmon">New Payable</option>
+                        <option value="appayment"   style="background-color: lightsalmon">Make Payment to Payable / Pay Bill / Pay Salary</option>
                         <option disabled>──────────</option>
-                        <option value="buy">Buy Stock / Buy Equipment / Pay For Services</option>
+                        <option value="transfer"    style="background-color: lightblue">Withdraw / Transfer</option>
+                        <option value="buy"         style="background-color: lightblue">Buy Equipment / Pay For Services</option>
+                        <option disabled>──────────</option>
+                        <option value="taxcredit"   style="background-color: lightgreen">Tax Credit</option>
+                        <option value="buystock"    style="background-color: lightskyblue">Buy Stock (Cash)</option>
+                        <option value="newap_stock" style="background-color: lightskyblue">Buy Stock (with Credit)</option>
                     </select>
 
                     <div ng-if="object.TransactionType == 'newaccount'">
@@ -293,6 +297,16 @@
                                ncb-textbox required
                                ng-model="object.IncreaseAccount"
                                typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
+                        
+                        <input type="text" name="DebtorLoanerName" title="Related Party"
+                               ncb-textbox required
+                               ng-model="object.DebtorLoanerName"
+                               typeahead="n for n in autocomplete.debtloan | filter:$viewValue | limitTo:8" />
+
+                        <input type="text" name="ProjectName" title="Related Project"
+                               ncb-textbox
+                               ng-model="object.ProjectName"
+                               typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
 
                         <div class="form-group-lg">
                             <div class="input-group">
@@ -579,7 +593,6 @@
 
                                     <option value="Equipment">Equipment</option>
                                     <option value="Expense">Expense</option>
-                                    <option value="Inventory">Inventory</option>
                                 </select>
 
                                 <div class="form-group-lg">
@@ -596,7 +609,7 @@
 
                     </div>
 
-                    <div ng-if="object.TransactionType == 'pay'">
+                    <div ng-if="object.TransactionType == 'buystock'">
 
                         <div class="row">
                             <div class="col-sm-6">
@@ -641,8 +654,7 @@
 
                                 <input type="text" name="IncreaseAccount" title="To Account"
                                        disabled readonly ncb-textbox
-                                       ng-model="object.IncreaseAccount"
-                                       typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
+                                       ng-model="object.IncreaseAccount" />
 
                                 <div class="form-group-lg">
                                     <div class="input-group">
@@ -655,6 +667,133 @@
 
                             </div>
                         </div>
+
+                    </div>
+
+                    <div ng-if="object.TransactionType == 'taxcredit'">
+
+                        <div class="row">
+                            <div class="col-sm-6">
+
+                                <input type="text" name="DocumentNumber" title="Receipt Number"
+                                       ncb-textbox
+                                       ng-model="object.DocumentNumber" />
+
+                            </div>
+                            <div class="col-sm-6">
+
+                                <input type="text" name="DebtorLoanerName" title="Supplier Name"
+                                       ncb-textbox readonly disabled
+                                       ng-model="object.DebtorLoanerName" />
+                            </div>
+                        </div>
+
+                        <input type="text" name="ProjectName" title="Related Project"
+                               ncb-textbox
+                               ng-model="object.ProjectName"
+                               typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
+
+                        <div class="row">
+
+                            <div class="col-sm-6">
+
+                                <select ncb-select title="Pay from Account"
+                                        ng-model="object.DecreaseAccount"
+                                        ng-options="text for text in autocomplete.account"></select>
+
+                                <div class="form-group-lg">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">THB</span>
+                                        <input type="number" class="form-control" readonly
+                                               ng-model="object.DecreaseAmount" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+
+                                <input type="text" name="IncreaseAccount" title="To Account"
+                                       disabled readonly ncb-textbox
+                                       ng-model="object.IncreaseAccount" />
+
+                                <div class="form-group-lg">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">THB</span>
+                                        <input type="number" class="form-control"
+                                               ng-model="object.IncreaseAmount"
+                                               ng-change="object.DecreaseAmount = object.IncreaseAmount * -1" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div ng-if="object.TransactionType == 'newap_stock'">
+
+                        <div class="row">
+                            <div class="col-sm-6">
+
+                                <input type="text" name="DocumentNumber" title="Supplier Invoice Number"
+                                       ncb-textbox
+                                       ng-model="object.DocumentNumber" />
+
+                            </div>
+                            <div class="col-sm-6">
+
+                                <input type="text" name="DebtorLoanerName" title="Supplier Name"
+                                       ncb-textbox required
+                                       ng-model="object.DebtorLoanerName"
+                                       typeahead="n for n in autocomplete.debtloan | filter:$viewValue | limitTo:8" />
+
+                            </div>
+                        </div>
+
+                        <input type="text" name="ProjectName" title="Related Project"
+                               ncb-textbox
+                               ng-model="object.ProjectName"
+                               typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
+
+                        <ncb-datepicker placeholder="Due Date" title="Due Date"
+                                        format="'dd MMMM yyyy'"
+                                        model="object.DueDate"></ncb-datepicker>
+
+                        <div class="row">
+
+                            <div class="col-sm-6">
+
+                                <input type="text" name="DecreaseAccount" title="Pay from Account"
+                                       disabled readonly ncb-textbox
+                                       ng-model="object.DecreaseAccount" />
+
+                                <div class="form-group-lg">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">THB</span>
+                                        <input type="number" class="form-control" readonly
+                                               ng-model="object.DecreaseAmount" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+
+                                <input type="text" name="IncreaseAccount" title="To Account"
+                                       disabled readonly ncb-textbox
+                                       ng-model="object.IncreaseAccount" />
+
+                                <div class="form-group-lg">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">THB</span>
+                                        <input type="number" class="form-control"
+                                               ng-model="object.IncreaseAmount"
+                                               ng-change="object.DecreaseAmount = object.IncreaseAmount * -1" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
 
                     </div>
                 </div>

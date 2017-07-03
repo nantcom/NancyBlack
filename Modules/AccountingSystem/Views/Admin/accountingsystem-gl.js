@@ -28,7 +28,7 @@
 
                 valid &= object.IncreaseAccount != "" &&
                     object.IncreaseAccount != null &&
-                    object.IncreaseAmount > 0
+                    object.IncreaseAmount >= 0
             }
 
             if (object.TransactionType == "newap") {
@@ -75,7 +75,7 @@
                         object.DecreaseAmount == object.IncreaseAmount * -1
             }
             
-            if (object.TransactionType == "buy") {
+            if (object.TransactionType == "buy" ) {
 
                 valid &= object.IncreaseAccount != null &&
                         object.DecreaseAccount != "" &&
@@ -87,8 +87,32 @@
                         object.DebtorLoanerName != null &&
                         object.DebtorLoanerName != ""
             }
-            
 
+            if (object.TransactionType == "buystock") {
+
+                valid &= object.IncreaseAccount == "Inventory" &&
+                    object.DecreaseAccount != "" &&
+                    object.DecreaseAccount != null &&
+                    object.IncreaseAmount > 0 &&
+                    object.DecreaseAmount == object.IncreaseAmount * -1
+                    object.DocumentNumber != null &&
+                    object.DocumentNumber != "" &&
+                    object.DebtorLoanerName != null &&
+                    object.DebtorLoanerName != "";
+            }
+
+            if (object.TransactionType == "taxcredit") {
+
+                valid &= object.IncreaseAccount == "Tax Credit" &&
+                    object.DecreaseAccount != "" &&
+                    object.DecreaseAccount != null &&
+                    object.IncreaseAmount > 0 &&
+                    object.DecreaseAmount == object.IncreaseAmount * -1
+                    object.DocumentNumber != null &&
+                    object.DocumentNumber != "" &&
+                    object.DebtorLoanerName == "Tax";
+            }
+            
             return valid == false;
         };
 
@@ -100,17 +124,22 @@
             object.IncreaseAccount = null;
             object.IncreaseAmount = 0;
             object.DecreaseAmount = 0;
+            object.DebtorLoanerName = null;
             
             if (object.TransactionType == "newar") {
-
-                object.Notes = "New Account Receivable";
+                
                 object.IncreaseAccount = "Receivable";
             }
 
             if (object.TransactionType == "newap") {
-
-                object.Notes = "New Account Payable";
+                
                 object.DecreaseAccount = "Payable";
+            }
+
+            if (object.TransactionType == "newap_stock") {
+                
+                object.DecreaseAccount = "Payable";
+                object.IncreaseAccount = "Inventory";
             }
 
             if (object.TransactionType == "newaccount") {
@@ -131,7 +160,18 @@
             if (object.TransactionType == "buy") {
                 
             }
-            
+
+            if (object.TransactionType == "buystock") {
+
+                object.IncreaseAccount = "Inventory";
+            }
+
+            if (object.TransactionType == "taxcredit") {
+
+                object.IncreaseAccount = "Tax Credit";
+                object.DebtorLoanerName = "Tax";
+            }
+
         };
 
         $me.save = function (object) {
