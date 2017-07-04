@@ -139,8 +139,10 @@
                     $scope.paymentLogs.push(success.data);
                     me.resetPaymentDetail();
                     alert("Payment Sucess!");
+                    location.reload();
                 }, function (error) {
                     alert(error.message);
+                    location.reload();
                 });
 
             return;
