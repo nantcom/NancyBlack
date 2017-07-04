@@ -335,23 +335,25 @@ namespace NantCom.NancyBlack.Modules
             var parts = url.Split('/');
 
             url = ContentModule.RewriteUrl(this.Context, arg, url);
+            var subSiteName = (string)this.Context.Items["SubSite"];
 
+            // can be /products/product1
             if (parts.Length > 2 && parts[1].EndsWith("s"))
             {
                 // seems to be a collection
                 var typeName = parts[1].Substring(0, parts[1].Length - 1);
                 var datatype = this.SiteDatabase.DataType.FromName(typeName);
-                var subSiteName = (string)this.Context.Items["SubSite"];
+                var contentUrl = url;
 
                 // edit url when using subsite example: convert "/products/..." to "/products/subSiteName/..."
                 // for products, blogs (end with 's') and etc
                 if (!string.IsNullOrEmpty(subSiteName))
                 {
-                    url = Path.Combine("", parts[1], subSiteName);
-                    url = url + Path.Combine(parts.Skip(2).ToArray());
+                    contentUrl = string.Join("/", "/" + parts[1], subSiteName);
+                    contentUrl = contentUrl + "/" + string.Join("/", parts.Skip(2).ToArray());
                 }
 
-                var result = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", url)).FirstOrDefault();
+                var result = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", contentUrl)).FirstOrDefault();
                 
                 if (result != null)
                 {
@@ -369,17 +371,15 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
+            // change url to subsite url ex: /contact to /micronics.in.th/contact
+            if (!string.IsNullOrEmpty(subSiteName))
+            {
+                url = "/" + subSiteName + url;
+            }
+
             // if it is not table, use content table instead
             if (requestedContent == null)
             {
-                var subSiteName = (string)this.Context.Items["SubSite"];
-
-                // edit url when using subsite example: convert "/contact" to "/subSiteName/contact"
-                if (!string.IsNullOrEmpty(subSiteName))
-                {
-                    url = "/" + subSiteName + url;
-                }
-
                 requestedContent = ContentModule.GetPage(this.SiteDatabase, url);
             }
 

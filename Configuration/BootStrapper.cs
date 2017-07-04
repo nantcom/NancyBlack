@@ -196,22 +196,10 @@ namespace NantCom.NancyBlack.Configuration
             // Generic View for SubWebsite Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
-                //string directory = this.RootPathProvider.GetRootPath();
-                //string folder = Path.Combine(directory, "Site", "SubSites");
-                //var subSiteDirectories = Directory.GetDirectories(folder);
-                //var hostName = context.Context.Request.Url.HostName;
-                //foreach (var subSiteName in subSites)
-                //{
-                //    if (hostName.Contains(subSiteName))
-                //    {
-                //        return "Site/" + subSiteName + "/" + viewName;
-                //    }
-                //}
-
                 string subSiteName = (string)context.Context.Items["SubSite"];
                 if (!string.IsNullOrEmpty(subSiteName))
                 {
-                    return "Site/" + subSiteName + "/" + viewName;
+                    return "Site/SubSites/" + subSiteName + "/Views/" + viewName;
                 }
 
                 return string.Empty;
