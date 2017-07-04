@@ -130,7 +130,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public string PaymentStatus { get; set; }
 
+        /// <summary>
+        /// Outbound DHL Tracking Number
+        /// </summary>
         public string DHLTrackingNumber { get; set; }
+
+        /// <summary>
+        /// Inbound DHL Tracking Number
+        /// </summary>
+        public string InboundDHLTrackingNumber { get; set; }
 
         public decimal PaymentFee { get; set; }
 

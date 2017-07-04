@@ -5,7 +5,8 @@
     mod.controller('PageController', function ($scope, $http, $sce) {
 
         var me = this;
-
+        $scope.trackingUrl = "about:blank";
+        $scope.inboundTrackingUrl = "about:blank";
 
         $scope.object = window.allData.SaleOrder;
         $scope.branding = window.branding;
@@ -24,6 +25,10 @@
 
         if ($scope.object.DHLTrackingNumber != null) {
             $scope.trackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.DHLTrackingNumber);
+        }
+
+        if ($scope.object.InboundDHLTrackingNumber != null) {
+            $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.InboundDHLTrackingNumber);
         }
 
         $scope.laptopStatus = [];

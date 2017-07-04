@@ -48,19 +48,15 @@
 
     </div>
 
-    <div style="margin-bottom: 30px">
-        This page helps you manage supplier's info.
-    </div>
+    <tabset>
 
-            <tabset>
+        <tab ng-repeat="item in modes"
+                heading="{{item.Title}}"
+                ng-click="ctrl.changeView(item)">
 
-                <tab ng-repeat="item in modes"
-                     heading="{{item.Title}}"
-                     ng-click="ctrl.changeView(item)">
+        </tab>
 
-                </tab>
-
-            </tabset>
+    </tabset>
 
     <div ng-include src="modeView">
     </div>
@@ -87,8 +83,9 @@
                 <td data-title="'Order#'"
                     sortable="'SaleOrderIdentifier'"
                     filter="{ 'SaleOrderIdentifier': 'text' }">
-                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
-                        {{item.SaleOrderIdentifier }}
+                    <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank"
+                       style="font-size: 20px">
+                        {{item.id}}
                     </a>
                     <p class="text-muted">
                         <i class="fa fa-clock-o"></i>
@@ -97,7 +94,19 @@
                     <p>
                         <a href="/support/{{item.SaleOrderIdentifier}}" target="_blank" class="btn btn-info">
                             <i class="fa fa-life-ring"></i> Support
-                        </a>
+                        </a><br/>
+
+                        <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
+                           class="btn btn-primary" target="_blank"
+                           ng-if="item.PaymentStatus != 'PaymentReceived'">
+                            <span class="icon ion-printer"></span> Invoice
+                        </a><br />
+
+                        <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
+                           class="btn btn-success" target="_blank"
+                           ng-if="item.PaymentStatus == 'PaymentReceived'">
+                            <span class="icon ion-printer"></span> Receipt
+                        </a><br />
                     </p>
                 </td>
                 <td data-title="'Status'"
@@ -144,6 +153,14 @@
                 </td>
 
                 <td data-title="'Products'" style="min-width: 250px">
+
+                    <p style="font-weight: bold">
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc' }">{{i.Title}}</span>
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/laptops' }">{{i.Title}}</span><br />
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/gpu' }">{{i.Title}}</span><br />
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/monitor' }">{{i.Title}}</span>
+                    </p>
+
                     <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
                         <a href="{{product.Url}}" target="_blank">
                             {{product.Title}}
@@ -156,19 +173,6 @@
                     sortable="'TotalAmount'"
                     filter="{ 'TotalAmount': 'text' }">
                     {{item.TotalAmount | number:2 }}
-                </td>
-                <td style="white-space: nowrap">
-
-                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
-                       class="btn btn-primary" target="_blank"
-                       ng-disabled="object.PaymentStatus != 'PaymentReceived'">
-                        <span class="icon ion-printer"></span> IV
-                    </a>
-                    <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
-                       class="btn btn-success" target="_blank"
-                       ng-disabled="object.PaymentStatus == 'PaymentReceived'">
-                        <span class="icon ion-printer"></span> R
-                    </a>
                 </td>
             </tr>
         </table>
@@ -190,10 +194,7 @@
                     filter="{ 'SaleOrderIdentifier': 'text' }">
                     <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
                         {{item.SaleOrderIdentifier }}
-                    </a><br />
-                    <span ng-if="item.PaymentReceivedDate != '0001-01-01T00:00:00'">
-                        Paid On: {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
-                    </span>
+                    </a>
                 </td>
                 <td data-title="'PaymentReceivedDate'"
                     sortable="'PaymentReceivedDate'">
@@ -201,15 +202,11 @@
                 </td>
                 <td data-title="'Customer'"
                     filter="{ 'Customer': 'text' }">
-                    {{item.Customer.FirstName}} {{item.Customer.LastName}}
-                </td>
-                <td data-title="'Phone'">
-                    {{item.Customer.PhoneNumber}}
-                </td>
-                <td data-title="'Email'">
+                    {{item.Customer.FirstName}} {{item.Customer.LastName}}<br/>
+                    {{item.Customer.PhoneNumber}}<br/>
                     {{item.Customer.Email}}
                 </td>
-                <td data-title="'Shipping Address'">
+                <td data-title="'Address'">
                     <div ng-if="item.ShipTo.To != null">
                         {{item.ShipTo.To}}<br />
                         {{item.ShipTo.Address}}<br />
@@ -221,9 +218,7 @@
                     <div ng-if="item.ShipTo.To == null">
                         (Pick Up)
                     </div>
-                </td>
-                <td data-title="'Billing Address'">
-
+                    <b>Billing:</b>
                     <div ng-if="item.UseBillingAddress">
                         {{item.BillTo.To }}<br />
                         {{item.BillTo.Address}}<br />
@@ -236,8 +231,17 @@
                     <div ng-if="item.UseBillingAddress == false">
                         (not used)
                     </div>
+
                 </td>
                 <td data-title="'Product'">
+
+                    <p style="font-weight: bold">
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc' }">{{i.Title}}</span>
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/laptops' }">{{i.Title}}</span><br />
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/gpu' }">{{i.Title}}</span><br />
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/monitor' }">{{i.Title}}</span>
+                    </p>
+
                     <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
                         <a href="{{product.Url}}" target="_blank"
                            ng-if="product.CurrentPrice > 0">

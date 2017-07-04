@@ -28,9 +28,9 @@
      ncb-datacontext table="SaleOrder"
      ng-cloak>
 
-
     <div class="page-header">
-        <h1>{{object.SaleOrderIdentifier}}
+        <h1>
+            {{object.Id}}
         
             <span class="pull-right">
 
@@ -53,8 +53,14 @@
 
             </span>
         </h1>
-    </div>
+        <h4>
 
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/laptops' }">{{item.Title}}</span>
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/products/pc' }">{{item.Title}}</span> |
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/gpu' }">{{item.Title}}</span> |
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/monitor' }">{{item.Title}}</span>
+        </h4>
+    </div>
 
     <tabset>
 
@@ -146,8 +152,7 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Date</th>
-                                            <th>to Account</th>
-                                            <th>Approval Code</th>
+                                            <th>Account</th>
                                             <th>Status</th>
                                             <th><div class="text-right">Ammount ({{object.Currency}})</div></th>
                                         </tr>
@@ -164,10 +169,10 @@
                                             </div>
                                         </td>
                                         <td>
-                                            {{item.PaymentMethod}}
-                                        </td>
-                                        <td>
-                                            {{item.ApCode}}
+                                            {{item.PaymentMethod}} <br/>
+                                            <span ng-if="item.ApCode">
+                                                {{item.ApCode}}
+                                            </span>                                            
                                         </td>
                                         <td>
                                             {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
@@ -270,6 +275,18 @@
                                           e-name="DHLTrackingNumber"
                                           editable-text="object.DHLTrackingNumber">
                                         {{object.DHLTrackingNumber || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="InboundDHLTrackingNumber" class="col-sm-4 control-label">Inbound DHL AWB</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="DHLTrackingNumber"
+                                          e-name="InboundDHLTrackingNumber"
+                                          editable-text="object.InboundDHLTrackingNumber">
+                                        {{object.InboundDHLTrackingNumber || 'empty'}}
                                     </span>
                                 </div>
                             </div>
