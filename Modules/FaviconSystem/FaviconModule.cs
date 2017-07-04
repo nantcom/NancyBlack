@@ -29,7 +29,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
             }
             else
             {
-                sourceFile = Path.Combine(this.RootPath, "Site", subSiteName, "favicon.png");
+                sourceFile = Path.Combine(this.RootPath, "Site", "SubSites", subSiteName, "favicon.png");
             }
 
             if (File.Exists(sourceFile) == false)
