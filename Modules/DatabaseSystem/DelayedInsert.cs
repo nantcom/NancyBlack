@@ -81,12 +81,12 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 #if DEBUG
         private TimeSpan _flushDelay = TimeSpan.FromSeconds(30);
 #else
-        private TimeSpan _flushDelay = TimeSpan.FromMinutes(1);
+        private TimeSpan _flushDelay = TimeSpan.FromMinutes(30);
 #endif
         private object _locker = new object();
         
         /// <summary>
-        /// Delay before flushing of this buffer, default is 1 minute
+        /// Delay before flushing of this buffer, default is 30 minute
         /// </summary>
         public TimeSpan FlushDelay
         {
@@ -118,9 +118,9 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 {
                     using (var dbConnection = new SQLite.SQLiteConnection(dbFilename))
                     {
-                        // only do this for 400ms max
+                        // only do this for 100ms max
                         var start = DateTime.Now.Ticks;
-                        var max = start + (TimeSpan.TicksPerMillisecond * 400);
+                        var max = start + (TimeSpan.TicksPerMillisecond * 100);
                         
                         dbConnection.RunInTransaction(() =>
                         {

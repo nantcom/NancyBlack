@@ -99,6 +99,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 now = DateTime.Now;
 
+                if (saleOrder.Status == "Cancel")
+                {
+                    //TODO: Cancel Case
+
+                    return;
+                }
+
                 // only do when status is waiting for order
                 if (saleOrder.Status != SaleOrderStatus.WaitingForOrder)
                 {
@@ -106,7 +113,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 // if previous status is already waiting for order - do nothing
-                if (db.GetOlderVersions(saleOrder).First().Status == SaleOrderStatus.WaitingForOrder)
+                if (db.GetOlderVersions(saleOrder).Any( s => s.Status == SaleOrderStatus.WaitingForOrder))
                 {
                     return;
                 }
@@ -199,17 +206,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             InventoryAdminModule.TransformInventoryRequest(db, saleOrder, items);
 
+            // Remove items with selling price 0 or less than 0
+            // that is not a real product
+            items = (from item in items
+                     where item.SellingPrice > 0
+                     select item).ToList();
 
             db.Transaction(() =>
             {
-                    // before inserting...
-                    // if the inventory item for this sale order already fullfilled
-                    // it will remain in inventory but sale order removed
+                // before inserting...
+                // if the inventory item for this sale order already fullfilled
+                // it will remain in inventory but sale order removed
 
-                    // we will always create new inventory item for this sale order
-                    // and clear out old ones
+                // we will always create new inventory item for this sale order
+                // and clear out old ones
 
-                    foreach (var item in db.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == saleOrder.Id).ToList())
+                foreach (var item in db.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == saleOrder.Id).ToList())
                 {
                     if (item.IsFullfilled)
                     {
@@ -267,30 +279,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
                                     .Where(ivitm => ivitm.IsFullfilled == false && ivitm.InboundDate == DateTime.MinValue)
                                     .OrderBy(ivitm => ivitm.RequestedDate).ToList();
-
-            Func<Product, int> findSupplier = (product) =>
-            {
-                if (product.Attributes == null)
-                {
-                    return 0;
-                }
-
-                if (product.Attributes.supplier == null)
-                {
-                    return 0;
-                }
-
-                var supplier = JObject.Parse((string)product.Attributes.supplier) as dynamic;
-                return supplier.id;
-
-            };
-
+            
             return from item in notFullfilled
                    let product = productLookup[item.ProductId].FirstOrDefault()
                    where product != null
                    select new
                    {
-                       SupplierId = findSupplier(product),
+                       SupplierId = product.SupplierId,
                        ProductId = product.Id,
                        InventoryItem = item
                    };
@@ -311,11 +306,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return from item in notFullfilled
                    let product = productLookup[item.ProductId]
                    where product.Attributes != null
-                   let supplier = JObject.Parse((string)product.Attributes.supplier) as dynamic
-                   where supplier != null
                    select new
                    {
-                       SupplierId = supplier.id,
+                       SupplierId = product.SupplierId,
                        ProductId = product.Id,
                        InventoryItem = item
                    };

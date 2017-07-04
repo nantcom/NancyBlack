@@ -547,7 +547,7 @@
             template: '<div class="tab-pane fade" ng-transclude></div>'
         };
     });
-
+    
     // Date Picker Control
     module.directive('ncbDatepicker', function ($compile) {
 
@@ -582,7 +582,6 @@
                 }
             }
 
-
             if ($(window).width() < 400) {
 
                 element.find("input[placeholder='Date']").attr("type", "date");
@@ -597,7 +596,7 @@
 
                 scope.isopen = !scope.isopen;
             };
-
+            
         }
 
         return {

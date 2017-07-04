@@ -32,13 +32,24 @@
      id="ManageSaleorder">
 
     <div class="page-header">
-        <h1>Sale Order</h1>
-    </div>
-	<!--only work in level51 web-->
-    <div class="pull-right">
-        <button class="btn btn-info" ng-click="ctrl.showMergeItems()">
-            Show Supplies from Selected items
+
+        <button class="btn btn-success pull-right"
+                ng-click="ctrl.create()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            <span>
+                Add new Sale Order
+            </span>
         </button>
+
+        <h1>
+            Sale Order
+            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+        </h1>
+
+    </div>
+
+    <div style="margin-bottom: 30px">
+        This page helps you manage supplier's info.
     </div>
 
             <tabset>
@@ -184,8 +195,11 @@
                         Paid On: {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
                     </span>
                 </td>
+                <td data-title="'PaymentReceivedDate'"
+                    sortable="'PaymentReceivedDate'">
+                    {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
+                </td>
                 <td data-title="'Customer'"
-                    sortable="'Customer'"
                     filter="{ 'Customer': 'text' }">
                     {{item.Customer.FirstName}} {{item.Customer.LastName}}
                 </td>

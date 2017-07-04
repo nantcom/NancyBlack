@@ -30,6 +30,7 @@
             $http.get('/__commerce/api/productstructure').
                   then(function (response) {
                       vm.list = response.data
+                      vm.breadcrumbs = [];
                   }, function (response) {
                       $log.error(response)
                   });
@@ -108,19 +109,6 @@
 
         //#region Reload on data change
         {
-            var ToLocalTimeString = function (dateISOString) {
-                var date = new Date(dateISOString);
-                date = new Date(date.getTime());
-                date.setHours(0);
-                return date.toISOString();
-            }
-
-            vm.updatePromotionDate = function () {
-                //$scope.object.PromotionStartDate = ToLocalTimeString($scope.object.ISOPromotionStartDate);
-                //$scope.object.PromotionEndDate = ToLocalTimeString($scope.object.ISOPromotionEndDate);
-                $scope.object.PromotionStartDate = $scope.object.ISOPromotionStartDate;
-                $scope.object.PromotionEndDate = $scope.object.ISOPromotionEndDate;
-            }
 
             var reload = function () {
 
@@ -204,8 +192,6 @@
             vm.IsCollapse = false;
             $scope.object = Product;
             $scope.productVariations = null;
-            $scope.object.ISOPromotionStartDate = $scope.object.PromotionStartDate + 'Z';
-            $scope.object.ISOPromotionEndDate = $scope.object.PromotionEndDate + 'Z';
 
         };
 
@@ -240,6 +226,21 @@
 
                     $scope.alerts.push({ type: 'success', msg: 'Successfully Copied stock for all products.' });
                 });
+        };
+
+        vm.breadcrumbs = [];
+        vm.drilldownpath = function (node, depth) {
+
+            if (depth == vm.breadcrumbs.length) {
+
+                vm.breadcrumbs.push(node);
+            } else {
+
+                vm.breadcrumbs.splice(depth);
+                vm.breadcrumbs.push(node);
+            }
+
+            vm.filterbyurl(node);
         };
     });
 

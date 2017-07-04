@@ -46,16 +46,15 @@
                 $scope.summarizedRevenueChart = window.allData.SummarizedRevenueChart;
                 $scope.soldLaptopChart = window.allData.SoldLaptopChart;
 
-                //function _createSaleOrder() {
-
-                //    $http.post('/admin/tables/saleorder/new', { Items: [], CustomData: {}, ShippingDetails: {} })
-                //        .then(function (response) {
-                //            $window.location = "/Admin/tables/saleorder/" + response.data.Id;
-                //        }, function (error) {
-                //            alert(error.data.Message);
-                //        });
-                //};
-
+                $scope.summarizedRevenueChart.Options = {
+                    scales: {
+                        yAxes: [
+                            { type: "linear", "id": "y1", display: true, position: "left" },
+                            { type: "linear", "id": "y2", display: true, position: "right" }
+                        ]
+                    }
+                };
+                $scope.summarizedRevenueChart.Overrides = [{ yAxisID: 'y-axis-1' }, { yAxisID: 'y-axis-2' }];
             }
         })();
     </script>
@@ -73,36 +72,52 @@
 
     <div class="row">
 
-        @*<div class="col-md-6"
+        <div class="col-md-6"
              ncg-chart
-             title="'Monthly Revenue'"
+             title="'Revenue'"
              table="'SaleOrder'"
-             fn="'cumulativesum'"
+             fn="'sum'"
              select="'TotalAmount'"
-             filter="PaymentStatus eq 'PaymentReceived'">
-        </div>*@
-
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">{{summarizedRevenueChart.Title}}</div>
-                <div class="panel-body">
-                    <canvas class="chart-base" data="summarizedRevenueChart.Data"
-                            chart-type="summarizedRevenueChart.Type"
-                            labels="summarizedRevenueChart.Labels" 
-                            legend="summarizedRevenueChart.IsLegend" 
-                            series="summarizedRevenueChart.Series"
-                            colours="summarizedRevenueChart.Colours"></canvas>
-                </div>
-            </div>
+             period="'month'"
+             mintime="'ytd'"
+             time="'PaymentReceivedDate'"
+             filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
         </div>
 
         <div class="col-md-6"
              ncg-chart
-             title="'Monthly Volume'"
+             title="'Volume'"
+             table="'SaleOrder'"
+             fn="'count'"
+             select="'TotalAmount'"
+             period="'month'"
+             mintime="'ytd'"
+             time="'PaymentReceivedDate'"
+             filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
+        </div>
+        
+        <div class="col-md-6"
+             ncg-chart
+             title="'Total Revenue'"
+             table="'SaleOrder'"
+             fn="'cumulativesum'"
+             select="'TotalAmount'"
+             period="'month'"
+             mintime="'ytd'"
+             time="'PaymentReceivedDate'"
+             filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
+        </div>
+
+        <div class="col-md-6"
+             ncg-chart
+             title="'Total Volume'"
              table="'SaleOrder'"
              fn="'cumulativecount'"
              select="'TotalAmount'"
-             filter="PaymentStatus eq 'PaymentReceived'">
+             period="'month'"
+             mintime="'ytd'"
+             time="'PaymentReceivedDate'"
+             filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
         </div>
 
         @*<div class="col-md-6">

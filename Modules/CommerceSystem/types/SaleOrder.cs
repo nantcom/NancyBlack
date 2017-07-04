@@ -15,6 +15,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string New = "New";
         public const string Confirmed = "Confirmed";
         public const string WaitingForOrder = "WaitingForOrder";
+        public const string Delay = "Delay";
+        public const string OrderProcessing = "OrderProcessing";
+        public const string InTransit = "InTransit";
+        public const string CustomsClearance = "CustomsClearance";
+        public const string Inbound = "Inbound";
+        public const string WaitingForParts = "WaitingForParts";
+        public const string Building = "Building";
+        public const string PartialBuilding = "PartialBuilding";
+        public const string Testing = "Testing";
         public const string PreparingOrder = "PreparingOrder";
         public const string Packing = "Packing";
         public const string ReadyToShip = "ReadyToShip";
@@ -325,6 +334,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
 
                 product.ContentParts = null;
+                product.MetaDescription = null;
+                product.MetaKeywords = null;
+                product.Layout = null;
 
                 // check for duplication
                 if (lookupItemDetail.ContainsKey(product.Id))

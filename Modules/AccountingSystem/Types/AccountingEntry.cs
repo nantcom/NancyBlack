@@ -58,7 +58,17 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem.Types
         /// Project Name
         /// </summary>
         public string ProjectName { get; set; }
-        
+
+        /// <summary>
+        /// Related Document Number
+        /// </summary>
+        public string DocumentNumber { get; set; }
+
+        /// <summary>
+        /// Date/Time that this transaction is due
+        /// </summary>
+        public DateTime DueDate { get; set; }
+
         /// <summary>
         /// Amount that increase
         /// </summary>

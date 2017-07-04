@@ -165,7 +165,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
                 RowVerions = so.GetRowVersions(this.SiteDatabase),
-                PaymentMethods = StatusList.GetAllStatus<PaymentMethod>()
+                PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts( this.SiteDatabase)
             };
 
             return View["/Admin/saleorderdetailmanager", new StandardModel(this, dummyPage, data)];

@@ -1168,8 +1168,12 @@
             scope.onClick = _chartOnClick;
             scope.getDataByPeriod = _getDataByPeriod;
 
+            if (scope.period == null) {
+                scope.period = "day";
+            }
+
             /* Function Calling */
-            scope.getDataByPeriod("day");
+            scope.getDataByPeriod(scope.period);
 
             /* Events */
             // OnChart create
@@ -1187,7 +1191,8 @@
                 var criteria = "/tables/" + scope.table + "/summarize?period=" + period +
                                                           "&fn=" + scope.fn +
                                                           "&select=" + scope.select +
-                                                          "&time=__createdAt";
+                                                          "&mintime=" + scope.mintime +
+                                                          "&time=" + scope.time;
 
                 if (attrs.filter != "") {
 
@@ -1300,8 +1305,11 @@
             scope: {
                 title: "=title",
                 table: "=table",
+                period: "=period",
                 fn: "=fn",
-                select: "=select"
+                select: "=select",
+                time: "=time",
+                mintime: "=mintime"
             },
             //replace: true,
         };

@@ -16,6 +16,8 @@ using System.Web;
 using Nancy.Bootstrapper;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -649,9 +651,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 }
             }
 
+            var fullName = Encoding.ASCII.GetBytes(resultType.FullName);
+            var md5Hash = MD5.Create().ComputeHash(fullName);
+            var name = "anonymoustype" + BitConverter.ToString(md5Hash).Replace("-", "");
+
             // create data type on the fly for query
             // since anonymous type cannot be created
-            var dt = DataType.FromJObject(resultType.Name.Replace("<>", "aa").Replace("`", "b"), JObject.FromObject(sampleOutput));
+            var dt = DataType.FromJObject(name, JObject.FromObject(sampleOutput));
             var mapping = new TableMapping(dt.GetCompiledType());
 
             // dynamically invoke the method on SQLite database to read data with specified command

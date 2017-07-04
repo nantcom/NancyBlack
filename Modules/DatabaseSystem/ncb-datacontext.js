@@ -1038,6 +1038,7 @@
                         }
 
                         $scope.lookup = results;
+                        $scope.lookup.push({ Id: 0, label: '(Empty)' });
                     });
 
                 }, $me.handleError);

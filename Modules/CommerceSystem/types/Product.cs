@@ -73,6 +73,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int SupplierId { get; set; }
 
         /// <summary>
+        /// Part Number of Supplier
+        /// </summary>
+        public string SupplierPartNumber { get; set; }
+
+        /// <summary>
         /// Full Price of this product in home currency (non-promotion discount)
         /// </summary>
         public Decimal Price { get; set; }

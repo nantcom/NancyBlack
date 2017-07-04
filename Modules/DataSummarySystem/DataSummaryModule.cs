@@ -169,27 +169,27 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             {
                 // minute period, time within same minute will be in same group
                 case TimePeriod.minute:
-                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0));
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, DateTimeKind.Utc));
                     break;
 
                 // hour period - time withtin same hour will be in same group
                 case TimePeriod.hour:
-                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0));
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, DateTimeKind.Utc));
                     break;
 
                 // day period - time withint same day will be in same group
                 case TimePeriod.day:
-                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0));
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0, DateTimeKind.Utc));
                     break;
                 case TimePeriod.week:
                     var calendar = CultureInfo.InvariantCulture.Calendar;
                     periodNormalizer = (dt) => "Week-" + calendar.GetWeekOfYear(dt, CalendarWeekRule.FirstDay, DayOfWeek.Monday).ToString("00") + "/" + dt.Year;
                     break;
                 case TimePeriod.month:
-                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, 1, 0, 0, 0));
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, DateTimeKind.Utc));
                     break;
                 case TimePeriod.year:
-                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, 1, 1, 0, 0, 0));
+                    periodNormalizer = (dt) => getJavascriptTime(new DateTime(dt.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc));
                     break;
             }
 
@@ -473,14 +473,22 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
             var function = (string)this.Request.Query.fn;
             var timeselect = (string)this.Request.Query.time;
             var filter = (string)this.Request.Query["$filter"];
-            var minTimeString = (string)this.Request.Query.mindate;
+            var minTimeString = (string)this.Request.Query.mintime;
 
             DateTime? minTime = null;
-            if (minTimeString != null)
+            if (minTimeString != "undefined" && minTimeString != null)
             {
-                minTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                           .AddMilliseconds(long.Parse(minTimeString))
-                           .ToLocalTime();
+                if (minTimeString == "ytd")
+                {
+                    minTime = new DateTime(DateTime.Now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                }
+                else
+                {
+                    minTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                               .AddMilliseconds(long.Parse(minTimeString))
+                               .ToLocalTime();
+                }
+
             }
 
             if (timeselect == null)
