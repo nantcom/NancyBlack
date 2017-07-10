@@ -95,70 +95,72 @@
     <div class="row">
         <div class="col-md-6">
 
-            <table id="CaseTable"
-                   ncb-datatable
-                   class="table table-striped table-hover"
-                   style="width: 100%"
-                   ng-table="tableParams"
-                   show-filter="true">
+            <div class="table-responsive">
 
-                <tr ng-repeat="product in tableParams.data"
-                    ng-class="{ 'info' : product.id == object.id }">
-                    
-                    <td data-title="'Order'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }"
-                        width="10%" style="text-align:center">
-                        <span ng-hide="product.IsVariation">
-                            {{product.DisplayOrder}}
-                        </span>
-                    </td>
+                <table id="CaseTable"
+                       ncb-datatable
+                       class="table table-striped table-hover table-responsive"
+                       style="width: 100%"
+                       ng-table="tableParams"
+                       show-filter="true">
 
-                    <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
-                        <a href="#" ng-click="ctrl.view_data(product)" ncb-scroll>
-                            <span style="margin-right: 10px"
-                                  ng-show="product.IsVariation">
-                                <i class="fa fa-toggle-right"></i>
+                    <tr ng-repeat="product in tableParams.data"
+                        ng-class="{ 'info' : product.id == object.id }">
+
+                        <td data-title="'Order'" sortable="'DisplayOrder'" filter="{ DisplayOrder: 'text' }"
+                            width="10%" style="text-align:center">
+                            <span ng-hide="product.IsVariation">
+                                {{product.DisplayOrder}}
                             </span>
-                            {{product.Title}}
-                        </a>
-                    </td>
-                    <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }"
-                        width="10%" style="text-align:center">
-                        {{product.Stock}}
-                    </td>
-                    <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
-                        width="10%" style="text-align:right">
-                        {{multicurrency.home}}{{product.Price | number:2 }}
+                        </td>
 
-                        <div style="font-size: 90%"
-                             ng-repeat="(key,value) in product.PriceMultiCurrency">
-                            <b>{{key}}</b>{{value | number:2 }}
-                            <span class="label label-danger text-muted"
-                                  ng-if="multicurrency.fairRatio(product.Price, value, key) <= 1.0">
-                                {{100 - (multicurrency.fairRatio(product.Price, value, key) * 100) | number:2 }}%
-                            </span>
-                        </div>
+                        <td data-title="'Title'" sortable="'Title'" filter="{ Title: 'text' }">
+                            <a href="#" ng-click="ctrl.view_data(product)" ncb-scroll>
+                                <span style="margin-right: 10px"
+                                      ng-show="product.IsVariation">
+                                    <i class="fa fa-toggle-right"></i>
+                                </span>
+                                {{product.Title}}
+                            </a>
+                        </td>
+                        <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }"
+                            width="10%" style="text-align:center">
+                            {{product.Stock}}
+                        </td>
+                        <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
+                            width="10%" style="text-align:right">
+                            {{multicurrency.home}}{{product.Price | number:2 }}
 
-                    </td>
-                    <td data-title="'Updated'" sortable="'__updatedAt'"
-                        width="20%" style="text-align:center">
-                        {{product.__updatedAt | date:'dd/MM/yyyy, HH:mm'}}
-                    </td>
-                    <td data-title="''" style="white-space: nowrap">
+                            <div style="font-size: 90%"
+                                 ng-repeat="(key,value) in product.PriceMultiCurrency">
+                                <b>{{key}}</b>{{value | number:2 }}
+                                <span class="label label-danger text-muted"
+                                      ng-if="multicurrency.fairRatio(product.Price, value, key) <= 1.0">
+                                    {{100 - (multicurrency.fairRatio(product.Price, value, key) * 100) | number:2 }}%
+                                </span>
+                            </div>
 
-                        <button class="btn btn-default"
-                                ng-click="data.copy(product)">
-                            <i class="fa fa-copy"></i>
-                        </button>
+                        </td>
+                        <td data-title="'Updated'" sortable="'__updatedAt'"
+                            width="20%" style="text-align:center">
+                            {{product.__updatedAt | date:'dd/MM/yyyy, HH:mm'}}
+                        </td>
+                        <td data-title="''" style="white-space: nowrap">
 
-                    </td>
-                </tr>
+                            <button class="btn btn-default"
+                                    ng-click="data.copy(product)">
+                                <i class="fa fa-copy"></i>
+                            </button>
 
-            </table>
+                        </td>
+                    </tr>
 
-            <script type="text/ng-template" id="ng-table/headers/checkbox.html">
-                <input type="checkbox" ng-model="checkboxes.checked" id="select_all" name="filter-checkbox" value="" />
-            </script>
+                </table>
 
+                <script type="text/ng-template" id="ng-table/headers/checkbox.html">
+                    <input type="checkbox" ng-model="checkboxes.checked" id="select_all" name="filter-checkbox" value="" />
+                </script>
+            </div>
         </div>
 
         <div class="col-md-6">
@@ -187,10 +189,10 @@
 
                                     <div class="row">
 
-                                        <input type="text" ncb-textbox ncb-lg required ncb-col="col-xs-9"
+                                        <input type="text" ncb-textbox ncb-lg required ncb-col="col-md-9"
                                                name="Title" title="Title/Name" ng-model="object.Title">
 
-                                        <input type="text" ncb-textbox ncb-lg ncb-col="col-xs-3"
+                                        <input type="text" ncb-textbox ncb-lg ncb-col="col-md-3"
                                                ng-disabled="object.IsVariation"
                                                name="DisplayOrder" title="Show Order" ng-model="object.DisplayOrder">
 
@@ -201,7 +203,7 @@
 
                                     <div class="row">
 
-                                        <div class="col-xs-4 form-group">
+                                        <div class="col-md-4 form-group">
                                             <label>Product Variation</label>
                                             <div ng-hide="object.IsVariation">
                                                 <ncb-onoff ng-model="object.HasVariation"></ncb-onoff>
@@ -213,14 +215,14 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-xs-8">
+                                        <div class="col-md-8">
 
                                             <div class="row" ng-hide="object.HasVariation">
 
-                                                <input type="number" ncb-textbox ncb-col="col-xs-6"
+                                                <input type="number" ncb-textbox ncb-col="col-md-6"
                                                        name="Stock" title="Stock" ng-model="object.Stock">
 
-                                                <input type="text" ncb-textbox ncb-col="col-xs-6"
+                                                <input type="text" ncb-textbox ncb-col="col-md-6"
                                                        name="SKU" title="SKU#" ng-model="object.SKUNumber">
 
                                             </div>
@@ -240,10 +242,10 @@
 
                                     <div class="row">
 
-                                        <input type="number" ncb-textbox required ncb-col="col-xs-6"
+                                        <input type="number" ncb-textbox required ncb-col="col-md-6"
                                                name="Price" title="Price  (@this.Site.commerce.multicurrency.home)" ng-model="object.Price">
 
-                                        <div class="col-xs-6">
+                                        <div class="col-md-6">
                                             <label>Discount Price  (@this.Site.commerce.multicurrency.home)</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control" ng-model="object.DiscountPrice" ng-change="object.PercentDiscount = (object.Price - object.DiscountPrice) / object.Price * -100">
@@ -255,12 +257,12 @@
 
                                     <div class="row">
 
-                                        <div class="col-xs-6">
+                                        <div class="col-md-6">
                                             <ncb-datepicker model="object.PromotionStartDate" format="'dd MMMM yyyy'"
                                                             title="Start Promotion Date"></ncb-datepicker>
                                         </div>
 
-                                        <div class="col-xs-6">
+                                        <div class="col-md-6">
                                             <ncb-datepicker model="object.PromotionEndDate" format="'dd MMMM yyyy'"
                                                             title="End Promotion Date"></ncb-datepicker>
                                         </div>
@@ -270,7 +272,7 @@
 
                                     <div class="row">
 
-                                        <div class="col-xs-6">
+                                        <div class="col-md-6">
 
                                             <div class="form-group"
                                                  ncb-lookupscope
@@ -294,7 +296,7 @@
 
                                         </div>
 
-                                        <div class="col-xs-6">
+                                        <div class="col-md-6">
 
                                             <input type="text" ncb-textbox
                                                    name="SupplierPartNumber" title="Supplier Part Number" ng-model="object.SupplierPartNumber">
@@ -303,7 +305,7 @@
 
                                     <div class="row">
 
-                                        <div class="col-xs-6">
+                                        <div class="col-md-6">
 
                                             <input type="text" ncb-textbox
                                                    name="Tags" title="Tags" ng-model="object.Tags">
