@@ -82,86 +82,88 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
         
         internal static void ProcessInboundCompleted(NancyBlackDatabase db, InventoryInbound inbound, List<InventoryItem> items)
         {
-            // this already in transaction
+            // Not doing this - let accounting person record the tax credit
 
-            // When inventory inbound is created, record into GL about current asset
-            {
-                var supplierLookup = db.Query<Supplier>().ToDictionary(s => s.Id);
+            //// this already in transaction
 
-                // Inbound will create 2 entries
-                // 1) inventory increase and account decrease (without tax amount)
+            //// When inventory inbound is created, record into GL about current asset
+            //{
+            //    var supplierLookup = db.Query<Supplier>().ToDictionary(s => s.Id);
 
-                AccountingEntry entry1 = new AccountingEntry();
-                entry1.TransactionDate = inbound.PaymentDate;
-                entry1.TransactionType = "buy";
-                entry1.DebtorLoanerName = supplierLookup[inbound.SupplierId].Name;
-                entry1.IncreaseAccount = "Inventory";
-                entry1.IncreaseAmount = inbound.TotalAmountWithoutTax;
-                entry1.DecreaseAccount = inbound.PaymentAccount;
-                entry1.DecreaseAmount = inbound.TotalAmountWithoutTax * -1;
-                entry1.InventoryInboundId = inbound.Id;
+            //    // Inbound will create 2 entries
+            //    // 1) inventory increase and account decrease (without tax amount)
 
-                db.UpsertRecord(entry1);
+            //    AccountingEntry entry1 = new AccountingEntry();
+            //    entry1.TransactionDate = inbound.PaymentDate;
+            //    entry1.TransactionType = "buy";
+            //    entry1.DebtorLoanerName = supplierLookup[inbound.SupplierId].Name;
+            //    entry1.IncreaseAccount = "Inventory";
+            //    entry1.IncreaseAmount = inbound.TotalAmountWithoutTax;
+            //    entry1.DecreaseAccount = inbound.PaymentAccount;
+            //    entry1.DecreaseAmount = inbound.TotalAmountWithoutTax * -1;
+            //    entry1.InventoryInboundId = inbound.Id;
 
-                // 2) paid tax increase and account decrease (tax only amount)
-                // (ภาษีซื้อทำให้ภาษีขายที่ต้องจ่ายลดลง)
-                if (inbound.TotalTax > 0)
-                {
-                    AccountingEntry entry2 = new AccountingEntry();
-                    entry2.TransactionDate = inbound.PaymentDate;
-                    entry2.TransactionType = "taxcredit";
-                    entry2.DebtorLoanerName = "Tax";
-                    entry2.IncreaseAccount = "Tax Credit";
-                    entry2.IncreaseAmount = inbound.TotalTax;
-                    entry2.DecreaseAccount = inbound.PaymentAccount;
-                    entry2.DecreaseAmount = inbound.TotalTax * -1;
-                    entry2.InventoryInboundId = inbound.Id;
+            //    db.UpsertRecord(entry1);
 
-                    db.UpsertRecord(entry2);
-                }
+            //    // 2) paid tax increase and account decrease (tax only amount)
+            //    // (ภาษีซื้อทำให้ภาษีขายที่ต้องจ่ายลดลง)
+            //    if (inbound.TotalTax > 0)
+            //    {
+            //        AccountingEntry entry2 = new AccountingEntry();
+            //        entry2.TransactionDate = inbound.PaymentDate;
+            //        entry2.TransactionType = "taxcredit";
+            //        entry2.DebtorLoanerName = "Tax";
+            //        entry2.IncreaseAccount = "Tax Credit";
+            //        entry2.IncreaseAmount = inbound.TotalTax;
+            //        entry2.DecreaseAccount = inbound.PaymentAccount;
+            //        entry2.DecreaseAmount = inbound.TotalTax * -1;
+            //        entry2.InventoryInboundId = inbound.Id;
 
-            }
+            //        db.UpsertRecord(entry2);
+            //    }
 
-            // record that inventory was withdrawn
-            {
-                var allFullfilled = from item in items
-                                    where item.IsFullfilled == true
-                                    select item;
+            //}
 
-                if (allFullfilled.Count() > 0)
-                {
-                    // the inventory is withdrawn as expense
-                    AccountingEntry entry1 = new AccountingEntry();
-                    entry1.TransactionDate = inbound.PaymentDate;
-                    entry1.TransactionType = "expense";
-                    entry1.DebtorLoanerName = "Inventory Used";
-                    entry1.DecreaseAccount = "Inventory";
-                    entry1.DecreaseAmount = allFullfilled.Sum(item => item.BuyingCost) * -1;
-                    entry1.Notes = "Inventory Used by Sale Order: " + string.Join(",", allFullfilled.Select(item => item.SaleOrderId)) +
-                                   "From Inbound Id:" + inbound.Id;
+            //// record that inventory was withdrawn
+            //{
+            //    var allFullfilled = from item in items
+            //                        where item.IsFullfilled == true
+            //                        select item;
 
-                    db.UpsertRecord(entry1);
+            //    if (allFullfilled.Count() > 0)
+            //    {
+            //        // the inventory is withdrawn as expense
+            //        AccountingEntry entry1 = new AccountingEntry();
+            //        entry1.TransactionDate = inbound.PaymentDate;
+            //        entry1.TransactionType = "expense";
+            //        entry1.DebtorLoanerName = "Inventory Used";
+            //        entry1.DecreaseAccount = "Inventory";
+            //        entry1.DecreaseAmount = allFullfilled.Sum(item => item.BuyingCost) * -1;
+            //        entry1.Notes = "Inventory Used by Sale Order: " + string.Join(",", allFullfilled.Select(item => item.SaleOrderId)) +
+            //                       "From Inbound Id:" + inbound.Id;
 
-                    // if there is net profit/loss - record it
-                    // but does not remove the amount from account
-                    var totalAmountBuy = allFullfilled.Sum(i => i.BuyingCost);
-                    var totalAmountSold = allFullfilled.Sum(i => i.SellingPrice);
+            //        db.UpsertRecord(entry1);
 
-                    if (totalAmountBuy != totalAmountSold)
-                    {
-                        AccountingEntry entry2 = new AccountingEntry();
-                        entry2.TransactionDate = inbound.PaymentDate;
-                        entry2.TransactionType = "income";
-                        entry2.DebtorLoanerName = "n/a";
-                        entry2.IncreaseAccount = "Gross Profit";
-                        entry2.IncreaseAmount = totalAmountSold - totalAmountBuy;
-                        entry2.Notes = "From Inbound Id:" + inbound.Id + " the item were used. Profit/Loss is calculated and recorded into Profit(Loss) account for each account";
+            //        // if there is net profit/loss - record it
+            //        // but does not remove the amount from account
+            //        var totalAmountBuy = allFullfilled.Sum(i => i.BuyingCost);
+            //        var totalAmountSold = allFullfilled.Sum(i => i.SellingPrice);
 
-                        db.UpsertRecord(entry2);
-                    }
-                }
+            //        if (totalAmountBuy != totalAmountSold)
+            //        {
+            //            AccountingEntry entry2 = new AccountingEntry();
+            //            entry2.TransactionDate = inbound.PaymentDate;
+            //            entry2.TransactionType = "income";
+            //            entry2.DebtorLoanerName = "n/a";
+            //            entry2.IncreaseAccount = "Gross Profit";
+            //            entry2.IncreaseAmount = totalAmountSold - totalAmountBuy;
+            //            entry2.Notes = "From Inbound Id:" + inbound.Id + " the item were used. Profit/Loss is calculated and recorded into Profit(Loss) account for each account";
 
-            }
+            //            db.UpsertRecord(entry2);
+            //        }
+            //    }
+
+            //}
         }
         
         public AccountingSystemModule()
@@ -175,6 +177,11 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 var allAccounts = account.Union(account2).ToList();
 
                 return new StandardModel(this, null, allAccounts);
+            });
+
+            Get["/admin/tables/accountingentry/__opendocuments"] = this.HandleRequest((arg)=>
+            {
+                return this.SiteDatabase.Query("SELECT DISTINCT DocumentNumber as Name FROM AccountingEntry WHERE IsDocumentClosed == false AND DocumentNumber <> Null", new { Name = "" }).Select(item => ((dynamic)item).Name as string).ToList();
             });
 
             Get["/admin/tables/accountingentry/__autocompletes"] = this.HandleRequest(this.GenerateAutoComplete);

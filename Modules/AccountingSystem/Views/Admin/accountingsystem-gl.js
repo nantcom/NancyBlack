@@ -27,8 +27,7 @@
             if (object.TransactionType == "newaccount") {
 
                 valid &= object.IncreaseAccount != "" &&
-                    object.IncreaseAccount != null &&
-                    object.IncreaseAmount >= 0
+                    object.IncreaseAccount != null
             }
 
             if (object.TransactionType == "newap") {

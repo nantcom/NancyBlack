@@ -394,7 +394,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         tree[parentPath] = new Node()
                         {
                             id = id++,
-                            title = Path.GetFileName(parentPath),
+                            title = parentPath.Substring( parentPath.LastIndexOf('/') + 1),
                             fullPath = parentPath,
                         };
                     }
@@ -404,7 +404,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         var node = new Node()
                         {
                             id = id++,
-                            title = Path.GetFileName(fullPath),
+                            title = fullPath.Substring(fullPath.LastIndexOf('/') + 1),
                             fullPath = fullPath,
                         };
 

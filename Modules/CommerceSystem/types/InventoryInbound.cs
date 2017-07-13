@@ -11,6 +11,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     {
         public int ProductId { get; set; }
 
+        /// <summary>
+        /// Quantity
+        /// </summary>
+        public int Qty { get; set; }
+
         public Decimal Price { get; set; }
 
         public Decimal Tax { get; set; }
@@ -36,19 +41,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime InboundDate { get; set; }
 
         /// <summary>
-        /// Date of payment
+        /// Accounting document related to this inbound
         /// </summary>
-        public DateTime PaymentDate { get; set; }
-
-        /// <summary>
-        /// Account that were used for payment
-        /// </summary>
-        public string PaymentAccount { get; set; }
-
-        /// <summary>
-        /// Id of Supplier
-        /// </summary>
-        public int SupplierId { get; set; }
+        public string AccountingEntryDocumentNumber { get; set; }
 
         /// <summary>
         /// Items being inbound
@@ -69,8 +64,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Total Tax of this Inbound Receipt
         /// </summary>
         public Decimal TotalTax { get; set; }
-
-
+        
         /// <summary>
         /// Attachments
         /// </summary>

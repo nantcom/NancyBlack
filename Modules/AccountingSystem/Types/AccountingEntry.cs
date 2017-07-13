@@ -6,7 +6,6 @@ using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 
 namespace NantCom.NancyBlack.Modules.AccountingSystem.Types
 {
-
     public class AccountingEntry : IStaticType
     {
         /// <summary>
@@ -63,6 +62,11 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem.Types
         /// Related Document Number
         /// </summary>
         public string DocumentNumber { get; set; }
+
+        /// <summary>
+        /// Whether the document related to this entry is closed (such as Invoice is completed)
+        /// </summary>
+        public bool IsDocumentClosed { get; set; }
 
         /// <summary>
         /// Date/Time that this transaction is due
