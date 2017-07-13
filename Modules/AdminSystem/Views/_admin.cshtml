@@ -41,14 +41,12 @@
                     <ul class="dropdown-menu">
                         <li><a href="/Admin/tables/saleorder">Sales</a></li>
                         <li><a href="/Admin/tables/rma">RMA</a></li>
-                        <li><a href="/Admin/tables/inventoryitem">Stock</a></li>
                         <li><a href="/Admin/tables/investment">Sell Report</a></li>
                         <li><a href="/Admin/tables/suplier">Supplier</a></li>
                         <li><a href="/Admin/tables/product">Product</a></li>
                         <li><a href="/Admin/commerce/settings">Settings</a></li>
                     </ul>
                 </li>
-                
 
                 <li class="dropdown">
                     <a class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true" href="#" data-toggle="dropdown">
@@ -58,6 +56,16 @@
                         <li><a href="/Admin/accounts">Accounts</a></li>
                         <li><a href="/Admin/tables/accountingentry">Accounting Entry</a></li>
                         <li><a href="/admin/commerce/printreceipt">Receipt Print</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true" href="#" data-toggle="dropdown">
+                        Inventory <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/Admin/tables/inventoryitem">Stock Dashboard</a></li>
+                        <li><a href="/Admin/tables/inventoryinbound">Stock Inbound</a></li>
                     </ul>
                 </li>
 
@@ -81,7 +89,7 @@
 
                         @foreach (var item in this.Database.DataType.RegisteredTypes.OrderBy(item => item.NormalizedName))
                         {
-                            if (item.NormalizedName.StartsWith("aaf_"))
+                            if (item.NormalizedName.StartsWith("anonymoustype"))
                             {
                                 continue;
                             }

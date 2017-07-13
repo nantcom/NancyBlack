@@ -120,6 +120,7 @@
                                       ng-show="product.IsVariation">
                                     <i class="fa fa-toggle-right"></i>
                                 </span>
+                                <span class="text-muted">{{product.id}}</span>
                                 {{product.Title}}
                             </a>
                         </td>
@@ -172,7 +173,7 @@
             <div collapse="ctrl.IsCollapse || object == null">
                 <div class="panel panel-info">
                     <div class="panel-heading">
-                        Detail
+                        Detail | {{object.id}}
                         <button class="btn btn-warning pull-right" style="margin-top:-8px"
                                 ng-show="object.IsVariation == false"
                                 ng-click="data.delete(object)">

@@ -251,6 +251,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // insert updatedStock here
             Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
 
+            Get["/admin/tables/inventoryinbound"] = this.HandleViewRequest("/Admin/commerceadmin-inventoryinbound");
+
             Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.GetWaitingForOrder);
 
             Get["/admin/tables/inventoryitem/__waitingforinbound"] = this.HandleRequest(this.GetWaitingForInbound);
