@@ -81,7 +81,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 #if DEBUG
         private TimeSpan _flushDelay = TimeSpan.FromSeconds(30);
 #else
-        private TimeSpan _flushDelay = TimeSpan.FromMinutes(30);
+        private TimeSpan _flushDelay = TimeSpan.FromMinutes(1);
 #endif
         private object _locker = new object();
         

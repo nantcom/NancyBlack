@@ -75,7 +75,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public string error { get; set; }
     }
-
+    
     public class SaleOrder : IStaticType
     {
 
@@ -86,6 +86,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime __updatedAt { get; set; }
 
         public DateTime PaymentReceivedDate { get; set; }
+
+        /// <summary>
+        /// Promised Due Date
+        /// </summary>
+        public DateTime DueDate { get; set; }
 
         /// <summary>
         /// Prefer language for customer
@@ -275,17 +280,21 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
                 feeParts[feeParts.Count - 1] = 0;
 
-                if (feeParts[feeParts.Count - 2] < 5)
+                if (feeParts.Count > 1)
                 {
-                    feeParts[feeParts.Count - 2] = 0; // if tenth position is less than 5 - make it 0
-                }
+                    if (feeParts[feeParts.Count - 2] < 5)
+                    {
+                        feeParts[feeParts.Count - 2] = 0; // if tenth position is less than 5 - make it 0
+                    }
 
-                if (feeParts[feeParts.Count - 2] > 5)
-                {
-                    feeParts[feeParts.Count - 2] = 9; // if tenth position is less than 5 - make it 9
-                }
+                    if (feeParts[feeParts.Count - 2] > 5)
+                    {
+                        feeParts[feeParts.Count - 2] = 9; // if tenth position is less than 5 - make it 9
+                    }
 
-                this.PaymentFee = int.Parse(string.Join("", feeParts));
+                    this.PaymentFee = int.Parse(string.Join("", feeParts));
+
+                }
 
                 /*
                  *  $scope.PaymentFee = Math.floor($scope.PaymentFee);

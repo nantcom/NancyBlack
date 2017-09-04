@@ -775,8 +775,8 @@
         var soPaymentLogs = {}
 
         $me.paymentMethods = [
-            { code: "PACA", title: "Full Payment (ชำระยอดเต็ม)" },
-            { code: "PAIN", title: "Installment (ผ่อนชำระ)" }
+            { code: "PACA", title: "รูดเต็ม" },
+            { code: "PAIN", title: "ผ่อน 0%" }
             //,            { code: "PABK", title: "Internet Banking" }
         ]
 
@@ -815,13 +815,17 @@
 
             // set default method
             // CreditCart is a typo and we know it
-            if ($me.saleOrder.IsPayWithCreditCart == 1) {
-                $me.paymentMethod =  $me.paymentMethods[0];
-            }
-            else {
-                $me.paymentMethods.splice(0, 2);
-                $me.paymentMethod = $me.paymentMethods[0];
-            }
+            //if ($me.saleOrder.IsPayWithCreditCart == 1) {
+            //    $me.paymentMethod =  $me.paymentMethods[0];
+            //}
+            //else {
+            //    $me.paymentMethods.splice(0, 2);
+            //    $me.paymentMethod = $me.paymentMethods[0];
+            //}
+
+            // automatically pay with remaining amount using split mode to reduce confusion
+            $me.paymentType = 'Split';
+            $me.selectedAmout = $me.remainingAmount;
         }
 
         $me.pay = function () {

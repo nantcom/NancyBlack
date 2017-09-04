@@ -88,7 +88,7 @@ namespace NantCom.NancyBlack.Modules
             dynamic cached = MemoryCache.Default.Get(table + id);
             if (cached != null)
             {
-                return cached.ToString("0,0");
+                return (string)cached;
             }
             
             dynamic result = this.SiteDatabase.Query
@@ -96,9 +96,14 @@ namespace NantCom.NancyBlack.Modules
                             new
                             {
                                 Hit = 0
-                            }).First();
+                            }).FirstOrDefault();
+
+            if (result == null)
+            {
+                return "0";
+            }
             
-            MemoryCache.Default.Add(table + id, result.Hit, DateTimeOffset.Now.AddMinutes(10));
+            MemoryCache.Default.Add(table + id, result.Hit.ToString("0,0"), DateTimeOffset.Now.AddMinutes(10));
             return result.Hit.ToString("0,0");
         }
 

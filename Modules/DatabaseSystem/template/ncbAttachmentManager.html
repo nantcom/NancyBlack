@@ -12,12 +12,15 @@
         
         <li ng-repeat="item in object.Attachments | filter:attachmentManager.includes"
             ng-click="attachmentManager.view(item)"
+            ng-dbclick="attachmentManager.view(item)"
             sv-element>
 
             <i class="ion-ios-photos-outline">
             </i>
 
-            <img ncb-resize="{{item.Url}}" width="80" />
+            <img ncb-resize="{{item.Url}}" width="80"
+                ng-click="attachmentManager.view(item)"
+                ng-dbclick="attachmentManager.view(item)" />
             <div sv-handle ng-if="attachmentManager.readonly == true"></div> 
         </li>
     </ul>

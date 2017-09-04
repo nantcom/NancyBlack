@@ -66,6 +66,7 @@
   -webkit-transform: scale(3);
   transform: scale(3);
   z-index: 9999;
+  pointer-events: painted;
 }
 .filelist li:hover i {
   color: #717171;

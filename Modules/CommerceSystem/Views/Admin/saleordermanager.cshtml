@@ -41,22 +41,29 @@
             </span>
         </button>
 
+        <!-- Single button -->
+        <div class="btn-group pull-right" style="margin-right: 10px">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Select View <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+
+                <li ng-repeat="item in modes"
+                    ng-class="{'active' : (currentMode == item)}">
+                    <a href="#" ng-click="ctrl.changeView(item)">{{item.Title}}</a>
+                </li>
+
+            </ul>
+        </div>
+
         <h1>
             Sale Order
+            -
+            {{currentMode.Title}}            
             <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
         </h1>
 
     </div>
-
-    <tabset>
-
-        <tab ng-repeat="item in modes"
-                heading="{{item.Title}}"
-                ng-click="ctrl.changeView(item)">
-
-        </tab>
-
-    </tabset>
 
     <div ng-include src="modeView">
     </div>
@@ -114,14 +121,12 @@
                     filter="{ 'Status': 'text' }">
                     {{item.Status }}
                 </td>
-                <td data-title="'PaymentStatus'"
-                    sortable="'PaymentStatus'"
-                    filter="{ 'PaymentStatus': 'text' }">
-                    {{item.PaymentStatus }}
+                <td data-title="'DueDate'"
+                    sortable="'DueDate'">
+                    {{item.DueDate | date:'dd MMMM yyyy'  }}
                 </td>
                 <td data-title="'PaymentReceivedDate'"
-                    sortable="'PaymentReceivedDate'"
-                    filter="{ 'PaymentReceivedDate': 'text' }">
+                    sortable="'PaymentReceivedDate'">
                     {{item.PaymentReceivedDate | date:'dd MMMM yyyy, HH:mm' }}
                 </td>
                 <td data-title="'Customer, S&H'"
@@ -152,7 +157,9 @@
 
                 </td>
 
-                <td data-title="'Products'" style="min-width: 250px">
+                <td data-title="'Products'"                    
+                    filter="{ 'ItemsDetail': 'text' }"
+                    style="min-width: 250px">
 
                     <p style="font-weight: bold">
                         <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc' }">{{i.Title}}</span>
@@ -196,6 +203,11 @@
                         {{item.SaleOrderIdentifier }}
                     </a>
                 </td>
+                <td data-title="'Status'"
+                    sortable="'Status'"
+                    filter="{ 'Status': 'text' }">
+                    {{item.Status }}
+                </td>
                 <td data-title="'PaymentReceivedDate'"
                     sortable="'PaymentReceivedDate'">
                     {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
@@ -206,7 +218,8 @@
                     {{item.Customer.PhoneNumber}}<br/>
                     {{item.Customer.Email}}
                 </td>
-                <td data-title="'Address'">
+                <td data-title="'Address'"
+                    filter="{ 'ShipTo': 'text' }">
                     <div ng-if="item.ShipTo.To != null">
                         {{item.ShipTo.To}}<br />
                         {{item.ShipTo.Address}}<br />
@@ -233,7 +246,8 @@
                     </div>
 
                 </td>
-                <td data-title="'Product'">
+                <td data-title="'Product'"
+                    filter="{ 'ItemsDetail': 'text' }">
 
                     <p style="font-weight: bold">
                         <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc' }">{{i.Title}}</span>

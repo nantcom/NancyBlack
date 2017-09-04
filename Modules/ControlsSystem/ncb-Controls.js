@@ -1797,6 +1797,17 @@
             var $window = $(window);
             var myHeight = element.offset().top;
 
+            var alreadyPassed = false;
+
+            var runcode = function () {
+
+                if (attrs.onpass != null && alreadyPassed == false) {
+
+                    scope.$eval(attrs.onpass);
+                }
+                alreadyPassed = true;
+            };
+
             if (attrs.scrollbox != null) {
 
                 $window = $(attrs.scrollbox);
@@ -1808,9 +1819,12 @@
                         target.addClass(attrs.ncbScrollpass);
                         target.css("top", top - myHeight);
 
+                        runcode();
+
                     } else {
                         target.removeClass(attrs.ncbScrollpass);
                         target.css("top", "0");
+                        alreadyPassed = false;
                     }
                 });
 
@@ -1821,8 +1835,10 @@
                     var top = $window.scrollTop();
                     if (top > myHeight) {
                         target.addClass(attrs.ncbScrollpass);
+                        runcode();
                     } else {
                         target.removeClass(attrs.ncbScrollpass);
+                        alreadyPassed = false;
                     }
                 });
             }

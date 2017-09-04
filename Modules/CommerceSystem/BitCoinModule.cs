@@ -114,7 +114,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                                     new { currency = "BTC" })
                                     .Property("address").Value.ToString();
 
-                var amount = Math.Round( so.TotalAmount * (1 / (decimal)timeseries.data.low), 4 );
+                //BX charge 20THB + 10THB per 10,000
+                var bxcharge = 20M;
+                bxcharge = bxcharge + (so.TotalAmount / 10000) * 10;
+
+                var amount = Math.Round( (so.TotalAmount - so.PaymentFee + bxcharge) * (1 / (decimal)timeseries.data.low), 4 );
                 return new
                 {
                     address = address,
