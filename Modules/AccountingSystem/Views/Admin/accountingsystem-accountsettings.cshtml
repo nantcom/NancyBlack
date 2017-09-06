@@ -1,0 +1,69 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Title
+{
+    Administration - Accounts
+}
+<div ng-module="SiteSettingsModule">
+
+    <h1 class="page-header">
+        Account Settings
+        <i class="fa fa-spin fa-cog"
+           ng-show="isBusy"></i>
+
+        <button class="btn btn-primary btn-lg pull-right"
+                ng-disabled="isBusy"
+                ng-click="ctrl.save()">
+            Save
+        </button>
+
+    </h1>
+    <ncb-alerts alerts="alerts"></ncb-alerts>
+
+    <div class="row"
+         ng-controller="SiteSettingsController as ctrl">
+        
+
+    </div>
+
+</div>
+
+
+@section Script
+{
+    <script>
+
+        (function () {
+
+            var module = angular.module('SiteSettingsModule', []);
+
+            module.controller("SiteSettingsController", function ($scope, $rootScope, $http ) {
+
+                var $me = this;
+
+                $scope.object = @this.Html.Raw(this.GetJson(this.Site));
+                $scope.alerts = [];
+
+                $me.save = function() {
+
+                    $http.post( '/Admin/sitesettings/current', $scope.object )
+                        .success( function() {
+
+                            $scope.alerts.push( { type: 'success', msg: 'Settings Saved.'});
+                        })
+                        .error ( function( data ) {
+
+                            $scope.alerts.push( { type: 'danger', msg: 'Save Failed.' + data});
+                        });
+
+                };
+
+                $scope.data = {};
+            });
+
+        })();
+    </script>
+}
