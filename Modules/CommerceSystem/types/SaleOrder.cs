@@ -47,6 +47,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     public class PromotionApplyResult
     {
         public const string ERROR_NO_CODE = "NO_CODE";
+        public const string ERROR_CASH_ONLY = "CASH_ONLY";
         public const string ERROR_MIN_AMOUNT = "MIN_AMOUT";
         public const string ERROR_REQUIRE_PRODUCT = "REQUIRE_PRODUCT";
 
@@ -473,6 +474,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             this.Items = list.ToArray();
 
             var newItem = db.GetById<Product>(itemId);
+
+            if (this.ItemsDetail == null)
+            {
+                this.ItemsDetail = new List<Product>();
+            }
+
             var existItem = this.ItemsDetail.Where(p => p.Id == itemId && p.Title == newItem.Title && p.Price == newItem.Price).FirstOrDefault();
 
             if (existItem == null)
@@ -593,6 +600,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                         success = false,
                         attributes = codeProduct.Attributes,
                         error = PromotionApplyResult.ERROR_NO_CODE
+                    };
+                }
+            }
+
+            if (codeProduct.Attributes.cashonly != null)
+            {
+                if (this.IsPayWithCreditCart == true)
+                {
+                    return new PromotionApplyResult()
+                    {
+                        code = code,
+                        success = false,
+                        attributes = codeProduct.Attributes,
+                        error = PromotionApplyResult.ERROR_CASH_ONLY
                     };
                 }
             }
