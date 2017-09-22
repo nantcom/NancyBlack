@@ -12,8 +12,8 @@
                     <span>{{option.title}}</span>
                 </button>
 
-                <span ng-if="tpCtrl.selectedAmout < object.TotalAmount" style="color: darkred">
-                    (ต้องชำระเพิ่ม: {{ object.TotalAmount - tpCtrl.selectedAmout | number: 2}})
+                <span ng-if="tpCtrl.selectedAmout < tpCtrl.remainingAmount" style="color: darkred">
+                    (ต้องชำระเพิ่ม: {{ tpCtrl.remainingAmount - tpCtrl.selectedAmout  | number: 2}})
                 </span>
             </div>
 
