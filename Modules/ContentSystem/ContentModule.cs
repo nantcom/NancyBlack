@@ -394,14 +394,12 @@ namespace NantCom.NancyBlack.Modules
             {
                 ContentId = requestedContent.Id,
                 TableName = requestedContent.TableName,
-                Request = new
-                {
-                    QueryString = this.Request.Url.Query,
-                    Path = this.Request.Url.Path,
-                    UserIP = this.Request.Headers.Host,
-                    Referer = this.Request.Headers.Referrer,
-                    UserAgent = this.Request.Headers.UserAgent
-                }
+                AffiliateCode = this.Request.Cookies["source"],
+                QueryString = this.Request.Url.Query,
+                Path = this.Request.Url.Path,
+                UserIP = this.Request.Headers.Host,
+                Referer = this.Request.Headers.Referrer,
+                UserAgent = this.Request.Headers.UserAgent
             });
 
             if (string.IsNullOrEmpty(requestedContent.Layout))

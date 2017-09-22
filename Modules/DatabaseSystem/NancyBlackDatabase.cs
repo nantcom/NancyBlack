@@ -669,6 +669,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             return result;
         }
 
+        /// <summary>
+        /// Execute the specified sql command and get resulting object based on sample
+        /// </summary>
+        /// <param name="commandText"></param>
+        public IEnumerable<dynamic> QueryAsDynamic(string commandText, object sampleOutput, object[] parameters = null)
+        {
+            foreach (var item in this.Query( commandText, sampleOutput, parameters ))
+            {
+                yield return item;
+            }
+        }
+
         #endregion
 
         /// <summary>

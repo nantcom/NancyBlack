@@ -153,37 +153,41 @@
 
         };
         
-        $scope.thbToBTC = 94500;
-        me.getBTCRate = function () {
+        $scope.cryptoRate = {
+            OMG: 300,
+            BTC: 100000,
+            ETC: 9000
+        };
+        me.updateCryptoRate = function () {
             
-            $http.get("/__commerce/btcquote").
+            $http.get("/__commerce/cryptoquote").
                 success(function (data, status, headers, config) {
 
-                    $scope.thbToBTC = data.data.low;
-                    console.log($scope.thbToBTC);
+                    $scope.cryptoRate = data;
+                    console.log($scope.cryptoRate);
 
                 }).
                 error(function (data, status, headers, config) {
 
                 });
         };
-        me.getBTCRate();
+        me.updateCryptoRate();
+        
+        me.showAddress = function ( currency ) {
 
-        me.showBitCoinAddress = function () {
-
-            $http.get("/__commerce/" + $scope.object.Id + "/btcdepositinfo").
+            $http.get("/__commerce/" + $scope.object.Id + "/cryptodeposit/" + currency).
                 success(function (data, status, headers, config) {
 
                     swal({
-                        title: "ชำระเงินด้วย Bitcoin",
-                        text: '<p>BTC Address:</p>' +
+                        title: "ชำระเงินด้วย " + currency,
+                        text: '<p>Address:</p>' +
 
                         '<b>' + data.address + '</b>' +
                         '<p> จำนวน </p>' +
-                        '<b>' + data.amount + 'BTC</b>' +
+                        '<b>' + data.amount + ' ' + currency + '</b>' +
                         '<p><img src="' + data.qrcode + '" /></p>' +
 
-                        '<p style="margin-top: 20px">หลังการโอน BTC กรุณาอัพโหลดภาพ Screenshot เข้ามายังระบบ โดยใช้ปุ่ม <b>แจ้งตรวจสอบการชำระเงิน</b> ค่ะ</p>',
+                        '<p style="margin-top: 20px">หลังการโอนกรุณาอัพโหลดภาพ Screenshot เข้ามายังระบบ โดยใช้ปุ่ม <b>แจ้งตรวจสอบการชำระเงิน</b> ค่ะ</p>',
                         html: true
                     });
 
@@ -193,7 +197,7 @@
                 });
 
         };
-
+        
         if (window.location.href.indexOf("?paymentsuccess") > 0) {
 
             var trackpayment = (function () {

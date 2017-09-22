@@ -127,6 +127,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string ReceiptIdentifier { get; set; }
 
         /// <summary>
+        /// Affiliate Code that create this sale order
+        /// </summary>
+        public string AffiliateCode { get; set; }
+
+        /// <summary>
         /// Status of this Sale Order
         /// </summary>
         public string Status { get; set; }
