@@ -267,6 +267,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             saleorder.NcbUserId = this.CurrentUser.Id;
             saleorder.PaymentStatus = PaymentStatus.WaitingForPayment;
             saleorder.Customer = this.CurrentUser.Profile;
+            saleorder.AffiliateCode = this.Request.Cookies["source"];
+
             if (saleorder.Customer == null)
             {
                 saleorder.Customer = new {
@@ -536,6 +538,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 db.UpsertRecord<SaleOrder>(so);
 
                 CommerceModule.PaymentCompleted(so, db);
+
+                // reset the one time code used
+                foreach (var item in so.ItemsDetail)
+                {
+                    if (item.Url.StartsWith("/promotions/code"))
+                    {
+                        if (item.Attributes.onetime != null)
+                        {
+                            var product = db.GetById<Product>(item.Id);
+                            product.Url = product.Url.Replace("/promotions/code", "/promotions/code/archive-onetime");
+                            db.UpsertRecord(product);
+                        }
+                    }
+                }
 
                 // Automate change status to WaitingForOrder for add item to PO
                 if (exceptions.Count == 0 || isPaymentReceived)

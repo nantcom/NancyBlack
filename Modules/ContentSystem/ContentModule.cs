@@ -9,6 +9,7 @@ using NantCom.NancyBlack.Modules.SitemapSystem.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -57,10 +58,69 @@ namespace NantCom.NancyBlack.Modules
 
             Get["/"] = this.HandleRequest(this.HandleContentRequest);
 
-            Get["/__content/updatepageview"] = this.HandleRequest(this.UpdatePageViewSummary);
-
             Get["/__content/pageviewcount/{table}/{id}"] = this.HandleRequest(this.GetPageViewCount);
-            
+
+            Get["/__content/migratepageview"] = this.HandleRequest((arg) =>
+            {
+
+                var regEx = new System.Text.RegularExpressions.Regex(@"\?source=(.*)");
+                var source = this.SiteDatabase.Query("SELECT * FROM PageView WHERE Request IS NOT NULL ORDER BY Id", new PageView());
+
+                var queue = new BlockingCollection<PageView>();
+                var connection = this.SiteDatabase.Connection;
+
+                ThreadPool.QueueUserWorkItem(new WaitCallback((o) =>
+                {
+                    var localQueue = new Queue<PageView>();
+                    foreach (var item in queue.GetConsumingEnumerable())
+                    {
+                        localQueue.Enqueue(item);
+
+                        if (localQueue.Count < 100000)
+                        {
+                            continue;
+                        }
+
+                        connection.UpdateAll(localQueue);
+
+                        localQueue = new Queue<PageView>();
+                    }
+                }));
+
+                source.AsParallel().ForAll((item) =>
+                {
+                    var pv = JObject.FromObject(item).ToObject<PageView>();
+                    var requestObject = JObject.Parse(pv.Request);
+
+                    if (requestObject.QueryString != null && requestObject.QueryString != "")
+                    {
+                        var match = regEx.Match((string)requestObject.QueryString);
+                        if (match.Groups.Count == 2)
+                        {
+                            pv.AffiliateCode = match.Groups[1].Value;
+                        }
+                        else
+                        {
+                            pv.AffiliateCode = ((string)requestObject.QueryString).Substring(1);
+                        }
+                    }
+
+                    pv.Path = requestObject.Path;
+                    pv.QueryString = requestObject.QueryString;
+                    pv.Referer = requestObject.Referer;
+                    pv.UserAgent = requestObject.UserAgent;
+                    pv.UserIP = requestObject.UserIP;
+                    pv.Request = null;
+
+                    queue.Add(pv);
+                });
+
+                queue.CompleteAdding();
+
+                return "Done.";
+
+            });
+
             _RootPath = this.RootPath;
 
             SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
@@ -390,14 +450,20 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
+            var source = string.Empty;
+            if (this.Request.Cookies.ContainsKey("source") == true)
+            {
+                source = this.Request.Cookies["source"];
+            }
+
             this.SiteDatabase.DelayedInsert(new PageView()
             {
                 ContentId = requestedContent.Id,
                 TableName = requestedContent.TableName,
-                AffiliateCode = this.Request.Cookies["source"],
+                AffiliateCode = source,
                 QueryString = this.Request.Url.Query,
                 Path = this.Request.Url.Path,
-                UserIP = this.Request.Headers.Host,
+                UserIP = this.Request.UserHostAddress,
                 Referer = this.Request.Headers.Referrer,
                 UserAgent = this.Request.Headers.UserAgent
             });

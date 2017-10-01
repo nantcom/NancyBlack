@@ -46,6 +46,11 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         /// Whether this subscription is still active
         /// </summary>
         public bool IsActive { get; set; }
-        
+
+        /// <summary>
+        /// The affiliate code which refers to this registration
+        /// </summary>
+        public string RefererAffiliateCode { get; set; }
+
     }
 }

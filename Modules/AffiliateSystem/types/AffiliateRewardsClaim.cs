@@ -6,32 +6,23 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 {
-    public class AffiliateRegistration : IStaticType
+    public class AffiliateRewardsClaim : IStaticType
     {
-        /// <summary>
-        /// Id of the user
-        /// </summary>
-        public int NcbUserId { get; set; }
-
         /// <summary>
         /// Code to activate affiliation in link
         /// </summary>
         public string AffiliateCode { get; set; }
+
+        /// <summary>
+        /// Rewards that was claimed
+        /// </summary>
+        public string RewardsName { get; set; }
+
+        /// <summary>
+        /// Discount Code that was given
+        /// </summary>
+        public string DiscountCode { get; set; }
         
-        /// <summary>
-        /// Commission Rate
-        /// </summary>
-        public Decimal Commission { get; set; }
-
-        /// <summary>
-        /// Address of BTC Address to be paid to
-        /// </summary>
-        public string BTCAddress { get; set; }
-
-        /// <summary>
-        /// the Code that was refered to this registration
-        /// </summary>
-        public string RefererAffiliateCode { get; set; }
 
         #region Static Type Properties
 

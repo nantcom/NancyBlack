@@ -2614,6 +2614,11 @@ namespace SQLite
                         return JsonConvert.DeserializeObject(json, clrType, NoTypeNameHandlingJsonSettings.Instance);
                     }
 
+                    if (clrType == typeof(object))
+                    {
+                        return JsonConvert.DeserializeObject(json);
+                    }
+
                     try
                     {
                         result = JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);

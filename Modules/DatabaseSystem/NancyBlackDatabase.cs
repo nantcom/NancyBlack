@@ -92,6 +92,17 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             _dataType = DataTypeFactory.GetForDatabase(db);
         }
 
+        /// <summary>
+        /// Raw Connection to SQLite
+        /// </summary>
+        public SQLiteConnection Connection
+        {
+            get
+            {
+                return _db;
+            }
+        }
+
         #region Dynamic Types
 
         /// <summary>
