@@ -23,7 +23,7 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         {
             if (table == "NcbMailingListSubscription")
             {
-                MailingListModule.AddToMailChimp(db, "a8d878538c", row);
+                MailingListModule.AddToMailChimp(db, AdminModule.ReadSiteSettings().commerce.mailchimp.listid, row);
             }
         }
 
@@ -35,7 +35,7 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         /// <returns></returns>
         private static bool AddToMailChimp( NancyBlackDatabase db, string listId, NcbMailingListSubscription item )
         {
-            var key = "295bd1448b335908c90f7429b4ca04c1-us16";
+            string key = AdminModule.ReadSiteSettings().commerce.mailchimp.apikey;
             var server = string.Format("https://{0}.api.mailchimp.com/3.0/", key.Substring(key.IndexOf("-") + 1));
 
             RestClient c = new RestClient(server);

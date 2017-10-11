@@ -222,8 +222,21 @@
             <input type="text" title="Send Notifications to"
                    ncb-textbox ng-model="object.commerce.email.notification" />
         </div>
+        
 
+        <div class="col-md-4">
 
+            <h2>MailChimp</h2>
+
+            <input type="text" title="API Key"
+                   ncb-textbox ng-model="object.commerce.mailchimp.apikey" />
+            
+            <input type="text" title="Subscriber List Id"
+                   ncb-textbox ng-model="object.commerce.mailchimp.listid" />
+
+            <input type="text" title="Customer List Id"
+                   ncb-textbox ng-model="object.commerce.mailchimp.customerlistid" />
+        </div>
     </div>
 
 

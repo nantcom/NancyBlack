@@ -102,7 +102,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return _db;
             }
         }
-
+        
         #region Dynamic Types
 
         /// <summary>
