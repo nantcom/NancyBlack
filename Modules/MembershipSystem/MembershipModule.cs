@@ -82,7 +82,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 if (ctx.Request.Cookies.ContainsKey("_ncbfbuser"))
                 {
                     var userName = "fb_" + ctx.Request.Cookies["_ncbfbuser"];
-                    var user = UserManager.Current.Register(this.SiteDatabase, userName, this.GetHash(userName), false, true);
+                    var user = UserManager.Current.Register(this.SiteDatabase, userName, userName, this.GetHash(userName), false, true);
                     var response = this.LoginWithoutRedirect(user.Guid);
 
                     ctx.Request.Cookies["_ncfa"] = response.Cookies[0].Value;
@@ -171,15 +171,14 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 }
 
                 var userName = "fb_" + input.me.id;
-
-                var user = UserManager.Current.Register(this.SiteDatabase, userName, this.GetHash( userName ), false, true, input.me);
+                var user = UserManager.Current.Register(this.SiteDatabase, userName, input.me.email == null ? userName : (string)input.me.email, this.GetHash( userName ), false, true, input.me);
                 return this.ProcessLogin(user);
             });
 
             Post["/__membership/register"] = p =>
             {
                 var registerParams = this.Bind<LoginParams>();
-                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Password);
+                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Email, registerParams.Password);
 
                 return this.ProcessLogin(user);
             };
@@ -213,6 +212,30 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Post["/__membership/enroll"] = this.HandleRequest(this.HandleEnroll);
 
             Post["/__membership/api/updateprofile"] = this.HandleRequest(this.UpdateProfile);
+
+            Get["/__membership/fixuser"] = this.HandleRequest((arg) =>
+            {
+                // fix user
+                var users = this.SiteDatabase.Query<NcbUser>().ToList();
+
+                foreach (var u in users)
+                {
+                    if (u.Profile != null && u.Profile.email != null)
+                    {
+                        u.Email = u.Profile.email;
+                        this.SiteDatabase.UpsertRecord(u);
+                    }
+
+                    if (u.Profile != null && u.Profile.id != null)
+                    {
+                        u.UserName = "fb_" + u.Profile.id;
+                        this.SiteDatabase.UpsertRecord(u);
+                    }
+                }
+
+                return "OK";
+
+            });
         }
 
         private dynamic HandlePasswordRequest(dynamic arg)

@@ -43,6 +43,11 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         public string Email { get; set; }
 
         /// <summary>
+        /// Birth Day
+        /// </summary>
+        public string BirthDay { get; set; }
+
+        /// <summary>
         /// Whether this subscription is still active
         /// </summary>
         public bool IsActive { get; set; }

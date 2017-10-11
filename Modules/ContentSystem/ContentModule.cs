@@ -450,7 +450,7 @@ namespace NantCom.NancyBlack.Modules
                 }
             }
 
-            var source = string.Empty;
+            string source = null;
             if (this.Request.Cookies.ContainsKey("source") == true)
             {
                 source = this.Request.Cookies["source"];
@@ -458,6 +458,8 @@ namespace NantCom.NancyBlack.Modules
 
             this.SiteDatabase.DelayedInsert(new PageView()
             {
+                __createdAt = DateTime.Now,
+                __updatedAt = DateTime.MinValue,
                 ContentId = requestedContent.Id,
                 TableName = requestedContent.TableName,
                 AffiliateCode = source,
@@ -465,7 +467,8 @@ namespace NantCom.NancyBlack.Modules
                 Path = this.Request.Url.Path,
                 UserIP = this.Request.UserHostAddress,
                 Referer = this.Request.Headers.Referrer,
-                UserAgent = this.Request.Headers.UserAgent
+                UserAgent = this.Request.Headers.UserAgent,
+                UserUniqueId = this.Request.Cookies["userid"]
             });
 
             if (string.IsNullOrEmpty(requestedContent.Layout))

@@ -54,14 +54,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// </summary>
         public string Email
         {
-            get
-            {
-                return this.UserName;
-            }
-            set
-            {
-                this.UserName = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>

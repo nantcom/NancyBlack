@@ -116,7 +116,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 List<T> inserted = new List<T>();
                 try
                 {
-                    using (var dbConnection = new SQLite.SQLiteConnection(dbFilename))
+                    using (var dbConnection = new SQLite.SQLiteConnection(dbFilename, true))
                     {
                         // only do this for 100ms max
                         var start = DateTime.Now.Ticks;

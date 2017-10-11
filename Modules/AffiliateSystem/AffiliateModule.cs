@@ -14,6 +14,9 @@ using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using System.Text;
 using NantCom.NancyBlack.Modules.MailingListSystem;
 using System.Runtime.Caching;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
+using System.IO;
+using NantCom.NancyBlack.Modules.MembershipSystem;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem
 {
@@ -81,41 +84,154 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             }
         }
 
+        private static string TemplatePath;
 
         static AffiliateModule()
         {
             CommerceModule.PaymentCompleted += CommerceModule_PaymentCompleted;
+            NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
+        }
+
+        private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string table, dynamic created)
+        {
+            if (table == "NcbMailingListSubscription")
+            {
+                string affiliateCode = created.RefererAffiliateCode;
+                var registration = db.Query<AffiliateRegistration>().Where(r => r.AffiliateCode == affiliateCode).FirstOrDefault();
+
+                if (registration == null)
+                {
+                    return;
+                }
+
+                var user = db.GetById<NcbUser>(registration.NcbUserId);
+                if (user == null)
+                {
+                    return;
+                }
+
+                int sub = db.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
+                                new { Count = 0 },
+                                new object[] { registration.AffiliateCode }).First().Count;
+
+
+                var path = Path.Combine(AffiliateModule.TemplatePath, "Affiliate-NewSubscription.html");
+                string emailBody = File.ReadAllText(path);
+
+                var message = "เพียงแค่อีก {{To5}} เรามีโค๊ดส่วนลดแจกให้คุณ <b>2,000 บาท</b> แล้วก็ถ้ามีเพื่อนคุณมาสมัครรับข่าวจากเราอีกแค่ {{To10}} คนละก็ รับไปเลย กระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> นะจ๊ะ";
+
+                if (sub >= 5)
+                {
+                    message = "ตอนนี้มีคนมาสมัครครบ 5 คนแล้ว คลิกเข้าไปที่ Dashboard เพื่อขอโค๊ดลด <b>2,000 บาท</b> ของคุณได้เลย และถ้ามีเพื่อนมาอีก {{To10}}  คนละก็ รับไปเลย กระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> นะจ๊ะ";
+                }
+
+                if (sub >= 10)
+                {
+                    message = "ตอนนี้มีคนมาสมัครครบ 5 คนแล้ว คลิกเข้าไปที่ Dashboard เพื่อขอโค๊ดลด <b>2,000 บาท</b> ของคุณได้เลย และก็รอรับกระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> อยู่ที่บ้านได้เลย เราจะติดต่อไปนะจ๊ะ";
+                }
+                
+                emailBody = emailBody.Replace("{{SubscriberTotal}}", sub.ToString());                
+                emailBody = emailBody.Replace("{{ConvinceMessage}}", message.Replace( "{{To5}}", (5 - sub).ToString() ).Replace( "{{To10}}", (10 - sub).ToString() ));
+                emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode );
+                
+                MailSenderModule.SendEmail(user.Email, "We have new subscriber thanks to you!", emailBody);
+            }
         }
 
         private static void CommerceModule_PaymentCompleted(SaleOrder so, DatabaseSystem.NancyBlackDatabase db)
         {
             if (so.AffiliateCode != null)
             {
-                var existing = db.Query<AffiliateRegistration>()
+                var registration = db.Query<AffiliateRegistration>()
                                    .Where(r => r.AffiliateCode == so.AffiliateCode)
                                    .FirstOrDefault();
 
-                if (existing == null) // wrong code?
+                if (registration == null) // wrong code?
                 {
                     return;
+                }
+
+                var oldRate = registration.Commission;
+
+                {
+                    // calculate commission  rate based on number of transaction
+                    int count = db.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateTransaction WHERE AffiliateCode=?",
+                                    new { Count = 0 },
+                                    new object[] { so.AffiliateCode }).First().Count;
+
+                    if (count >= 2)
+                    {
+                        registration.Commission = 0.02M;
+                    }
+
+                    if (count >= 6)
+                    {
+                        registration.Commission = 0.05M;
+                    }
+                }
+
+                {
+                    // and also number of unique ip
+                    int ipCount = db.QueryAsDynamic("SELECT COUNT(DISTINCT UserIP) As Count FROM PageView WHERE AffiliateCode=?",
+                                    new { Count = 0 },
+                                    new object[] { so.AffiliateCode }).First().Count;
+
+                    var ipCount10000 = (ipCount / 10000);
+                    var rate = (ipCount10000 / 100d) + 0.01;
+
+                    if (rate > 0.05)
+                    {
+                        rate = 0.05;
+                    }
+
+                    if (rate > (double)registration.Commission)
+                    {
+                        registration.Commission = (Decimal)rate;
+                    }
+                }
+
+                if (registration.Commission > oldRate)
+                {
+                    db.UpsertRecord(registration);
                 }
 
                 // create a transaction
                 AffiliateTransaction commission = new AffiliateTransaction();
                 commission.AffiliateCode = so.AffiliateCode;
-                commission.CommissionAmount = so.TotalAmount * existing.Commission;
+                commission.CommissionAmount = so.TotalAmount * registration.Commission;
                 commission.SaleOrderId = so.Id;
 
-                commission.BTCAddress = existing.BTCAddress;
+                commission.BTCAddress = registration.BTCAddress;
                 commission.BTCRate = BitCoinModule.GetQuote(BitCoinModule.Currency.BTC).data.low; // use the low rate from yesterday
                 commission.BTCAmount = commission.CommissionAmount / commission.BTCRate;
 
                 db.UpsertRecord(commission);
+
+                {
+
+                    var user = db.GetById<NcbUser>(registration.NcbUserId);
+                    if (user == null)
+                    {
+                        return;
+                    }
+
+                    var path = Path.Combine(AffiliateModule.TemplatePath, "Affiliate-NewPaidOrder.html");
+                    string emailBody = File.ReadAllText(path);
+
+                    emailBody = emailBody.Replace("{{BTCAmount}}", commission.BTCAmount.ToString("0.00000000"));
+                    emailBody = emailBody.Replace("{{CommissionAmount}} ", commission.CommissionAmount.ToString("#,#"));
+                    emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode);
+
+                    MailSenderModule.SendEmail(user.Email, "We have new Sales thanks to you!", emailBody);
+                }
+
             }
         }
 
         public AffiliateModule()
         {
+            AffiliateModule.TemplatePath = Path.Combine(this.RootPath, "Site", "Views", "EmailTemplates");
+            
             Post["/__affiliate/apply"] = this.HandleRequest((arg) =>
             {
                 if (this.CurrentUser.IsAnonymous)
@@ -145,6 +261,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     reg.NcbUserId = this.CurrentUser.Id;
                     reg.Commission = 0.01M;  // start at 1 percent
+
+                    if (this.CurrentUser.Profile == null)
+                    {
+                        // why ???
+                        var user = this.SiteDatabase.GetById<NcbUser>(this.CurrentUser.Id);
+                        this.CurrentUser.Profile = user.Profile;
+                    }
 
 
                     // enroll user into Mailing List Automatically
@@ -496,6 +619,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return View["affiliate-dashboard", standardModel]; ;
             });
         }
+        
 
         public void Hook(IPipelines p)
         {
@@ -512,8 +636,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         ctx.Request.Cookies["source"] = ctx.Request.Query.source.Value;
                     }
                 }
+                                
+                if (ctx.Request.Cookies.ContainsKey("userid") == false)
+                {
+                    ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
+                }
 
-                
                 return null;
             });
 
@@ -523,6 +651,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     ctx.Response.Cookies.Add(
                         new NancyCookie("source", ctx.Request.Cookies["source"], DateTime.Now.AddDays(7)));
+                }
+
+                if (ctx.Request.Cookies.ContainsKey("userid"))
+                {
+                    ctx.Response.Cookies.Add(
+                        new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddDays(1)));
                 }
             });
         }

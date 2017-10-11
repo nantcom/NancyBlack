@@ -58,5 +58,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// User Agent
         /// </summary>
         public string UserAgent { get; set; }
+
+        /// <summary>
+        /// Unique Id to help identify user
+        /// </summary>
+        public string UserUniqueId { get; set; }
     }
 }

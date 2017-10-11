@@ -393,10 +393,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="db"></param>
         /// <param name="registerParameters"></param>
         /// <returns></returns>
-        public NcbUser Register( NancyBlackDatabase db, string email, string passwordHash, bool genCode = false, bool returnExisting = false, dynamic initialProfile = null)
+        public NcbUser Register( NancyBlackDatabase db, string userName, string email, string passwordHash, bool genCode = false, bool returnExisting = false, dynamic initialProfile = null)
         {
             var existing = db.Query<NcbUser>()
-                            .Where(u => u.Email == email)
+                            .Where(u => u.UserName == userName)
                             .FirstOrDefault();
 
             if (existing != null )
@@ -417,6 +417,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             }
 
             var user = new NcbUser();
+            user.UserName = userName;
             user.Email = email;
             user.PasswordHash = passwordHash;
             user.Guid = Guid.NewGuid();

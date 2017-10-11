@@ -110,6 +110,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // count sold laptop
             paidSaleOrders.AsParallel().ForAll((so =>
             {
+                if (so.ItemsDetail == null)
+                {
+                    return;
+                }
+
                 // find laptop from item's url
                 var laptop = so.ItemsDetail.Where(item => item.Url.StartsWith("/products/laptops")).FirstOrDefault();
 
