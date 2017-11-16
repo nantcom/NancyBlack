@@ -20,12 +20,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// </summary>
         public static event Action<NancyBlackDatabase, SaleOrder, List<InventoryItem>> TransformInventoryRequest = delegate { };
 
-        /// <summary>
-        /// Occured when inbound processing is completed. This will be run in transaction along with inbound processing
-        /// and will revert if exception occured
-        /// </summary>
-        public static event Action<NancyBlackDatabase, InventoryInbound, List<InventoryItem>> InboundCompleted = delegate { };
-
         static InventoryAdminModule()
         {
             NancyBlackDatabase.ObjectUpdated += (db, table, obj) =>
@@ -35,52 +29,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     InventoryAdminModule.ProcessSaleOrderUpdate(db, obj);
                 }
             };
-            NancyBlackDatabase.ObjectCreated += (db, table, obj) =>
-            {
-                if (table == "InventoryInbound")
-                {
-                    InventoryAdminModule.ProcessInventoryInboundCreation(db, obj);
-                }
-            };
         }
 
         private static object LockObject = new object();
-
-        /// <summary>
-        /// When inventory inbound is created, find the inventory item that needs to be fullfilled
-        /// and fullfil with item from inventory inbound
-        /// </summary>
-        /// <param name="db"></param>
-        /// <param name="obj"></param>
-        internal static void ProcessInventoryInboundCreation(NancyBlackDatabase db, InventoryInbound obj)
-        {
-            // ensures that only one thread will be doing this
-            lock (InventoryAdminModule.LockObject)
-            {
-                db.Transaction(() =>
-                {
-                    var inboundItems = new List<InventoryItem>();
-
-                    foreach (var item in obj.Items)
-                    {
-                        InventoryItem ivitm = new InventoryItem();
-                        ivitm.InboundDate = obj.InboundDate;
-                        ivitm.InventoryInboundId = obj.Id;
-                        ivitm.ProductId = item.ProductId;
-                        ivitm.BuyingCost = item.Price;
-                        ivitm.BuyingTax = item.Tax;
-
-                        db.UpsertRecord(ivitm);
-
-                        inboundItems.Add(ivitm);
-                    }
-
-                    InventoryAdminModule.InboundCompleted(db, obj, inboundItems);
-                });
-
-            }
-        }
-
 
         internal static void ProcessSaleOrderUpdate(NancyBlackDatabase db, SaleOrder saleOrder)
         {
@@ -250,8 +201,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             // insert updatedStock here
             Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
-
-            Get["/admin/tables/inventoryinbound"] = this.HandleViewRequest("/Admin/commerceadmin-inventoryinbound");
 
             Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.GetWaitingForOrder);
 

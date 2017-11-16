@@ -90,6 +90,22 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 return null;
             });
+
+            p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
+            {
+
+                if (ctx.CurrentUser == null)
+                {
+                    ctx.CurrentUser = NcbUser.Anonymous;
+                    if (ctx.Request.Url.HostName == "localhost" ||
+                        ctx.Request.Url.HostName.StartsWith( "local." ))
+                    {
+                        ctx.CurrentUser = NcbUser.LocalHostAdmin;
+                    }
+                }
+
+                return null;
+            });
         }
 
         /// <summary>

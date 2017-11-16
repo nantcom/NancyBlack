@@ -101,6 +101,26 @@
 
         };
 
+
+        $me.updateProfile = function (object) {
+
+            $scope.isBusy = true;
+
+            $http.post("/__affiliate/updateprofile", object).success(function (data) {
+
+                $scope.isBusy = false;
+                swal("ทุกอย่างดูดี!".translate("Looks Good!"), "ข้อมูลอัพเดทแล้ว".translate("Your Profile was Updated."), "success");
+                
+
+            }).error(function (data) {
+
+                $scope.isBusy = false;
+                swal("เกิดข้อผิดพลาด".translate("Something is not right!"), "เป็นอะไรไม่รู้อะ กรุณาลองใหม่อีกครั้งนะ".translate("Please try again"), "error");
+
+            });
+
+        };
+
         $me.requestPayment = function () {
 
             if (!data.Registration.BTCAddress) {

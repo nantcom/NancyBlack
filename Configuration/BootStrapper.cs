@@ -304,15 +304,6 @@ namespace NantCom.NancyBlack.Configuration
                 ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
                 ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
                 ctx.Items["RootPath"] = BootStrapper.RootPath;
-                if (ctx.CurrentUser == null)
-                {
-                    ctx.CurrentUser = NcbUser.Anonymous;
-                    if (ctx.Request.Url.HostName == "localhost")
-                    {
-                        ctx.CurrentUser = NcbUser.LocalHostAdmin;
-                    }
-                }
-
                 return null;
             });
 

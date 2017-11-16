@@ -33,6 +33,16 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// </summary>
         public string RefererAffiliateCode { get; set; }
 
+        /// <summary>
+        /// Friendly name of the affiliate, default to Facebook Name
+        /// </summary>
+        public string AffiliateName { get; set; }
+
+        /// <summary>
+        /// Message to show to buyer
+        /// </summary>
+        public string AffiliateMessage { get; set; }
+
         #region Static Type Properties
 
         public int Id { get; set; }

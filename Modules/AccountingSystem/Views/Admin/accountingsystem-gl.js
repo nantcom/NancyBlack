@@ -188,48 +188,60 @@
     module.controller("AccountingDashboard", function ($scope, $rootScope, $http) {
 
         $me = this;
-        $scope.AccountSummary = [];
+        $scope.data = window.data;
 
-        $me.refresh = function () {
+        $scope.data.Cash = [];
+        $scope.data.Asset = [];
+        $scope.data.Expense = [];
 
-            $http.get("/admin/tables/accountingentry/__accountsummary").success(function (data) {
+        $scope.totalHidden = 0;
 
-                $scope.AccountSummary.length = 0;
+        window.accountSettings.forEach(function (item) {
 
-                for (var i = 0; i < data.TotalIncrease.length; i++) {
+            window.accountSettings[item.Name] = item.Type;
 
-                    var account = {
-                        Account: data.TotalIncrease[i].Account,
-                        TotalIncrease: data.TotalIncrease[i].Amount,
-                        LatestIncreaseDate: data.TotalIncrease[i].LatestDate,
-                    };
+        });
+        
+        $scope.data.Accounts.forEach(function (item) {
 
-                    $scope.AccountSummary.push(account);
-                    $scope.AccountSummary[data.TotalIncrease[i].Account] = account;
+            if (window.accountSettings[item.Account] == "Cash") {
+                $scope.data.Cash.push(item);
+                return;
+            }
+
+            if (window.accountSettings[item.Account] == "Expense") {
+                $scope.data.Expense.push(item);
+                return;
+            }
+
+            if (window.accountSettings[item.Account] == "Asset") {
+                $scope.data.Asset.push(item);
+                return;
+            }
+
+            $scope.totalHidden++;
+        });
+
+        $me.getTotal = function (type) {
+
+            var total = 0;
+            $scope.data[type].forEach(function (item) {
+
+                if (item.TotalIncrease != null) {
+
+                    total += (item.TotalIncrease + item.TotalDecrease);
                 }
 
-                for (var i = 0; i < data.TotalDecrease.length; i++) {
+                if (item.Amount != null) {
 
-                    var account = $scope.AccountSummary[data.TotalDecrease[i].Account];
-
-                    if (account == null) {
-                        account = {
-                            Account: data.TotalDecrease[i].Account,
-                        }
-                        $scope.AccountSummary.push(account);
-                    }
-
-                    account.TotalDecrease = data.TotalDecrease[i].Amount;
-                    account.LatestDecreaseDate = data.TotalDecrease[i].LatestDate;
-                    account.Amount = account.TotalIncrease + account.TotalDecrease;
+                    total += item.Amount;
                 }
             });
+
+            return total;
+
         };
 
-        $scope.$on('inserted', $me.refresh);
-        $scope.$on('updated', $me.refresh);
-
-        $me.refresh();
 
     });
 

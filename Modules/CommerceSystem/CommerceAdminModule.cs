@@ -61,6 +61,23 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return new StandardModel(this, null, result);
             });
 
+
+            Get["/admin/commerce/printreceipt/{year}-{month}"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", (arg) =>
+            {
+                var now = DateTime.Now;
+                var lastMonth = new DateTime((int)arg.year, (int)arg.month, 1, 0, 0, 0); // first second of last month
+
+                var thisMonth = lastMonth.AddMonths(1);
+                thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
+
+                var result = this.SiteDatabase.Query<Receipt>()
+                                .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
+                                .OrderBy(r => r.Id)
+                                .ToList();
+
+                return new StandardModel(this, null, result);
+            });
+
             #region Quick Actions
 
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);

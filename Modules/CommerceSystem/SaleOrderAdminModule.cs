@@ -65,8 +65,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 ShippingDetails = new JObject(),
                 ItemsDetail = new List<Product>(),
-                Items = new int[0]
+                Items = new int[0],
+                Customer = new JObject(),
             };
+
+            so.Status = SaleOrderStatus.New;
+            so.PaymentStatus = PaymentStatus.WaitingForPayment;
+
             JObject shippingDetail = so.ShippingDetails;
             shippingDetail.Add("insurance", false);
             so.UpdateSaleOrder( this.CurrentSite, this.SiteDatabase, true);

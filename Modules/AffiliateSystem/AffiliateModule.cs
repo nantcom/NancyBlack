@@ -88,7 +88,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
         static AffiliateModule()
         {
-            CommerceModule.PaymentCompleted += CommerceModule_PaymentCompleted;
+            CommerceModule.PaymentSuccess += CommerceModule_PaymentSuccess;
             NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
         }
 
@@ -138,100 +138,167 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             }
         }
 
-        private static void CommerceModule_PaymentCompleted(SaleOrder so, DatabaseSystem.NancyBlackDatabase db)
+        private static void CommerceModule_PaymentSuccess(SaleOrder so, DatabaseSystem.NancyBlackDatabase db)
         {
-            if (so.AffiliateCode != null)
+            if (so.AffiliateCode == null)
             {
-                var registration = db.Query<AffiliateRegistration>()
-                                   .Where(r => r.AffiliateCode == so.AffiliateCode)
-                                   .FirstOrDefault();
+                return;
+            }
 
-                if (registration == null) // wrong code?
+            if (so.PaymentStatus != PaymentStatus.PaymentReceived)
+            {
+                return;
+            }
+
+            var existing = db.Query<AffiliateTransaction>().Where(t => t.SaleOrderId == so.Id).FirstOrDefault();
+            if (existing != null)
+            {
+                return;
+            }
+
+            var registration = db.Query<AffiliateRegistration>()
+                               .Where(r => r.AffiliateCode == so.AffiliateCode)
+                               .FirstOrDefault();
+
+            if (registration == null) // wrong code?
+            {
+                return;
+            }
+
+            var oldRate = registration.Commission;
+            {
+                // calculate commission  rate based on number of transaction
+                int count = db.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateTransaction WHERE AffiliateCode=?",
+                                new { Count = 0 },
+                                new object[] { so.AffiliateCode }).First().Count;
+
+                if (count >= 2)
+                {
+                    registration.Commission = 0.02M;
+                }
+
+                if (count >= 6)
+                {
+                    registration.Commission = 0.05M;
+                }
+            }
+
+            {
+                // and also number of unique ip
+                int ipCount = db.QueryAsDynamic("SELECT COUNT(DISTINCT UserIP) As Count FROM PageView WHERE AffiliateCode=?",
+                                new { Count = 0 },
+                                new object[] { so.AffiliateCode }).First().Count;
+
+                var ipCount10000 = (ipCount / 10000);
+                var rate = (ipCount10000 / 100d) + 0.01;
+
+                if (rate > 0.05)
+                {
+                    rate = 0.05;
+                }
+
+                if (rate > (double)registration.Commission)
+                {
+                    registration.Commission = (Decimal)rate;
+                }
+            }
+
+            if (registration.Commission > oldRate)
+            {
+                db.UpsertRecord(registration);
+            }
+
+            // create a transaction
+            AffiliateTransaction commission = new AffiliateTransaction();
+            commission.AffiliateCode = so.AffiliateCode;
+            commission.CommissionAmount = so.TotalAmount * registration.Commission;
+            commission.SaleOrderId = so.Id;
+
+            commission.BTCAddress = registration.BTCAddress;
+            commission.BTCRate = BitCoinModule.GetQuote(BitCoinModule.Currency.BTC).data.low; // use the low rate from yesterday
+            commission.BTCAmount = commission.CommissionAmount / commission.BTCRate;
+
+            db.UpsertRecord(commission);
+            {
+                var user = db.GetById<NcbUser>(registration.NcbUserId);
+                if (user == null)
                 {
                     return;
                 }
 
-                var oldRate = registration.Commission;
+                var path = Path.Combine(AffiliateModule.TemplatePath, "Affiliate-NewPaidOrder.html");
+                string emailBody = File.ReadAllText(path);
 
-                {
-                    // calculate commission  rate based on number of transaction
-                    int count = db.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateTransaction WHERE AffiliateCode=?",
-                                    new { Count = 0 },
-                                    new object[] { so.AffiliateCode }).First().Count;
+                emailBody = emailBody.Replace("{{BTCAmount}}", commission.BTCAmount.ToString("0.00000000"));
+                emailBody = emailBody.Replace("{{CommissionAmount}} ", commission.CommissionAmount.ToString("#,#"));
+                emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode);
 
-                    if (count >= 2)
-                    {
-                        registration.Commission = 0.02M;
-                    }
-
-                    if (count >= 6)
-                    {
-                        registration.Commission = 0.05M;
-                    }
-                }
-
-                {
-                    // and also number of unique ip
-                    int ipCount = db.QueryAsDynamic("SELECT COUNT(DISTINCT UserIP) As Count FROM PageView WHERE AffiliateCode=?",
-                                    new { Count = 0 },
-                                    new object[] { so.AffiliateCode }).First().Count;
-
-                    var ipCount10000 = (ipCount / 10000);
-                    var rate = (ipCount10000 / 100d) + 0.01;
-
-                    if (rate > 0.05)
-                    {
-                        rate = 0.05;
-                    }
-
-                    if (rate > (double)registration.Commission)
-                    {
-                        registration.Commission = (Decimal)rate;
-                    }
-                }
-
-                if (registration.Commission > oldRate)
-                {
-                    db.UpsertRecord(registration);
-                }
-
-                // create a transaction
-                AffiliateTransaction commission = new AffiliateTransaction();
-                commission.AffiliateCode = so.AffiliateCode;
-                commission.CommissionAmount = so.TotalAmount * registration.Commission;
-                commission.SaleOrderId = so.Id;
-
-                commission.BTCAddress = registration.BTCAddress;
-                commission.BTCRate = BitCoinModule.GetQuote(BitCoinModule.Currency.BTC).data.low; // use the low rate from yesterday
-                commission.BTCAmount = commission.CommissionAmount / commission.BTCRate;
-
-                db.UpsertRecord(commission);
-
-                {
-
-                    var user = db.GetById<NcbUser>(registration.NcbUserId);
-                    if (user == null)
-                    {
-                        return;
-                    }
-
-                    var path = Path.Combine(AffiliateModule.TemplatePath, "Affiliate-NewPaidOrder.html");
-                    string emailBody = File.ReadAllText(path);
-
-                    emailBody = emailBody.Replace("{{BTCAmount}}", commission.BTCAmount.ToString("0.00000000"));
-                    emailBody = emailBody.Replace("{{CommissionAmount}} ", commission.CommissionAmount.ToString("#,#"));
-                    emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode);
-
-                    MailSenderModule.SendEmail(user.Email, "We have new Sales thanks to you!", emailBody);
-                }
-
+                MailSenderModule.SendEmail(user.Email, "We have new Sales thanks to you!", emailBody);
             }
+
         }
 
         public AffiliateModule()
         {
             AffiliateModule.TemplatePath = Path.Combine(this.RootPath, "Site", "Views", "EmailTemplates");
+
+
+            Get["/__affiliate/___fixname"] = this.HandleRequest((arg) =>
+            {
+                var affiliates = this.SiteDatabase.Query<AffiliateRegistration>().ToList();
+                var users = this.SiteDatabase.Query<NcbUser>().ToDictionary(u => u.Id);
+
+                foreach (var affiliate in affiliates)
+                {
+                    if (users.ContainsKey(affiliate.NcbUserId))
+                    {
+                        if (string.IsNullOrEmpty(affiliate.AffiliateName))
+                        {
+                            affiliate.AffiliateName = (string)users[affiliate.NcbUserId].Profile.first_name;
+                            this.SiteDatabase.Connection.Update(affiliate);
+                        }
+                    }
+
+                }
+
+
+                return "OK";
+            });
             
+            Get["/__affiliate/___syncsubscription"] = this.HandleRequest((arg) =>
+            {
+                var affiliates = this.SiteDatabase.Query<AffiliateRegistration>().ToList();
+                var users = this.SiteDatabase.Query<NcbUser>().ToDictionary(u => u.Id);
+                var mailinglist = this.SiteDatabase.Query<NcbMailingListSubscription>().ToLookup( sub => sub.Email );
+
+                foreach (var affiliate in affiliates)
+                {
+                    if (users.ContainsKey(affiliate.NcbUserId) == false)
+                        continue;
+
+                    var user = users[affiliate.NcbUserId];
+                    if (user.Email.StartsWith("fb_") == true)
+                    {
+                        continue; // BUG
+                    }
+
+                    // see if user has subscribed to mailing list
+                    if (mailinglist[user.Email].Count() == 0)
+                    {
+                        NcbMailingListSubscription sub = new NcbMailingListSubscription();
+                        sub.FirstName = user.Profile.first_name;
+                        sub.LastName = user.Profile.last_name;
+                        sub.Email = user.Profile.email;
+                        sub.BirthDay = user.Profile.birthday;
+                        sub.RefererAffiliateCode = affiliate.RefererAffiliateCode;
+
+                        this.SiteDatabase.UpsertRecord(sub);
+                    }
+                }
+
+                return "OK";
+            });
+
             Post["/__affiliate/apply"] = this.HandleRequest((arg) =>
             {
                 if (this.CurrentUser.IsAnonymous)
@@ -262,30 +329,31 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     reg.NcbUserId = this.CurrentUser.Id;
                     reg.Commission = 0.01M;  // start at 1 percent
 
-                    if (this.CurrentUser.Profile == null)
-                    {
-                        // why ???
-                        var user = this.SiteDatabase.GetById<NcbUser>(this.CurrentUser.Id);
-                        this.CurrentUser.Profile = user.Profile;
-                    }
-
-
+                    var user = this.SiteDatabase.GetById<NcbUser>(this.CurrentUser.Id);
+                    reg.AffiliateName = user.Profile.first_name;
+                    
                     // enroll user into Mailing List Automatically
                     NcbMailingListSubscription sub = new NcbMailingListSubscription();
-                    sub.FirstName = this.CurrentUser.Profile.first_name;
-                    sub.LastName = this.CurrentUser.Profile.last_name;
-                    sub.Email = this.CurrentUser.Profile.email;
+                    sub.FirstName = user.Profile.first_name;
+                    sub.LastName = user.Profile.last_name;
+                    sub.Email = user.Profile.email;
+                    sub.BirthDay = user.Profile.birthday;
 
                     if (string.IsNullOrEmpty(sub.Email))
                     {
                         var customEmail = (arg.body.Value as JObject).Property("email").Value.ToString();
                         sub.Email = customEmail;
+
+                        user.Profile.email = customEmail;
+                        user.Email = customEmail;
+
+                        this.SiteDatabase.UpsertRecord(user);
                     }
 
                     sub.RefererAffiliateCode = reg.RefererAffiliateCode;
 
-                    this.SiteDatabase.UpsertRecord(sub);
                     this.SiteDatabase.UpsertRecord(reg);
+                    this.SiteDatabase.UpsertRecord(sub);
 
                     return reg;
                 }
@@ -515,6 +583,28 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
             });
 
+            Post["/__affiliate/updateprofile"] = this.HandleRequest((arg) =>
+            {
+                var requestBody = arg.body.Value;
+
+                UserManager.Current.UpdateProfile(this.Context, requestBody.Profile);
+
+
+                AffiliateRegistration registration =  this.SiteDatabase.Query<AffiliateRegistration>()
+                                                        .Where(t => t.NcbUserId == this.CurrentUser.Id).FirstOrDefault();
+
+                registration.AffiliateName = requestBody.Registration.AffiliateName;
+                registration.AffiliateMessage = requestBody.Registration.AffiliateMessage;
+                this.SiteDatabase.UpsertRecord(registration);
+                
+                MemoryCache.Default.Remove("dashboard-" + this.CurrentUser.Id);
+
+                MemoryCache.Default.Remove("AffiliateReg-" + registration.AffiliateCode);
+
+                return 200;
+
+            });
+
             Get["/squad51"] = this.HandleViewRequest("affiliate-apply", (arg) =>
             {
                 var registration = this.SiteDatabase.Query<AffiliateRegistration>()
@@ -556,7 +646,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 if (registration != null)
                 {
-                    var key = "dashboard-" + this.CurrentUser.Id;
+                    var key = "dashboard-" + registration.NcbUserId;
                     object dashboardData = MemoryCache.Default[key];
 
                     if (dashboardData == null)
@@ -607,6 +697,8 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                                 new { Count = 0 },
                                 new object[] { registration.AffiliateCode }).First().Count,
 
+                            Profile = this.SiteDatabase.GetById<NcbUser>( registration.NcbUserId ).Profile,
+
                         };
 
                         MemoryCache.Default.Add(key, dashboardData, DateTimeOffset.Now.AddMinutes(10));
@@ -625,18 +717,53 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
         {
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
             {
-                if (ctx.Request.Query.source != null )
+                string code = ctx.Request.Query.source;
+                if (code == null && ctx.Request.Cookies.ContainsKey("source"))
                 {
+                    code = ctx.Request.Cookies["source"];
+                }
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    AffiliateRegistration reg = MemoryCache.Default["AffiliateReg-" + code] as AffiliateRegistration;
+                    if (reg == null)
+                    {
+                        reg = ctx.GetSiteDatabase().Query<AffiliateRegistration>()
+                                    .Where(ar => ar.AffiliateCode == code)
+                                    .FirstOrDefault();
+
+                        if (reg != null)
+                        {
+                            MemoryCache.Default.Add("AffiliateReg-" + code, reg, DateTimeOffset.Now.AddMinutes(15));
+                        }
+
+                        ctx.Items["AffiliateReg"] = reg;
+                    }
+
+                    if (reg != null)
+                    {
+                        ctx.Items["AffiliateReg"] = reg;
+                    }
+
                     if (ctx.Request.Cookies.ContainsKey("source") == false)
                     {
                         ctx.Request.Cookies.Add("source", (string)ctx.Request.Query.source.Value);
                     }
                     else
                     {
-                        ctx.Request.Cookies["source"] = ctx.Request.Query.source.Value;
+                        ctx.Request.Cookies["source"] = code;                        
+                    }
+
+                    if (ctx.Request.Cookies.ContainsKey("affiliatename") == false)
+                    {
+                        ctx.Request.Cookies.Add("affiliatename", reg.AffiliateName);
+                    }
+                    else
+                    {
+                        ctx.Request.Cookies["affiliatename"] = reg.AffiliateName;
                     }
                 }
-                                
+
                 if (ctx.Request.Cookies.ContainsKey("userid") == false)
                 {
                     ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
@@ -651,6 +778,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     ctx.Response.Cookies.Add(
                         new NancyCookie("source", ctx.Request.Cookies["source"], DateTime.Now.AddDays(7)));
+                }
+
+                if (ctx.Request.Cookies.ContainsKey("affiliatename"))
+                {
+                    ctx.Response.Cookies.Add(
+                        new NancyCookie("affiliatename", ctx.Request.Cookies["affiliatename"], DateTime.Now.AddDays(7)));
                 }
 
                 if (ctx.Request.Cookies.ContainsKey("userid"))

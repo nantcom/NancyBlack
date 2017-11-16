@@ -4,6 +4,7 @@ using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace NantCom.NancyBlack.Modules.MailingListSystem
@@ -15,7 +16,7 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
             // mailchimp api key
             // 295bd1448b335908c90f7429b4ca04c1-us16
 
-            NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
+            //NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
 
         }
 
@@ -23,7 +24,14 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         {
             if (table == "NcbMailingListSubscription")
             {
-                MailingListModule.AddToMailChimp(db, AdminModule.ReadSiteSettings().commerce.mailchimp.listid, row);
+                var settings = AdminModule.ReadSiteSettings();
+                var listId = settings.commerce.mailchimp.listid;
+                var key = settings.commerce.mailchimp.apikey;
+
+                Task.Run(() =>
+                {
+                    MailingListModule.AddToMailChimp(key, listId, row);
+                });
             }
         }
 
@@ -33,16 +41,13 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         /// <param name="listId"></param>
         /// <param name="sub"></param>
         /// <returns></returns>
-        private static bool AddToMailChimp( NancyBlackDatabase db, string listId, NcbMailingListSubscription item )
+        private static bool AddToMailChimp( string key, string listId, NcbMailingListSubscription item )
         {
-            string key = AdminModule.ReadSiteSettings().commerce.mailchimp.apikey;
             var server = string.Format("https://{0}.api.mailchimp.com/3.0/", key.Substring(key.IndexOf("-") + 1));
 
             RestClient c = new RestClient(server);
             c.Authenticator = new HttpBasicAuthenticator("level51", key);
-
-            var all = db.Query<NcbMailingListSubscription>().ToList();
-
+            
             RestRequest req = new RestRequest("/lists/" + listId + "/members/", Method.POST);
             req.AddJsonBody(new
             {
@@ -68,12 +73,12 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
         {
             Get["/__mailinglist/mailchimpexport/{listid}"] = this.HandleRequest((arg) =>
             {
-                var all = this.SiteDatabase.Query<NcbMailingListSubscription>().ToList();
+                var all = this.SiteDatabase.Query<NcbMailingListSubscription>().OrderByDescending( u => u.Id ).ToList();
                 var errors = new List<string>();
-
+                var key = AdminModule.ReadSiteSettings().commerce.mailchimp.apikey;
                 foreach (var item in all)
                 {
-                    MailingListModule.AddToMailChimp(this.SiteDatabase, arg.listid, item);
+                    MailingListModule.AddToMailChimp(key, arg.listid, item);
                 }
 
                 if (errors.Count > 0)

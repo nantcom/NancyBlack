@@ -72,14 +72,57 @@
 
             });
 
+            $scope.affiliateProcessSubscribe = function () {
+
+                $scope.membership.loginfacebook(function () {
+
+                    var email = "";
+                    if ($scope.membership.currentUser.Profile.email == "" || $scope.membership.currentUser.Profile.email == null) {
+
+                        swal({
+                            type: 'input',
+                            title: 'เอ๊อะ!',
+                            text: 'ในเฟสบุ้คคุณ' + membership.currentUser.Profile.first_name + ' ไม่ได้ใส่อีเมลล์ไว้น่ะ รบกวนขออีเมลล์ด้วยนะ',
+                            html: true,
+                            showCancelButton: true,
+                            showLoaderOnConfirm: true,
+                            closeOnConfirm: false,
+                            confirmButtonText: "บันทึก",
+                            cancelButtonText: "ไม่เอาละ",
+                            animation: "slide-from-top"
+                        }, function (text) {
+
+                            if (inputValue === false)
+                                return false;
+
+                            apply(email);
+
+                        });
+
+                    } else {
+
+                        apply();
+                    }
+
+
+                });
+            };
+
             $scope.affiliateSubscribe = function () {
 
+                var name = Cookies.get("affiliatename");
+                var title = 'อยากได้โค๊ดส่วนลดไหม?';
+                if (name != null)
+                {
+                    title = name + ' ชวนให้คุณมาสมัครรับโค๊ดส่วนลดด้วยกัน';
+                }
+
                 swal({
-                    title: 'อยากได้โค๊ดส่วนลดไหม?',
+                    title: title,
                     text:
                     '<img src="/Site/images/promo/squad-1.png" />',
                     html: true,
-                    showCancelButton: true,
+                    showCancelButton: name == null,
                     showLoaderOnConfirm: true,
                     closeOnConfirm: false,
                     confirmButtonText: "ลงทะเบียนด้วยเฟสบุ้ค",
@@ -93,38 +136,7 @@
                         return;
                     }
 
-                    $scope.membership.loginfacebook(function () {
-
-                        var email = "";
-                        if ($scope.membership.currentUser.Profile.email == "" || $scope.membership.currentUser.Profile.email == null) {
-
-                            swal({
-                                type: 'input',
-                                title: 'เอ๊อะ!',
-                                text: 'ในเฟสบุ้คคุณ' + membership.currentUser.Profile.first_name + ' ไม่ได้ใส่อีเมลล์ไว้น่ะ รบกวนขออีเมลล์ด้วยนะ',
-                                html: true,
-                                showCancelButton: true,
-                                showLoaderOnConfirm: true,
-                                closeOnConfirm: false,
-                                confirmButtonText: "บันทึก",
-                                cancelButtonText: "ไม่เอาละ",
-                                animation: "slide-from-top"
-                            }, function (text) {
-
-                                if (inputValue === false)
-                                    return false;
-
-                                apply(email);
-
-                            });
-
-                        } else {
-
-                            apply();
-                        }
-
-
-                    });
+                    $scope.affiliateProcessSubscribe();
 
                 });
 
@@ -134,10 +146,14 @@
             //var data = { Id: 1 };
             //var url = "abc123";
 
-            if (Cookies.get("subscribecheck") == "nope" ||
-                Cookies.get("subscribecheck") == "already") {
+            if (window.location.search.indexOf( 'subscribe' ) == -1) {
 
-                return;
+                if (Cookies.get("subscribecheck") == "nope" ||
+                    Cookies.get("subscribecheck") == "already") {
+
+                    return;
+                }
+
             }
 
             // if already asked and no action - dont show again for a day

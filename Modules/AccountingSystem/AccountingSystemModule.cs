@@ -2,6 +2,7 @@
 using NantCom.NancyBlack.Modules.CommerceSystem;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,6 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
         static AccountingSystemModule()
         {
             NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
-            InventoryAdminModule.InboundCompleted += ProcessInboundCompleted;
         }
 
         private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string table, dynamic obj)
@@ -65,7 +65,6 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 if (saleorder.TotalTax > 0)
                 {
                     // 2) paid tax is decreased
-                    // (ภาษีขาย ทำให้ภาษีซื้อลดลง, ภาษีซื้อ บันทึกไว้ตอน InventoryInbound)
                     AccountingEntry entry2 = new AccountingEntry();
                     entry2.TransactionDate = paymentlog.__createdAt;
                     entry2.TransactionType = "taxcredit";
@@ -80,103 +79,123 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
             });
         }
         
-        internal static void ProcessInboundCompleted(NancyBlackDatabase db, InventoryInbound inbound, List<InventoryItem> items)
-        {
-            // Not doing this - let accounting person record the tax credit
-
-            //// this already in transaction
-
-            //// When inventory inbound is created, record into GL about current asset
-            //{
-            //    var supplierLookup = db.Query<Supplier>().ToDictionary(s => s.Id);
-
-            //    // Inbound will create 2 entries
-            //    // 1) inventory increase and account decrease (without tax amount)
-
-            //    AccountingEntry entry1 = new AccountingEntry();
-            //    entry1.TransactionDate = inbound.PaymentDate;
-            //    entry1.TransactionType = "buy";
-            //    entry1.DebtorLoanerName = supplierLookup[inbound.SupplierId].Name;
-            //    entry1.IncreaseAccount = "Inventory";
-            //    entry1.IncreaseAmount = inbound.TotalAmountWithoutTax;
-            //    entry1.DecreaseAccount = inbound.PaymentAccount;
-            //    entry1.DecreaseAmount = inbound.TotalAmountWithoutTax * -1;
-            //    entry1.InventoryInboundId = inbound.Id;
-
-            //    db.UpsertRecord(entry1);
-
-            //    // 2) paid tax increase and account decrease (tax only amount)
-            //    // (ภาษีซื้อทำให้ภาษีขายที่ต้องจ่ายลดลง)
-            //    if (inbound.TotalTax > 0)
-            //    {
-            //        AccountingEntry entry2 = new AccountingEntry();
-            //        entry2.TransactionDate = inbound.PaymentDate;
-            //        entry2.TransactionType = "taxcredit";
-            //        entry2.DebtorLoanerName = "Tax";
-            //        entry2.IncreaseAccount = "Tax Credit";
-            //        entry2.IncreaseAmount = inbound.TotalTax;
-            //        entry2.DecreaseAccount = inbound.PaymentAccount;
-            //        entry2.DecreaseAmount = inbound.TotalTax * -1;
-            //        entry2.InventoryInboundId = inbound.Id;
-
-            //        db.UpsertRecord(entry2);
-            //    }
-
-            //}
-
-            //// record that inventory was withdrawn
-            //{
-            //    var allFullfilled = from item in items
-            //                        where item.IsFullfilled == true
-            //                        select item;
-
-            //    if (allFullfilled.Count() > 0)
-            //    {
-            //        // the inventory is withdrawn as expense
-            //        AccountingEntry entry1 = new AccountingEntry();
-            //        entry1.TransactionDate = inbound.PaymentDate;
-            //        entry1.TransactionType = "expense";
-            //        entry1.DebtorLoanerName = "Inventory Used";
-            //        entry1.DecreaseAccount = "Inventory";
-            //        entry1.DecreaseAmount = allFullfilled.Sum(item => item.BuyingCost) * -1;
-            //        entry1.Notes = "Inventory Used by Sale Order: " + string.Join(",", allFullfilled.Select(item => item.SaleOrderId)) +
-            //                       "From Inbound Id:" + inbound.Id;
-
-            //        db.UpsertRecord(entry1);
-
-            //        // if there is net profit/loss - record it
-            //        // but does not remove the amount from account
-            //        var totalAmountBuy = allFullfilled.Sum(i => i.BuyingCost);
-            //        var totalAmountSold = allFullfilled.Sum(i => i.SellingPrice);
-
-            //        if (totalAmountBuy != totalAmountSold)
-            //        {
-            //            AccountingEntry entry2 = new AccountingEntry();
-            //            entry2.TransactionDate = inbound.PaymentDate;
-            //            entry2.TransactionType = "income";
-            //            entry2.DebtorLoanerName = "n/a";
-            //            entry2.IncreaseAccount = "Gross Profit";
-            //            entry2.IncreaseAmount = totalAmountSold - totalAmountBuy;
-            //            entry2.Notes = "From Inbound Id:" + inbound.Id + " the item were used. Profit/Loss is calculated and recorded into Profit(Loss) account for each account";
-
-            //            db.UpsertRecord(entry2);
-            //        }
-            //    }
-
-            //}
-        }
-        
         public AccountingSystemModule()
         {
             Get["/admin/tables/accountingentry"] = this.HandleViewRequest("/Admin/accountingsystem-gl", null);
 
-            Get["/admin/accounts"] = this.HandleViewRequest("/Admin/accountingsystem-accountsettings", (arg)=>
+            Get["/admin/accounts"] = this.HandleViewRequest("/Admin/accountingsystem-accounts", (arg)=>
             {
-                var account = this.SiteDatabase.Query("SELECT DISTINCT IncreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
-                var account2 = this.SiteDatabase.Query("SELECT DISTINCT DecreaseAccount AS Name FROM AccountingEntry", new { Name = "" }).Select(item => ((dynamic)item).Name as string).Where(s => string.IsNullOrEmpty(s) == false).ToList();
-                var allAccounts = account.Union(account2).ToList();
+                dynamic model = new System.Dynamic.ExpandoObject();
 
-                return new StandardModel(this, null, allAccounts);
+                {
+                    var baseSummary = this.SiteDatabase.QueryAsDynamic(@"
+                                            SELECT
+                                                SUM(IncreaseAmount) as TotalIncrease,
+                                                IncreaseAccount as Account,
+                                                MAX(TransactionDate) as LastUpdated,      
+                                                0 as DueDate
+                                            FROM
+                                                AccountingEntry
+                                            WHERE IncreaseAccount IS NOT NULL           
+                                            GROUP BY IncreaseAccount"   
+                                            , new { TotalIncrease = 0M, TotalDecrease = 0M, Account = "", LastUpdated = default(DateTime), DueDate = default(DateTime) }).ToList();
+
+                    var decreaseSummary = this.SiteDatabase.QueryAsDynamic(@"
+                                            SELECT
+                                                SUM(DecreaseAmount) as TotalDecrease,
+                                                DecreaseAccount,
+                                                MAX(TransactionDate) as LastUpdated,      
+                                                MIN(DueDate) as DueDate
+                                            FROM
+                                                AccountingEntry
+                                            WHERE DecreaseAccount IS NOT NULL           
+                                            GROUP BY DecreaseAccount"    
+                                            , new { TotalDecrease = 0M, DecreaseAccount = "", LastUpdated = default(DateTime), DueDate = default(DateTime) }).ToList();
+
+                    var decreaseLookup = decreaseSummary.ToLookup(item => (string)item.DecreaseAccount);
+                    
+                    foreach (dynamic item in baseSummary)
+                    {
+                        dynamic decreaseRecord = decreaseLookup[(string)item.Account].FirstOrDefault();
+                        if (decreaseRecord == null)
+                        {
+                            continue;
+                        }
+
+                        item.TotalDecrease = decreaseRecord.TotalDecrease;
+                        if ((DateTime)decreaseRecord.LastUpdated > (DateTime)item.LastUpdated)
+                        {
+                            item.LastUpdated = decreaseRecord.LastUpdated;
+                        }
+
+                        item.DueDate = decreaseRecord.DueDate;
+                    }
+
+                    model.Accounts = baseSummary;
+
+                }
+
+                {
+                    var payableSummary = this.SiteDatabase.QueryAsDynamic(@"
+                                            SELECT
+                                                SUM(DecreaseAmount) as Amount,
+                                                DebtorLoanerName,
+                                                DocumentNumber,
+                                                MAX(TransactionDate) as LastUpdated,      
+                                                MIN(DueDate) as DueDate
+                                            FROM
+                                                AccountingEntry
+                                            WHERE
+                                                DecreaseAmount < 0
+                                                AND DecreaseAccount = 'Payable' 
+                                            GROUP BY DebtorLoanerName, DocumentNumber",
+                                            new { Amount = 0M, DebtorLoanerName = "", DocumentNumber = "", LastUpdated = default(DateTime), DueDate = default(DateTime) }).ToList();
+
+                    var payablePaidSummary = this.SiteDatabase.QueryAsDynamic(@"
+                                            SELECT
+                                                SUM(IncreaseAmount) as Amount,
+                                                DebtorLoanerName,
+                                                DocumentNumber,
+                                                MAX(TransactionDate) as LastUpdated,      
+                                                MAX(DueDate) as DueDate
+                                            FROM
+                                                AccountingEntry
+                                            WHERE
+                                                IncreaseAmount > 0
+                                                AND DecreaseAccount = 'Payable' 
+                                            GROUP BY DebtorLoanerName, DocumentNumber",
+                                           new { Amount = 0M, DebtorLoanerName = "", DocumentNumber = "", LastUpdated = default(DateTime), DueDate = default(DateTime) }).ToLookup( item => (string)item.DebtorLoanerName + "-" + (string)item.DocumentNumber);
+
+                    foreach (var item in payableSummary)
+                    {
+                        var payback = payablePaidSummary[(string)item.DebtorLoanerName + "-" + (string)item.DocumentNumber];
+
+                        foreach (var row in payback)
+                        {
+                            item.Amount += row.Amount;
+                        }
+                    }
+
+                    model.PayableSummary = payableSummary.Where( item => item.Amount < 0 ).ToList();
+                }
+
+                if (this.CurrentSite.accounting == null)
+                {
+                    var ja = new JArray();
+                    foreach (var item in model.Accounts)
+                    {
+                        ja.Add(JObject.FromObject(new
+                        {
+                            Name = item.Account,
+                            Type = ""
+                        }));
+                    }
+
+                    this.CurrentSite.accounting = JObject.FromObject( new { accounts = ja } );
+                }
+                
+
+                return new StandardModel(this, null, model);
             });
 
             Get["/admin/tables/accountingentry/__opendocuments"] = this.HandleRequest((arg)=>
