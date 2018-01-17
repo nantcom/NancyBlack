@@ -14,7 +14,8 @@
     function saleorderdetailview($location, $scope, $window, $http) {
         
         var vm = this;        
-        
+
+        $scope.window = $window;
         $scope.productResolverTmpId = "";        
         
         var _stopWatchData = $scope.$watch('data', function (newVal, oldVal) {

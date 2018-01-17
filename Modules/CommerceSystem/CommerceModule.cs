@@ -18,7 +18,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
     public class CommerceModule : BaseDataModule
     {
 
-        public static event Action<SaleOrder, NancyBlackDatabase> PaymentCompleted = delegate { };
+        public static event Action<SaleOrder, NancyBlackDatabase> PaymentOccured = delegate { };
+
+        public static event Action<SaleOrder, NancyBlackDatabase> PaymentSuccess = delegate { };
 
         static CommerceModule()
         {
@@ -497,6 +499,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 {
                     log.IsPaymentSuccess = true;
                     so.PaymentStatus = PaymentStatus.Deposit;
+                    so.PaymentReceivedDate = DateTime.Now; // Need to use this to manage queue
+
                     exceptions.Add(JObject.FromObject(new
                     {
                         type = "Split Payment",
@@ -526,6 +530,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 log.Exception = exceptions;
                 db.UpsertRecord<PaymentLog>(log);
+                
+                CommerceModule.PaymentOccured(so, db);
 
                 if (log.IsPaymentSuccess)
                 {
@@ -533,11 +539,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     var rc = db.UpsertRecord<Receipt>(new Receipt() { SaleOrderId = so.Id, PaymentLogId = log.Id });
                     rc.SetIdentifier();
                     db.UpsertRecord(rc);
+
+                    CommerceModule.PaymentSuccess(so, db);
                 }
                 
                 db.UpsertRecord<SaleOrder>(so);
-
-                CommerceModule.PaymentCompleted(so, db);
 
                 // reset the one time code used
                 foreach (var item in so.ItemsDetail)
@@ -556,8 +562,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // Automate change status to WaitingForOrder for add item to PO
                 if (exceptions.Count == 0 || isPaymentReceived)
                 {
-                    so.Status = SaleOrderStatus.WaitingForOrder;
-                    db.UpsertRecord<SaleOrder>(so);
+                    if (so.Status == SaleOrderStatus.Confirmed)
+                    {
+                        so.Status = SaleOrderStatus.WaitingForOrder;
+                        db.UpsertRecord<SaleOrder>(so);
+                    }
                 }
             }
 

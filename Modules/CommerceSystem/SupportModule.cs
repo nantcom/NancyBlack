@@ -17,6 +17,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         public SupportModule()
         {
             Get["/support/{saleOrderIdentifier}"] = this.HandleRequest(HandleSupportPage);
+            Post["/support/{saleOrderIdentifier}"] = this.HandleRequest(HandleSupportPage);
+
             Post["/support/{saleOrderIdentifier}/save/attachment/message"] = this.HandleRequest(HandleCustomerSaveAttachmentMessage);
             //Post["/support/login"] = this.HandleRequest(HandleSupportLogin);
             Post["/support/notify/payment"] = this.HandleRequest(HandleNotifyForPayment);
@@ -34,33 +36,69 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 404;
             }
 
-            //var isExpired = so.PaymentStatus == PaymentStatus.WaitingForPayment
-            //        && so.Status == SaleOrderStatus.Confirmed
-            //        && (so.__createdAt.AddDays(14) < DateTime.Now);
-            
-            //if (isExpired)
-            //{
-            //    so.Status = SaleOrderStatus.Cancel;
-            //    this.SiteDatabase.UpsertRecord(so);
-            //}
-
-            var statusList = StatusList.GetAllStatus<SaleOrderStatus>();
-
-            var paymentStatusList = StatusList.GetAllStatus<PaymentStatus>();
-
-            var dummyPage = new Page();
-
             so.SiteSettings = null;
 
-            var data = new
+            Func<dynamic> response = () =>
             {
-                StatusList = statusList,
-                PaymentStatusList = paymentStatusList,
-                SaleOrder = so,
-                PaymentLogs = so.GetPaymentLogs(this.SiteDatabase)
-            };
+                // after 30 days, if no payment - we cancel it
+                var isExpired = so.PaymentStatus == PaymentStatus.WaitingForPayment
+                        && so.Status == SaleOrderStatus.Confirmed
+                        && (so.__createdAt.AddDays(30) < DateTime.Now);
 
-            return View["commerce-support", new StandardModel(this, dummyPage, data)];
+                if (isExpired)
+                {
+                    so.Status = SaleOrderStatus.Cancel;
+                    this.SiteDatabase.UpsertRecord(so);
+                }
+
+                var statusList = StatusList.GetAllStatus<SaleOrderStatus>();
+                var paymentStatusList = StatusList.GetAllStatus<PaymentStatus>();
+                var dummyPage = new Page();
+                var data = new
+                {
+                    StatusList = statusList,
+                    PaymentStatusList = paymentStatusList,
+                    SaleOrder = so,
+                    PaymentLogs = so.GetPaymentLogs(this.SiteDatabase)
+                };
+
+                return View["commerce-support", new StandardModel(this, dummyPage, data)];
+            };
+            
+
+            if (this.Request.Form.key != null)
+            {
+                string key = ((string)this.Request.Form.key).Trim();
+                if (so.Customer != null &&
+                    (so.Customer.PhoneNumber == key ||
+                     so.Customer.Email == key))
+                {
+                    return response();
+                }
+            }
+
+            if (this.CurrentUser.HasClaim("Admin"))
+            {
+                return response();
+            }
+
+            if (this.CurrentUser.IsAnonymous)
+            {
+                return View["commerce-support-login", new StandardModel(this, new Page(), new object())];
+            }
+
+            // check whether this user has bought this sale order
+            if (so.Customer == null || so.Customer.User == null)
+            {
+                return View["commerce-support-login", new StandardModel(this, new Page(), new object())];
+            }
+
+            if (so.Customer.User.Id != this.CurrentUser.Id)
+            {
+                return View["commerce-support-login", new StandardModel(this, new Page(), new object())];
+            }
+
+            return response();
         }
 
         private dynamic HandleCustomerSaveAttachmentMessage(dynamic arg)

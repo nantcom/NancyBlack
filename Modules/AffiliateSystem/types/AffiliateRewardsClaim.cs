@@ -9,6 +9,16 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
     public class AffiliateRewardsClaim : IStaticType
     {
         /// <summary>
+        /// Affiliate Registration Id
+        /// </summary>
+        public int AffiliateRegistrationId { get; set; }
+
+        /// <summary>
+        /// User Id to send rewards to
+        /// </summary>
+        public int NcbUserId { get; set; }
+
+        /// <summary>
         /// Code to activate affiliation in link
         /// </summary>
         public string AffiliateCode { get; set; }
@@ -22,7 +32,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// Discount Code that was given
         /// </summary>
         public string DiscountCode { get; set; }
-        
+
+        /// <summary>
+        /// Whether rewards were sent
+        /// </summary>
+        public bool IsSent { get; set; }
 
         #region Static Type Properties
 

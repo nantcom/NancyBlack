@@ -1,0 +1,392 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Title
+{
+    Administration - Accounts
+}
+
+@section Scripts
+{
+    <script src="/NancyBlack/Modules/AccountingSystem/Views/Admin/accountingsystem-gl.js"></script>
+    <script src="/NancyBlack/Content/Scripts/Chart.js-master/Chart.min.js"></script>
+    <script src="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
+
+}
+
+    <h1 class="page-header">
+        Account
+    </h1>
+    <ncb-alerts alerts="alerts"></ncb-alerts>
+
+    <tabset>
+
+        <tab heading="Summary">
+
+
+            <div
+                 ng-module="AccountingGlModule"
+                 ng-controller="AccountingDashboard as ctrl">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="panel panel-success">
+
+                            <div class="panel-heading">
+                                Cash On Hand
+                            </div>
+                            <div class="panel-body">
+
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Account
+                                            </th>
+                                            <th>
+                                                Amount
+                                            </th>
+                                            <th>
+                                                Last Update
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr ng-repeat="account in data.Cash">
+                                            <td>
+                                                {{account.Account}}
+                                            </td>
+                                            <td>
+                                                {{account.TotalDecrease + account.TotalIncrease | number:2}}
+                                            </td>
+                                            <td>
+                                                {{account.LastUpdated | date:'dd/MM/yyyy'}}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                    <tfoot style="font-weight:bold;" class="text-success">
+                                        <tr>
+                                            <td>
+                                                Total
+                                            </td>
+                                            <td>
+                                                {{ctrl.getTotal( 'Cash' ) | number:2 }}
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="panel panel-danger">
+
+                            <div class="panel-heading">
+                                Payable
+                            </div>
+                            <div class="panel-body">
+
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Pay To
+                                            </th>
+                                            <th>
+                                                Document#
+                                            </th>
+                                            <th>
+                                                Amount
+                                            </th>
+                                            <th>
+                                                Due Date
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr ng-repeat="row in data.PayableSummary">
+                                            <td>
+                                                {{row.DebtorLoanerName}}
+                                            </td>
+                                            <td>
+                                                {{row.DocumentNumber}}
+                                            </td>
+                                            <td>
+                                                {{row.Amount * -1 | number:2}}
+                                            </td>
+                                            <td>
+                                                {{row.DueDate}}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                    <tfoot style="font-weight:bold;">
+                                        <tr class="text-danger">
+                                            <td colspan="2" style="text-align:right">
+                                                Total
+                                            </td>
+
+                                            <td>
+                                                {{ctrl.getTotal( 'PayableSummary' ) * -1 | number:2 }}
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr class="text-info">
+                                            <td colspan="2" style="text-align:right">
+                                                Total Cash
+                                            </td>
+
+                                            <td>
+                                                {{ctrl.getTotal( 'Cash' ) | number:2 }}
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr ng-class="{ 'text-success' : ctrl.getTotal( 'PayableSummary' ) + ctrl.getTotal( 'Cash' ) > 0, 'text-danger' : ctrl.getTotal( 'PayableSummary' ) + ctrl.getTotal( 'Cash' ) < 0}" >
+                                            <td colspan="2" style="text-align:right">
+                                                Cash vs Payable
+                                            </td>
+
+                                            <td>
+                                                {{ctrl.getTotal( 'PayableSummary' ) + ctrl.getTotal( 'Cash' )  | number:2 }}
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="panel panel-success">
+
+                            <div class="panel-heading">
+                                Assets
+                            </div>
+                            <div class="panel-body">
+
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Account
+                                            </th>
+                                            <th>
+                                                Amount
+                                            </th>
+                                            <td>
+                                                Updated
+                                            </td>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr ng-repeat="account in accounts.Asset">
+                                            <td>
+                                                {{account.Name}}
+                                            </td>
+                                            <td>
+                                                {{account.TotalAmount}}
+                                            </td>
+                                            <td>
+                                                {{account.LastUpdate}}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="panel panel-success">
+
+                            <div class="panel-heading">
+                                Receivable
+                            </div>
+                            <div class="panel-body">
+
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Receive From
+                                            </th>
+                                            <th>
+                                                Document#
+                                            </th>
+                                            <th>
+                                                Amount
+                                            </th>
+                                            <th>
+                                                Due Date
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr ng-repeat="account in accounts.Receivable">
+                                            <td>
+                                                {{account.RelatedParty}}
+                                            </td>
+                                            <td>
+                                                {{account.DocumentNumber}}
+                                            </td>
+                                            <td>
+                                                {{account.TotalAmount}}
+                                            </td>
+                                            <td>
+                                                {{account.DueDate}}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-md-12">
+                    <div class="panel panel-info">
+
+                        <div class="panel-heading">
+                            Projection
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </tab>
+
+        <tab heading="Account Settings">
+
+            <div ng-module="SiteSettingsModule"
+                 ng-controller="SiteSettingsController as ctrl">
+
+                <div>
+
+
+                    <div class="page-header">
+
+                        <button class="btn btn-success btn-lg pull-right"
+                                ng-disabled="isBusy"
+                                ng-click="ctrl.save()">
+                            Save
+                        </button>
+
+                        <h1>
+                            Settings
+                            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+                        </h1>
+
+                    </div>
+
+                    <ncb-alerts alerts="alerts"></ncb-alerts>
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>
+                                Account
+                            </th>
+                            <th>
+                                Group
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr ng-repeat="account in object.accounting.accounts">
+                            <td>
+                                {{account.Name}}
+                            </td>
+                            <td>
+                                <select ng-model="account.Type">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Expense">Expense</option>
+                                    <option value="Asset">Asset</option>
+                                    <option value="">(Hidden)</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        </tab>
+
+    </tabset>
+
+
+@section Script
+{
+    <script>
+
+        window.data = @Html.Raw(this.GetJson(this.Model.Data));
+        window.accountSettings = @Html.Raw(this.GetJson(this.Site.accounting.accounts));
+        
+    </script>
+
+    <script>
+
+        (function () {
+
+            var module = angular.module('SiteSettingsModule', []);
+
+            module.controller("SiteSettingsController", function ($scope, $rootScope, $http ) {
+
+                var $me = this;
+
+                $scope.object = {};
+
+                $scope.object = @this.Html.Raw(this.GetJson(this.Site));
+                $scope.alerts = [];
+                
+                $me.save = function() {
+                    
+                    $http.post( '/Admin/sitesettings/current', $scope.object )
+                        .success( function() {
+
+                            $scope.alerts.push( { type: 'success', msg: 'Settings Saved.'});
+                        })
+                        .error ( function( data ) {
+
+                            $scope.alerts.push( { type: 'danger', msg: 'Save Failed.' + data});
+                        });
+
+                };
+                
+            });
+
+        })();
+    </script>
+}
+

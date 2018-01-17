@@ -484,9 +484,7 @@ namespace NantCom.NancyBlack.Modules.DataSummarySystem
                 }
                 else
                 {
-                    minTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                               .AddMilliseconds(long.Parse(minTimeString))
-                               .ToLocalTime();
+                    minTime = DateTime.ParseExact(minTimeString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                 }
 
             }

@@ -24,6 +24,11 @@ namespace NantCom.NancyBlack.Configuration
 
         public void Handle(Nancy.HttpStatusCode statusCode, Nancy.NancyContext context)
         {
+            if (context.Request.Headers.Accept.Count() == 0)
+            {
+                return;
+            }
+
             if (context.Request.Headers.Accept.First().Item1.Contains( "/json" ) ||
                 context.Request.Headers.Accept.First().Item1.Contains("/xml"))
             {

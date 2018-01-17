@@ -214,6 +214,9 @@
         @if (this.Site.Application.FacebookAppId != null)
         {
             <script>
+
+                window.facebookAppId = '@(this.Site.Application.FacebookAppId)';
+
                 window.fbAsyncInit = function () {
                     FB.init({
                         appId: '@(this.Site.Application.FacebookAppId)',

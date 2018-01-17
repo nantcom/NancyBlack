@@ -17,6 +17,7 @@ using System.Runtime.Caching;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using System.IO;
 using NantCom.NancyBlack.Modules.MembershipSystem;
+using Manatee.Trello;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem
 {
@@ -46,7 +47,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             {
                 return BitConverter.GetBytes(ComputeChecksum(bytes));
             }
-            
+
             /// <summary>
             /// Calculates CRC32 Checksum in string format
             /// </summary>
@@ -129,11 +130,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     message = "ตอนนี้มีคนมาสมัครครบ 5 คนแล้ว คลิกเข้าไปที่ Dashboard เพื่อขอโค๊ดลด <b>2,000 บาท</b> ของคุณได้เลย และก็รอรับกระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> อยู่ที่บ้านได้เลย เราจะติดต่อไปนะจ๊ะ";
                 }
-                
-                emailBody = emailBody.Replace("{{SubscriberTotal}}", sub.ToString());                
-                emailBody = emailBody.Replace("{{ConvinceMessage}}", message.Replace( "{{To5}}", (5 - sub).ToString() ).Replace( "{{To10}}", (10 - sub).ToString() ));
-                emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode );
-                
+
+                emailBody = emailBody.Replace("{{SubscriberTotal}}", sub.ToString());
+                emailBody = emailBody.Replace("{{ConvinceMessage}}", message.Replace("{{To5}}", (5 - sub).ToString()).Replace("{{To10}}", (10 - sub).ToString()));
+                emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode);
+
                 MailSenderModule.SendEmail(user.Email, "We have new subscriber thanks to you!", emailBody);
             }
         }
@@ -215,9 +216,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             commission.SaleOrderId = so.Id;
 
             commission.BTCAddress = registration.BTCAddress;
-            commission.BTCRate = BitCoinModule.GetQuote(BitCoinModule.Currency.BTC).data.low; // use the low rate from yesterday
-            commission.BTCAmount = commission.CommissionAmount / commission.BTCRate;
-
             db.UpsertRecord(commission);
             {
                 var user = db.GetById<NcbUser>(registration.NcbUserId);
@@ -228,8 +226,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 var path = Path.Combine(AffiliateModule.TemplatePath, "Affiliate-NewPaidOrder.html");
                 string emailBody = File.ReadAllText(path);
-
-                emailBody = emailBody.Replace("{{BTCAmount}}", commission.BTCAmount.ToString("0.00000000"));
+                
                 emailBody = emailBody.Replace("{{CommissionAmount}} ", commission.CommissionAmount.ToString("#,#"));
                 emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode);
 
@@ -238,11 +235,149 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
         }
 
+        /// <summary>
+        /// Adds rewards card to trello
+        /// </summary>
+        /// <param name="claim"></param>
+        private void AddRewardsCard(dynamic siteSettings, AffiliateRewardsClaim claim, bool createCard = true)
+        {
+            string title = "SQUAD51: ";
+            if (claim.RewardsName == "subscribe2")
+            {
+                title += "กระเป๋า ( " + claim.AffiliateCode + " )";
+            }
+
+            if (claim.RewardsName == "buy1")
+            {
+                title += "เมาส์ ( " + claim.AffiliateCode + " )";
+            }
+
+            if (title == "SQUAD51: ")
+            {
+                return;
+            }
+
+            var auth = new TrelloAuthorization();
+            auth.AppKey = siteSettings.trello.AppKey;
+            auth.UserToken = siteSettings.trello.UserToken;
+
+            var list = new List("5a58d3dc2c472bd17a4b7901", auth); // จัดส่ง
+
+            // find existsing
+            var card = list.Cards.Where(c => c.Name == title).FirstOrDefault();
+            if (card == null)
+            {
+                if (createCard == false)
+                {
+                    return;
+                }
+
+                card = list.Cards.Add(title);
+            }
+
+            card.DueDate = claim.__createdAt.AddDays(7);
+
+            var profile = this.SiteDatabase.GetById<NcbUser>(claim.NcbUserId).Profile;
+
+            var cardDescription =
+                "Rewards: " + claim.RewardsName + "\r\n\r\n" +
+                profile.first_name + " " + profile.last_name + "\r\n" +
+                "Tel: " + profile.phone + "\r\n" +
+                "Email: " + profile.email + "\r\n\r\n";
+
+            if (profile.address != null)
+            {
+                cardDescription +=
+                    "Address:\r\n" +
+                    profile.address.Address1 + "\r\n" +
+                    profile.address.Address2 + "\r\n" +
+                    profile.address.Subdistrict + "\r\n" +
+                    profile.address.District + "\r\n" +
+                    profile.address.Province + "\r\n" +
+                    profile.address.Country + "\r\n" +
+                    profile.address.PostalCode;
+            }
+
+            card.Description = cardDescription;
+            if (card.Labels.Where((l) => l.Id == "5a5f92592a473c65883fa71a").Count() == 0)
+            {
+                var board = new Board("59e89f443cfc9dcef8afa098", auth);
+                var label = (from l in board.Labels
+                             where l.Id == "5a5f92592a473c65883fa71a"
+                             select l).FirstOrDefault();
+
+                card.Labels.Add(label);
+            }
+
+        }
+        
+        /// <summary>
+        /// Adds rewards card to trello
+        /// </summary>
+        /// <param name="claim"></param>
+        private void AddPayoutCard(dynamic siteSettings, AffiliateTransaction transaction, bool createCard = true)
+        {
+            string title = "Payout: ( " + transaction.AffiliateCode + "," + transaction.Id + " )";
+            
+            var auth = new TrelloAuthorization();
+            auth.AppKey = siteSettings.trello.AppKey;
+            auth.UserToken = siteSettings.trello.UserToken;
+
+            var list = new List("5a5f955a370236fdb163a8b5", auth); // โอนเงิน
+
+            // find existsing
+            var card = list.Cards.Where(c => c.Name == title).FirstOrDefault();
+            if (card == null)
+            {
+                if (createCard == false)
+                {
+                    return;
+                }
+
+                card = list.Cards.Add(title);
+            }
+
+            if (transaction.IsPendingApprove)
+            {
+                card.DueDate = transaction.__updatedAt.AddDays(7);
+            }
+
+            var user = this.SiteDatabase.GetById<NcbUser>(transaction.NcbUserId);
+            if (user == null)
+            {
+                card.Description = "Error: User Not Found. Id: " + transaction.NcbUserId;
+                return;
+            }
+
+            var profile = this.SiteDatabase.GetById<NcbUser>(transaction.NcbUserId).Profile;
+            var reg = this.SiteDatabase.GetById<AffiliateRegistration>(transaction.AffiliateRegistrationId);
+            var cardDescription =
+                "Sale Order: " + transaction.SaleOrderId + "\r\n\r\n" +
+                profile.first_name + " " + profile.last_name + "\r\n" +
+                "Tel: " + profile.phone + "\r\n" +
+                "Email: " + profile.email + "\r\n\r\n" +
+                "Amount THB:" + transaction.CommissionAmount + "\r\n" +
+                "BTC Address:" + reg.BTCAddress;
+            
+            card.Description = cardDescription;
+
+            if (card.Labels.Where((l) => l.Id == "5a5f93bd84565fbcba08f536").Count() == 0) //Ops Label
+            {
+                var board = new Board("59e89f443cfc9dcef8afa098", auth);
+                var label = (from l in board.Labels
+                             where l.Id == "5a5f93bd84565fbcba08f536"
+                             select l).FirstOrDefault();
+
+                card.Labels.Add(label);
+            }
+
+        }
+
+
         public AffiliateModule()
         {
             AffiliateModule.TemplatePath = Path.Combine(this.RootPath, "Site", "Views", "EmailTemplates");
-
-
+            
             Get["/__affiliate/___fixname"] = this.HandleRequest((arg) =>
             {
                 var affiliates = this.SiteDatabase.Query<AffiliateRegistration>().ToList();
@@ -264,12 +399,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 return "OK";
             });
-            
+
             Get["/__affiliate/___syncsubscription"] = this.HandleRequest((arg) =>
             {
                 var affiliates = this.SiteDatabase.Query<AffiliateRegistration>().ToList();
                 var users = this.SiteDatabase.Query<NcbUser>().ToDictionary(u => u.Id);
-                var mailinglist = this.SiteDatabase.Query<NcbMailingListSubscription>().ToLookup( sub => sub.Email );
+                var mailinglist = this.SiteDatabase.Query<NcbMailingListSubscription>().ToLookup(sub => sub.Email);
 
                 foreach (var affiliate in affiliates)
                 {
@@ -310,7 +445,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 if (reg.AffiliateCode == null) // auto code
                 {
                     var bytes = Encoding.ASCII.GetBytes(this.CurrentUser.Id.ToString());
-                    reg.AffiliateCode = Crc32.ComputeChecksumString( bytes );
+                    reg.AffiliateCode = Crc32.ComputeChecksumString(bytes);
                 }
 
                 if (this.Request.Cookies.ContainsKey("source"))
@@ -331,7 +466,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                     var user = this.SiteDatabase.GetById<NcbUser>(this.CurrentUser.Id);
                     reg.AffiliateName = user.Profile.first_name;
-                    
+
                     // enroll user into Mailing List Automatically
                     NcbMailingListSubscription sub = new NcbMailingListSubscription();
                     sub.FirstName = user.Profile.first_name;
@@ -361,7 +496,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     return existing;
                 }
-                
+
             });
 
             Post["/__affiliate/requestpayment"] = this.HandleRequest((arg) =>
@@ -379,7 +514,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return 400;
                 }
 
-                if (string.IsNullOrEmpty( registration.BTCAddress ))
+                if (string.IsNullOrEmpty(registration.BTCAddress))
                 {
                     if (arg.body == null)
                     {
@@ -390,7 +525,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     var address = submittedAddress.Property("btcaddress").Value.ToString();
 
 
-                    if (string.IsNullOrEmpty(address) == true )
+                    if (string.IsNullOrEmpty(address) == true)
                     {
                         return 400;
                     }
@@ -399,37 +534,32 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     this.SiteDatabase.UpsertRecord(registration);
                 }
 
-                var pendingPayment =this.SiteDatabase.Query<AffiliateTransaction>()
+                var pendingPayment = this.SiteDatabase.Query<AffiliateTransaction>()
                                         .Where(t => t.AffiliateCode == registration.AffiliateCode && t.IsCommissionPaid == false && t.IsPendingApprove == false)
                                         .ToList();
-
-                var averageRate = pendingPayment.Average(t => t.BTCRate);
-                Decimal currentRate = BitCoinModule.GetQuote(BitCoinModule.Currency.BTC, DateTime.Now, false).data.low;
+                
 
                 // using alternate rate
                 this.SiteDatabase.Transaction(() =>
                 {
                     foreach (var item in pendingPayment)
                     {
-                        if (currentRate / averageRate > 1.05M)
-                        {
-                            item.AlternateBTCRate = currentRate;
-                            item.AlternateBTCAmount = item.CommissionAmount / currentRate;
-                            item.IsUsingAlternateRate = true;
-                        }
                         item.IsPendingApprove = true;
                         item.BTCAddress = registration.BTCAddress;
 
                         this.SiteDatabase.UpsertRecord(item);
+                        this.AddPayoutCard( this.CurrentSite, item);
                     }
 
                 });
+
+                
 
                 return 200;
             });
 
             Post["/__affiliate/getrewards"] = this.HandleRequest((arg) =>
-            {   
+            {
                 var registration = this.SiteDatabase.Query<AffiliateRegistration>()
                     .Where(t => t.NcbUserId == this.CurrentUser.Id).FirstOrDefault();
 
@@ -450,7 +580,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                                 new { Count = 0 },
                                 new object[] { registration.AffiliateCode }).First().Count;
 
-                    if (sub < 5 )
+                    if (sub < 5)
                     {
                         return new
                         {
@@ -480,15 +610,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                             limit = "32000",
                             onetime = true
                         };
-                        
+
                         claim = new AffiliateRewardsClaim();
+                        claim.AffiliateRegistrationId = registration.Id;
+                        claim.NcbUserId = registration.NcbUserId;
                         claim.AffiliateCode = registration.AffiliateCode;
                         claim.DiscountCode = code;
 
                         this.SiteDatabase.UpsertRecord(p);
                         this.SiteDatabase.UpsertRecord(claim);
                     }
-                    
+
                     return new
                     {
                         type = "success",
@@ -498,7 +630,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     };
 
                 }
-                
+
                 if (param.rewardsName == "subscribe2")
                 {
                     var sub = this.SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
@@ -515,6 +647,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         };
                     }
 
+                    var profile = this.SiteDatabase.GetById<NcbUser>(registration.NcbUserId).Profile;
+                    if (profile.phone == null || profile.email == null)
+                    {
+                        return new
+                        {
+                            type = "warning",
+                            title = "ขอโทษนะ",
+                            text = "รบกวนกรอกข้อมูลหมายเลขโทรศัพท์ และอีเมลล์ก่อนจ้า",
+                        };
+                    }
+
                     var claim = this.SiteDatabase.QueryAsDynamic("SELECT DiscountCode FROM AffiliateRewardsClaim WHERE AffiliateCode=? AND RewardsName=?",
                                 new { DiscountCode = "" },
                                 new object[] { registration.AffiliateCode, "subscribe2" }).FirstOrDefault();
@@ -523,11 +666,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     {
 
                         claim = new AffiliateRewardsClaim();
+                        claim.AffiliateRegistrationId = registration.Id;
+                        claim.NcbUserId = registration.NcbUserId;
                         claim.AffiliateCode = registration.AffiliateCode;
                         claim.RewardsName = "subscribe2";
-                        
-                        this.SiteDatabase.UpsertRecord(claim);
 
+                        this.SiteDatabase.UpsertRecord(claim);
                     }
                     return new
                     {
@@ -545,6 +689,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                                 new { Count = 0 },
                                 new object[] { registration.AffiliateCode }).First().Count;
 
+                    var profile = this.SiteDatabase.GetById<NcbUser>(registration.NcbUserId).Profile;
+                    if (profile.phone == null || profile.email == null)
+                    {
+                        return new
+                        {
+                            type = "warning",
+                            title = "ขอโทษนะ",
+                            text = "รบกวนกรอกข้อมูลหมายเลขโทรศัพท์ และอีเมลล์ก่อนจ้า",
+                        };
+                    }
+
                     if (sub == 0)
                     {
                         return new
@@ -554,7 +709,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                             text = "ยังไม่มีคนมาซื้อเลยนี่นา",
                         };
                     }
-                    
+
                     var claim = this.SiteDatabase.QueryAsDynamic("SELECT DiscountCode FROM AffiliateRewardsClaim WHERE AffiliateCode=? AND RewardsName=?",
                                 new { DiscountCode = "" },
                                 new object[] { registration.AffiliateCode, "buy1" }).FirstOrDefault();
@@ -563,9 +718,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     {
 
                         claim = new AffiliateRewardsClaim();
+                        claim.AffiliateRegistrationId = registration.Id;
+                        claim.NcbUserId = registration.NcbUserId;
                         claim.AffiliateCode = registration.AffiliateCode;
                         claim.RewardsName = "buy1";
-                        
+
                         this.SiteDatabase.UpsertRecord(claim);
 
                     }
@@ -588,18 +745,23 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 var requestBody = arg.body.Value;
 
                 UserManager.Current.UpdateProfile(this.Context, requestBody.Profile);
-
-
-                AffiliateRegistration registration =  this.SiteDatabase.Query<AffiliateRegistration>()
+                
+                AffiliateRegistration registration = this.SiteDatabase.Query<AffiliateRegistration>()
                                                         .Where(t => t.NcbUserId == this.CurrentUser.Id).FirstOrDefault();
 
                 registration.AffiliateName = requestBody.Registration.AffiliateName;
                 registration.AffiliateMessage = requestBody.Registration.AffiliateMessage;
                 this.SiteDatabase.UpsertRecord(registration);
-                
-                MemoryCache.Default.Remove("dashboard-" + this.CurrentUser.Id);
 
+                MemoryCache.Default.Remove("dashboard-" + this.CurrentUser.Id);
                 MemoryCache.Default.Remove("AffiliateReg-" + registration.AffiliateCode);
+
+                // update all trello cards on the board
+                var claims = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(c => c.NcbUserId == registration.NcbUserId);
+                foreach (var claim in claims)
+                {
+                    this.AddRewardsCard(this.CurrentSite, claim, false); // Update card if found
+                }
 
                 return 200;
 
@@ -638,7 +800,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     registration = this.SiteDatabase.Query<AffiliateRegistration>()
                         .Where(t => t.AffiliateCode == code).FirstOrDefault();
                 }
-                
+
 
                 var standardModel = new StandardModel(200);
                 standardModel.Content = content;
@@ -667,15 +829,15 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                             new { Count = 0, Path = "" },
                             new object[] { registration.AffiliateCode }).ToList(),
 
-                            CommissionTotal = this.SiteDatabase.QueryAsDynamic("SELECT SUM(BTCAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=?",
+                            CommissionTotal = this.SiteDatabase.QueryAsDynamic("SELECT SUM(CommissionAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=?",
                             new { Amount = 0M },
                             new object[] { registration.AffiliateCode }).First().Amount,
 
-                            CommissionPaid = this.SiteDatabase.QueryAsDynamic("SELECT SUM(BTCAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=? AND IsCommissionPaid=1",
+                            CommissionPaid = this.SiteDatabase.QueryAsDynamic("SELECT SUM(CommissionAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=? AND IsCommissionPaid=1",
                             new { Amount = 0M },
                             new object[] { registration.AffiliateCode }).First().Amount,
 
-                            CommissionPendingApproval = this.SiteDatabase.QueryAsDynamic("SELECT SUM(BTCAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=? AND IsPendingApprove=1",
+                            CommissionPendingApproval = this.SiteDatabase.QueryAsDynamic("SELECT SUM(CommissionAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=? AND IsPendingApprove=1",
                             new { Amount = 0M },
                             new object[] { registration.AffiliateCode }).First().Amount,
 
@@ -691,13 +853,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                             SubscribeClick = this.SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM PageView WHERE AffiliateCode=? AND QueryString=?",
                                 new { Count = 0 },
-                                new object[] { registration.AffiliateCode, "?subscribe=1&source=" + registration.AffiliateCode}).First().Count,
+                                new object[] { registration.AffiliateCode, "?subscribe=1&source=" + registration.AffiliateCode }).First().Count,
 
                             SubscribeAll = this.SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
                                 new { Count = 0 },
                                 new object[] { registration.AffiliateCode }).First().Count,
 
-                            Profile = this.SiteDatabase.GetById<NcbUser>( registration.NcbUserId ).Profile,
+                            Profile = this.SiteDatabase.GetById<NcbUser>(registration.NcbUserId).Profile,
 
                         };
 
@@ -710,8 +872,88 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 return View["affiliate-dashboard", standardModel]; ;
             });
+
+            Get["/squad51"] = this.HandleViewRequest("affiliate-apply", (arg) =>
+            {
+                var registration = this.SiteDatabase.Query<AffiliateRegistration>()
+                    .Where(t => t.NcbUserId == this.CurrentUser.Id).FirstOrDefault();
+
+                var content = ContentModule.GetPage(this.SiteDatabase, "/__affiliate", true);
+                return new StandardModel(this, content, new
+                {
+                    Registration = registration
+                });
+            });
+
+            Get["/__affiliate/syncrewards"] = this.HandleRequest((arg) =>
+            {
+                // sync rewards request to trello
+                var claims = this.SiteDatabase.Query<AffiliateRewardsClaim>().ToList();
+
+                // temp - fill in data
+                foreach (var claim in claims)
+                {
+                    if (claim.NcbUserId != 0)
+                    {
+                        continue;
+                    }
+
+                    var reg = this.SiteDatabase.Query<AffiliateRegistration>().Where(r => r.AffiliateCode == claim.AffiliateCode).FirstOrDefault();
+                    if (reg == null)
+                    {
+                        continue;
+                    }
+
+
+                    claim.NcbUserId = reg.NcbUserId;
+                    claim.AffiliateRegistrationId = reg.Id;
+
+                    this.SiteDatabase.Connection.Update(claim);
+                }
+
+                foreach (var claim in claims)
+                {
+                    this.AddRewardsCard(this.CurrentSite, claim);
+                }
+
+                return "OK";
+            });
+
+            Get["/__affiliate/synctransaction"] = this.HandleRequest((arg) =>
+            {
+                // sync rewards request to trello
+                var trans = this.SiteDatabase.Query<AffiliateTransaction>().ToList();
+
+                // temp - fill in data
+                foreach (var t in trans)
+                {
+                    if (t.NcbUserId != 0)
+                    {
+                        continue;
+                    }
+
+                    var reg = this.SiteDatabase.Query<AffiliateRegistration>().Where(r => r.AffiliateCode == t.AffiliateCode).FirstOrDefault();
+                    if (reg == null)
+                    {
+                        continue;
+                    }
+
+
+                    t.NcbUserId = reg.NcbUserId;
+                    t.AffiliateRegistrationId = reg.Id;
+
+                    this.SiteDatabase.Connection.Update(t);
+                }
+
+                foreach (var t in trans)
+                {
+                    this.AddPayoutCard(this.CurrentSite, t);
+                }
+
+                return "OK";
+            });
         }
-        
+
 
         public void Hook(IPipelines p)
         {
@@ -743,6 +985,15 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     if (reg != null)
                     {
                         ctx.Items["AffiliateReg"] = reg;
+
+                        if (ctx.Request.Cookies.ContainsKey("affiliatename") == false)
+                        {
+                            ctx.Request.Cookies.Add("affiliatename", reg.AffiliateName);
+                        }
+                        else
+                        {
+                            ctx.Request.Cookies["affiliatename"] = reg.AffiliateName;
+                        }
                     }
 
                     if (ctx.Request.Cookies.ContainsKey("source") == false)
@@ -751,17 +1002,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     }
                     else
                     {
-                        ctx.Request.Cookies["source"] = code;                        
+                        ctx.Request.Cookies["source"] = code;
                     }
 
-                    if (ctx.Request.Cookies.ContainsKey("affiliatename") == false)
-                    {
-                        ctx.Request.Cookies.Add("affiliatename", reg.AffiliateName);
-                    }
-                    else
-                    {
-                        ctx.Request.Cookies["affiliatename"] = reg.AffiliateName;
-                    }
                 }
 
                 if (ctx.Request.Cookies.ContainsKey("userid") == false)

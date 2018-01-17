@@ -39,6 +39,65 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         }
 
         /// <summary>
+        /// Automatically Fullfil the sale order once the status has beeen set to Building, Testing or Delivered
+        /// And Delete if Cancel.
+        /// 
+        /// This is temporary solution while waiting for actual PO system to be created and Admin can record inventory inbound.
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="so"></param>
+        internal static void ProcessFulfillSaleOrder(NancyBlackDatabase db, SaleOrder so )
+        {
+            var requests = db.Query<InventoryItem>().Where(i => i.SaleOrderId == so.Id).ToList();
+            if (requests.Count == 0)
+            {
+                return;
+            }
+
+            if (so.ItemsDetail == null)
+            {
+                return;
+            }
+
+            if (so.Status == SaleOrderStatus.Cancel)
+            {
+                foreach (var req in requests)
+                {
+                    db.Connection.Delete(req);
+                }
+
+                return;
+            }
+
+            var productsById = so.ItemsDetail.ToLookup(p => p.Id);
+            foreach (var req in requests)
+            {
+                if (so.Status == SaleOrderStatus.Delivered ||
+                    so.Status == SaleOrderStatus.Testing ||
+                    so.Status == SaleOrderStatus.Building)
+                {
+                    req.IsFullfilled = true;
+                    req.InboundDate = so.__updatedAt;
+                    req.OutboundDate = so.__updatedAt;
+                }
+
+                if (productsById[req.ProductId].Count() == 1)
+                {
+                    var p = productsById[req.ProductId].First();
+                    if (p != null && p.Attributes != null)
+                    {
+                        req.SerialNumber = p.Attributes.Serial;
+                    }
+                }
+
+                req.__updatedAt = so.__updatedAt;
+                db.Connection.Update(req);
+            }
+
+
+        }
+
+        /// <summary>
         /// When Saleorder is set to waiting for order, generate InventoryItem for each item in the sale order
         /// TransformInventoryRequest event is called to finalize the list of items.
         /// </summary>
@@ -50,12 +109,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 now = DateTime.Now;
 
-                if (saleOrder.Status == "Cancel")
-                {
-                    //TODO: Cancel Case
-
-                    return;
-                }
+                // fulfill the requests of this sale order
+                InventoryAdminModule.ProcessFulfillSaleOrder(db, saleOrder);
 
                 // only do when status is waiting for order
                 if (saleOrder.Status != SaleOrderStatus.WaitingForOrder)
@@ -92,6 +147,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // For each items in sale order, create an inventory item
                 for (int i = 0; i < (int)item.Attributes.Qty; i++)
                 {
+                    // virtual products does not need inventory inbound
+                    if (item.Attributes.IsVirtual == 1)
+                    {
+                        continue;
+                    }
 
                     var ivitm = new InventoryItem()
                     {

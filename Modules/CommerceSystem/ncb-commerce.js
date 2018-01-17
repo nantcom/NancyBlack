@@ -774,11 +774,7 @@
 
         var soPaymentLogs = {}
 
-        $me.paymentMethods = [
-            { code: "PACA", title: "รูดเต็ม" },
-            { code: "PAIN", title: "ผ่อน 0%" }
-            //,            { code: "PABK", title: "Internet Banking" }
-        ]
+        $me.paymentMethods = [];
 
         function FormatNumberLength(num, length) {
             var r = "" + num;
@@ -801,9 +797,26 @@
             soPaymentLogs = paymentLogs;
             $me.saleOrder = saleorder;
 
+            if ($me.saleOrder.IsPayWithCreditCart == 1) {
+
+                $me.paymentMethods = [
+                    { code: "PACA", title: "รูดเต็ม".translate("Pay") },
+                    { code: "PAIN", title: "ผ่อน 0%".translate("Pay with 0% Installments") }
+                    //,            { code: "PABK", title: "Internet Banking" }
+                ]
+
+            } else {
+
+                // disable pay with installment if not pay with creditcard
+                $me.paymentMethods = [
+                    { code: "PACA", title: "รูดเต็ม".translate("Pay") }
+                ]
+            }
+
             // set remaining payment
             $me.remainingAmount = $me.saleOrder.TotalAmount;
             $me.selectedAmout = $me.remainingAmount;
+
             if (paymentLogs != null && paymentLogs.length > 0) {
                 $me.remainingAmount = $me.saleOrder.TotalAmount;
                 for (var i = 0; i < paymentLogs.length; i++) {
@@ -860,6 +873,7 @@
 
                             swal({
                                 title: "Pending...",
+                                type: 'success',
                                 text: "Navigating to TreePay",
                                 timer: 2000,
                                 showConfirmButton: false

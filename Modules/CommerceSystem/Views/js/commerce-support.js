@@ -2,7 +2,7 @@
 (function () {
 
     var mod = angular.module('Page', []);
-    mod.controller('PageController', function ($scope, $http, $sce) {
+    mod.controller('PageController', function ($scope, $http, $sce, $window) {
 
         var me = this;
         $scope.trackingUrl = "about:blank";
@@ -14,6 +14,7 @@
         $scope.allStatus = ["New", "Confirmed", "WaitingForOrder", "Delay", "OrderProcessing", "InTransit", "CustomsClearance", "Inbound", "WaitingForParts", "Building", "PartialBuilding", "Testing", "ReadyToShip", "Shipped", "Delivered", "Cancel"];
         $scope.allPaymentStatus = window.allData.PaymentStatusList;
         $scope.paymentLogs = window.allData.PaymentLogs;
+        $scope.window = $window;
 
         for (var i = 0; i < $scope.allStatus.length; i++) {
             if ($scope.object.Status == $scope.allStatus[i]) {

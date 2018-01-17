@@ -78,8 +78,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public bool IsFullfilled { get; set; }
 
         /// <summary>
-        /// The inventory inbound which causes this item to be fullfilled
+        /// Serial Number of the Item
         /// </summary>
-        public int InventoryInboundId { get; set; }
+        public string SerialNumber { get; set; }
     }
 }

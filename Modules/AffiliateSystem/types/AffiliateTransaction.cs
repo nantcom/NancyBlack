@@ -29,6 +29,16 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         public string AffiliateCode { get; set; }
 
         /// <summary>
+        /// User Id
+        /// </summary>
+        public int NcbUserId { get; set; }
+
+        /// <summary>
+        /// Id of the affiliate
+        /// </summary>
+        public int AffiliateRegistrationId { get; set; }
+
+        /// <summary>
         /// Current Rate of BTC at the time that sale order has been paid
         /// </summary>
         public Decimal BTCRate { get; set; }
@@ -62,20 +72,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// BTC Address for the payment
         /// </summary>
         public string BTCAddress { get; set; }
-
-        /// <summary>
-        /// Whether the system use Alternate Rate for payment
-        /// </summary>
-        public bool IsUsingAlternateRate { get; set; }
-
-        /// <summary>
-        /// Alternate BTC Rate
-        /// </summary>
-        public Decimal AlternateBTCRate { get; set; }
-
-        /// <summary>
-        /// Alternate BTC Amount
-        /// </summary>
-        public Decimal AlternateBTCAmount { get; set; }
+        
     }
 }

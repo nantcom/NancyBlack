@@ -31,7 +31,6 @@
                     $scope.BTCRate.avg = parseFloat($scope.BTCRate.avg);
                     $scope.BTCRate.high = parseFloat($scope.BTCRate.high);
                     $scope.BTCRate.low = parseFloat($scope.BTCRate.low);
-                    $me.calculateAlternateRate();
                 }).
                 error(function (data, status, headers, config) {
 
@@ -60,21 +59,8 @@
                 $scope.data.averageBTCRate = 0;
                 $scope.data.PendingCommission.forEach(function (item) {
 
-                    $scope.data.totalCommission += parseFloat(item.BTCAmount);
-                    $scope.data.averageBTCRate += parseFloat(item.BTCRate);
+                    $scope.data.totalCommission += parseFloat(item.CommissionAmount);
                 });
-                $scope.data.averageBTCRate = $scope.data.averageBTCRate / $scope.data.PendingCommission.length;
-
-                $me.calculateAlternateRate = function () {
-
-                    $scope.data.PendingCommission.forEach(function (item) {
-
-                        item.AlternateBTCAmount = item.CommissionAmount / parseFloat($scope.BTCRate.low);
-                        $scope.data.altTotalCommission += item.AlternateBTCAmount;
-                    });
-                };
-                $me.calculateAlternateRate();
-
             }
 
         }
@@ -184,7 +170,7 @@
 
             $scope.isBusy = true;
 
-            $http.post("/__affiliate/requestpayment", { btcaddress : '' }).success(function (data) {
+            $http.post("/__affiliate/requestpayment", { btcaddress: data.Registration.BTCAddress }).success(function (data) {
 
                 $scope.isBusy = false;
                 swal("ทุกอย่างดูดี!".translate("Looks Good!"), "ขอรีเฟรชหน้านี้แป๊บนะ...".translate("Refreshing this page..."), "success");

@@ -113,7 +113,7 @@
 
             };
 
-            $me.loginfacebook = function (callback) {
+            $me.loginfacebook = function (callback, popupless, state) {
 
                 if (typeof(FB) == undefined) {
                     return;
@@ -140,18 +140,31 @@
                 FB.getLoginStatus(function (response) {
 
                     if (response.status == 'unknown' || response.status == 'not_authorized') {
+                        
+                        // will redirect and user has to do the action again
+                        if (popupless == true) {
 
-                        FB.login(function (loginResponse) {
+                            var uri = encodeURI(window.location.href);
+                            window.location = encodeURI("https://www.facebook.com/dialog/oauth?" +
+                                    "client_id=" + window.facebookAppId +
+                                    "&redirect_uri=" + uri +
+                                    "&state=" + state +
+                                    "&response_type=token&scope=email,public_profile,user_about_me,user_birthday");
 
-                            if (loginResponse.authResponse) {
+                        } else {
+                            
+                            FB.login(function (loginResponse) {
 
-                                processFacebookLogin();
+                                if (loginResponse.authResponse) {
 
-                            } else {
-                                console.log('User cancelled login or did not fully authorize.');
-                            }
+                                    processFacebookLogin();
 
-                        }, { scope: 'email,public_profile,user_about_me' });
+                                } else {
+                                    console.log('User cancelled login or did not fully authorize.');
+                                }
+
+                            }, { scope: 'email,public_profile,user_about_me,user_birthday' });
+                        }
                     }
 
                     if (response.status == "connected") {

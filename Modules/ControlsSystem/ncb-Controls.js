@@ -1913,25 +1913,36 @@
             if (attrs.href.indexOf("#") != 0)
                 return;
 
-            var targetOffset = 0;
-            if (attrs.href == "#top") {
-                // offset is 0
-            }
-            else {
+            element.on("click", function (e) {
 
-                var target = $(attrs.href);
-                if (target.length == 0) {
-                    return;
+                var targetOffset = 0;
+                if (attrs.href == "#top") {
+                    // offset is 0
+                }
+                else {
+
+                    var target = $(attrs.href);
+                    if (target.length == 0) {
+                        return;
+                    }
+
+                    targetOffset = target.offset().top;
                 }
 
-                targetOffset = target.offset().top;
-            }
-
-            element.on("click", function (e) {
+                if (attrs.offset != null )
+                {
+                    targetOffset += parseInt( attrs.offset);
+                }
 
                 e.preventDefault();
 
-                $("html, body").animate({ scrollTop: targetOffset + "px" });
+                $("html, body").animate(
+                    { scrollTop: targetOffset + "px" },
+                    {
+                        queue: false,
+                        duration: 1200,
+                        easing: "easeInOutExpo"
+                    });
             });
         }
 

@@ -170,7 +170,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
                 RowVerions = so.GetRowVersions(this.SiteDatabase),
-                PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts( this.SiteDatabase)
+                PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts( this.SiteDatabase),
+                InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( i => i.SaleOrderId == so.Id ).ToList()
             };
 
             return View["/Admin/saleorderdetailmanager", new StandardModel(this, dummyPage, data)];

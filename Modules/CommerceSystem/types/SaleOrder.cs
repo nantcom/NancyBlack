@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Web;
+using NantCom.NancyBlack.Modules.MultiLanguageSystem;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
@@ -49,6 +50,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string ERROR_NO_CODE = "NO_CODE";
         public const string ERROR_CASH_ONLY = "CASH_ONLY";
         public const string ERROR_MIN_AMOUNT = "MIN_AMOUT";
+        public const string ERROR_PRODUCT_DISABLE = "ERROR_PRODUCT_DISABLE";
         public const string ERROR_REQUIRE_PRODUCT = "REQUIRE_PRODUCT";
 
         /// <summary>
@@ -619,6 +621,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                         success = false,
                         attributes = codeProduct.Attributes,
                         error = PromotionApplyResult.ERROR_CASH_ONLY
+                    };
+                }
+            }
+
+            foreach (var item in this.ItemsDetail)
+            {
+                if (item.Attributes.disablepromo != null)
+                {
+                    codeProduct.Attributes.description = item.Title;
+
+                    return new PromotionApplyResult()
+                    {
+                        code = code,
+                        success = false,
+                        attributes = codeProduct.Attributes,
+                        error = PromotionApplyResult.ERROR_PRODUCT_DISABLE
                     };
                 }
             }

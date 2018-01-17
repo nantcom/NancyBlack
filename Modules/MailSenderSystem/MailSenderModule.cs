@@ -10,12 +10,15 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using NantCom.NancyBlack.Modules.MailSenderSystem;
+using System.Runtime.Caching;
 
 namespace NantCom.NancyBlack.Modules
 {
+
     public class MailSenderModule : IPipelineHook
     {
         private static ConcurrentQueue<MailMessage> _Outbox;
+        
 
         /// <summary>
         /// Old method signature for compatibility
@@ -42,7 +45,7 @@ namespace NantCom.NancyBlack.Modules
             {
                 _Outbox = new ConcurrentQueue<MailMessage>();
             }
-
+            
             MailMessage mail = new MailMessage();
 
             mail.To.Add(to);
@@ -90,6 +93,14 @@ namespace NantCom.NancyBlack.Modules
                         log.Subject = mail.Subject;
                         log.Settings = settings;
                         
+                        var key = log.To + "-" + log.Subject + log.Body.GetHashCode();
+                        if (MemoryCache.Default[key] != null)
+                        {
+                            continue; // we just send this email to this user recently, skip
+                        }
+
+                        MemoryCache.Default.Add(key, 1, DateTimeOffset.Now.AddMinutes(10));
+
                         try
                         {
                             mail.From = new MailAddress(settings.fromEmail);
@@ -99,7 +110,7 @@ namespace NantCom.NancyBlack.Modules
                         {
                             log.Exception = e;
                         }
-
+                        
                         db.DelayedInsert(log);
                     }
 

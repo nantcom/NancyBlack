@@ -1,4 +1,5 @@
-﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
+﻿using NantCom.NancyBlack.Modules.CommerceSystem.types;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 using RestSharp;
 using RestSharp.Authenticators;
 using System;
@@ -11,14 +12,6 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
 {
     public class MailingListModule : BaseModule
     {
-        static MailingListModule()
-        {
-            // mailchimp api key
-            // 295bd1448b335908c90f7429b4ca04c1-us16
-
-            //NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
-
-        }
 
         private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string table, dynamic row)
         {
@@ -69,25 +62,50 @@ namespace NantCom.NancyBlack.Modules.MailingListSystem
             return true;
         }
 
+        private dynamic SyncMailchimp(dynamic arg)
+        {
+            var errors = new List<string>();
+            string key = AdminModule.ReadSiteSettings().commerce.mailchimp.apikey;
+            string memberListId = this.CurrentSite.commerce.mailchimp.listid;
+            string customerListId = this.CurrentSite.commerce.mailchimp.customerlistid;
+
+            var all = this.SiteDatabase.Query<NcbMailingListSubscription>().OrderByDescending(u => u.Id).ToList();
+            foreach (var item in all)
+            {
+                MailingListModule.AddToMailChimp(key, memberListId, item);
+            }
+            
+            var allCustomers = this.SiteDatabase.Query<SaleOrder>()
+                                .Where( so => so.PaymentStatus == PaymentStatus.PaymentReceived)
+                                .OrderByDescending(so => so.Id)
+                                .ToList();
+
+            foreach (var item in allCustomers)
+            {
+                if (item.Customer == null)
+                {
+                    continue;
+                }
+
+                MailingListModule.AddToMailChimp(key, customerListId, new NcbMailingListSubscription()
+                {
+                    FirstName = item.Customer.FirstName,
+                    LastName = item.Customer.LastName,
+                    Email = item.Customer.Email
+                });
+            }
+
+            if (errors.Count > 0)
+            {
+                return errors;
+            }
+
+            return "OK";
+        }
+
         public MailingListModule()
         {
-            Get["/__mailinglist/mailchimpexport/{listid}"] = this.HandleRequest((arg) =>
-            {
-                var all = this.SiteDatabase.Query<NcbMailingListSubscription>().OrderByDescending( u => u.Id ).ToList();
-                var errors = new List<string>();
-                var key = AdminModule.ReadSiteSettings().commerce.mailchimp.apikey;
-                foreach (var item in all)
-                {
-                    MailingListModule.AddToMailChimp(key, arg.listid, item);
-                }
-
-                if (errors.Count > 0)
-                {
-                    return errors;
-                }
-
-                return "OK";
-            });
+            Get["/__mailinglist/sync"] = this.HandleRequest(this.SyncMailchimp);
         }
     }
 }

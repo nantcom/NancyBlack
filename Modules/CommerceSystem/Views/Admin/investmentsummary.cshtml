@@ -22,43 +22,6 @@
     <script src="/NancyBlack/Content/Scripts/Chart.js-master/Chart.min.js"></script>
     <script src="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
 
-    <script>
-
-        window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
-
-        (function () {
-            'use strict';
-
-            angular
-                .module('investmentModule', ["chart.js"])
-                .controller('pageController', pageController);
-
-            pageController.$inject = ['$location', '$window', '$scope', '$http', '$log'];
-
-            function pageController($location, $window, $scope, $http, $log) {
-                /* jshint validthis:true */
-                var vm = this;
-
-                $scope.summarizedReport = window.allData.SummarizedReports;
-                $scope.productReports = window.allData.ProductReports;
-                $scope.cash = window.allData.Cash;
-                $scope.currentCash = window.allData.CurrentCash;
-                $scope.summarizedRevenueChart = window.allData.SummarizedRevenueChart;
-                $scope.soldLaptopChart = window.allData.SoldLaptopChart;
-
-                $scope.summarizedRevenueChart.Options = {
-                    scales: {
-                        yAxes: [
-                            { type: "linear", "id": "y1", display: true, position: "left" },
-                            { type: "linear", "id": "y2", display: true, position: "right" }
-                        ]
-                    }
-                };
-                $scope.summarizedRevenueChart.Overrides = [{ yAxisID: 'y-axis-1' }, { yAxisID: 'y-axis-2' }];
-            }
-        })();
-    </script>
-
 }
 
 <div ng-module="investmentModule"
@@ -72,6 +35,14 @@
 
     <div class="row">
 
+        @{ 
+            var minTime = "ytd";
+            if (this.Request.Query.mintime != null)
+            {
+                minTime = (string)this.Request.Query.mintime;
+            }
+        }
+
         <div class="col-md-6"
              ncg-chart
              title="'Revenue'"
@@ -79,7 +50,7 @@
              fn="'sum'"
              select="'TotalAmount'"
              period="'month'"
-             mintime="'ytd'"
+             mintime="'@(minTime)'"
              time="'PaymentReceivedDate'"
              filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
         </div>
@@ -91,7 +62,7 @@
              fn="'count'"
              select="'TotalAmount'"
              period="'month'"
-             mintime="'ytd'"
+             mintime="'@(minTime)'"
              time="'PaymentReceivedDate'"
              filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
         </div>
@@ -103,7 +74,7 @@
              fn="'cumulativesum'"
              select="'TotalAmount'"
              period="'month'"
-             mintime="'ytd'"
+             mintime="'@(minTime)'"
              time="'PaymentReceivedDate'"
              filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
         </div>
@@ -115,98 +86,11 @@
              fn="'cumulativecount'"
              select="'TotalAmount'"
              period="'month'"
-             mintime="'ytd'"
+             mintime="'@(minTime)'"
              time="'PaymentReceivedDate'"
              filter="(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')">
         </div>
 
-        @*<div class="col-md-6">
-            <canvas id="line" class="chart chart-line" chart-data="data"
-                    chart-labels="labels" chart-legend="true" chart-series="series"
-                    chart-click="onClick"></canvas> 
-        </div>
-
-        <div class="col-md-6">
-            <canvas id="line" class="chart chart-line" chart-data="data"
-                    chart-labels="labels" chart-legend="true" chart-series="series"
-                    chart-click="onClick"></canvas> 
-        </div>*@
-
-
-    </div>
-
-    <div class="row" style="margin-bottom: 50px;">
-
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">{{soldLaptopChart.Title}}</div>
-                <div class="panel-body">
-                    <canvas class="chart-base" data="soldLaptopChart.Data"
-                            chart-type="soldLaptopChart.Type"
-                            labels="soldLaptopChart.Labels"
-                            legend="soldLaptopChart.IsLegend"
-                            series="soldLaptopChart.Series"
-                            colours="soldLaptopChart.Colours"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            Cash : <b>{{cash}}</b><br />
-            Current Cash : <b>{{currentCash}}</b><br /><br />
-
-            <tabset>
-
-                <tab heading="{{summarizedReport.Title}}">
-
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <tr>
-                                <th>Reported Month</th>
-                                <th>Quantity</th>
-                                <th>Return from Investment</th>
-                            </tr>
-                            <tr ng-repeat="monthlyReport in summarizedReport.MonthlyReports">
-                                <td>{{monthlyReport.ReportedDate | date: 'MMMM yyyy'}}</td>
-                                <td>{{monthlyReport.Quantity}}</td>
-                                <td>{{monthlyReport.ReturnFromInvestment}}</td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td><b>{{summarizedReport.Quantity}}</b></td>
-                                <td><b>{{summarizedReport.ReturnFromInvestment}}</b></td>
-                            </tr>
-                        </table>
-                    </div>
-
-                </tab>
-
-                <tab ng-repeat="report in productReports" heading="{{report.Title}}">
-
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <tr>
-                                <th>Reported Month</th>
-                                <th>Quantity</th>
-                                <th>Return from Investment</th>
-                            </tr>
-                            <tr ng-repeat="monthlyReport in report.MonthlyReports">
-                                <td>{{monthlyReport.ReportedDate | date: 'MMMM yyyy'}}</td>
-                                <td>{{monthlyReport.Quantity}}</td>
-                                <td>{{monthlyReport.ReturnFromInvestment}}</td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td><b>{{report.Quantity}}</b></td>
-                                <td><b>{{report.ReturnFromInvestment}}</b></td>
-                            </tr>
-                        </table>
-                    </div>
-
-                </tab>
-
-            </tabset>
-        </div>
     </div>
 
 </div>
