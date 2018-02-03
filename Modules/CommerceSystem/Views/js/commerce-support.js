@@ -22,6 +22,16 @@
             }
         }
 
+        var receiptIndex = -1;
+        for (var i = 0; i < $scope.paymentLogs.length; i++) {
+            var log = $scope.paymentLogs[i];
+            if (log.IsPaymentSuccess) {
+                receiptIndex++;
+
+                log.receiptIndex = receiptIndex;
+            }
+        }
+
         console.log("WARNING: Using Status list from client side");
 
         if ($scope.object.DHLTrackingNumber != null) {
@@ -198,6 +208,7 @@
                 });
 
         };
+        
         
         if (window.location.href.indexOf("?paymentsuccess") > 0) {
 

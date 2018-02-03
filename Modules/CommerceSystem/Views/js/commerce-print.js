@@ -5,6 +5,9 @@
     var mod = angular.module('Page', []);
     mod.controller('PageController', function ($scope, $http) {
 
+
+        var $me = this;
+
         $scope.so = window.data.SaleOrder;
         $scope.rc = window.data.Receipt;
         $scope.paymentDetail = window.data.PaymentDetail;
@@ -196,7 +199,15 @@
 
             return true;
         };
-        
+
+        $me.filterZero = function (item) {
+
+            if (item.Attributes != null && item.Attributes.Qty == 0) {
+                return false;
+            }
+
+            return true;
+        };
     });
 
     mod.filter('newline', function ($sce) {

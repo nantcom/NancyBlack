@@ -124,15 +124,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .FirstOrDefault();
 
             }
-
-            if (arg.form == "receipt" && !this.CurrentUser.HasClaim("admin"))
-            {
-                if (so.PaymentStatus != PaymentStatus.PaymentReceived)
-                {
-                    return new StandardModel(400);
-                }
-            }
-
+            
             if (so == null)
             {
                 return new StandardModel(404); ;

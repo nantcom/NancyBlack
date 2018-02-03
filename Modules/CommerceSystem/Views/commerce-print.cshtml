@@ -273,7 +273,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tr ng-repeat="item in ItemsDetail | orderBy: 'Price' : true">
+                <tr ng-repeat="item in ItemsDetail | filter: ctrl.filterZero">
                     <td>
                         <div class="form-control-static">
                             {{$index + 1}}

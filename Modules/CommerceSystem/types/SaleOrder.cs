@@ -412,6 +412,41 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.Items = newItemsList.ToArray();
             }
 
+            Func<Product, int> getSortOrder = (p) =>
+            {
+                var orderList = new string[] {
+                    "/laptops/",
+                    "/monitor/",
+                    "/calibrate/",
+                    "/cpu/",
+                    "/gpu/",
+                    "/ram/",
+                    "/m2/",
+                    "/hdd/",
+                    "/wifi/",
+                    "/keyboard/",
+                    "/thermal/",
+                    "/os/"
+                };
+
+                if (p.Url.Contains("/promotion"))
+                {
+                    return int.MaxValue;
+                }
+
+                for (int i = 0; i < orderList.Length; i++)
+                {
+                    if (p.Url.IndexOf( orderList[i] ) > 0)
+                    {
+                        return i;
+                    }
+                }
+
+                return int.MaxValue;
+            };
+
+            this.ItemsDetail = this.ItemsDetail.OrderBy(p => getSortOrder(p)).ToList();
+
             // remove the discount item
             var discountItem = this.ItemsDetail.Where(i => i.Url == "/dummy/dummy").FirstOrDefault();
             if (discountItem != null)
