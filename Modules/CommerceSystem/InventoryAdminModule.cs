@@ -9,10 +9,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Newtonsoft.Json;
+using System.Runtime.Caching;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
-    public class InventoryAdminModule : BaseModule
+    public class InventoryItemModule : BaseModule
     {
         /// <summary>
         /// Occurred when inventory has finished extracting products from sale order, use this event to
@@ -20,13 +21,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// </summary>
         public static event Action<NancyBlackDatabase, SaleOrder, List<InventoryItem>> TransformInventoryRequest = delegate { };
 
-        static InventoryAdminModule()
+        static InventoryItemModule()
         {
             NancyBlackDatabase.ObjectUpdated += (db, table, obj) =>
             {
                 if (table == "SaleOrder")
                 {
-                    InventoryAdminModule.ProcessSaleOrderUpdate(db, obj);
+                    InventoryItemModule.ProcessSaleOrderUpdate(db, obj);
                 }
             };
         }
@@ -35,7 +36,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         internal static void ProcessSaleOrderUpdate(NancyBlackDatabase db, SaleOrder saleOrder)
         {
-            InventoryAdminModule.ProcessSaleOrderUpdate(db, saleOrder, false, DateTime.Now);
+            InventoryItemModule.ProcessSaleOrderUpdate(db, saleOrder, false, DateTime.Now);
         }
 
         /// <summary>
@@ -70,31 +71,84 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             var productsById = so.ItemsDetail.ToLookup(p => p.Id);
-            foreach (var req in requests)
+            var autoFulfill = so.Status == SaleOrderStatus.Delivered ||
+                    so.Status == SaleOrderStatus.Shipped ||
+                    so.Status == SaleOrderStatus.ReadyToShip;
+                        
+            if (autoFulfill) // this is old sale order
             {
-                if (so.Status == SaleOrderStatus.Delivered ||
-                    so.Status == SaleOrderStatus.Testing ||
-                    so.Status == SaleOrderStatus.Building)
-                {
-                    req.IsFullfilled = true;
-                    req.InboundDate = so.__updatedAt;
-                    req.OutboundDate = so.__updatedAt;
-                }
+                // get the average cost
+                IEnumerable<dynamic> priceListResult = db.Query("SELECT ProductId, AVG(BuyingPrice) as AvgCost FROM InventoryPurchase GROUP BY ProductId",
+                                                        new
+                                                        {
+                                                            ProductId = 1,
+                                                            AvgCost = 0M
+                                                        });
 
-                if (productsById[req.ProductId].Count() == 1)
+                var priceList = priceListResult.ToLookup(i => i.ProductId);
+
+                foreach (var req in requests)
                 {
-                    var p = productsById[req.ProductId].First();
-                    if (p != null && p.Attributes != null)
+                    if (req.IsFullfilled == false)
                     {
-                        req.SerialNumber = p.Attributes.Serial;
+                        req.IsFullfilled = true;
+                        req.FulfilledDate = so.__updatedAt;
                     }
+
+                    if (req.BuyingCost == 0) // no price, try to re-run
+                    {
+                        var price = priceList[req.ProductId].FirstOrDefault();
+                        if (price != null)
+                        {
+                            req.BuyingCost = (Decimal)price.AvgCost;
+                        }
+                    }
+
+                    req.__updatedAt = so.__updatedAt;
+                    db.Connection.Update(req);
                 }
 
-                req.__updatedAt = so.__updatedAt;
-                db.Connection.Update(req);
+                return;
             }
 
 
+            // we try to match the inventorypurchase into this request
+            // ensure that only this thread is running
+            lock ("InventoryPurchase")
+            {
+                // In memory cache of the inventory
+                var availableInventory = db.Query<InventoryPurchase>()
+                                            .Where(i => i.InventoryItemId == 0)
+                                            .ToLookup(i => i.ProductId);
+                
+                foreach (var req in requests)
+                {
+                    if (req.IsFullfilled == true)
+                    {
+                        continue;
+                    }
+                    
+                    var available = availableInventory[req.ProductId].FirstOrDefault( i => i.InventoryItemId == 0 );
+                    if (available == null)
+                    {
+                        // this was fulfilled but we dont have inventory available
+                        // probably it was processed before inventory purcahse system
+                        continue;
+                    }
+
+                    req.BuyingCost = available.BuyingPrice;
+                    req.BuyingTax = available.BuyingTax;
+                    req.InventoryPurchaseId = available.Id;
+                    req.IsFullfilled = true;
+                    available.InventoryItemId = req.Id;
+
+                    db.Connection.RunInTransaction(() =>
+                    {
+                        db.Connection.Update(req);
+                        db.Connection.Update(available);
+                    });
+                }
+            }
         }
 
         /// <summary>
@@ -110,7 +164,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 now = DateTime.Now;
 
                 // fulfill the requests of this sale order
-                InventoryAdminModule.ProcessFulfillSaleOrder(db, saleOrder);
+                InventoryItemModule.ProcessFulfillSaleOrder(db, saleOrder);
 
                 // only do when status is waiting for order
                 if (saleOrder.Status != SaleOrderStatus.WaitingForOrder)
@@ -159,7 +213,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         ProductId = item.Id,
                         RequestedDate = now,
                         IsFullfilled = false,
-                        SellingPrice = item.CurrentPrice
+                        QuotedPrice = item.CurrentPrice,
+                        SellingPrice = item.CurrentPrice,
                     };
                     items.Add(ivitm);
 
@@ -171,51 +226,56 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             // distribute discount into items which has actual sell price
-            var discountToDistribute = totalDiscount / items.Where(item => item.SellingPrice > 0).Count();
+            var totalTrueItems = items.Where(item => item.QuotedPrice > 0).Count();
 
-            // discount is too great for some item, add it to the most expensive one
-            if (items.Where(item => discountToDistribute > item.SellingPrice).Count() > 0)
-            {
-                var item = items.OrderByDescending(i => i.SellingPrice).First();
-
-                item.SellingPrice -= totalDiscount;
-
-                if (currentSite.commerce.billing.vattype == "addvat")
-                {
-                    item.SellingTax = item.SellingPrice * (100 + (int)currentSite.commerce.billing.vatpercent) / 100;
-                }
-
-                if (currentSite.commerce.billing.vattype == "includevat")
-                {
-                    var priceWithoutTax = item.SellingPrice * 100 / (100 + (int)currentSite.commerce.billing.vatpercent);
-                    item.SellingTax = item.SellingPrice - priceWithoutTax;
-                    item.SellingPrice = priceWithoutTax;
-                }
-            }
-            else // distribute it to items
+            var discountRemaining = totalDiscount;
+            while (discountRemaining > 0)
             {
                 foreach (var item in items)
                 {
                     if (item.SellingPrice > 0)
                     {
-                        item.SellingPrice -= discountToDistribute;
+                        // discount by 1% 
+                        var discount = item.SellingPrice * 0.01M;
 
-                        if (currentSite.commerce.billing.vattype == "addvat")
+                        if (discountRemaining - discount < 0)
                         {
-                            item.SellingTax = item.SellingPrice * (100 + (int)currentSite.commerce.billing.vatpercent) / 100;
+                            discount = discountRemaining;
                         }
+                        discountRemaining -= discount;
+                        item.SellingPrice = item.SellingPrice - discount;
 
-                        if (currentSite.commerce.billing.vattype == "includevat")
+                        if (discountRemaining == 0)
                         {
-                            var priceWithoutTax = item.SellingPrice * 100 / (100 + (int)currentSite.commerce.billing.vatpercent);
-                            item.SellingTax = item.SellingPrice - priceWithoutTax;
-                            item.SellingPrice = priceWithoutTax;
+                            break;
                         }
                     }
                 }
             }
 
-            InventoryAdminModule.TransformInventoryRequest(db, saleOrder, items);
+            foreach (var item in items)
+            {
+                item.__updatedAt = DateTime.Now;
+                item.__createdAt = DateTime.Now;
+
+                if (item.SellingPrice > 0)
+                {
+                    if (currentSite.commerce.billing.vattype == "addvat")
+                    {
+                        item.SellingTax = item.SellingPrice * (100 + (int)currentSite.commerce.billing.vatpercent) / 100;
+                    }
+
+                    if (currentSite.commerce.billing.vattype == "includevat")
+                    {
+                        var priceWithoutTax = item.SellingPrice * 100 / (100 + (int)currentSite.commerce.billing.vatpercent);
+                        item.SellingTax = item.SellingPrice - priceWithoutTax;
+                        item.SellingPrice = priceWithoutTax;
+                    }
+                }
+            }
+
+
+            InventoryItemModule.TransformInventoryRequest(db, saleOrder, items);
 
             // Remove items with selling price 0 or less than 0
             // that is not a real product
@@ -223,72 +283,73 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                      where item.SellingPrice > 0
                      select item).ToList();
 
-            db.Transaction(() =>
+            // attempt to merge the old list and new list using product id
+            // by seeing if there is any item that was already fulfilled - if 
+            // there is any - copy the information into new list
+            var existing = db.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == saleOrder.Id).ToLookup(ivt => ivt.ProductId);
+            var newList = items.ToLookup(ivt => ivt.ProductId);
+
+            foreach (var group in existing)
             {
-                // before inserting...
-                // if the inventory item for this sale order already fullfilled
-                // it will remain in inventory but sale order removed
+                var existingGroup = existing[group.Key].ToList();
+                var newGroup = group.ToList();
 
-                // we will always create new inventory item for this sale order
-                // and clear out old ones
-
-                foreach (var item in db.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == saleOrder.Id).ToList())
+                for (int i = 0; i < existingGroup.Count; i++)
                 {
-                    if (item.IsFullfilled)
+                    if ( i >= newGroup.Count)
                     {
-                        item.Note = "Sale Order Id was removed because sale order which created this item has status set to WaitingForOrder Again";
-                        item.SaleOrderId = 0;
-                        item.IsFullfilled = false;
-                        db.UpsertRecord(item);
-                        continue; // item already fullfilled, we leave it but remove sale order id
+                        // old list has more items - keep them if it is already fulfilled
+                        if (existingGroup[i].IsFullfilled)
+                        {
+                            existingGroup[i].Note = "This sale order have less items, this is an orphaned row";
+                            db.Connection.Update(existingGroup[i]);
+                        }
+                        else
+                        {
+                            // otherwise, just deletes them
+                            db.Connection.Delete<InventoryItem>(existingGroup[i].Id);
                         }
 
-                    db.DeleteRecord(item);
+                        continue;
+                    }
+
+                    if (existingGroup[i].IsFullfilled)
+                    {
+                        newGroup[i].IsFullfilled = true;
+                        newGroup[i].SerialNumber = existingGroup[i].SerialNumber;
+                        newGroup[i].FulfilledDate = existingGroup[i].FulfilledDate;
+                    }
+
+                    db.Connection.Delete<InventoryItem>(existingGroup[i].Id);
                 }
+            }
 
-                foreach (var item in items)
-                {
-                    db.UpsertRecord(item);
-                }
-            });
-
-
+            db.Connection.InsertAll(items);
         }
 
-        public InventoryAdminModule()
+        public InventoryItemModule()
         {
             this.RequiresClaims("admin");
 
             // insert updatedStock here
             Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
-
-            Get["/admin/tables/inventoryitem/__notfullfilled"] = this.HandleRequest(this.GetWaitingForOrder);
-
-            Get["/admin/tables/inventoryitem/__waitingforinbound"] = this.HandleRequest(this.GetWaitingForInbound);
-
-            Get["/admin/tables/inventoryitem/__instock"] = this.HandleRequest((arg) =>
-            {
-                return this.SiteDatabase.Query("SELECT ProductId, SUM(BuyingCost) as Price, SUM(1) as Qty FROM InventoryItem WHERE IsFullfilled = 0 AND InboundDate > 0 AND SaleOrderId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0, Qty = 0 });
-            });
-
             Get["/admin/tables/inventoryitem/__averageprice"] = this.HandleRequest((arg) =>
             {
-                return this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingCost) as Price FROM InventoryItem WHERE BuyingCost > 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0 });
+                return this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingPrice) as Price FROM InventoryPurchase WHERE BuyingPrice > 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0 });
             });
-
-
+            
         }
-
+        
         /// <summary>
         /// List the products that were not fullfilled
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<object> GetWaitingForOrder(dynamic args)
+        private IEnumerable<object> GetWaitingForOrderGroupBySupplier(dynamic args)
         {
             var productLookup = this.SiteDatabase.Query<Product>().ToLookup(p => p.Id);
 
             var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
-                                    .Where(ivitm => ivitm.IsFullfilled == false && ivitm.InboundDate == DateTime.MinValue)
+                                    .Where(ivitm => ivitm.IsFullfilled == false)
                                     .OrderBy(ivitm => ivitm.RequestedDate).ToList();
             
             return from item in notFullfilled
@@ -301,28 +362,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                        InventoryItem = item
                    };
         }
-
-        /// <summary>
-        /// List the products that is not yet inbound
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<object> GetWaitingForInbound(dynamic args)
-        {
-            var productLookup = this.SiteDatabase.Query<Product>().ToDictionary(p => p.Id);
-
-            var notFullfilled = this.SiteDatabase.Query<InventoryItem>()
-                                    .Where(ivitm => ivitm.InboundDate >= DateTime.Now.Date)
-                                    .OrderBy(ivitm => ivitm.RequestedDate).ToList();
-
-            return from item in notFullfilled
-                   let product = productLookup[item.ProductId]
-                   where product.Attributes != null
-                   select new
-                   {
-                       SupplierId = product.SupplierId,
-                       ProductId = product.Id,
-                       InventoryItem = item
-                   };
-        }
+        
     }
 }

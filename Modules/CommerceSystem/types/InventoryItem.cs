@@ -21,16 +21,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Date that the inventory was requested
         /// </summary>
         public DateTime RequestedDate { get; set; }
-
+        
         /// <summary>
-        /// Date of this movement (not the date that the record was created)
+        /// Date that item was fulfilled
         /// </summary>
-        public DateTime InboundDate { get; set; }
-
-        /// <summary>
-        /// Date of item
-        /// </summary>
-        public DateTime OutboundDate { get; set; }
+        public DateTime FulfilledDate { get; set; }
         
         /// <summary>
         /// Product Id Involved in the movement
@@ -38,9 +33,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int ProductId { get; set; }
         
         /// <summary>
-        /// Purcahse Order's Id
+        /// The related inventory purchase that were used to fulfill this inventory item.
+        /// If 0 but status is IsFullfilled = true - the entry was created before InventoryPurchase system.
         /// </summary>
-        public int PurchaseOrderId { get; set; }
+        public int InventoryPurchaseId { get; set; }
 
         /// <summary>
         /// Sale Order's Id
@@ -63,7 +59,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public Decimal BuyingTax { get; set; }
 
         /// <summary>
-        /// Price that this item was sold for, without Tax
+        /// Price that this item was quoted in the invoice
+        /// </summary>
+        public Decimal QuotedPrice { get; set; }
+
+        /// <summary>
+        /// Actual Price we sell this item for, after discount in the sale order
         /// </summary>
         public Decimal SellingPrice { get; set; }
 
@@ -73,7 +74,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public Decimal SellingTax { get; set; }
         
         /// <summary>
-        /// Whether this inventory item has been used to fullfill and sale order
+        /// Whether this inventory item has been fullfilled by getting item from inventory purchase
         /// </summary>
         public bool IsFullfilled { get; set; }
 

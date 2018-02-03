@@ -16,6 +16,20 @@
     <script>
 
         window.commerceSettings = @this.Html.Raw(this.Site.commerce.ToString());
+
+        window.data = {};
+        window.data.ProductUrl = @this.GetJsonRaw(this.Database.Query("SELECT Id, Url FROM Product WHERE Instr(Url, '/archive/') = 0 AND  Instr(Url, '/promotions/') = 0", new { Id = 0, Url = "" }));
+        window.data.AveragePrice = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, AVG(BuyingPrice) as Price FROM InventoryPurchase GROUP BY ProductId", new { ProductId = 0, Price = 0.0 }));
+        window.data.Instock = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, SUM(1) as Qty FROM InventoryPurchase WHERE InventoryItemId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0M, Qty = 0 }));
+        window.data.WaitingForInbound = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, SUM(1) as Qty FROM InventoryPurchase WHERE InventoryItemId = 0 AND IsInBound = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0M, Qty = 0 }));
+        window.data.InventoryRequests = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(1) as Qty, AVG(SellingPrice) as SoldPrice FROM InventoryItem WHERE IsFullFilled = 0 GROUP BY ProductId", new { ProductId = 0, Qty = 0, SoldPrice = 0M }));
+
+        window.productUrlLookup = [];
+        window.data.ProductUrl.forEach(function (item) {
+
+            window.productUrlLookup[item.Id] = item.Url;
+        });
+
     </script>
 }
 <div ng-module="InventoryAdminModule">
@@ -35,7 +49,7 @@
 
             <div class="row">
 
-                <div ng-controller="InventoryNotFullfilled as ctrl"
+                @*<div ng-controller="InventoryNotFullfilled as ctrl"
                      class="col-md-6">
 
                     <h3 class="page-header text-primary">
@@ -44,10 +58,7 @@
                         <span class="pull-right">
                             <b class="text-danger">
                                 {{totalBuying | number:2}}
-                            </b> /
-                            <span class="text-info">
-                                {{totalSelling | number:2}}
-                            </span>
+                            </b>
                         </span>
                     </h3>
 
@@ -69,6 +80,12 @@
                                         <tr ng-repeat="(key, value) in value | groupBy:'ProductId'">
                                             <td>
                                                 <span ncb-vlookup="product" key="{{key}}" label="Title"></span>
+                                                 <div>
+                                                    <a ng-href="/Admin/tables/SaleOrder/{{item.InventoryItem.SaleOrderId}}"
+                                                       ng-repeat="item in value" target="_blank">
+                                                        {{item.InventoryItem.SaleOrderId}}
+                                                    </a>
+                                                </div>
                                             </td>
                                             <td>
                                                 {{averagePrices[key] | number:2}}
@@ -83,164 +100,120 @@
                         </div>
                     </div>
 
-                </div>
+                </div>*@
 
-                <div ng-controller="InventoryNotInbound as ctrl"
-                     class="col-md-6">
+                <div class="col-md-6">
 
-                    <h3 class="page-header text-warning">
-                        Waiting for Inbound
+                    <div ng-controller="InventoryNotFullfilled2 as ctrl">
 
-                        <span class="pull-right">
-                            <b class="text-danger">
-                                {{totalBuying | number:2}}
-                            </b>
-                        </span>
-                    </h3>
-                    <div ng-repeat="(key, value) in data | groupBy:'SupplierId' | orderBy:'$key'">
+                        <h3 class="page-header text-danger">
+                            Required
 
-                        <div class="panel panel-info">
-                            <div class="panel-heading">
-                                <span ncb-vlookup="supplier" key="{{key}}" label="Name"></span>
-                            </div>
-                            <div class="panel-body">
-                                <table class="table table-striped table-hover table-responsive">
+                            <span class="pull-right">
+                                <b>{{totalValue | number:2}}</b>
+                            </span>
+                        </h3>
 
-                                    <tbody>
-                                        <tr>
-                                            <th width="80%">Item</th>
-                                            <th>Qty</th>
-                                        </tr>
-                                        <tr ng-repeat="(key, value) in value | groupBy:'ProductId'">
-                                            <td>
-                                                <span ncb-vlookup="product" key="{{key}}" label="Title"></span>
-                                            </td>
-                                            <td>
-                                                {{value.length}}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <table class="table table-striped table-hover table-responsive">
+
+                            <tbody>
+                                <tr>
+                                    <th width="80%">Item</th>
+                                    <th>Need</th>
+                                    <th>Stock</th>
+                                    <th>Diff</th>
+                                </tr>
+                                <tr ng-repeat="item in data | orderBy:'Url' "
+                                    ng-class="{'danger' : item.QtyStock - item.Qty < 0 }">
+                                    <td>
+                                        <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
+                                    </td>
+                                    <td>
+                                        {{item.Qty}}
+                                    </td>
+                                    <td>
+                                        {{item.QtyStock}}
+                                    </td>
+                                    <td>
+                                        <b>
+                                            {{item.QtyStock - item.Qty}}
+                                        </b>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
                     </div>
 
                 </div>
 
+                <div class="col-md-6">
 
-            </div>
+                    <div ng-controller="InventoryInstock as ctrl">
 
-        </tab>
+                        <h3 class="page-header text-success">
+                            Stock
 
-        <tab heading="Inventory List">
+                            <span class="pull-right">
+                                <b>{{totalValue | number:2}}</b>
+                            </span>
+                        </h3>
 
-            <div>
+                        <table class="table table-striped table-hover table-responsive">
 
-                <div ng-controller="InventoryInstock as ctrl">
+                            <tbody>
+                                <tr>
+                                    <th width="80%">Item</th>
+                                    <th>Total</th>
+                                    <th>Waiting</th>
+                                    <th>Now</th>
+                                </tr>
+                                <tr ng-repeat="item in data | orderBy:'Url'">
+                                    <td>
+                                        <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
+                                    </td>
+                                    <td>
+                                        {{item.Qty}}
+                                    </td>
+                                    <td>
+                                        {{item.QtyWaiting}}
+                                    </td>
+                                    <td>
+                                        <b>{{item.Qty - item.QtyWaiting}}</b>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
 
-                    <h3 class="page-header text-success">
-                        In Stock
+                    </div>
 
-                        <span class="pull-right">
-                            <b>{{totalValue | number:2}}</b>
-                        </span>
-                    </h3>
-                    
-                    <table class="table table-striped table-hover table-responsive">
+                    <div class="panel panel-primary"
+                         ng-controller="InventoryInboundController2 as ctrl">
+                        <div class="panel-heading">Inventory Inbound</div>
+                        <div class="panel-body">
 
-                        <tbody>
-                            <tr>
-                                <th width="80%">Item</th>
-                                <th>Qty</th>
-                            </tr>
-                            <tr ng-repeat="item in data">
-                                <td>
-                                    <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
-                                </td>
-                                <td>
-                                    {{item.Qty}}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                            <select ng-model="inbound.invoice"
+                                    ncb-select title="Invoice Number">
+                                <option ng-repeat="invoice in invoicenumbers">{{invoice.SupplierInvoiceNumber}}</option>
+                            </select>
+
+                            <input ncb-textbox type="text" title="Scan Barcode" ng-model="inbound.barcode"
+                                   ng-disabled="inbound.invoice == null"
+                                   ng-blur="ctrl.submit()"/>
+
+                            <ncb-alerts alerts="status">
+                            </ncb-alerts>
+                        </div>
+                    </div>
+
 
                 </div>
 
-
-
-
-            </div>
-
-            <div ncb-datacontext table="InventoryItem">
-
-                <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="InventoryItemModal">
-                </ncb-ngtable>
             </div>
 
         </tab>
 
+
     </tabset>
-
-    <script type="text/ng-template" id="tablecustomtemplate.html">
-
-        <table id="NcbNgTable"
-               ncb-datatable
-               class="table table-striped table-hover"
-               style="width: 100%"
-               ng-table="tableParams"
-               show-filter="true">
-
-            <tr ng-repeat="item in tableParams.data">
-
-                <td data-title="'Last Update'"
-                    sortable="'__updatedAt'">
-                    {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
-                </td>
-                <td data-title="'FullFilled'"
-                    sortable="'IsFullfilled'"
-                    filter="{ 'IsFullfilled': 'text' }">
-                    {{item.IsFullfilled }}<br/>
-                    <a ng-if="item.SaleOrderId > 0" target="_blank"
-                       href="{{'/Admin/tables/saleorder/' + item.SaleOrderId}}">SO - {{item.SaleOrderId}}</a>
-                </td>
-                <td data-title="'RequestedDate'"
-                    sortable="'RequestedDate'">
-                    {{item.RequestedDate | date:'dd MMMM yyyy, HH:mm' }}
-                </td>
-                <td data-title="'InboundDate'"
-                    sortable="'InboundDate'">
-                    {{item.InboundDate | date:'dd MMMM yyyy, HH:mm' }}
-                </td>
-                <td data-title="'OutboundDate'"
-                    sortable="'OutboundDate'">
-                    {{item.OutboundDate | date:'dd MMMM yyyy, HH:mm' }}
-                </td>
-                <td data-title="'Product'"
-                    sortable="'ProductId'"
-                    filter="{ 'ProductId': 'text' }">
-                    <span ncb-vlookup="Product" key="{{item.ProductId}}">
-                    </span>
-                </td>
-                <td data-title="'Note'"
-                    sortable="'Note'"
-                    filter="{ 'Note': 'text' }">
-                    {{item.Note }}
-                </td>
-                <td data-title="'Buy'"
-                    sortable="'BuyingCost'"
-                    filter="{ 'BuyingCost': 'text' }">
-                    <b>{{item.BuyingCost | number:2 }}</b><br />
-                    <span class="text-subtle">{{item.BuyingTax | number:2 }}</span>
-                </td>
-                <td data-title="'Sell'"
-                    sortable="'SellingPrice'"
-                    filter="{ 'SellingPrice': 'text' }">
-                    <b>{{item.SellingPrice | number:2 }}</b><br />
-                    <span class="text-subtle">{{item.SellingTax | number:2 }}</span>
-                </td>
-            </tr>
-        </table>
-
-    </script>
 
 </div>

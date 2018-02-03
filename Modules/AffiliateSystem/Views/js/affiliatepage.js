@@ -24,7 +24,7 @@
             var now = new Date();
             var date = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDate();
 
-            $http.get("https://bx.in.th/api/tradehistory/?pairing=1&date=" + date).
+            $http.get("/__commerce/btcquote").
                 success(function (data, status, headers, config) {
 
                     $scope.BTCRate = data.data;

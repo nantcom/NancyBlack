@@ -73,7 +73,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             return GenerateSHA256String(
-                para.Value<string>("pay_type") + para.Value<string>("orderNo") + para.Value<int>("trade_mony") + settings.site_cd + settings.secure_key + settings.user_id).ToLower();
+                para.Value<string>("pay_type") +
+                para.Value<string>("orderNo") +
+                para.Value<int>("trade_mony") +
+                settings.site_cd +
+                settings.secure_key +
+                para.Value<string>("user_id")).ToLower();
         }
 
         private dynamic HandlePaymentPostback(dynamic arg)
