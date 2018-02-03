@@ -196,6 +196,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int CreatedBy { get; set; }
 
         #endregion
+
+        /// <summary>
+        /// Ensures that when editing, customer gets the promotion price
+        /// </summary>
+        /// <param name="so"></param>
+        public void EnsuresGetPromotionPrice( SaleOrder so )
+        {
+            var referenceDate = so.__createdAt;            
+            _IsPromotionPrice = referenceDate <= this.PromotionEndDate.ToLocalTime() &&
+                                    referenceDate >= this.PromotionStartDate.ToLocalTime();
+        }
     }
         
 }

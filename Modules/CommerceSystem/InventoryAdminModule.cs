@@ -27,12 +27,74 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 if (table == "SaleOrder")
                 {
-                    InventoryItemModule.ProcessSaleOrderUpdate(db, obj);
+                    InventoryItemModule.ProcessSaleOrderUpdate(db, (SaleOrder)obj);
+                }
+
+                if (table == "InventoryItem")
+                {
+                    InventoryItemModule.ProcessInventoryItemUpdate(db, (InventoryItem)obj);
                 }
             };
         }
 
         private static object LockObject = new object();
+
+        internal static void ProcessInventoryItemUpdate(NancyBlackDatabase db, InventoryItem req)
+        {
+            if (req.IsFullfilled == false )
+            {
+                // Serial Number is missing - we will not auto process it
+                if (string.IsNullOrEmpty(req.SerialNumber))
+                {
+                    return;
+                }
+
+                lock ("InventoryPurchase")
+                {
+                    var available = db.Query<InventoryPurchase>()
+                            .Where(i => i.InventoryItemId == 0 && i.ProductId == req.ProductId)
+                            .OrderBy(i => i.Id)
+                            .FirstOrDefault();
+
+                    if (available == null)
+                    {
+                        // we actually dont have inventory, but serial number was keyed in
+                        // so we try the average cost instead
+                        dynamic price = db.Query("SELECT ProductId, AVG(BuyingPrice) as AvgCost FROM InventoryPurchase WHERE ProductId=? GROUP BY ProductId",
+                                        new
+                                        {
+                                            ProductId = 1,
+                                            AvgCost = 0M
+                                        }, new object[] { req.ProductId } ).FirstOrDefault();
+
+                        if (price != null)
+                        {
+                            req.BuyingCost = (Decimal)price.AvgCost;
+                        }
+
+                        req.IsFullfilled = true;
+                        req.FulfilledDate = DateTime.Now;
+                        db.Connection.Update(req);
+                    }
+                    else
+                    {
+                        req.BuyingCost = available.BuyingPrice;
+                        req.BuyingTax = available.BuyingTax;
+                        req.InventoryPurchaseId = available.Id;
+                        req.IsFullfilled = true;
+                        req.FulfilledDate = DateTime.Now;
+                        available.InventoryItemId = req.Id;
+
+                        db.Connection.RunInTransaction(() =>
+                        {
+                            db.Connection.Update(req);
+                            db.Connection.Update(available);
+                        });
+                    }
+                }
+            }
+
+        }
 
         internal static void ProcessSaleOrderUpdate(NancyBlackDatabase db, SaleOrder saleOrder)
         {
@@ -49,6 +111,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// <param name="so"></param>
         internal static void ProcessFulfillSaleOrder(NancyBlackDatabase db, SaleOrder so )
         {
+            // this should not be used anymore
+#if DEBUG
+            System.Diagnostics.Debugger.Break();
+#else
+            return;
+#endif
+
             var requests = db.Query<InventoryItem>().Where(i => i.SaleOrderId == so.Id).ToList();
             if (requests.Count == 0)
             {
@@ -164,7 +233,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 now = DateTime.Now;
 
                 // fulfill the requests of this sale order
-                InventoryItemModule.ProcessFulfillSaleOrder(db, saleOrder);
+                // (No longer used)
+                //InventoryItemModule.ProcessFulfillSaleOrder(db, saleOrder);
 
                 // only do when status is waiting for order
                 if (saleOrder.Status != SaleOrderStatus.WaitingForOrder)
@@ -178,14 +248,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return;
                 }
             }
-
-            var currentSite = AdminModule.ReadSiteSettings();
-
-            // NOTE: We can't run it again since it can alter the amount
-            // it is possible that admin may change amount in database
-            //// ensures that all logic of sale order has been ran
-            //saleOrder.UpdateSaleOrder(currentSite, db, false);
-
+            
             // ensure that no inventory inbound can be run
             var totalDiscount = 0M;
 
@@ -253,6 +316,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
             }
 
+            var currentSite = AdminModule.ReadSiteSettings();
+
             foreach (var item in items)
             {
                 item.__updatedAt = DateTime.Now;
@@ -277,10 +342,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             InventoryItemModule.TransformInventoryRequest(db, saleOrder, items);
 
-            // Remove items with selling price 0 or less than 0
-            // that is not a real product
+            // NOTE: sometimes we give free, so price can be 0
             items = (from item in items
-                     where item.SellingPrice > 0
+                     where item.SellingPrice >= 0
                      select item).ToList();
 
             // attempt to merge the old list and new list using product id
@@ -292,7 +356,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             foreach (var group in existing)
             {
                 var existingGroup = existing[group.Key].ToList();
-                var newGroup = group.ToList();
+                var newGroup = newList[group.Key].ToList();
 
                 for (int i = 0; i < existingGroup.Count; i++)
                 {
@@ -315,9 +379,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                     if (existingGroup[i].IsFullfilled)
                     {
+                        // copy information from the existing one
+                        // for some reason not yet understand - i cant just remove newGroup[i] from items
+                        // and add existingGroup[i] into it instead!
                         newGroup[i].IsFullfilled = true;
                         newGroup[i].SerialNumber = existingGroup[i].SerialNumber;
                         newGroup[i].FulfilledDate = existingGroup[i].FulfilledDate;
+
+                        newGroup[i].BuyingCost = existingGroup[i].BuyingCost;
+                        newGroup[i].BuyingTax = existingGroup[i].BuyingTax;
+                        newGroup[i].InventoryPurchaseId = existingGroup[i].InventoryPurchaseId;
+                        newGroup[i].Note = existingGroup[i].Note;
                     }
 
                     db.Connection.Delete<InventoryItem>(existingGroup[i].Id);
@@ -336,6 +408,34 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/tables/inventoryitem/__averageprice"] = this.HandleRequest((arg) =>
             {
                 return this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingPrice) as Price FROM InventoryPurchase WHERE BuyingPrice > 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0 });
+            });
+
+            Get["/admin/tables/inventoryitem/__recheck"] = this.HandleRequest((arg) =>
+            {
+                var saleOrder = this.SiteDatabase.Query<SaleOrder>().AsEnumerable();
+
+                foreach (var so in saleOrder)
+                {
+                    if (so.Status == "WaitingForOrder" || so.Status == "WaitingForParts")
+                    {
+                        // all items must not be fullfilled
+                        var requests = this.SiteDatabase.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == so.Id).ToList();
+                        foreach (var item in requests)
+                        {
+                            if (item.IsFullfilled)
+                            {
+                                item.IsFullfilled = false;
+                                item.FulfilledDate = DateTime.MinValue;
+
+                                this.SiteDatabase.Connection.Update(item);
+                            }
+                        }
+
+                        InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, so, true, DateTime.Now);
+                    }
+                }
+
+                return "OK";
             });
             
         }

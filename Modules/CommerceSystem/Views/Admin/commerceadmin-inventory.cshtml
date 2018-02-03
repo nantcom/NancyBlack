@@ -33,9 +33,16 @@
     </script>
 }
 <div ng-module="InventoryAdminModule">
-    <h1 class="page-header">
+    <h1 class="page-header"
+        style="padding-top: 25px">
         Inventory
         <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+
+        <a class="btn btn-warning pull-right"
+           href="/Admin/tables/inventoryitem/__recheck"
+           target="_blank">
+            Force Recheck
+        </a>
     </h1>
 
     <div>

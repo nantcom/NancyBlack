@@ -51,6 +51,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     this.SiteDatabase.UpsertRecord(so);
                 }
 
+                so.EnsuresSerialNumberVisible(this.SiteDatabase);
+
                 var statusList = StatusList.GetAllStatus<SaleOrderStatus>();
                 var paymentStatusList = StatusList.GetAllStatus<PaymentStatus>();
                 var dummyPage = new Page();
