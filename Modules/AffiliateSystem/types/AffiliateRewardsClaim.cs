@@ -1,4 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using NantCom.NancyBlack.NancyBlack.Modules.LogisticsSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 {
-    public class AffiliateRewardsClaim : IStaticType
+    public class AffiliateRewardsClaim : IStaticType, IShipmentTrackable
     {
         /// <summary>
         /// Affiliate Registration Id
@@ -37,6 +38,14 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// Whether rewards were sent
         /// </summary>
         public bool IsSent { get; set; }
+        
+        public DateTime ShipOutDate { get; set; }
+        
+        public int ShipByLogisticsCompanyId { get; set; }
+
+        public string TrackingCode { get; set; }
+
+        public string BookingCode { get; set; }
 
         #region Static Type Properties
 
