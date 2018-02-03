@@ -77,7 +77,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
             }
 
-            if (this.CurrentUser.HasClaim("Admin"))
+            if (this.CurrentUser.HasClaim("Admin") &&
+                this.Request.Url.HostName.StartsWith( "local." ) == false)
             {
                 return response();
             }
