@@ -337,56 +337,87 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             // Total without discount
             decimal totalWithoutDiscount = 0;
 
-            // snapshot the products into this sale order
-            // so that if there is a change in product info later
-            // we still have the one that customer sees
-            var oldItemsDetail = this.ItemsDetail;
-            this.ItemsDetail = new List<Product>();
+            // New Logic 2018 - we will primariry use itemsdetail
+            // if it already exists - so that admin can add/remove items
+            // freely and customer still sees the old prices
 
-            //lookupItemDetail is used for provent duplication
-            var lookupItemDetail = new Dictionary<int, Product>();
-
-            foreach (var item in this.Items)
+            // generate itemsdetail list from items list if not exists
+            if (this.ItemsDetail == null || this.ItemsDetail.Count == 0)
             {
-                var product = db.GetById<Product>(item);
+                //lookupItemDetail is used for provent duplication
+                var lookupItemDetail = new Dictionary<int, Product>();
 
-                // in case some product no longer exist
-                if (product == null)
+                foreach (var item in this.Items)
                 {
-                    var previousProduct = oldItemsDetail.Where(p => p.Id == item).FirstOrDefault();
-                    this.ItemsDetail.Add(previousProduct);
-                    continue;
-                }
+                    var product = db.GetById<Product>(item);
+                    
+                    product.ContentParts = null;
+                    product.MetaDescription = null;
+                    product.MetaKeywords = null;
+                    product.Layout = null;
 
-                product.ContentParts = null;
-                product.MetaDescription = null;
-                product.MetaKeywords = null;
-                product.Layout = null;
-
-                // check for duplication
-                if (lookupItemDetail.ContainsKey(product.Id))
-                {
-                    var existProduct = lookupItemDetail[product.Id];
-                    JObject attr = existProduct.Attributes;
-                    attr["Qty"] = attr.Value<int>("Qty") + 1;
-                }
-                else
-                {
-                    JObject attr = product.Attributes;
-                    if (attr == null)
+                    // check for duplication
+                    if (lookupItemDetail.ContainsKey(product.Id))
                     {
-                        attr = new JObject();
-                        product.Attributes = attr;
+                        var existProduct = lookupItemDetail[product.Id];
+                        JObject attr = existProduct.Attributes;
+                        attr["Qty"] = attr.Value<int>("Qty") + 1;
                     }
-                    attr["Qty"] = 1;
-                    this.ItemsDetail.Add(product);
-                    lookupItemDetail.Add(product.Id, product);
+                    else
+                    {
+                        JObject attr = product.Attributes;
+                        if (attr == null)
+                        {
+                            attr = new JObject();
+                            product.Attributes = attr;
+                        }
+                        attr["Qty"] = 1;
+                        this.ItemsDetail.Add(product);
+                        lookupItemDetail.Add(product.Id, product);
+                    }
+
+                    this.TotalAmount += product.CurrentPrice;
+                    totalWithoutDiscount += product.Price;
+                }
+            }
+            else
+            {
+                // otherwise - the items list is being generated from the itemsdetail list
+                var newItemsList = new List<int>();
+                foreach (var item in this.ItemsDetail)
+                {
+                    if (item.Url == "/dummy/dummy")
+                    {
+                        continue;
+                    }
+
+                    if (item.Attributes["Qty"] == null)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < (int)item.Attributes["Qty"]; i++)
+                        {
+                            newItemsList.Add(item.Id);
+
+                            this.TotalAmount += item.CurrentPrice;
+                            totalWithoutDiscount += item.Price;
+                        }
+                    }
                 }
 
-                this.TotalAmount += product.CurrentPrice;
-                totalWithoutDiscount += product.Price;
+
+
+                this.Items = newItemsList.ToArray();
             }
 
+            // remove the discount item
+            var discountItem = this.ItemsDetail.Where(i => i.Url == "/dummy/dummy").FirstOrDefault();
+            if (discountItem != null)
+            {
+                this.ItemsDetail.Remove(discountItem);
+            }
             // insert discount when there are some item with discount price (all in one discount)
             if (this.TotalAmount != totalWithoutDiscount)
             {
@@ -396,17 +427,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
                 var attr = new JObject();
                 attr.Add("Qty", 1);
-                var discount = new Product()
+
+                discountItem = new Product()
                 {
                     Title = "Discount",
                     Price = this.TotalAmount - totalWithoutDiscount,
                     Url = "/dummy/dummy",
                     Attributes = attr
                 };
-                this.ItemsDetail.Add(discount);
 
-                this.TotalDiscount = ( discount.Price + totalNegativePrices ) * -1;
+                this.ItemsDetail.Add(discountItem);
+
+                this.TotalDiscount = (discountItem.Price + totalNegativePrices ) * -1;
                 this.TotalWithoutDiscount = totalWithoutDiscount + (totalNegativePrices *-1);
+            }
+            else
+            {
             }
 
 
@@ -474,55 +510,66 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         }
 
-        public void AddItem(NancyBlackDatabase db, dynamic currentSite, int itemId)
+        public void AddItem(NancyBlackDatabase db, dynamic currentSite, int itemId, int qty = 1)
         {
-            var list = this.Items.ToList();
-            list.Add(itemId);
-            this.Items = list.ToArray();
-
-            var newItem = db.GetById<Product>(itemId);
-
             if (this.ItemsDetail == null)
             {
                 this.ItemsDetail = new List<Product>();
             }
 
-            var existItem = this.ItemsDetail.Where(p => p.Id == itemId && p.Title == newItem.Title && p.Price == newItem.Price).FirstOrDefault();
+            var existItem = this.ItemsDetail.Where(p => p.Id == itemId).FirstOrDefault();
 
             if (existItem == null)
             {
+                var newItem = db.GetById<Product>(itemId);
                 JObject attr = newItem.Attributes;
                 if (attr == null)
                 {
                     attr = new JObject();
                     newItem.Attributes = attr;
                 }
-                attr["Qty"] = 1;
+                attr["Qty"] = qty;
+
                 newItem.ContentParts = null;
+                newItem.MetaDescription = null;
+                newItem.MetaKeywords = null;
+                newItem.Layout = null;
+
                 this.ItemsDetail.Add(newItem);
             }
             else
             {
                 JObject attr = existItem.Attributes;
-                attr["Qty"] = attr.Value<int>("Qty") + 1;
+                attr["Qty"] = attr.Value<int>("Qty") + qty;
             }
 
-            if (newItem.IsPromotionPrice)
-            {
-                var discount = this.ItemsDetail.Where(p => p.Url == "/dummy/dummy").FirstOrDefault();
-                if (discount != null)
-                {
-                    discount.Price += newItem.CurrentPrice - newItem.Price;
-                }
-            }
-
-            this.TotalAmount = this.TotalAmount - (this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee);
-            this.TotalAmount += newItem.CurrentPrice;
-            this.SetAllFee(currentSite);
-            this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
-
-            db.UpsertRecord<SaleOrder>(this);
+            this.UpdateSaleOrder(currentSite, db, true);
         }
+        
+        public void RemoveItem(NancyBlackDatabase db, dynamic currentSite, Product existingItem )
+        {
+            if (this.ItemsDetail == null)
+            {
+                this.ItemsDetail = new List<Product>();
+            }
+
+            var existItem = this.ItemsDetail.Where(p => p.Id == existingItem.Id && p.__updatedAt == existingItem.__updatedAt).FirstOrDefault();
+
+            if (existItem == null)
+            {
+                // existing item not found
+                throw new InvalidOperationException("Item not found");
+            }
+            else
+            {
+                JObject attr = existItem.Attributes;
+                var newQty = attr.Value<int>("Qty") - 1;
+                existingItem.Attributes["Qty"] = newQty;
+            }
+
+            this.UpdateSaleOrder(currentSite, db, true);
+        }
+
 
         /// <summary>
         /// Apply promotion code

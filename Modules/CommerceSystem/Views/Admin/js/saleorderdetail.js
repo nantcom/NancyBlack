@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     'use strict';
 
     var app = angular.module('saleorderdetail', ['xeditable']);    
@@ -13,7 +13,8 @@
    
     function saleorderdetailview($location, $scope, $window, $http) {
         
-        var vm = this;        
+        var vm = this;    
+        var $me = this;
 
         $scope.window = $window;
         $scope.productResolverTmpId = "";        
@@ -108,6 +109,98 @@
         function _onFormShow() {
         
         };
+
+        $scope.newItem = { Qty: 1};
+        $scope.alerts = [];
+
+        $me.addItem = function (parameter) {
+
+            $scope.isBusy = true;
+
+            $http.post("/admin/saleorder/" +
+                    $scope.object.Id + "/add", parameter)
+                .then(function (success) {
+
+                    $scope.isBusy = false;
+                    var newSo = success.data;
+                    $scope.object = newSo;
+
+                    $scope.alerts.push({ type: 'success', msg: 'Item Added Successfully.' });
+                    $scope.newItem = { Qty: 1 };
+
+                }, function (error) {
+
+                    $scope.isBusy = false;
+                    $scope.alerts.push({ type: 'danger', msg: 'Cannot Add: ' + error });
+
+                });
+
+        };
+
+        var oldPrice = 0;
+        var lastChange = -1;
+        $me.previewTotal = function (so, item, $index) {
+
+            $scope.isBusy = true;
+
+            if (oldPrice == 0) {
+                oldPrice = so.TotalAmount;
+            }
+
+            // make sure that we use the set price
+            item.IsPromotionPrice = false;
+
+            $http.post("/admin/saleorder/" +
+                $scope.object.Id + "/previewtotal", so)
+                .then(function (success) {
+
+                    $scope.isBusy = false;
+                    var newSo = success.data;
+                    $scope.object = newSo;
+
+                    var change = newSo.TotalAmount - oldPrice;
+                    if (change == 0) {
+                        return;
+                    }
+
+                    if (change != lastChange) {
+                        lastChange = change;
+                        $scope.alerts.push({
+                            type: 'warning',
+                            msg: 'Change: ' + change + ', Initial Total: ' + oldPrice
+                        });
+                    }
+
+                    
+                }, function (error) {
+
+                    $scope.isBusy = false;
+
+                });
+
+        };
+        
+        $me.updateQty = function (object) {
+
+            $scope.isBusy = true;
+
+            $http.post("/admin/saleorder/" +
+                $scope.object.Id + "/updateqty", object)
+                .then(function (success) {
+
+                    var newSo = success.data;
+                    $scope.object = newSo;
+                    oldPrice = 0;
+
+                    $scope.alerts.length = 0;
+                    $scope.alerts.push({ type: 'success', msg: 'Qty and Prices Updated Successfully.' });
+
+                }, function (error) {
+                    $scope.alerts.push({ type: 'danger', msg: 'Cannot Update: ' + error });
+                });
+
+        };
+        
     }
 
     app.controller('PaymentController', function ($scope, $http) {
@@ -150,4 +243,6 @@
         }
 
     });
+
+    
 })();

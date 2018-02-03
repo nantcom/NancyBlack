@@ -9,10 +9,11 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
+
     /// <summary>
     /// Represents product in the system
     /// </summary>
-    public class Product : IStaticType, IContent
+    public class Product :  IStaticType, IContent
     {
         public int Id { get; set; }
 
@@ -68,6 +69,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string SKUNumber { get; set; }
 
         /// <summary>
+        /// Barcode of this product
+        /// </summary>
+        public string Barcode { get; set; }
+
+        /// <summary>
+        /// How many characters in the scanned barcode to be used when matching the barcode
+        /// </summary>
+        public int BarcodeSubstring { get; set; }
+
+        /// <summary>
         /// Id of supplier who supplies this product
         /// </summary>
         public int SupplierId { get; set; }
@@ -82,11 +93,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public Decimal Price { get; set; }
 
+        // When saving and loading the product - we wanted to ensure that
+        // the price stays the same no matter what date
+        private bool? _IsPromotionPrice;
+
         /// <summary>
         /// this field relate to PromotionDate. when current time still in promotion period
         /// the current price will be DiscountPrice
         /// </summary>
-        public Decimal CurrentPrice {
+        public Decimal CurrentPrice
+        {
             get
             {
                 if (this.IsPromotionPrice)
@@ -102,8 +118,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         {
             get
             {
+                if (_IsPromotionPrice.HasValue)
+                {
+                    return _IsPromotionPrice.Value;
+                }
+
                 return DateTime.Today <= this.PromotionEndDate.ToLocalTime() &&
                         DateTime.Today >= this.PromotionStartDate.ToLocalTime();
+            }
+            set
+            {
+                _IsPromotionPrice = value;
             }
         }
 
@@ -172,5 +197,5 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         #endregion
     }
-    
+        
 }

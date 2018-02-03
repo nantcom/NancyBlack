@@ -26,9 +26,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/tables/saleorder/{id}"] = this.HandleRequest(this.HandleSaleorderDetailPage);
 
-            Get["/admin/saleorder/{id}/add/{productId}"] = this.HandleRequest(this.AddProductToSaleOrder);
+            Post["/admin/saleorder/{id}/add"] = this.HandleRequest(this.AddProductToSaleOrder);
 
-            Get["/admin/saleorder/{id}/remove/{productId}"] = this.HandleRequest(this.RemoveProductFromSaleOrder);
+            Post["/admin/saleorder/{id}/updateqty"] = this.HandleRequest(this.UpdateQty);
+
+            Post["/admin/saleorder/{id}/previewtotal"] = this.HandleRequest(this.UpdateQty);
 
             Get["/admin/commerce/api/sostatus"] = this.HandleRequest(this.GetSaleorderStatusList);
 
@@ -87,20 +89,54 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             var so = this.SiteDatabase.GetById<SaleOrder>((int)arg.id);
+            dynamic input = arg.Body.Value as JObject;
 
-            so.AddItem(this.SiteDatabase, this.CurrentSite, (int)arg.productId);
+            so.AddItem(this.SiteDatabase, this.CurrentSite, (int)input.Id, (int)input.Qty);
 
-            return 200;
+            return so;
         }
 
-        private dynamic RemoveProductFromSaleOrder(dynamic arg)
+        private dynamic UpdateQty(dynamic arg)
         {
             if (!this.CurrentUser.HasClaim("admin"))
             {
                 return 403;
             }
 
-            return 404;
+            try
+            {
+                var so = arg.Body.Value as JObject;
+                var existingSo = so.ToObject<SaleOrder>();
+
+                var newItemsList = new List<int>();
+                foreach (var item in existingSo.ItemsDetail.ToList()) // create a copy
+                {
+                    if (item.Attributes["Qty"] == null)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        
+
+                        for (int i = 0; i < (int)item.Attributes["Qty"]; i++)
+                        {
+                            newItemsList.Add(item.Id);
+                        }
+                    }
+                }
+
+                existingSo.Items = newItemsList.ToArray();
+
+                var save = this.Request.Url.Path.EndsWith("updateqty");
+                existingSo.UpdateSaleOrder(this.CurrentSite, this.SiteDatabase, save);
+
+                return existingSo;
+            }
+            catch (Exception)
+            {
+                return 400;
+            }
         }
 
         private dynamic GetSaleorderForPrintingReceiptList(dynamic arg)

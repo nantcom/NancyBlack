@@ -270,7 +270,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -284,7 +285,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -303,7 +305,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -373,7 +376,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -400,7 +404,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -447,7 +452,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -470,7 +476,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -483,7 +490,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -502,7 +510,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 
@@ -523,7 +532,8 @@
 
         return {
             restrict: 'A',
-            link: link
+            link: link,
+            scope: false
         };
     });
 

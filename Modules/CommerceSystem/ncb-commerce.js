@@ -762,7 +762,7 @@
 
     });
 
-    ncg.controller("TreePayBySaleOrderController", function ($scope, $http, $timeout) {
+    ncg.controller("TreePayBySaleOrderController", function ($scope, $http, $timeout, $window) {
         
         var $me = this;
 
@@ -770,6 +770,12 @@
         $me.remainingAmount = 0;
         $me.saleOrder = {};
         $me.orderNo = "";
+        $me.user_id = generateUUID(); // generate random user id to prevent user seeing each other's card
+
+        if ($scope.object.Customer.User != null) {
+            $me.user_id = $scope.object.Customer.User.Id;
+        }
+
         $me.confirmedSelectedAmout = 0;
 
         var soPaymentLogs = {}
@@ -862,7 +868,14 @@
             $("#working").addClass("show");
             setOrderNO();
 
-            $http.post("/treepay/hashdata", { orderNo: $me.orderNo, soIdentifier: $me.saleOrder.SaleOrderIdentifier, trade_mony: $me.confirmedSelectedAmout, pay_type: $me.paymentMethod.code })
+            $http.post("/treepay/hashdata",
+                {
+                    orderNo: $me.orderNo,
+                    soIdentifier: $me.saleOrder.SaleOrderIdentifier,
+                    trade_mony: $me.confirmedSelectedAmout,
+                    pay_type: $me.paymentMethod.code,
+                    user_id: $scope.object.Customer.User.Id
+                })
                 .success(function (data) {
 
                     var hashData = data;

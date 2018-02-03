@@ -245,6 +245,17 @@ namespace NantCom.NancyBlack
         {
             return JsonConvert.SerializeObject(input);
         }
+        
+        /// <summary>
+        /// Serializes input to json
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public IHtmlString GetJsonRaw(object input)
+        {
+            return this.Html.Raw( JsonConvert.SerializeObject(input) );
+        }
+
 
         public string GetJsonWithoutContentParts(object input)
         {
