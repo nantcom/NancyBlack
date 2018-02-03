@@ -146,10 +146,7 @@
             if (oldPrice == 0) {
                 oldPrice = so.TotalAmount;
             }
-
-            // make sure that we use the set price
-            item.IsPromotionPrice = false;
-
+            
             $http.post("/admin/saleorder/" +
                 $scope.object.Id + "/previewtotal", so)
                 .then(function (success) {
@@ -157,7 +154,7 @@
                     $scope.isBusy = false;
                     var newSo = success.data;
                     $scope.object = newSo;
-
+                    
                     var change = newSo.TotalAmount - oldPrice;
                     if (change == 0) {
                         return;

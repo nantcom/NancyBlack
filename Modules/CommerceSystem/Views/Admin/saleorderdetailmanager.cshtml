@@ -736,10 +736,10 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Product</th>
+                                    <th width="40%">Product</th>
                                     <th><div class="text-right">Qty.</div></th>
-                                    <th><div class="text-right">Price</div></th>
-                                    <th><div class="text-right">Quoted</div></th>
+                                    <th><div class="text-right">New Price</div></th>
+                                    <th><div>Current</div></th>
                                     <th><div class="text-right">Line Total</div></th>
                                 </tr>
                             </thead>
@@ -775,9 +775,9 @@
                                                ng-model="newItem.Qty" />
 
                                         <span class="input-group-btn">
-                                            <a class="btn btn-success" style="width: 90px"
+                                            <a class="btn btn-success"
                                                ng-click="ctrl.addItem( newItem )">
-                                                <i class="fa fa-plus-circle"></i> Add
+                                                <i class="fa fa-plus-circle"></i>
                                             </a>
                                         </span>
                                     </div>
@@ -792,7 +792,14 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="form-control-static">
+                                    <input type="text" class="form-control"
+                                           ng-if="item.Url != '/dummy/dummy'"
+                                           ng-blur="ctrl.previewTotal(object, item, $index)"
+                                           ng-disabled="newItem.Id != null"
+                                           ng-model="item.Title" />
+
+                                    <div class="form-control-static"                                         
+                                           ng-if="item.Url == '/dummy/dummy'">
                                         {{item.Title}}
                                     </div>
                                 </td>
@@ -800,18 +807,43 @@
                                     <input type="number" inputmode="numeric" class="form-control"
                                            min="0"
                                            ng-if="item.Url != '/dummy/dummy'"
-                                           ng-blur="ctrl.previewTotal(object, $index)"
+                                           ng-blur="ctrl.previewTotal(object, item, $index)"
                                            ng-disabled="newItem.Id != null"
                                            ng-model="item.Attributes.Qty" />
 
                                 </td>
                                 <td>
-                                    <input type="number" class="form-control"
-                                           inputmode="numeric"
-                                           ng-if="item.Url != '/dummy/dummy'"
-                                           ng-blur="ctrl.previewTotal(object, item, $index)"
-                                           ng-disabled="newItem.Id != null || item.Attributes.Qty == 0"
-                                           ng-model="item.Price" />
+                                    <div class="input-group"
+                                         ng-if="item.Url != '/dummy/dummy'">
+
+                                        <input type="number" class="form-control"
+                                               inputmode="numeric"
+                                               ng-disabled="!item.EditPrice"
+                                               ng-init="item.ShowPrice = item.CurrentPrice"
+                                               ng-model="item.ShowPrice" />
+
+                                        <span class="input-group-btn">
+                                            <a class="btn btn-warning"
+                                              ng-if="!item.EditPrice"
+                                               ng-click="item.EditPrice = true;">
+                                                <i class="fa fa-pencil-square"></i>
+                                            </a>
+                                        </span>
+
+                                        <span class="input-group-btn"
+                                              ng-if="item.EditPrice">
+
+                                            <a class="btn btn-danger"
+                                               ng-click="item.EditPrice = false; item.ShowPrice = item.CurrentPrice;">
+                                                <i class="fa fa-times-circle"></i>
+                                            </a>
+                                            <a class="btn btn-success"
+                                               ng-click="item.EditPrice = false;item.Price = item.ShowPrice; item.IsPromotionPrice = false; item.CurrentPrice = item.ShowPrice; ctrl.previewTotal(object, item, $index);">
+                                                <i class="fa fa-check-circle"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+
                                 </td>
                                 <td>
                                     <div class="form-control-static text-right">
@@ -883,7 +915,7 @@
 
                                     <a class="btn btn-warning pull-right" style="width: 250px"
                                        ng-click="ctrl.updateQty( object )">
-                                        <i class="fa fa-check-circle"></i> Update Qty &amp; Price
+                                        <i class="fa fa-check-circle"></i> Update Sale Order
                                     </a>
                                 </td>
                             </tr>
