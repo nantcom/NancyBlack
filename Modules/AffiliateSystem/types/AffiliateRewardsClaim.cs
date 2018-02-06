@@ -1,5 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
-using NantCom.NancyBlack.NancyBlack.Modules.LogisticsSystem.Types;
+using NantCom.NancyBlack.Modules.LogisticsSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;

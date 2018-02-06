@@ -173,11 +173,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public bool IsDuplicatePayment { get; set; }
 
         /// <summary>
-        /// User Id that made the purchase
-        /// </summary>
-        public int NcbUserId { get; set; }
-
-        /// <summary>
         /// Customer information
         /// </summary>
         public dynamic Customer { get; set; }

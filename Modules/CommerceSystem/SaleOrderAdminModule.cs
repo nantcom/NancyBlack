@@ -1,8 +1,10 @@
 ﻿using Nancy;
 using NantCom.NancyBlack.Configuration;
+using NantCom.NancyBlack.Modules.AffiliateSystem.types;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.LogisticsSystem.Types;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -201,14 +203,25 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var dummyPage = new Page();
 
+            List<AffiliateRewardsClaim> rewardList = null;
+            
+            if (so.Customer.User != null)
+            {
+                int userId = so.Customer.User.Id;
+                rewardList = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(i => i.NcbUserId == userId && i.RewardsName != null).ToList();
+            }
+
             var data = new
             {
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
                 RowVerions = so.GetRowVersions(this.SiteDatabase),
-                PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts( this.SiteDatabase),
-                InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( i => i.SaleOrderId == so.Id ).ToList()
+                PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts(this.SiteDatabase),
+                InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( i => i.SaleOrderId == so.Id ).ToList(),
+                LogisticsCompanies = this.SiteDatabase.Query<LogisticsCompany>().ToList(),
+                AffiliateRewardsClaims = rewardList
             };
+
 
             return View["/Admin/saleorderdetailmanager", new StandardModel(this, dummyPage, data)];
         }

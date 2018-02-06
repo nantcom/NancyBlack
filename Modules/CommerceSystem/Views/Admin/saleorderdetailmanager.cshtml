@@ -927,25 +927,47 @@
 
             </tab>
 
-            <tab heading="AffRewardsClaim">
-                <div class="row">
-                    <div class="col-sm-6 col-md-4">
+            <tab heading="Affliate Rewards Claim">
+                <div class="row" 
+                     ncb-datacontext table="AffiliateRewardsClaim" ng-controller="AffilicateRewardsController as arctrl">
+                    <div class="col-sm-6 col-md-4"
+                         ng-repeat="claim in rewardsClaims">
                         <div class="thumbnail">
-                            <img src="..." alt="...">
+                            <img ng-if="claim.RewardsName == 'subscribe2'" src="/Site/images/affilicatereward/Bagpack.jpg" />
+                            <img ng-if="claim.RewardsName == 'buy1'" src="/Site/images/affilicatereward/mosue.jpg" style="max-height: 242px" />
                             <div class="caption">
-                                <h3>Thumbnail label</h3>
-                                <p>...</p>
-                                <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-md-4">
-                        <div class="thumbnail">
-                            <img src="..." alt="...">
-                            <div class="caption">
-                                <h3>Thumbnail label</h3>
-                                <p>...</p>
-                                <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
+                                <h3>{{claim.RewardsName == 'subscribe2' ? 'LEVEL51 BagPack' : 'Patriot Viper Gaming Mouse'}}</h3>
+                                <h4>
+                                    <span class="glyphicon glyphicon-{{claim.IsSent ? 'ok' : 'remove'}}"></span>
+                                    {{claim.IsSent ? 'done :)' : "don't forget to ship na :("}}
+                                </h4>
+
+                                <div class="form-group">
+
+                                    <label>Logistics Copany</label>
+
+                                    <select class="form-control" ng-model="claim.ShipByLogisticsCompanyId"
+                                            ng-options="logCom.Id as logCom.Name for logCom in logisticsCompanies">
+                                    </select>
+
+                                </div>
+                                <div class="form-group">
+                                    <input type="checkbox" ng-model="claim.IsSent" /><label>Is Ship Out</label>
+                                </div>
+                                <ncb-datepicker model="claim.ShipOutDate" format="'dd MMMM yyyy'"
+                                                title="Ship Out Date"></ncb-datepicker>
+                                <div class="form-group">
+                                    <label>Booking Code</label>
+                                    <input type="text" class="form-control" ng-model="claim.BookingCode" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Tracking Code</label>
+                                    <input type="text" class="form-control" ng-model="claim.TrackingCode" />
+                                </div>
+                                <p>
+                                    <button class="btn btn-default" ng-click="arctrl.openTrackingUrl(claim)"><span class="glyphicon glyphicon-search"></span></button>
+                                    <button class="btn btn-primary" ng-click="data.save(claim)"><span class="glyphicon glyphicon-floppy-saved"></span></button>
+                                </p>
                             </div>
                         </div>
                     </div>
