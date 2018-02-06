@@ -122,8 +122,8 @@
                 .then(function (success) {
 
                     $scope.isBusy = false;
-                    var newSo = success.data;
-                    $scope.object = newSo;
+                    $scope.object = success.data.SaleOrder;
+                    $scope.window.allData.InventoryRequests = success.data.InventoryRequests;
 
                     $scope.alerts.push({ type: 'success', msg: 'Item Added Successfully.' });
                     $scope.newItem = { Qty: 1 };
@@ -152,7 +152,7 @@
                 .then(function (success) {
 
                     $scope.isBusy = false;
-                    var newSo = success.data;
+                    var newSo = success.data.SaleOrder;
                     $scope.object = newSo;
                     
                     var change = newSo.TotalAmount - oldPrice;
@@ -185,8 +185,9 @@
                 $scope.object.Id + "/updateqty", object)
                 .then(function (success) {
 
-                    var newSo = success.data;
-                    $scope.object = newSo;
+                    $scope.object = success.data.SaleOrder;
+                    $scope.window.allData.InventoryRequests = success.data.InventoryRequests;
+
                     oldPrice = 0;
 
                     $scope.alerts.length = 0;
@@ -196,6 +197,21 @@
                     $scope.alerts.push({ type: 'danger', msg: 'Cannot Update: ' + error });
                 });
 
+        };
+
+        $me.updateSerial = function (data, itemline) {
+
+            if (!itemline.SerialNumber) {
+                return;
+            }
+
+            data.save(itemline, function (updated) {
+
+                itemline.BuyingCost = updated.BuyingCost;
+                itemline.BuyingTax = updated.BuyingTax;
+                itemline.FulfilledDate = updated.FulfilledDate;
+
+            });
         };
         
     }
@@ -208,6 +224,18 @@
         $scope.paymentLogs = window.allData.PaymentLogs;
         $scope.paymentMethods = window.allData.PaymentMethods;
         $scope.paymentDetail = {};
+
+
+        var receiptIndex = -1;
+        for (var i = 0; i < $scope.paymentLogs.length; i++) {
+            var log = $scope.paymentLogs[i];
+            if (log.IsPaymentSuccess) {
+                receiptIndex++;
+
+                log.receiptIndex = receiptIndex;
+            }
+        }
+
 
         me.resetPaymentDetail = function () {
             $scope.paymentDetail.paidWhen = new Date();

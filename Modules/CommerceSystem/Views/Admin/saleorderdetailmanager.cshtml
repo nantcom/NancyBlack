@@ -189,8 +189,9 @@
                                             </td>
                                             <td>
                                                 <a class="btn btn-success"
+                                                   ng-if="item.IsPaymentSuccess"
                                                    target="_blank"
-                                                   ng-href="{{'/__commerce/saleorder/' + object.SaleOrderIdentifier + '/receipt?index=' + $index}}">
+                                                   ng-href="{{'/__commerce/saleorder/' + object.SaleOrderIdentifier + '/receipt?index=' + item.receiptIndex}}">
                                                     <i class="fa fa-print"></i>
                                                 </a>
                                             </td>
@@ -1026,7 +1027,7 @@
                                 </td>
                                 <td>
                                     <input class="form-control" type="text"
-                                           ng-blur="data.save(item)"
+                                           ng-blur="ctrl.updateSerial(data, item)"
                                            ng-model="item.SerialNumber" />
 
                                 </td>

@@ -95,7 +95,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             so.AddItem(this.SiteDatabase, this.CurrentSite, (int)input.Id, (int)input.Qty);
 
-            return so;
+            InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, so, true, DateTime.Now);
+
+            return new
+            {
+                SaleOrder = so,
+                InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( ivt => ivt.SaleOrderId == so.Id ).ToList()
+            };
         }
 
         private dynamic UpdateQty(dynamic arg)
@@ -133,7 +139,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 var save = this.Request.Url.Path.EndsWith("updateqty");
                 existingSo.UpdateSaleOrder(this.CurrentSite, this.SiteDatabase, save);
 
-                return existingSo;
+                if (save)
+                {
+                    InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, existingSo, true, DateTime.Now);
+                }
+
+                return new
+                {
+                    SaleOrder = existingSo,
+                    InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == existingSo.Id).ToList()
+                };
             }
             catch (Exception)
             {
@@ -200,6 +215,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var id = (int)arg.id;
             var so = this.SiteDatabase.GetById<SaleOrder>(id);
+
+            // ensures that promotion flag is set/unset
+            // before attempting to edit
+            foreach (var product in so.ItemsDetail)
+            {
+                product.EnsuresGetPromotionPrice(so);
+            }
 
             var dummyPage = new Page();
 

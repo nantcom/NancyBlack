@@ -252,12 +252,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Set Fees from current site settings
         /// </summary>
         /// <param name="currentSite"></param>
-        public void SetAllFee(dynamic currentSite)
+        public void SetAllFee()
         {
-            if (currentSite == null)
-            {
-                return;
-            }
+            var currentSite = this.SiteSettings;
 
             if (this.ShippingDetails.method == "shipping")
             {
@@ -321,11 +318,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         }
 
         /// <summary>
-        /// 
+        /// Updates the sale order
         /// </summary>
         /// <param name="db"></param>
         public void UpdateSaleOrder(dynamic currentSite, NancyBlackDatabase db, bool save = true)
         {
+            // if we dont have site settings, use the one provided
+            // otherwise use the remembered one
+            if (this.SiteSettings == null)
+            {
+                this.SiteSettings = currentSite;
+            }
+            else
+            {
+                currentSite = this.SiteSettings;
+            }
+
             // Update Total
             this.TotalAmount = 0;
 
@@ -350,6 +358,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     product.MetaDescription = null;
                     product.MetaKeywords = null;
                     product.Layout = null;
+                    product.EnsuresGetPromotionPrice(this);
 
                     // check for duplication
                     if (lookupItemDetail.ContainsKey(product.Id))
@@ -381,6 +390,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 var newItemsList = new List<int>();
                 foreach (var item in this.ItemsDetail)
                 {
+                    item.EnsuresGetPromotionPrice(this);
+
                     if (item.Url == "/dummy/dummy")
                     {
                         continue;
@@ -476,7 +487,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             }
 
 
-            this.SetAllFee(currentSite);
+            this.SetAllFee();
 
             this.TotalAmount += this.ShippingFee + this.ShippingInsuranceFee + this.PaymentFee;
             this.TotalAmount = Math.Round(this.TotalAmount, 2, MidpointRounding.AwayFromZero);
@@ -514,9 +525,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.PaymentFee = toWant(this.PaymentFee);
                 this.TotalAmount = toWant(this.TotalAmount);
             }
-
-            this.SiteSettings = currentSite;
-
+            
             if (save == false)
             {
                 return; // Just update the details for calculation
@@ -600,6 +609,38 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             this.UpdateSaleOrder(currentSite, db, true);
         }
 
+        /// <summary>
+        /// Pull serial numbers into ItemsDetail Serial Number Attribute
+        /// </summary>
+        public void EnsuresSerialNumberVisible(NancyBlackDatabase db)
+        {
+            if (this.Status == SaleOrderStatus.Delivered ||
+                this.Status == SaleOrderStatus.Shipped ||
+                this.Status == SaleOrderStatus.ReadyToShip ||
+                this.Status == SaleOrderStatus.Testing )
+            {
+
+                if (this.ItemsDetail.Any( p => p.Attributes == null || p.Attributes.Serial == null ))
+                {
+                    var ivt = db.Query<InventoryItem>().Where(row => row.SaleOrderId == this.Id).ToLookup(row => row.ProductId);
+
+                    foreach (var item in this.ItemsDetail)
+                    {
+                        if (item.Attributes == null)
+                        {
+                            item.Attributes = new JObject();
+                        }
+
+                        item.Attributes.Serial =
+                            string.Join(",", ivt[item.Id].Select(row => row.SerialNumber));
+
+                    }
+
+                    db.UpsertRecord(this);
+                }
+            }
+
+        }
 
         /// <summary>
         /// Apply promotion code
