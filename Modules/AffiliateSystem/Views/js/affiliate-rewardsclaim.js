@@ -8,6 +8,7 @@
         var me = this;
 
         $scope.rewardsClaims = window.allData.AffiliateRewardsClaims;
+        $scope.usedAffDiscountCodes = window.allData.AffiliateDiscountCodes;
         $scope.logisticsCompanies = window.allData.LogisticsCompanies;
 
         me.openTrackingUrl = function (claim) {

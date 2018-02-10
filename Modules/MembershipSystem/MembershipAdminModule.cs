@@ -49,7 +49,9 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 Member = member,
                 LogisticsCompanies = this.SiteDatabase.Query<LogisticsCompany>().ToList(),
                 AffiliateRewardsClaims = this.SiteDatabase.Query<AffiliateRewardsClaim>()
-                .Where(i => i.NcbUserId == member.Id && i.RewardsName != null).ToList()
+                .Where(i => i.NcbUserId == member.Id && i.RewardsName != null).ToList(),
+                AffiliateDiscountCodes = this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                .Where(i => i.NcbUserId == member.Id && i.DiscountCode != null).ToList(),
             };
 
 

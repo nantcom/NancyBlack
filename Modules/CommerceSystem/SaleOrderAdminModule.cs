@@ -226,11 +226,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var dummyPage = new Page();
 
             List<AffiliateRewardsClaim> rewardList = null;
+            List<AffiliateRewardsClaim> discountCodes = null;
             
             if (so.Customer.User != null)
             {
                 int userId = so.Customer.User.Id;
                 rewardList = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(i => i.NcbUserId == userId && i.RewardsName != null).ToList();
+                discountCodes = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(i => i.NcbUserId == userId && i.DiscountCode != null).ToList();
             }
 
             var data = new
@@ -241,7 +243,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts(this.SiteDatabase),
                 InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( i => i.SaleOrderId == so.Id ).ToList(),
                 LogisticsCompanies = this.SiteDatabase.Query<LogisticsCompany>().ToList(),
-                AffiliateRewardsClaims = rewardList
+                AffiliateRewardsClaims = rewardList,
+                AffiliateDiscountCodes = discountCodes
             };
 
 
