@@ -1,4 +1,5 @@
-﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+﻿using Microsoft.WindowsAzure.Storage.Table;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,12 +7,15 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.ContentSystem.Types
 {
-    public class PageView : IStaticType
+    public class PageView : TableEntity, IStaticType
     {
+        [IgnoreProperty]
         public int Id { get; set; }
 
+        [IgnoreProperty]
         public DateTime __createdAt { get; set; }
 
+        [IgnoreProperty]
         public DateTime __updatedAt { get; set; }
 
         /// <summary>
@@ -27,6 +31,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// <summary>
         /// Information about the request being sent to server
         /// </summary>
+        [IgnoreProperty]
         public dynamic Request { get; set; }
 
         /// <summary>
@@ -63,5 +68,15 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Unique Id to help identify user
         /// </summary>
         public string UserUniqueId { get; set; }
+
+        /// <summary>
+        /// Prepares this entity for azure
+        /// </summary>
+        public void PrepareForAuzre()
+        {
+            this.RowKey = __createdAt.Ticks.ToString();
+            this.PartitionKey = this.Path.Replace('/', '-');
+        }
     }
+    
 }

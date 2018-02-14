@@ -74,6 +74,7 @@
                 <div class="form-group"
                      ng-include="'entryform.html'"></div>
 
+
                 <div class="form-group">
                     <button class="btn btn-success btn-lg pull-right" "
                             ng-disabled="ctrl.validate(object)"
@@ -103,9 +104,9 @@
 
                 <tr ng-repeat="item in tableParams.data">
 
-                    <td data-title="'Date'"
+                    <td data-title="'Date of Transaction'"
                         sortable="'TransactionDate'">
-                        {{item.TransactionDate | date:'dd MMMM yyyy' }}
+                        {{item.TransactionDate | date:'dd/MM/yyyy' }}
                     </td>
                     <td data-title="'Related Party'"
                         sortable="'DebtorLoanerName'"
@@ -271,21 +272,51 @@
 
                                     </div>
                                 </div>
+                                <div class="row">
 
-                                <input type="text" name="ProjectName" title="Related Project"
-                                       ncb-textbox
-                                       ng-model="object.ProjectName"
-                                       typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
+                                    <input type="text" name="ProjectName" title="Related Project"
+                                           ncb-textbox ncb-col="col-sm-6"
+                                           ng-model="object.ProjectName"
+                                           typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
 
-                                <ncb-datepicker placeholder="Due Date" title="Due Date"
-                                                format="'dd MMMM yyyy'"
-                                                model="object.DueDate"></ncb-datepicker>
+                                    <div class="col-sm-6">
+                                        <ncb-datepicker placeholder="Due Date" title="Due Date"
+                                                        format="'dd MMMM yyyy'"
+                                                        model="object.DueDate"></ncb-datepicker>
+                                    </div>
 
-                                <div class="form-group-lg">
-                                    <div class="input-group">
-                                        <span class="input-group-addon">THB</span>
-                                        <input type="number" class="form-control" max="-1"
-                                               ng-model="object.DecreaseAmount" />
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label>Monthly Recurring</label><br/>
+                                            <span class="pull-right">
+                                                <ncb-onoff ng-model="object.Addendum.Recurring"></ncb-onoff>
+                                            </span>
+                                            This will generate entry on same day of Each Month
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6"
+                                         ng-if="object.Addendum.Recurring">
+                                        <ncb-datepicker placeholder="Last Payment Date" title="Until"
+                                                        format="'dd MMMM yyyy'"
+                                                        model="object.Addendum.LastPayment"></ncb-datepicker>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group-lg">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">THB</span>
+                                                <input type="number" class="form-control" max="-1"
+                                                       ng-model="object.DecreaseAmount" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

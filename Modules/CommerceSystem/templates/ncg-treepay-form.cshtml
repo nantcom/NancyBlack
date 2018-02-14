@@ -7,14 +7,15 @@
                 จำนวนที่ต้องการชำระ:
                 <input ng-model="tpCtrl.selectedAmout" style="background-color: white" />
 
+                <div ng-if="tpCtrl.selectedAmout < tpCtrl.remainingAmount" style="color: darkgreen; margin: 8px 0">
+                    (ต้องชำระเพิ่ม: {{ tpCtrl.remainingAmount - tpCtrl.selectedAmout  | number: 2}})
+                </div>
+
                 <button class="button" style="width: 45%; margin-right: 10px" ng-repeat="option in tpCtrl.paymentMethods track by option.code"
                         ng-click="tpCtrl.paymentMethod = option; tpCtrl.pay()">
                     <span>{{option.title}}</span>
                 </button>
 
-                <span ng-if="tpCtrl.selectedAmout < tpCtrl.remainingAmount" style="color: darkred">
-                    (ต้องชำระเพิ่ม: {{ tpCtrl.remainingAmount - tpCtrl.selectedAmout  | number: 2}})
-                </span>
             </div>
 
             <div class="col-sm-3">

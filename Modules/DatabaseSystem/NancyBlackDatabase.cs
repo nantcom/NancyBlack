@@ -18,6 +18,7 @@ using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text;
+using System.Diagnostics;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
@@ -804,7 +805,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public void Dispose()
         {
             _db.Dispose();
-            this.PerformBackup();
         }
         
         /// <summary>
@@ -815,7 +815,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <summary>
         /// Performs the regular backup
         /// </summary>
-        public void PerformBackup()
+        public void PerformBackup( dynamic backupOptions = null )
         {
             if (DateTime.Now.Subtract(_LastBackupCheck).TotalMinutes > 30)
             {
@@ -827,62 +827,155 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return;
             }
 
-#if !DEBUG
+#if DEBUG
+            Debugger.Break();
+#endif
+            Action cleanUp = null;
+
+            var compression = 1;
+            var mode = "hourly";
+            var databaseFile = this.DatabaseFileName;
+
+            string backupPath = Path.Combine(this.DatabaseDirectory, "Backups");
+
+            if (backupOptions != null)            
+            {
+                if (backupOptions.compression != null)
+                {
+                    compression = (int)backupOptions.compression;
+                }
+
+                if (backupOptions.uncpath != null)
+                {
+                    var existed = DriveInfo.GetDrives().ToDictionary(d => d.Name);
+                    var chosen = '\0';
+                    for (char i = 'A'; i < 'Z'; i++)
+                    {
+                        if (existed.ContainsKey(i + @":\") == false)
+                        {
+                            chosen = i;
+                            break;  
+                        }
+                    }
+
+                    if (chosen != '\0')
+                    {
+                        string command = string.Empty;
+
+                        if (backupOptions.username != null && backupOptions.password != null)
+                        {
+                            command = string.Format("use {0}: {1} /u:{2} {3}",
+                                chosen,
+                                backupOptions.uncpath,
+                                backupOptions.username,
+                                backupOptions.password);
+                        }
+                        else
+                        {
+                            command = string.Format("use {0}: {1}",
+                               chosen,
+                               backupOptions.uncpath);
+                        }
+
+                        var process = Process.Start("net.exe", command);
+                        process.WaitForExit();
+                        
+                        if (process.ExitCode == 0)
+                        {
+                            cleanUp = () =>
+                            {
+                                string cmd = string.Format("use {0}: /delete",
+                                    chosen);
+
+                                var p2 = Process.Start("net.exe", cmd);
+                                p2.WaitForExit();
+                            };
+
+                            backupPath = Path.Combine(chosen + @":\", (string)backupOptions.sitename, "");
+                        }
+                    }
+                }
+
+                if (backupOptions.sitename != null)
+                {
+                    backupPath = Path.Combine(backupPath, (string)backupOptions.sitename);
+                }
+            }
 
             try
             {
-                var path = this.DatabaseDirectory;
-                var fileName = this.DatabaseFileName;
-
-                var backupPath = Path.Combine(path, "Backups");
-                Directory.CreateDirectory(path);
-                Directory.CreateDirectory(backupPath);
-
-                // create hourly backup
-                var backupFile = Path.Combine(backupPath, string.Format("hourlybackup-{0:HH}.sqlite.bz2", DateTime.Now));
-                if (File.Exists(backupFile) == false)
+                if (mode == "hourly")
                 {
-                    NancyBlackDatabase.BZip(fileName, backupFile);
-                }
-                else
-                {
-                    // check modified date
-                    if (File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date)
+                    backupPath = Path.Combine(backupPath, "DatabaseBackup-Hourly");
+                    Directory.CreateDirectory(backupPath);
+
+                    // create hourly backup
+                    var backupFile = Path.Combine(backupPath, string.Format("hourlybackup-{0:HH}.sqlite.bz2", DateTime.Now));
+                    if (File.Exists(backupFile) == false)
                     {
-                        // it was the yesterday's file, replace it
-                        NancyBlackDatabase.BZip(fileName, backupFile);
+                        NancyBlackDatabase.BZip(databaseFile, backupFile);
+                    }
+                    else
+                    {
+                        // check modified date
+                        if (File.GetLastWriteTime(backupFile).Date < DateTime.Now.Date)
+                        {
+                            // it was the yesterday's file, replace it
+                            NancyBlackDatabase.BZip(databaseFile, backupFile);
+                        }
+                    }
+
+                }
+
+                if (mode == "daily")
+                {
+
+                    backupPath = Path.Combine(backupPath, "DatabaseBackup-Hourly");
+                    Directory.CreateDirectory(backupPath);
+
+                    var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));
+                    if (File.Exists(dailybackupFile) == false)
+                    {
+                        NancyBlackDatabase.BZip(databaseFile, dailybackupFile, 9); // max compression for daily backup
+                    }
+
+                    var backupFiles = Directory.GetFiles(backupPath, "dailybackup-*.sqlite.bz2");
+                    var now = DateTime.Now;
+                    var maxDay = 30;
+
+                    if (backupOptions.dailyretention != null)
+                    {
+                        maxDay = (int)backupOptions.dailyretention;
+                    }
+
+                    foreach (var file in backupFiles)
+                    {
+                        if (now.Subtract(File.GetCreationTime(file)).TotalDays > maxDay)
+                        {
+                            try
+                            {
+                                File.Delete(file); // delete backup older than 30 days
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
                     }
                 }
 
-                // create daily backup
-                var dailybackupFile = Path.Combine(backupPath, string.Format("dailybackup-{0:dd-MM-yyyy}.sqlite.bz2", DateTime.Now));
-                if (File.Exists(dailybackupFile) == false)
-                {
-                    NancyBlackDatabase.BZip(fileName, dailybackupFile, 9); // max compression for daily backup
-                }
-
-                var backupFiles = Directory.GetFiles(backupPath, "dailybackup-*.sqlite.bz2");
-                var now = DateTime.Now;
-                foreach (var file in backupFiles)
-                {
-                    if (now.Subtract(File.GetCreationTime(file)).TotalDays > 30)
-                    {
-                        try
-                        {
-                            File.Delete(file); // delete backup older than 30 days
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-                }
             }
             catch (Exception)
             {
                 // retry backup again
                 _LastBackupCheck = DateTime.MinValue;
             }
-#endif
+            finally
+            {
+                if (cleanUp != null)
+                {
+                    cleanUp();
+                }
+            }
         }
     }
 

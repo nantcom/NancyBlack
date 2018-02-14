@@ -112,6 +112,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 FormResponse = form
             };
 
+            if (paymentLog.PaymentSource == "Receivable")
+            {
+                return 400;
+            }
+
             CommerceModule.HandlePayment(this.SiteDatabase, paymentLog, paidWhen);
 
             return paymentLog;

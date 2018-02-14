@@ -248,7 +248,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return;
                 }
             }
-            
+            else
+            {
+                // replay only run when any of previous status has beeen set to waiting for order before
+                if (db.GetOlderVersions(saleOrder).Any(s => s.Status == SaleOrderStatus.WaitingForOrder) == false)
+                {
+                    // this sale order never gets set to waiting for order
+                    return;
+                }
+            }
+
             // ensure that no inventory inbound can be run
             var totalDiscount = 0M;
 

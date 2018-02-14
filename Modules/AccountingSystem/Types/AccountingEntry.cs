@@ -97,5 +97,14 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem.Types
         /// Id of the Inbound that create this buy transaction
         /// </summary>
         public int InventoryInboundId { get; set; }
+
+        /// <summary>
+        /// Additional Properties for this entry
+        /// </summary>
+        public dynamic Addendum
+        {
+            get;
+            set;
+        }
     }
 }

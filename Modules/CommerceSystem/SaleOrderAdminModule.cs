@@ -213,14 +213,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var id = (int)arg.id;
             var so = this.SiteDatabase.GetById<SaleOrder>(id);
-
-            // ensures that promotion flag is set/unset
-            // before attempting to edit
-            foreach (var product in so.ItemsDetail)
-            {
-                product.EnsuresGetPromotionPrice(so);
-            }
-
+            
             var dummyPage = new Page();
 
             var data = new
@@ -228,7 +221,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
                 RowVerions = so.GetRowVersions(this.SiteDatabase),
-                PaymentMethods = AccountingSystem.AccountingSystemModule.GetReceivableAccounts( this.SiteDatabase),
+                PaymentMethods = AccountingSystem.AccountingSystemModule.GetCashAccounts( this.SiteDatabase),
                 InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( i => i.SaleOrderId == so.Id ).ToList()
             };
 

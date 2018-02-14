@@ -93,9 +93,39 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public Decimal Price { get; set; }
 
-        // When saving and loading the product - we wanted to ensure that
-        // the price stays the same no matter what date
-        private bool? _IsPromotionPrice;
+        /// <summary>
+        /// Discount price of this product in home currency
+        /// </summary>
+        public Decimal DiscountPrice { get; set; }
+
+        public double PercentDiscount { get; set; }
+
+        public DateTime PromotionStartDate { get; set; }
+
+        public DateTime PromotionEndDate { get; set; }
+
+        /// <summary>
+        /// The Date that will be used for reference when checking whether user will get promotion
+        /// </summary>
+        public DateTime PromotionReferenceDate { get; set; }
+
+        /// <summary>
+        /// Whether user will get promotion, if reference date is set - it will be used. Otherwise reference date is today
+        /// </summary>
+        public bool IsPromotionPrice
+        {
+            get
+            {
+                if (this.PromotionReferenceDate != DateTime.MinValue)
+                {
+                    return this.PromotionReferenceDate.Date.ToLocalTime() <= this.PromotionEndDate.ToLocalTime() &&
+                            this.PromotionReferenceDate.Date.ToLocalTime() >= this.PromotionStartDate.ToLocalTime();
+                }
+
+                return DateTime.Today <= this.PromotionEndDate.ToLocalTime() &&
+                        DateTime.Today >= this.PromotionStartDate.ToLocalTime();
+            }
+        }
 
         /// <summary>
         /// this field relate to PromotionDate. when current time still in promotion period
@@ -114,34 +144,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             }
         }
 
-        public bool IsPromotionPrice
-        {
-            get
-            {
-                if (_IsPromotionPrice.HasValue)
-                {
-                    return _IsPromotionPrice.Value;
-                }
-
-                return DateTime.Today <= this.PromotionEndDate.ToLocalTime() &&
-                        DateTime.Today >= this.PromotionStartDate.ToLocalTime();
-            }
-            set
-            {
-                _IsPromotionPrice = value;
-            }
-        }
-
-        /// <summary>
-        /// Discount price of this product in home currency
-        /// </summary>
-        public Decimal DiscountPrice { get; set; }
-
-        public double PercentDiscount { get; set; }
-
-        public DateTime PromotionStartDate { get; set; }
-
-        public DateTime PromotionEndDate { get; set; }
 
         /// <summary>
         /// Stock of this product
@@ -196,17 +198,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int CreatedBy { get; set; }
 
         #endregion
-
-        /// <summary>
-        /// Ensures that when editing, customer gets the promotion price
-        /// </summary>
-        /// <param name="so"></param>
-        public void EnsuresGetPromotionPrice( SaleOrder so )
-        {
-            var referenceDate = so.__createdAt;            
-            _IsPromotionPrice = referenceDate <= this.PromotionEndDate.ToLocalTime() &&
-                                    referenceDate >= this.PromotionStartDate.ToLocalTime();
-        }
+        
     }
         
 }

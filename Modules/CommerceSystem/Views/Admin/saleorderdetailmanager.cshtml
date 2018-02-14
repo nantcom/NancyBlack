@@ -23,1017 +23,1023 @@
     <script src="/NancyBlack/Modules/CommerceSystem/Views/Admin/js/saleorderdetail.js"></script>
 }
 
-    <div ng-module="saleorderdetail"
-         ng-controller="saleorderdetailview as ctrl"
-         ncb-datacontext table="SaleOrder"
-         ng-cloak>
-
-        <div class="page-header">
-            <h1>
-                {{object.Id}}
-
-                <span class="pull-right">
-
-                    <button ng-click="printDocument(object.SaleOrderIdentifier, 'quotation')"
-                            ng-class="{ 'disabled' : object.PaymentStatus == 'PaymentReceived' }"
-                            class="btn btn-success">
-                        <span class="icon ion-printer"></span> Quotation
-                    </button>
-
-                    <button ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"
-                            ng-class="{ 'disabled' : object.PaymentStatus == 'PaymentReceived' }"
-                            class="btn btn-primary">
-                        <span class="icon ion-printer"></span> Invoice
-                    </button>
-
-                    <a ng-href="/support/{{object.SaleOrderIdentifier}}"
-                       target="_blank"
-                       class="btn btn-primary">
-                        <span class="icon ion-ios-sunny"></span> Open Support Page
-                    </a>
-
-                </span>
-            </h1>
-            <h4>
-
-                <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/laptops' }">{{item.Title}}</span>
-                <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/products/pc' }">{{item.Title}}</span> |
-                <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/gpu' }">{{item.Title}}</span> |
-                <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/monitor' }">{{item.Title}}</span>
-            </h4>
-        </div>
-
-        <tabset>
-
-            <tab heading="Details">
-
-
-                <ncb-alerts alerts="alerts"></ncb-alerts>
-
-                <div class="col-md-12"
-                     ng-controller="PaymentController as ctrl">
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="panel panel-primary">
-
-                                <div class="panel-heading">
-                                    Payment
-                                </div>
-
-                                <div class="panel-body">
-
-                                    <div class="form-group row">
-                                        <div class="col-xs-6">
-                                            <ncb-datepicker model="paymentDetail.paidWhen" format="'dd MMMM yyyy'"
-                                                            title="Payment Date"></ncb-datepicker>
-                                        </div>
-                                        <div class="col-xs-3">
-                                            <select ncb-select title="Payment Time Hour"
-                                                    ng-model="paymentTime.Hour">
-                                                @for (int i = 0; i < 24; i++)
-                                    {
-                                        <option value="@(i)">@string.Format("{0:00}", i)</option>
-                        }
-                                            </select>
-                                        </div>
-                                        <div class="col-xs-3">
-                                            <select ncb-select title="Minute"
-                                                    ng-model="paymentTime.Min">
-                                                @for (int i = 0; i < 60; i++)
-                                    {
-                                        <option value="@(i)">@string.Format("{0:00}", i)</option>
-                        }
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Paid to Account</label>
-                                        <select ng-options="pmethod for pmethod in paymentMethods"
-                                                ng-model="paymentDetail.paymentMethod"
-                                                class="form-control"></select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Approval Code (Creditcard payment)</label>
-                                        <input class="form-control" ng-model="paymentDetail.apCode" />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Amount</label>
-                                        <input class="form-control" ng-model="paymentDetail.amount" />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <button ng-click="ctrl.saveNewPayment()"
-                                                class="btn btn-primary">
-                                            Ok
-                                        </button>
-                                        <button ng-click="ctrl.cancel()"
-                                                class="btn btn-default">
-                                            Cancel
-                                        </button>
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="panel panel-primary">
-
-                                <div class="panel-heading">
-                                    Payment Records
-                                </div>
-
-                                <div class="panel-body">
-
-
-                                    <table class="table" ">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Date</th>
-                                                <th>Account</th>
-                                                <th>Status</th>
-                                                <th><div class="text-right">Ammount ({{object.Currency}})</div></th>
-                                                <th>Receipt</th>
-                                            </tr>
-                                        </thead>
-                                        <tr ng-repeat="item in paymentLogs">
-                                            <td>
-                                                <div class="form-control-static">
-                                                    {{$index + 1}}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="form-control-static">
-                                                    {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {{item.PaymentMethod}} <br />
-                                                <span ng-if="item.ApCode">
-                                                    {{item.ApCode}}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
-                                            </td>
-                                            <td>
-                                                <div class="form-control-static text-right">
-                                                    {{item.Amount | number:2}}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <a class="btn btn-success"
-                                                   ng-if="item.IsPaymentSuccess"
-                                                   target="_blank"
-                                                   ng-href="{{'/__commerce/saleorder/' + object.SaleOrderIdentifier + '/receipt?index=' + item.receiptIndex}}">
-                                                    <i class="fa fa-print"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    </table>
-
-
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-
-                <div class="col-md-6">
-
-                    <form class="form-horizontal" editable-form name="orderDetailForm" onaftersave="saveSaleOrderDetail()">
-
-                        <div class="panel panel-info ncb-panel-detail">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    Order Detail
-                                    <span type="button" class="btn btn-default btn-xs pull-right"
-                                          ng-click="orderDetailForm.$show()"
-                                          ng-show="!orderDetailForm.$visible">
-                                        Edit
-                                    </span>
-                                    <span class="pull-right" ng-show="orderDetailForm.$visible">
-                                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="orderDetailForm.$waiting">
-                                            Save
-                                        </button>
-                                        <button type="button" class="btn btn-default btn-xs" ng-disabled="orderDetailForm.$waiting" ng-click="orderDetailForm.$cancel()">
-                                            Cancel
-                                        </button>
-                                    </span>
-                                </h3>
-                            </div>
-                            <div class="panel-body">
-                                <div class="form-group">
-                                    <label for="SaleOrderIdentifier" class="col-sm-4 control-label">SaleOrderIdentifier</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="SaleOrderIdentifier">
-                                            {{object.SaleOrderIdentifier}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="CreatedAt">
-                                            {{object.__createdAt | date: 'medium'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Due Date</label>
-                                    <div class="col-sm-8">
-                                        <span ng-show="!orderDetailForm.$visible">
-                                            {{object.DueDate | date: 'medium'}}
-                                        </span>
-                                        <span ng-show="orderDetailForm.$visible">
-                                            <ncb-datepicker model="object.DueDate" format="'dd MMMM yyyy'"></ncb-datepicker>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="Status" class="col-sm-4 control-label">Status</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Status"
-                                              e-name="Status"
-                                              editable-select="object.Status"
-                                              e-ng-options="s.title as s.title for s in soStatusList">
-                                            {{object.Status || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="PaymentStatus" class="col-sm-4 control-label">PaymentStatus</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="PaymentStatus"
-                                              e-name="PaymentStatus"
-                                              editable-select="object.PaymentStatus"
-                                              e-ng-options="s.title as s.title for s in paymentStatusList">
-                                            {{object.PaymentStatus || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="DHLTrackingNumber" class="col-sm-4 control-label">DHLTrackingNumber</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="DHLTrackingNumber"
-                                              e-name="DHLTrackingNumber"
-                                              editable-text="object.DHLTrackingNumber">
-                                            {{object.DHLTrackingNumber || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="InboundDHLTrackingNumber" class="col-sm-4 control-label">Inbound DHL AWB</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="DHLTrackingNumber"
-                                              e-name="InboundDHLTrackingNumber"
-                                              editable-text="object.InboundDHLTrackingNumber">
-                                            {{object.InboundDHLTrackingNumber || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="TotalAmount" class="col-sm-4 control-label">TotalAmount</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="TotalAmount">
-                                            {{object.TotalAmount}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="col-md-6">
-                    <form class="form-horizontal" editable-form name="customerDetailForm" onaftersave="saveSaleOrderDetail()">
-                        <div class="panel panel-warning ncb-panel-detail">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    Customer Detail
-                                    <span type="button" class="btn btn-default btn-xs pull-right"
-                                          ng-click="customerDetailForm.$show()"
-                                          ng-show="!customerDetailForm.$visible">
-                                        Edit
-                                    </span>
-                                    <span class="pull-right" ng-show="customerDetailForm.$visible">
-                                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="customerDetailForm.$waiting">
-                                            Save
-                                        </button>
-                                        <button type="button" class="btn btn-default btn-xs" ng-disabled="customerDetailForm.$waiting" ng-click="customerDetailForm.$cancel()">
-                                            Cancel
-                                        </button>
-                                    </span>
-                                </h3>
-
-                            </div>
-                            <div class="panel-body">
-                                <div class="form-group">
-                                    <label for="FirstName" class="col-sm-4 control-label">FirstName</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="FirstName"
-                                              e-name="FirstName"
-                                              editable-text="object.Customer.FirstName">
-                                            {{object.Customer.FirstName || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="LastName" class="col-sm-4 control-label">LastName</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="LastName"
-                                              e-name="LastName"
-                                              editable-text="object.Customer.LastName">
-                                            {{object.Customer.LastName || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="Email" class="col-sm-4 control-label">Email</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Email"
-                                              e-name="Email"
-                                              editable-text="object.Customer.Email">
-                                            {{object.Customer.Email || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="PhoneNumber" class="col-sm-4 control-label">PhoneNumber</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="PhoneNumber"
-                                              e-name="PhoneNumber"
-                                              editable-text="object.Customer.PhoneNumber">
-                                            {{object.Customer.PhoneNumber || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="FacebookId" class="col-sm-4 control-label">FacebookId</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="FacebookId"
-                                              e-name="FacebookId"
-                                              editable-text="object.Customer.FacebookId">
-                                            {{object.Customer.FacebookId || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="Gender" class="col-sm-4 control-label">Gender</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Gender"
-                                              e-name="Gender"
-                                              editable-select="object.Customer.Gender"
-                                              e-ng-options="s.title as s.title for s in genderList">
-                                            {{object.Customer.Gender || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="DOB" class="col-sm-4 control-label">DOB</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="DOB"
-                                              e-name="DOB"
-                                              editable-date="object.Customer.DOB">
-                                            {{object.Customer.DOB || 'empty' | date: 'MM/dd/yyyy'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">&nbsp;</label>
-                                    <div class="col-sm-8">
-                                        &nbsp;
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="col-md-6">
-                    <form class="form-horizontal" editable-form name="shippingDetailForm" onaftersave="saveSaleOrderDetail()">
-                        <div class="panel panel-success ncb-panel-address">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    Shipping Address
-                                    <span type="button" class="btn btn-default btn-xs pull-right"
-                                          ng-click="shippingDetailForm.$show()"
-                                          ng-show="!shippingDetailForm.$visible">
-                                        Edit
-                                    </span>
-                                    <span class="pull-right" ng-show="shippingDetailForm.$visible">
-                                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="shippingDetailForm.$waiting">
-                                            Save
-                                        </button>
-                                        <button type="button" class="btn btn-default btn-xs"
-                                                ng-disabled="shippingDetailForm.$waiting"
-                                                ng-click="shippingDetailForm.$cancel()">
-                                            Cancel
-                                        </button>
-                                    </span>
-                                </h3>
-                            </div>
-                            <div class="panel-body">
-
-                                <div class="form-group">
-                                    <label for="To" class="col-sm-4 control-label">To</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="To"
-                                              e-name="To"
-                                              editable-text="object.ShipTo.To">
-                                            {{object.ShipTo.To || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="Address" class="col-sm-4 control-label">Address</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Address"
-                                              e-name="Address"
-                                              editable-text="object.ShipTo.Address">
-                                            {{object.ShipTo.Address || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="Country" class="col-sm-4 control-label">Country</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Country"
-                                              e-name="Country"
-                                              editable-text="object.ShipTo.Country">
-                                            {{object.ShipTo.Country || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="State" class="col-sm-4 control-label">State</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="State"
-                                              e-name="State"
-                                              editable-text="object.ShipTo.State">
-                                            {{object.ShipTo.State || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="District" class="col-sm-4 control-label">District</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="District"
-                                              e-name="District"
-                                              editable-text="object.ShipTo.District">
-                                            {{object.ShipTo.District || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="SubDistrict"
-                                              e-name="SubDistrict"
-                                              editable-text="object.ShipTo.SubDistrict">
-                                            {{object.ShipTo.SubDistrict || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="PostalCode"
-                                              e-name="PostalCode"
-                                              editable-text="object.ShipTo.PostalCode">
-                                            {{object.ShipTo.PostalCode || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="col-md-6">
-                    <form class="form-horizontal" editable-form name="billingDetailForm" onaftersave="saveSaleOrderDetail()">
-                        <div class="panel panel-success ncb-panel-address">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    Billing Address
-                                    <span type="button" class="btn btn-default btn-xs pull-right"
-                                          ng-click="billingDetailForm.$show()"
-                                          ng-show="!billingDetailForm.$visible">
-                                        Edit
-                                    </span>
-                                    <span class="pull-right" ng-show="billingDetailForm.$visible">
-                                        <button type="submit" class="btn btn-primary btn-xs" ng-disabled="billingDetailForm.$waiting">
-                                            Save
-                                        </button>
-                                        <button type="button" class="btn btn-default btn-xs"
-                                                ng-disabled="billingDetailForm.$waiting"
-                                                ng-click="billingDetailForm.$cancel()">
-                                            Cancel
-                                        </button>
-                                    </span>
-                                </h3>
-                            </div>
-                            <div class="panel-body">
-
-                                <div class="form-group">
-                                    <label for="CopyAddress" class="col-sm-4 control-label">Copy shipping address</label>
-                                    <div class="col-sm-8">
-                                        <button type="button" class="btn btn-default" id="CopyAddress"
-                                                ng-click="copyAddressShippingToBilling(billingDetailForm)">
-                                            Copy
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="UseBillingAddress" class="col-sm-4 control-label">UseBillingAddress</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="UseBillingAddress"
-                                              e-name="UseBillingAddress"
-                                              editable-checkbox="object.UseBillingAddress"
-                                              e-title="">
-                                            {{object.UseBillingAddress && 'Using Billing Address' || 'Not use'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="To" class="col-sm-4 control-label">Company/Branch</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="To"
-                                              e-name="To"
-                                              editable-text="object.BillTo.To">
-                                            {{object.BillTo.To || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="TaxId" class="col-sm-4 control-label">Tax ID</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="TaxId"
-                                              e-name="TaxId"
-                                              editable-text="object.BillTo.TaxId">
-                                            {{object.BillTo.TaxId || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="Address" class="col-sm-4 control-label">Address</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Address"
-                                              e-name="Address"
-                                              editable-text="object.BillTo.Address">
-                                            {{object.BillTo.Address || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="Country" class="col-sm-4 control-label">Country</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="Country"
-                                              e-name="Country"
-                                              editable-text="object.BillTo.Country">
-                                            {{object.BillTo.Country || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="State" class="col-sm-4 control-label">State</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="State"
-                                              e-name="State"
-                                              editable-text="object.BillTo.State">
-                                            {{object.BillTo.State || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="District" class="col-sm-4 control-label">District</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="District"
-                                              e-name="District"
-                                              editable-text="object.BillTo.District">
-                                            {{object.BillTo.District || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="SubDistrict"
-                                              e-name="SubDistrict"
-                                              editable-text="object.BillTo.SubDistrict">
-                                            {{object.BillTo.SubDistrict || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
-                                    <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="PostalCode"
-                                              e-name="PostalCode"
-                                              editable-text="object.BillTo.PostalCode">
-                                            {{object.BillTo.PostalCode || 'empty'}}
-                                        </span>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-            </tab>
-
-            <tab heading="Order Details">
-
-                <div class="panel panel-info">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
-                            Items
-                        </h3>
-                    </div>
-
-                    <div class="panel-body">
-
-                        <alert type="warning">
-                            NOTE: After adding item into sale order, system will snapshot the price so that
-                            customer will always get same price even though the promotion has ended or price of the
-                            item has changed.
-                            <b>Using the add button also does not affect the price if item is already in sale order</b>
-                        </alert>
-
-                        <table id="items" class="table"
-                               ncg-productresolver saleorder="object">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th width="40%">Product</th>
-                                    <th><div class="text-right">Qty.</div></th>
-                                    <th><div class="text-right">New Price</div></th>
-                                    <th><div>Current</div></th>
-                                    <th><div class="text-right">Line Total</div></th>
-                                </tr>
-                            </thead>
-                            <tr>
-                                <td></td>
-                                <td>
-
-                                    <div ncb-lookupscope
-                                         table="Product" labelpath="Title" filter="$filter=contains(Title, $key)&$orderby=Title,__updatedAt desc">
-
-                                        <ui-select theme="bootstrap" ng-model="newItem.Id"
-                                                   reset-search-input="false">
-                                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                                               refresh="refreshLookup($select.search)"
-                                                               refresh-delay="0">
-
-                                                <span class="text-muted">
-                                                    {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
-                                                </span>
-                                                <span>
-                                                    {{item.label}}
-                                                </span>
-                                            </ui-select-choices>
-                                        </ui-select>
-                                    </div>
-
-                                </td>
-                                <td>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control"
-                                               min="1"
-                                               ng-model="newItem.Qty" />
-
-                                        <span class="input-group-btn">
-                                            <a class="btn btn-success"
-                                               ng-click="ctrl.addItem( newItem )">
-                                                <i class="fa fa-plus-circle"></i>
-                                            </a>
-                                        </span>
-                                    </div>
-                                </td>
-                                <td colspan="2"></td>
-                            </tr>
-                            <tr ng-repeat="item in object.ItemsDetail"
-                                class="soDetailRows">
-                                <td>
-                                    <div class="form-control-static">
-                                        {{$index + 1}}
-                                    </div>
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control"
-                                           ng-if="item.Url != '/dummy/dummy'"
-                                           ng-blur="ctrl.previewTotal(object, item, $index)"
-                                           ng-disabled="newItem.Id != null"
-                                           ng-model="item.Title" />
-
-                                    <div class="form-control-static"                                         
-                                           ng-if="item.Url == '/dummy/dummy'">
-                                        {{item.Title}}
-                                    </div>
-                                </td>
-                                <td>
-                                    <input type="number" inputmode="numeric" class="form-control"
-                                           min="0"
-                                           ng-if="item.Url != '/dummy/dummy'"
-                                           ng-blur="ctrl.previewTotal(object, item, $index)"
-                                           ng-disabled="newItem.Id != null"
-                                           ng-model="item.Attributes.Qty" />
-
-                                </td>
-                                <td>
-                                    <div class="input-group"
-                                         ng-if="item.Url != '/dummy/dummy'">
-
-                                        <input type="number" class="form-control"
-                                               inputmode="numeric"
-                                               ng-disabled="!item.EditPrice"
-                                               ng-init="item.ShowPrice = item.CurrentPrice"
-                                               ng-model="item.ShowPrice" />
-
-                                        <span class="input-group-btn">
-                                            <a class="btn btn-warning"
-                                              ng-if="!item.EditPrice"
-                                               ng-click="item.EditPrice = true;">
-                                                <i class="fa fa-pencil-square"></i>
-                                            </a>
-                                        </span>
-
-                                        <span class="input-group-btn"
-                                              ng-if="item.EditPrice">
-
-                                            <a class="btn btn-danger"
-                                               ng-click="item.EditPrice = false; item.ShowPrice = item.CurrentPrice;">
-                                                <i class="fa fa-times-circle"></i>
-                                            </a>
-                                            <a class="btn btn-success"
-                                               ng-click="item.EditPrice = false;item.Price = item.ShowPrice; item.IsPromotionPrice = false; item.CurrentPrice = item.ShowPrice; ctrl.previewTotal(object, item, $index);">
-                                                <i class="fa fa-check-circle"></i>
-                                            </a>
-                                        </span>
-                                    </div>
-
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        {{item.CurrentPrice | number:2}}
-                                    </div>
-
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        {{(item.Price * item.Attributes.Qty) | number:2}}
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="4"></td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Shipping Fee</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.ShippingFee | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="4"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Insurence Fee</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.ShippingInsuranceFee | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="4"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Payment Fee</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.PaymentFee | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="blank" colspan="4"> </td>
-                                <td>
-                                    <div class="form-control-static">
-                                        <b>Total (net)</b>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-control-static text-right">
-                                        <b>{{object.TotalAmount | number:2 }} </b>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr ng-if="newItem.Id == nulll">
-                                <td colspan="6">
-                                    <ncb-alerts alerts="alerts"></ncb-alerts>
-
-                                    <a class="btn btn-warning pull-right" style="width: 250px"
-                                       ng-click="ctrl.updateQty( object )">
-                                        <i class="fa fa-check-circle"></i> Update Sale Order
-                                    </a>
-                                </td>
-                            </tr>
-                        </table>
-                        
-
-                    </div>
-                </div>
-
-            </tab>
-
-            <tab heading="AffRewardsClaim">
-                <div class="row">
-                    <div class="col-sm-6 col-md-4">
-                        <div class="thumbnail">
-                            <img src="..." alt="...">
-                            <div class="caption">
-                                <h3>Thumbnail label</h3>
-                                <p>...</p>
-                                <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-md-4">
-                        <div class="thumbnail">
-                            <img src="..." alt="...">
-                            <div class="caption">
-                                <h3>Thumbnail label</h3>
-                                <p>...</p>
-                                <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </tab>
-
-            <tab heading="Inventory Requests">
-
-                <div class="panel panel-info"
-                     ncb-datacontext table="InventoryItem">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
-                            Inventory Requests Log
-                        </h3>
-                    </div>
-
-                    <div class="panel-body">
-
-
-                        <table class="table table-striped table-hover"
-                               style="width: 100%">
-
-                            <thead>
-                                <tr>
-                                    <th>
-                                        Item Id
-                                    </th>
-                                    <th>
-                                        Product
-                                    </th>
-                                    <th>
-                                        Serial Number
-                                    </th>
-                                    <th>
-                                        Buy Cost
-                                    </th>
-                                    <th>
-                                        Sell Cost
-                                    </th>
-                                    <th>
-                                        Fullfilled Date
-                                    </th>
-                                    <th>
-
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tr ng-repeat="item in window.allData.InventoryRequests">
-                                <td>
-                                    {{item.Id}}
-                                </td>
-                                <td>
-                                    <span ncb-vlookup="Product" key="{{item.ProductId}}">
-                                    </span>
-                                </td>
-                                <td>
-                                    <input class="form-control" type="text"
-                                           ng-blur="ctrl.updateSerial(data, item)"
-                                           ng-model="item.SerialNumber" />
-
-                                </td>
-                                <td>
-                                    <b>{{item.BuyingCost | number:2 }}</b><br />
-                                    <span class="text-subtle">{{item.BuyingTax | number:2 }}</span>
-                                </td>
-                                <td>
-                                    <b>{{item.SellingPrice | number:2 }}</b><br />
-                                    <span class="text-subtle">{{item.SellingTax | number:2 }}</span>
-                                </td>
-                                <td>
-                                    {{item.FulfilledDate | date:'dd/MM/yyyy HH:mm' }}
-                                </td>
-                            </tr>
-                        </table>
-
-                        <ncb-alerts alerts="alerts"></ncb-alerts>
-                    </div>
-                </div>
-
-            </tab>
-
-            <tab heading="Attachments">
-                <ncb-attachmentmanager></ncb-attachmentmanager>
-            </tab>
-
-
-        </tabset>
-
+<div ng-module="saleorderdetail"
+     ng-controller="saleorderdetailview as ctrl"
+     ncb-datacontext table="SaleOrder"
+     ng-cloak>
+
+    <div class="page-header">
+        <h1>
+            {{object.Id}}
+
+            <span class="pull-right">
+
+                <button ng-click="printDocument(object.SaleOrderIdentifier, 'quotation')"
+                        ng-class="{ 'disabled' : object.PaymentStatus == 'PaymentReceived' }"
+                        class="btn btn-success">
+                    <span class="icon ion-printer"></span> Quotation
+                </button>
+
+                <button ng-click="printDocument(object.SaleOrderIdentifier, 'invoice')"
+                        ng-class="{ 'disabled' : object.PaymentStatus == 'PaymentReceived' }"
+                        class="btn btn-primary">
+                    <span class="icon ion-printer"></span> Invoice
+                </button>
+
+                <a ng-href="/support/{{object.SaleOrderIdentifier}}"
+                   target="_blank"
+                   class="btn btn-primary">
+                    <span class="icon ion-ios-sunny"></span> Open Support Page
+                </a>
+
+            </span>
+        </h1>
+        <h4>
+
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/laptops' }">{{item.Title}}</span>
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/products/pc' }">{{item.Title}}</span> |
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/gpu' }">{{item.Title}}</span> |
+            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/monitor' }">{{item.Title}}</span>
+        </h4>
     </div>
+
+    <tabset>
+
+        <tab heading="Details">
+
+
+            <ncb-alerts alerts="alerts"></ncb-alerts>
+
+            <div class="col-md-12"
+                 ng-controller="PaymentController as ctrl">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-primary">
+
+                            <div class="panel-heading">
+                                Payment
+                            </div>
+
+                            <div class="panel-body">
+
+                                <div class="form-group row">
+                                    <div class="col-xs-6">
+                                        <ncb-datepicker model="paymentDetail.paidWhen" format="'dd MMMM yyyy'"
+                                                        title="Payment Date"></ncb-datepicker>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <select ncb-select title="Payment Time Hour"
+                                                ng-model="paymentTime.Hour">
+                                            @for (int i = 0; i < 24; i++)
+                                            {
+                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <select ncb-select title="Minute"
+                                                ng-model="paymentTime.Min">
+                                            @for (int i = 0; i < 60; i++)
+                                            {
+                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Paid to Account</label>
+                                    <select ng-options="pmethod for pmethod in paymentMethods"
+                                            ng-model="paymentDetail.paymentMethod"
+                                            class="form-control"></select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Approval Code (Creditcard payment)</label>
+                                    <input class="form-control" ng-model="paymentDetail.apCode" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Amount</label>
+                                    <input class="form-control" ng-model="paymentDetail.amount" />
+                                </div>
+
+                                <div class="form-group">
+                                    <button ng-click="ctrl.saveNewPayment()"
+                                            class="btn btn-primary">
+                                        Ok
+                                    </button>
+                                    <button ng-click="ctrl.cancel()"
+                                            class="btn btn-default">
+                                        Cancel
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="panel panel-primary">
+
+                            <div class="panel-heading">
+                                Payment Records
+                            </div>
+
+                            <div class="panel-body">
+
+
+                                <table class="table" ">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Account</th>
+                                            <th>Status</th>
+                                            <th><div class="text-right">Ammount ({{object.Currency}})</div></th>
+                                            <th>Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tr ng-repeat="item in paymentLogs">
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{$index + 1}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static">
+                                                {{item.PaymentDate | date:'dd MMMM yyyy HH.mm'}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{item.PaymentMethod}} <br />
+                                            <span ng-if="item.ApCode">
+                                                {{item.ApCode}}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {{item.IsPaymentSuccess ? 'Success' : 'Not Success'}}
+                                        </td>
+                                        <td>
+                                            <div class="form-control-static text-right">
+                                                {{item.Amount | number:2}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a class="btn btn-success"
+                                               ng-if="item.IsPaymentSuccess"
+                                               target="_blank"
+                                               ng-href="{{'/__commerce/saleorder/' + object.SaleOrderIdentifier + '/receipt?index=' + item.receiptIndex}}">
+                                                <i class="fa fa-print"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-md-6">
+
+                <form class="form-horizontal" editable-form name="orderDetailForm" onaftersave="saveSaleOrderDetail()">
+
+                    <div class="panel panel-info ncb-panel-detail">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                Order Detail
+                                <span type="button" class="btn btn-default btn-xs pull-right"
+                                      ng-click="orderDetailForm.$show()"
+                                      ng-show="!orderDetailForm.$visible">
+                                    Edit
+                                </span>
+                                <span class="pull-right" ng-show="orderDetailForm.$visible">
+                                    <button type="submit" class="btn btn-primary btn-xs" ng-disabled="orderDetailForm.$waiting">
+                                        Save
+                                    </button>
+                                    <button type="button" class="btn btn-default btn-xs" ng-disabled="orderDetailForm.$waiting" ng-click="orderDetailForm.$cancel()">
+                                        Cancel
+                                    </button>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="SaleOrderIdentifier" class="col-sm-4 control-label">SaleOrderIdentifier</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="SaleOrderIdentifier">
+                                        {{object.SaleOrderIdentifier}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="CreatedAt">
+                                        {{object.__createdAt | date: 'medium'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="CreatedAt" class="col-sm-4 control-label">Due Date</label>
+                                <div class="col-sm-8">
+                                    <span ng-show="!orderDetailForm.$visible">
+                                        {{object.DueDate | date: 'medium'}}
+                                    </span>
+                                    <span ng-show="orderDetailForm.$visible">
+                                        <ncb-datepicker model="object.DueDate" format="'dd MMMM yyyy'"></ncb-datepicker>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Status" class="col-sm-4 control-label">Status</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Status"
+                                          e-name="Status"
+                                          editable-select="object.Status"
+                                          e-ng-options="s.title as s.title for s in soStatusList">
+                                        {{object.Status || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="PaymentStatus" class="col-sm-4 control-label">PaymentStatus</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="PaymentStatus"
+                                          e-name="PaymentStatus"
+                                          editable-select="object.PaymentStatus"
+                                          e-ng-options="s.title as s.title for s in paymentStatusList">
+                                        {{object.PaymentStatus || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="DHLTrackingNumber" class="col-sm-4 control-label">DHLTrackingNumber</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="DHLTrackingNumber"
+                                          e-name="DHLTrackingNumber"
+                                          editable-text="object.DHLTrackingNumber">
+                                        {{object.DHLTrackingNumber || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="InboundDHLTrackingNumber" class="col-sm-4 control-label">Inbound DHL AWB</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="DHLTrackingNumber"
+                                          e-name="InboundDHLTrackingNumber"
+                                          editable-text="object.InboundDHLTrackingNumber">
+                                        {{object.InboundDHLTrackingNumber || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="TotalAmount" class="col-sm-4 control-label">TotalAmount</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="TotalAmount">
+                                        {{object.TotalAmount}}
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <form class="form-horizontal" editable-form name="customerDetailForm" onaftersave="saveSaleOrderDetail()">
+                    <div class="panel panel-warning ncb-panel-detail">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                Customer Detail
+                                <span type="button" class="btn btn-default btn-xs pull-right"
+                                      ng-click="customerDetailForm.$show()"
+                                      ng-show="!customerDetailForm.$visible">
+                                    Edit
+                                </span>
+                                <span class="pull-right" ng-show="customerDetailForm.$visible">
+                                    <button type="submit" class="btn btn-primary btn-xs" ng-disabled="customerDetailForm.$waiting">
+                                        Save
+                                    </button>
+                                    <button type="button" class="btn btn-default btn-xs" ng-disabled="customerDetailForm.$waiting" ng-click="customerDetailForm.$cancel()">
+                                        Cancel
+                                    </button>
+                                </span>
+                            </h3>
+
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="FirstName" class="col-sm-4 control-label">FirstName</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="FirstName"
+                                          e-name="FirstName"
+                                          editable-text="object.Customer.FirstName">
+                                        {{object.Customer.FirstName || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="LastName" class="col-sm-4 control-label">LastName</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="LastName"
+                                          e-name="LastName"
+                                          editable-text="object.Customer.LastName">
+                                        {{object.Customer.LastName || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Email" class="col-sm-4 control-label">Email</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Email"
+                                          e-name="Email"
+                                          editable-text="object.Customer.Email">
+                                        {{object.Customer.Email || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="PhoneNumber" class="col-sm-4 control-label">PhoneNumber</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="PhoneNumber"
+                                          e-name="PhoneNumber"
+                                          editable-text="object.Customer.PhoneNumber">
+                                        {{object.Customer.PhoneNumber || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="FacebookId" class="col-sm-4 control-label">FacebookId</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="FacebookId"
+                                          e-name="FacebookId"
+                                          editable-text="object.Customer.FacebookId">
+                                        {{object.Customer.FacebookId || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Gender" class="col-sm-4 control-label">Gender</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Gender"
+                                          e-name="Gender"
+                                          editable-select="object.Customer.Gender"
+                                          e-ng-options="s.title as s.title for s in genderList">
+                                        {{object.Customer.Gender || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="DOB" class="col-sm-4 control-label">DOB</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="DOB"
+                                          e-name="DOB"
+                                          editable-date="object.Customer.DOB">
+                                        {{object.Customer.DOB || 'empty' | date: 'MM/dd/yyyy'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">&nbsp;</label>
+                                <div class="col-sm-8">
+                                    &nbsp;
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <form class="form-horizontal" editable-form name="shippingDetailForm" onaftersave="saveSaleOrderDetail()">
+                    <div class="panel panel-success ncb-panel-address">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                Shipping Address
+                                <span type="button" class="btn btn-default btn-xs pull-right"
+                                      ng-click="shippingDetailForm.$show()"
+                                      ng-show="!shippingDetailForm.$visible">
+                                    Edit
+                                </span>
+                                <span class="pull-right" ng-show="shippingDetailForm.$visible">
+                                    <button type="submit" class="btn btn-primary btn-xs" ng-disabled="shippingDetailForm.$waiting">
+                                        Save
+                                    </button>
+                                    <button type="button" class="btn btn-default btn-xs"
+                                            ng-disabled="shippingDetailForm.$waiting"
+                                            ng-click="shippingDetailForm.$cancel()">
+                                        Cancel
+                                    </button>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="form-group">
+                                <label for="To" class="col-sm-4 control-label">To</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="To"
+                                          e-name="To"
+                                          editable-text="object.ShipTo.To">
+                                        {{object.ShipTo.To || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Address" class="col-sm-4 control-label">Address</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Address"
+                                          e-name="Address"
+                                          editable-text="object.ShipTo.Address">
+                                        {{object.ShipTo.Address || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Country" class="col-sm-4 control-label">Country</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Country"
+                                          e-name="Country"
+                                          editable-text="object.ShipTo.Country">
+                                        {{object.ShipTo.Country || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="State" class="col-sm-4 control-label">State</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="State"
+                                          e-name="State"
+                                          editable-text="object.ShipTo.State">
+                                        {{object.ShipTo.State || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="District" class="col-sm-4 control-label">District</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="District"
+                                          e-name="District"
+                                          editable-text="object.ShipTo.District">
+                                        {{object.ShipTo.District || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="SubDistrict"
+                                          e-name="SubDistrict"
+                                          editable-text="object.ShipTo.SubDistrict">
+                                        {{object.ShipTo.SubDistrict || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="PostalCode"
+                                          e-name="PostalCode"
+                                          editable-text="object.ShipTo.PostalCode">
+                                        {{object.ShipTo.PostalCode || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <form class="form-horizontal" editable-form name="billingDetailForm" onaftersave="saveSaleOrderDetail()">
+                    <div class="panel panel-success ncb-panel-address">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                Billing Address
+                                <span type="button" class="btn btn-default btn-xs pull-right"
+                                      ng-click="billingDetailForm.$show()"
+                                      ng-show="!billingDetailForm.$visible">
+                                    Edit
+                                </span>
+                                <span class="pull-right" ng-show="billingDetailForm.$visible">
+                                    <button type="submit" class="btn btn-primary btn-xs" ng-disabled="billingDetailForm.$waiting">
+                                        Save
+                                    </button>
+                                    <button type="button" class="btn btn-default btn-xs"
+                                            ng-disabled="billingDetailForm.$waiting"
+                                            ng-click="billingDetailForm.$cancel()">
+                                        Cancel
+                                    </button>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="form-group">
+                                <label for="CopyAddress" class="col-sm-4 control-label">Copy shipping address</label>
+                                <div class="col-sm-8">
+                                    <button type="button" class="btn btn-default" id="CopyAddress"
+                                            ng-click="copyAddressShippingToBilling(billingDetailForm)">
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="UseBillingAddress" class="col-sm-4 control-label">UseBillingAddress</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="UseBillingAddress"
+                                          e-name="UseBillingAddress"
+                                          editable-checkbox="object.UseBillingAddress"
+                                          e-title="">
+                                        {{object.UseBillingAddress && 'Using Billing Address' || 'Not use'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="To" class="col-sm-4 control-label">Company/Branch</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="To"
+                                          e-name="To"
+                                          editable-text="object.BillTo.To">
+                                        {{object.BillTo.To || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="TaxId" class="col-sm-4 control-label">Tax ID</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="TaxId"
+                                          e-name="TaxId"
+                                          editable-text="object.BillTo.TaxId">
+                                        {{object.BillTo.TaxId || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Address" class="col-sm-4 control-label">Address</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Address"
+                                          e-name="Address"
+                                          editable-text="object.BillTo.Address">
+                                        {{object.BillTo.Address || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Country" class="col-sm-4 control-label">Country</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="Country"
+                                          e-name="Country"
+                                          editable-text="object.BillTo.Country">
+                                        {{object.BillTo.Country || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="State" class="col-sm-4 control-label">State</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="State"
+                                          e-name="State"
+                                          editable-text="object.BillTo.State">
+                                        {{object.BillTo.State || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="District" class="col-sm-4 control-label">District</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="District"
+                                          e-name="District"
+                                          editable-text="object.BillTo.District">
+                                        {{object.BillTo.District || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="SubDistrict" class="col-sm-4 control-label">SubDistrict</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="SubDistrict"
+                                          e-name="SubDistrict"
+                                          editable-text="object.BillTo.SubDistrict">
+                                        {{object.BillTo.SubDistrict || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="PostalCode" class="col-sm-4 control-label">PostalCode</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="PostalCode"
+                                          e-name="PostalCode"
+                                          editable-text="object.BillTo.PostalCode">
+                                        {{object.BillTo.PostalCode || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </tab>
+
+        <tab heading="Order Details">
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Items
+                    </h3>
+                </div>
+
+                <div class="panel-body">
+
+                    <alert type="warning">
+                        NOTE: After adding item into sale order, system will snapshot the price so that
+                        customer will always get same price even though the promotion has ended or price of the
+                        item has changed.
+                        <b>Using the add button also does not affect the price if item is already in sale order</b>
+                    </alert>
+
+                    <table id="items" class="table"
+                           ncg-productresolver saleorder="object">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th width="40%">Product</th>
+                                <th><div class="text-right">Qty.</div></th>
+                                <th><div>Price</div></th>
+                                <th><div>Discount Price</div></th>
+                                <th><div class="text-right">New Price</div></th>
+                                <th><div class="text-right">Line Total</div></th>
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td></td>
+                            <td>
+
+                                <div ncb-lookupscope
+                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key)&$orderby=Title,__updatedAt desc">
+
+                                    <ui-select theme="bootstrap" ng-model="newItem.Id"
+                                               reset-search-input="false">
+                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                           refresh="refreshLookup($select.search)"
+                                                           refresh-delay="0">
+
+                                            <span class="text-muted">
+                                                {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
+                                            </span>
+                                            <span>
+                                                {{item.label}}
+                                            </span>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" class="form-control"
+                                           min="1"
+                                           ng-model="newItem.Qty" />
+
+                                    <span class="input-group-btn">
+                                        <a class="btn btn-success"
+                                           ng-click="ctrl.addItem( newItem )">
+                                            <i class="fa fa-plus-circle"></i>
+                                        </a>
+                                    </span>
+                                </div>
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr ng-repeat="item in object.ItemsDetail"
+                            class="soDetailRows">
+                            <td>
+                                <div class="form-control-static">
+                                    {{$index + 1}}
+                                </div>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control"
+                                       ng-if="item.Url != '/dummy/dummy'"
+                                       ng-blur="ctrl.previewTotal(object, item, $index)"
+                                       ng-disabled="newItem.Id != null"
+                                       ng-model="item.Title" />
+
+                                <div class="form-control-static"
+                                     ng-if="item.Url == '/dummy/dummy'">
+                                    {{item.Title}}
+                                </div>
+                            </td>
+                            <td>
+                                <input type="number" inputmode="numeric" class="form-control"
+                                       min="0"
+                                       ng-if="item.Url != '/dummy/dummy'"
+                                       ng-blur="ctrl.previewTotal(object, item, $index)"
+                                       ng-disabled="newItem.Id != null"
+                                       ng-model="item.Attributes.Qty" />
+
+                            </td>
+
+                            <td>
+                                <div class="form-control-static text-right">
+                                    {{item.Price | number:2}}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    {{item.CurrentPrice | number:2}}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group"
+                                     ng-if="item.Url != '/dummy/dummy'">
+
+                                    <input type="number" class="form-control"
+                                           inputmode="numeric"
+                                           ng-disabled="!item.EditPrice"
+                                           ng-init="item.ShowPrice = item.CurrentPrice"
+                                           ng-model="item.ShowPrice" />
+
+                                    <span class="input-group-btn">
+                                        <a class="btn btn-warning"
+                                           ng-if="!item.EditPrice"
+                                           ng-click="item.EditPrice = true;">
+                                            <i class="fa fa-pencil-square"></i>
+                                        </a>
+                                    </span>
+
+                                    <span class="input-group-btn"
+                                          ng-if="item.EditPrice">
+
+                                        <a class="btn btn-danger"
+                                           ng-click="item.EditPrice = false; item.ShowPrice = item.CurrentPrice;">
+                                            <i class="fa fa-times-circle"></i>
+                                        </a>
+                                        <a class="btn btn-success"
+                                           ng-click="ctrl.setPrice(object, item, $index);">
+                                            <i class="fa fa-check-circle"></i>
+                                        </a>
+                                    </span>
+                                </div>
+
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    {{(item.CurrentPrice * item.Attributes.Qty) | number:2}}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="4"></td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Shipping Fee</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.ShippingFee | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="4"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Insurence Fee</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.ShippingInsuranceFee | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="4"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Payment Fee</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.PaymentFee | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="blank" colspan="4"> </td>
+                            <td>
+                                <div class="form-control-static">
+                                    <b>Total (net)</b>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-control-static text-right">
+                                    <b>{{object.TotalAmount | number:2 }} </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr ng-if="newItem.Id == nulll">
+                            <td colspan="6">
+                                <ncb-alerts alerts="alerts"></ncb-alerts>
+
+                                <a class="btn btn-warning pull-right" style="width: 250px"
+                                   ng-click="ctrl.updateQty( object )">
+                                    <i class="fa fa-check-circle"></i> Update Sale Order
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+
+
+                </div>
+            </div>
+
+        </tab>
+
+        <tab heading="AffRewardsClaim">
+            <div class="row">
+                <div class="col-sm-6 col-md-4">
+                    <div class="thumbnail">
+                        <img src="..." alt="...">
+                        <div class="caption">
+                            <h3>Thumbnail label</h3>
+                            <p>...</p>
+                            <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="thumbnail">
+                        <img src="..." alt="...">
+                        <div class="caption">
+                            <h3>Thumbnail label</h3>
+                            <p>...</p>
+                            <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </tab>
+
+        <tab heading="Inventory Requests">
+
+            <div class="panel panel-info"
+                 ncb-datacontext table="InventoryItem">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Inventory Requests Log
+                    </h3>
+                </div>
+
+                <div class="panel-body">
+
+
+                    <table class="table table-striped table-hover"
+                           style="width: 100%">
+
+                        <thead>
+                            <tr>
+                                <th>
+                                    Item Id
+                                </th>
+                                <th>
+                                    Product
+                                </th>
+                                <th>
+                                    Serial Number
+                                </th>
+                                <th>
+                                    Buy Cost
+                                </th>
+                                <th>
+                                    Sell Cost
+                                </th>
+                                <th>
+                                    Fullfilled Date
+                                </th>
+                                <th>
+
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tr ng-repeat="item in window.allData.InventoryRequests">
+                            <td>
+                                {{item.Id}}
+                            </td>
+                            <td>
+                                <span ncb-vlookup="Product" key="{{item.ProductId}}">
+                                </span>
+                            </td>
+                            <td>
+                                <input class="form-control" type="text"
+                                       ng-blur="ctrl.updateSerial(data, item)"
+                                       ng-model="item.SerialNumber" />
+
+                            </td>
+                            <td>
+                                <b>{{item.BuyingCost | number:2 }}</b><br />
+                                <span class="text-subtle">{{item.BuyingTax | number:2 }}</span>
+                            </td>
+                            <td>
+                                <b>{{item.SellingPrice | number:2 }}</b><br />
+                                <span class="text-subtle">{{item.SellingTax | number:2 }}</span>
+                            </td>
+                            <td>
+                                {{item.FulfilledDate | date:'dd/MM/yyyy HH:mm' }}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <ncb-alerts alerts="alerts"></ncb-alerts>
+                </div>
+            </div>
+
+        </tab>
+
+        <tab heading="Attachments">
+            <ncb-attachmentmanager></ncb-attachmentmanager>
+        </tab>
+
+
+    </tabset>
+
+</div>

@@ -36,6 +36,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
     public sealed class PaymentStatus
     {
         public const string WaitingForPayment = "WaitingForPayment";
+        public const string Credit = "Credit";
         public const string PaymentReceived = "PaymentReceived";
         public const string Deposit = "Deposit";
         public const string DuplicatePayment = "DuplicatePayment";
@@ -354,6 +355,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 //lookupItemDetail is used for provent duplication
                 var lookupItemDetail = new Dictionary<int, Product>();
+                this.ItemsDetail = new List<Product>();
 
                 foreach (var item in this.Items)
                 {
@@ -363,7 +365,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     product.MetaDescription = null;
                     product.MetaKeywords = null;
                     product.Layout = null;
-                    product.EnsuresGetPromotionPrice(this);
+                    product.PromotionReferenceDate = DateTime.Today;
 
                     // check for duplication
                     if (lookupItemDetail.ContainsKey(product.Id))
@@ -395,8 +397,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 var newItemsList = new List<int>();
                 foreach (var item in this.ItemsDetail)
                 {
-                    item.EnsuresGetPromotionPrice(this);
-
                     if (item.Url == "/dummy/dummy")
                     {
                         continue;

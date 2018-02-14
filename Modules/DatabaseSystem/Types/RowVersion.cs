@@ -1,4 +1,5 @@
-﻿using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+﻿using Microsoft.WindowsAzure.Storage.Table;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,26 +7,30 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem.Types
 {
-    public class RowVersion : IStaticType
+    public class RowVersion : TableEntity, IStaticType
     {
+        [IgnoreProperty]
         public int Id
         {
             get;
             set;
         }
 
+        [IgnoreProperty]
         public DateTime __createdAt
         {
             get;
             set;
         }
 
+        [IgnoreProperty]
         public DateTime __updatedAt
         {
             get;
             set;
         }
 
+        [IgnoreProperty]
         public string __version
         {
             get;
@@ -61,5 +66,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem.Types
         /// Users that made the action
         /// </summary>
         public int UserId { get; set; }
+
+        internal void PrepareForAuzre()
+        {
+            this.RowKey = DateTime.Now.Ticks.ToString();
+            this.PartitionKey = string.Format("{0}-{1}", this.DataType, this.RowId);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
 
     var module = angular.module('AccountingGlModule', ['ui.bootstrap', 'angular.filter', 'chart.js']);
 
@@ -193,6 +193,7 @@
         $scope.data.Cash = [];
         $scope.data.Asset = [];
         $scope.data.Expense = [];
+        $scope.data.Receivable = [];
 
         $scope.totalHidden = 0;
 
@@ -215,26 +216,41 @@
             }
 
             if (window.accountSettings[item.Account] == "Asset") {
-                $scope.data.Asset.push(item);
+                $scope.data.AssetSummary.push({
+                    Name: item.Account,
+                    TotalAmount: item.TotalIncrease + item.TotalDecrease,
+                    LastUpdated: item.LastUpdated
+                });
+                return;
+            } 
+
+            if (window.accountSettings[item.Account] == "Receivable") {
+                $scope.data.Receivable.push(item);
+                return;
+            }
+
+            if (window.accountSettings[item.Account] == "Payable") {
+
+                $scope.data.PayableSummary.push({
+                    DebtorLoanerName: 'Tax',
+                    DocumentNumber: 'Projection',
+                    Amount: item.TotalIncrease + item.TotalDecrease,
+                });
+                $scope.data.Receivable.push(item);
                 return;
             }
 
             $scope.totalHidden++;
         });
 
-        $me.getTotal = function (type) {
+        $me.getTotal = function (type, prop) {
 
             var total = 0;
             $scope.data[type].forEach(function (item) {
 
-                if (item.TotalIncrease != null) {
+                if (item[prop] != null) {
 
-                    total += (item.TotalIncrease + item.TotalDecrease);
-                }
-
-                if (item.Amount != null) {
-
-                    total += item.Amount;
+                    total += item[prop];
                 }
             });
 

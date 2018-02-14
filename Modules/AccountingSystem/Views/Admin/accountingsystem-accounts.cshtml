@@ -48,7 +48,7 @@
                                                 Account
                                             </th>
                                             <th>
-                                                Amount
+                                                Remaining
                                             </th>
                                             <th>
                                                 Last Update
@@ -76,7 +76,7 @@
                                                 Total
                                             </td>
                                             <td>
-                                                {{ctrl.getTotal( 'Cash' ) | number:2 }}
+                                                {{ctrl.getTotal( 'Cash', 'TotalDecrease' ) + ctrl.getTotal( 'Cash', 'TotalIncrease' ) | number:2 }}
                                             </td>
                                             <td></td>
                                         </tr>
@@ -124,7 +124,7 @@
                                                 {{row.DocumentNumber}}
                                             </td>
                                             <td>
-                                                {{row.Amount * -1 | number:2}}
+                                                {{row.Amount | number:2}}
                                             </td>
                                             <td>
                                                 {{row.DueDate}}
@@ -139,27 +139,38 @@
                                             </td>
 
                                             <td>
-                                                {{ctrl.getTotal( 'PayableSummary' ) * -1 | number:2 }}
+                                                {{ctrl.getTotal( 'PayableSummary', 'Amount' ) | number:2 }}
                                             </td>
                                             <td></td>
                                         </tr>
-                                        <tr class="text-info">
+                                        <tr class="text-warning">
+                                            <td colspan="2" style="text-align:right">
+                                                Total Receivable
+                                            </td>
+
+                                            <td>
+                                                {{ctrl.getTotal( 'ReceivableSummary', 'Amount' ) - ctrl.getTotal( 'ReceivableSummary', 'PaidAmount' ) | number:2 }}
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr class="text-success">
                                             <td colspan="2" style="text-align:right">
                                                 Total Cash
                                             </td>
 
                                             <td>
-                                                {{ctrl.getTotal( 'Cash' ) | number:2 }}
+                                                {{ctrl.getTotal( 'Cash', 'TotalDecrease' ) + ctrl.getTotal( 'Cash', 'TotalIncrease' )  | number:2 }}
                                             </td>
                                             <td></td>
                                         </tr>
-                                        <tr ng-class="{ 'text-success' : ctrl.getTotal( 'PayableSummary' ) + ctrl.getTotal( 'Cash' ) > 0, 'text-danger' : ctrl.getTotal( 'PayableSummary' ) + ctrl.getTotal( 'Cash' ) < 0}" >
+
+                                        <tr class="text-info">
                                             <td colspan="2" style="text-align:right">
-                                                Cash vs Payable
+                                                Financial Status
                                             </td>
 
                                             <td>
-                                                {{ctrl.getTotal( 'PayableSummary' ) + ctrl.getTotal( 'Cash' )  | number:2 }}
+                                                {{ctrl.getTotal( 'Cash', 'TotalDecrease' ) + ctrl.getTotal( 'Cash', 'TotalIncrease' ) + ctrl.getTotal( 'ReceivableSummary', 'Amount' ) - ctrl.getTotal( 'ReceivableSummary', 'PaidAmount' ) + ctrl.getTotal( 'PayableSummary', 'Amount' )  | number:2 }}
                                             </td>
                                             <td></td>
                                         </tr>
@@ -176,7 +187,7 @@
                 <div class="row">
 
                     <div class="col-md-6">
-                        <div class="panel panel-success">
+                        <div class="panel panel-info">
 
                             <div class="panel-heading">
                                 Assets
@@ -193,26 +204,40 @@
                                             <th>
                                                 Amount
                                             </th>
-                                            <td>
+                                            <th>
                                                 Updated
-                                            </td>
+                                            </th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
-                                        <tr ng-repeat="account in accounts.Asset">
+                                        <tr ng-repeat="account in data.AssetSummary">
                                             <td>
                                                 {{account.Name}}
                                             </td>
                                             <td>
-                                                {{account.TotalAmount}}
+                                                {{account.TotalAmount | number: 2}}
                                             </td>
                                             <td>
-                                                {{account.LastUpdate}}
+                                                {{account.LastUpdated | date: 'dd/MM/yyyy' }}
                                             </td>
                                         </tr>
                                     </tbody>
 
+                                    <tfoot style="font-weight:bold;" class="text-info">
+                                        <tr>
+                                            <td style="text-align:right">
+                                                Total
+                                            </td>
+
+                                            <td>
+                                                {{ctrl.getTotal( 'AssetSummary', 'TotalAmount' ) | number:2 }}
+                                            </td>
+                                            <td>
+
+                                            </td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
 
@@ -220,7 +245,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <div class="panel panel-success">
+                        <div class="panel panel-warning">
 
                             <div class="panel-heading">
                                 Receivable
@@ -235,33 +260,46 @@
                                                 Receive From
                                             </th>
                                             <th>
-                                                Document#
+                                                Last Patment
                                             </th>
                                             <th>
-                                                Amount
-                                            </th>
-                                            <th>
-                                                Due Date
+                                                Remaining
                                             </th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
-                                        <tr ng-repeat="account in accounts.Receivable">
+                                        <tr ng-repeat="account in data.ReceivableSummary">
                                             <td>
-                                                {{account.RelatedParty}}
+                                                <span ng-if="account.SaleOrderId > 0">
+                                                    <a href="/admin/tables/saleorder/{{account.SaleOrderId}}" target="_blank">
+                                                        {{account.SaleOrderId}}
+                                                    </a>
+                                                </span>
+                                                <span ng-if="account.SaleOrderId == 0">
+                                                    {{account.DebtorLoanerName}}
+                                                </span>
                                             </td>
                                             <td>
-                                                {{account.DocumentNumber}}
+                                                {{account.LatestDate | date: 'dd/MM/yyyy'}}
                                             </td>
                                             <td>
-                                                {{account.TotalAmount}}
-                                            </td>
-                                            <td>
-                                                {{account.DueDate}}
+                                                {{account.Amount - account.PaidAmount | number: 2}}
                                             </td>
                                         </tr>
                                     </tbody>
+
+                                    <tfoot style="font-weight:bold;"  class="text-warning">
+                                        <tr>
+                                            <td colspan="2" style="text-align:right">
+                                                Total
+                                            </td>
+
+                                            <td>
+                                                {{ctrl.getTotal( 'ReceivableSummary', 'Amount' ) - ctrl.getTotal( 'ReceivableSummary', 'PaidAmount' ) | number:2 }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
 
                                 </table>
                             </div>
@@ -327,10 +365,13 @@
                                 {{account.Name}}
                             </td>
                             <td>
-                                <select ng-model="account.Type">
+                                <select ng-model="account.Type"
+                                        ncb-select>
                                     <option value="Cash">Cash</option>
                                     <option value="Expense">Expense</option>
                                     <option value="Asset">Asset</option>
+                                    <option value="Receivable">Receivable</option>
+                                    <option value="Payable">Payable</option>
                                     <option value="">(Hidden)</option>
                                 </select>
                             </td>

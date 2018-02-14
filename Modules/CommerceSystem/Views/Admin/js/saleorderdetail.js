@@ -137,6 +137,24 @@
 
         };
 
+        $me.setPrice = function (so, item, $index) {
+
+            item.EditPrice = false;
+
+            // this is not saved to database but will be used for showing
+            item.CurrentPrice = item.ShowPrice;
+
+            // we set into discount price so that the original price is intact
+            item.DiscountPrice = item.ShowPrice;
+
+            // this will ensure the price we set is used
+            item.PromotionStartDate = new Date(2000, 1, 1);
+            item.PromotionEndDate = new Date(2010, 1, 1);
+            item.PromotionReferenceDate = new Date(2005, 1, 1);
+
+            $me.previewTotal(so, item, $index);
+        }
+
         var oldPrice = 0;
         var lastChange = -1;
         $me.previewTotal = function (so, item, $index) {

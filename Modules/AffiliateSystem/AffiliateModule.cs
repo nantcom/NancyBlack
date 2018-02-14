@@ -560,6 +560,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
             Post["/__affiliate/getrewards"] = this.HandleRequest((arg) =>
             {
+                dynamic param = (arg.body.Value as JObject);
+                if (param.rewardsName == null)
+                {
+                    return 400;
+                }
+
                 var registration = this.SiteDatabase.Query<AffiliateRegistration>()
                     .Where(t => t.NcbUserId == this.CurrentUser.Id).FirstOrDefault();
 
@@ -567,13 +573,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     return 400;
                 }
-
-                dynamic param = (arg.body.Value as JObject);
-                if (param.rewardsName == null)
-                {
-                    return 400;
-                }
-
+                
                 if (param.rewardsName == "subscribe1")
                 {
                     var sub = this.SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
@@ -672,7 +672,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         claim.RewardsName = "subscribe2";
 
                         this.SiteDatabase.UpsertRecord(claim);
+
+                        this.AddRewardsCard(this.CurrentSite, claim, true);
                     }
+
+
                     return new
                     {
                         type = "success",

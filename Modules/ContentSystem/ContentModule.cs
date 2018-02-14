@@ -15,6 +15,9 @@ using System.Linq;
 using System.Threading;
 using Nancy.Bootstrapper;
 using System.Runtime.Caching;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -301,7 +304,7 @@ namespace NantCom.NancyBlack.Modules
                 sitemap.RegisterUrl("http://" + ctx.Request.Url.HostName + item.Url, item.__updatedAt);
             }
         }
-
+        
         /// <summary>
         /// Generates the layout page.
         /// </summary>
@@ -454,22 +457,68 @@ namespace NantCom.NancyBlack.Modules
             if (this.Request.Cookies.ContainsKey("source") == true)
             {
                 source = this.Request.Cookies["source"];
+
             }
 
-            this.SiteDatabase.DelayedInsert(new PageView()
+            // Insert the analytics to Azure Table Storage
+            if (this.CurrentSite.analytics != null)
             {
-                __createdAt = DateTime.Now,
-                __updatedAt = DateTime.MinValue,
-                ContentId = requestedContent.Id,
-                TableName = requestedContent.TableName,
-                AffiliateCode = source,
-                QueryString = this.Request.Url.Query,
-                Path = this.Request.Url.Path,
-                UserIP = this.Request.UserHostAddress,
-                Referer = this.Request.Headers.Referrer,
-                UserAgent = this.Request.Headers.UserAgent,
-                UserUniqueId = this.Request.Cookies["userid"]
-            });
+                if (this.Request.Headers.UserAgent.StartsWith("Pingdom.com") ||
+                    this.Request.Headers.UserAgent.StartsWith("loader.io"))
+                {
+                    goto skip;
+                }
+
+                var pageView = new PageView()
+                {
+                    __createdAt = DateTime.Now,
+                    __updatedAt = DateTime.MinValue,
+                    ContentId = requestedContent.Id,
+                    TableName = requestedContent.TableName,
+                    AffiliateCode = source,
+                    QueryString = this.Request.Url.Query,
+                    Path = this.Request.Url.Path,
+                    UserIP = this.Request.UserHostAddress,
+                    Referer = this.Request.Headers.Referrer,
+                    UserAgent = this.Request.Headers.UserAgent,
+                    UserUniqueId = this.Request.Cookies["userid"]
+                };
+
+                var key = string.Format("azure{0}-{1}-{2}",
+                                this.CurrentSite.analytics.credentials,
+                                this.CurrentSite.analytics.server,
+                                this.CurrentSite.analytics.table);
+
+                Task.Run(() =>
+                {
+                    var table = MemoryCache.Default[key] as CloudTable;
+                    if (table == null)
+                    {
+                        var cred = new StorageCredentials((string)this.CurrentSite.analytics.credentials);
+                        var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.server), cred);
+                        table = client.GetTableReference((string)this.CurrentSite.analytics.table);
+
+                        MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
+                    }
+                    
+                    try
+                    {
+                        pageView.PrepareForAuzre();
+
+                        var op = TableOperation.Insert(pageView);
+                        table.Execute(op);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+
+                });
+
+                skip:;
+            }
+
+
 
             if (string.IsNullOrEmpty(requestedContent.Layout))
             {
@@ -649,6 +698,10 @@ namespace NantCom.NancyBlack.Modules
 
 #endregion
 
+        private static void SendPageView( PageView p )
+        {
+
+        }
     }
 
 }
