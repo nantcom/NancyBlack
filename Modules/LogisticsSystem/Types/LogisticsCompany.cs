@@ -4,13 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace NantCom.NancyBlack.NancyBlack.Modules.LogisticsSystem.Types
+namespace NantCom.NancyBlack.Modules.LogisticsSystem.Types
 {
     public class LogisticsCompany : IStaticType
     {
         public string Name { get; set; }
-
-        public string NickName { get; set; }
 
         public string WebSite { get; set; }
 

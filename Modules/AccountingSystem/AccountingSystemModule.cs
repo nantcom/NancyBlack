@@ -10,7 +10,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.AccountingSystem
 {
-    public class AccountingSystemModule : NancyBlack.Modules.BaseModule
+    public class AccountingSystemModule : BaseModule
     {
         static AccountingSystemModule()
         {

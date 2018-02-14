@@ -1,4 +1,6 @@
-﻿using Nancy;
+﻿using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Table;
+using Nancy;
 using Nancy.Bootstrapper;
 using NantCom.NancyBlack.Configuration;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
@@ -13,6 +15,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using System.Runtime.Caching;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -144,7 +147,7 @@ namespace NantCom.NancyBlack.Modules
                 _Events.Add(new DatabaseEvent()
                 {
                     Action = action,
-                    AffectedRow = (object)arg3,
+                    AffectedRow = JObject.FromObject(arg3),
                     Database = arg1,
                     DataTypeName = arg2
                 });
@@ -223,7 +226,7 @@ namespace NantCom.NancyBlack.Modules
 
                         if (config.version == true)
                         {
-                            item.Database.UpsertRecord(new RowVersion()
+                            var version = new RowVersion()
                             {
                                 Action = item.Action,
                                 js_Row = JsonConvert.SerializeObject(item.AffectedRow),
@@ -232,7 +235,50 @@ namespace NantCom.NancyBlack.Modules
                                 __createdAt = DateTime.Now,
                                 RowId = (int)item.AffectedRow.Id,
                                 DataType = item.DataTypeName
-                            });
+                            };
+
+                            //if (siteconfig.Property("watcherazure") != null)
+                            //{
+                            //    dynamic azureSettings = siteconfig.Property("watcherazure").Value;
+
+                            //    var key = string.Format("azure{0}-{1}-{2}",
+                            //                    azureSettings.credentials,
+                            //                    azureSettings.server,
+                            //                    azureSettings.table);
+
+                            //    Task.Run(() =>
+                            //    {
+                            //        var table = MemoryCache.Default[key] as CloudTable;
+                            //        if (table == null)
+                            //        {
+                            //            var cred = new StorageCredentials((string)this.CurrentSite.analytics.credentials);
+                            //            var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.server), cred);
+                            //            table = client.GetTableReference((string)this.CurrentSite.analytics.table);
+
+                            //            MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
+                            //        }
+
+                            //        try
+                            //        {
+                            //            version.PrepareForAuzre();
+                            //            var op = TableOperation.Insert(version);
+                            //            table.Execute(op);
+                            //        }
+                            //        catch (Exception)
+                            //        {
+                            //            // if there is any error - just insert into database
+                            //            item.Database.UpsertRecord(version);
+                            //        }
+
+
+                            //    });
+
+                            //}
+                            //else
+                            {
+                                item.Database.UpsertRecord(version);
+                            }
+
                         }
 
                         var emailConfig = config[item.Action];

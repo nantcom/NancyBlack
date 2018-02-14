@@ -616,6 +616,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         claim.NcbUserId = registration.NcbUserId;
                         claim.AffiliateCode = registration.AffiliateCode;
                         claim.DiscountCode = code;
+                        claim.RewardsName = "subscribe1";
 
                         this.SiteDatabase.UpsertRecord(p);
                         this.SiteDatabase.UpsertRecord(claim);

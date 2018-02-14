@@ -47,6 +47,8 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 
         public string BookingCode { get; set; }
 
+        public string SerialNumber { get; set; }
+
         #region Static Type Properties
 
         public int Id { get; set; }

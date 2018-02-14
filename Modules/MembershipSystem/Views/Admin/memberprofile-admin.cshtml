@@ -1,0 +1,61 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head{
+}
+
+@section Scripts{
+    <script>
+        window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
+    </script>
+    <script src="~/NancyBlack/Modules/MembershipSystem/Views/Admin/memberprofile-admin.js"></script>
+    <script src="/NancyBlack/Modules/AffiliateSystem/Views/js/affiliate-rewardsclaim.js"></script>
+}
+
+<div ng-module="Membership"
+     ng-controller="MembershipView as ctrl"
+     ncb-datacontext table="NcbUser"
+     ng-cloak>
+
+    <div class="page-header">
+        <h1>
+            ({{member.Id}}) {{member.Profile.first_name}} {{member.Profile.last_name}}
+
+            <span class="pull-right">
+
+                <a ng-href="https://www.facebook.com/{{member.Profile.id}}"
+                   target="_blank"
+                   class="btn btn-primary">
+                    <span class="fa fa-facebook"></span>
+                </a>
+
+            </span>
+        </h1>
+    </div>
+
+    <tabset>
+
+        <tab heading="Affliate Rewards Claim">
+            @Html.Partial("Admin/affiliateadmin-rewardsclaim", this.Model)
+        </tab>
+
+        <tab heading="Profile">
+
+            <ncb-alerts alerts="alerts"></ncb-alerts>
+
+            Soon
+
+        </tab>
+
+        <tab heading="Purchase History">
+
+            Soon
+
+        </tab>
+
+
+    </tabset>
+
+</div>
