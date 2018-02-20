@@ -74,7 +74,15 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// </summary>
         public void PrepareForAuzre()
         {
-            this.RowKey = __createdAt.Ticks.ToString();
+            if (this.Id != 0)
+            {
+                this.RowKey = this.Id.ToString();
+            }
+            else
+            {
+                this.RowKey = __createdAt.Ticks.ToString();
+            }
+
             this.PartitionKey = this.Path.Replace('/', '-');
         }
     }

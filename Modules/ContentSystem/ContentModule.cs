@@ -18,6 +18,7 @@ using System.Runtime.Caching;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Net;
 
 namespace NantCom.NancyBlack.Modules
 {
@@ -49,7 +50,7 @@ namespace NantCom.NancyBlack.Modules
         public void Hook(IPipelines p)
         {
         }
-        
+
         public ContentModule()
         {
             Get["/robots.txt"] = this.HandleRequest((arg) =>
@@ -65,62 +66,243 @@ namespace NantCom.NancyBlack.Modules
 
             Get["/__content/migratepageview"] = this.HandleRequest((arg) =>
             {
-
-                var regEx = new System.Text.RegularExpressions.Regex(@"\?source=(.*)");
-                var source = this.SiteDatabase.Query("SELECT * FROM PageView WHERE Request IS NOT NULL ORDER BY Id", new PageView());
-
-                var queue = new BlockingCollection<PageView>();
-                var connection = this.SiteDatabase.Connection;
-
-                ThreadPool.QueueUserWorkItem(new WaitCallback((o) =>
-                {
-                    var localQueue = new Queue<PageView>();
-                    foreach (var item in queue.GetConsumingEnumerable())
+                var toWait = new List<Task>();
+                
+                var summary = this.SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As PageView, Path FROM PageView GROUP BY AffiliateCode, Path",
+                    new { PageView = 0, Path = "" })
+                    .AsEnumerable()
+                    .Select(row =>
                     {
-                        localQueue.Enqueue(item);
+                        if (row.Path == null)
+                        {
+                            row.Path = "/";
+                        }
 
-                        if (localQueue.Count < 100000)
+                        string path = row.Path;
+
+                        if (!path.EndsWith("/"))
+                        {
+                            row.Path = path + "/";
+                        }
+
+                        return row;
+                    })
+                    .ToLookup(row => row.Path, row => row.PageView);
+
+                foreach (var path in summary)
+                {
+                    long total = path.Sum(row => row);
+                    string url = path.Key;
+
+                    url = url.ToLowerInvariant();
+                    url = url.Replace('/', '-');
+
+                    if (url.EndsWith("-") && url != "-")
+                    {
+                        url = url.Substring(0, url.Length - 1);
+                    }
+
+                    var summaryTable = this.GetSummaryTable();
+
+                    var pvs = new PageViewSummary();
+                    pvs.PageViews = total;
+                    pvs.Path = url;
+                    pvs.PrepareForAzure();
+                    pvs.Timestamp = DateTimeOffset.Now;
+
+                    var pvQueryString = TableQuery.CombineFilters(
+                               TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, url),
+                               TableOperators.And,
+                               TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.LessThanOrEqual, DateTimeOffset.Parse("2018-02-16T07:20Z")));
+
+
+                    // find all pageview since the pageview summary timestamp
+                    var rawTable = this.GetPageViewTable();
+                    var pageviewQuery = new TableQuery<PageView>();
+                    var count = rawTable.ExecuteQuery<PageView>(pageviewQuery.Where(pvQueryString)).Count();
+
+                    pvs.PageViews += count;
+
+                    summaryTable.Execute(TableOperation.InsertOrReplace(pvs));
+                }
+
+                /*
+
+                {
+                    // Migrate Page View
+
+                    var source = this.SiteDatabase.Query<PageView>().OrderBy(pv => pv.Path);
+
+                    int batchSize = 100;
+                    var batch = new List<PageView>(batchSize);
+                    foreach (var item in source)
+                    {
+                        if (item.Path == null)
                         {
                             continue;
                         }
 
-                        connection.UpdateAll(localQueue);
+                        if (item.Path == "/undefined")
+                        {
+                            continue;
+                        }
 
-                        localQueue = new Queue<PageView>();
+                        try
+                        {
+
+                            item.PrepareForAuzre();
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+
+                        if (batch.Count == batchSize ||
+                            (batch.Count > 0 && batch[batch.Count - 1].PartitionKey != item.PartitionKey))
+                        {
+                            var myBatch = batch;
+                            batch = new List<PageView>(batchSize);
+
+                            var task = Task.Run(() =>
+                            {
+                                var tableBatch = new TableBatchOperation();
+                                foreach (var row in myBatch)
+                                {
+                                    tableBatch.Insert(row);
+                                }
+
+                                this.GetPageViewTable(cache: false).ExecuteBatch(tableBatch);
+                                Console.WriteLine("Last ID Inserted:" + myBatch.Last().Id);
+                            });
+
+                            toWait.Add(task);
+                        }
+
+                        batch.Add(item);
                     }
-                }));
-
-                source.AsParallel().ForAll((item) =>
+                }
                 {
-                    var pv = JObject.FromObject(item).ToObject<PageView>();
-                    var requestObject = JObject.Parse(pv.Request);
+                    // Migrate Summary
 
-                    if (requestObject.QueryString != null && requestObject.QueryString != "")
+                    var summary = this.SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As PageView, Path FROM PageView GROUP BY Path",
+                        new { PageView = 0, Path = "" })
+                        .AsEnumerable()
+                        .Select(row =>
+                        {
+                            if (row.Path == null)
+                            {
+                                row.Path = "/";
+                            }
+
+                            string path = row.Path;
+
+                            if (!path.EndsWith("/"))
+                            {
+                                row.Path = path + "/";
+                            }
+
+                            return row;
+                        })
+                        .ToLookup(row => row.Path, row => row.PageView);
+
+                    foreach (var path in summary)
                     {
-                        var match = regEx.Match((string)requestObject.QueryString);
-                        if (match.Groups.Count == 2)
+                        long total = path.Sum(row => row);
+                        string url = path.Key;
+
+                        url = url.ToLowerInvariant();
+                        url = url.Replace('/', '-');
+
+                        if (url.EndsWith("-") && url != "-")
                         {
-                            pv.AffiliateCode = match.Groups[1].Value;
+                            url = url.Substring(0, url.Length - 1);
                         }
-                        else
-                        {
-                            pv.AffiliateCode = ((string)requestObject.QueryString).Substring(1);
-                        }
+
+                        var summaryTable = this.GetSummaryTable();
+
+                        var pvs = new PageViewSummary();
+                        pvs.PageViews = total;
+                        pvs.Path = url;
+                        pvs.PrepareForAzure();
+                        pvs.Timestamp = DateTimeOffset.Now;
+
+                        var pvQueryString = TableQuery.CombineFilters(
+                                   TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, url),
+                                   TableOperators.And,
+                                   TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.LessThanOrEqual, DateTimeOffset.Parse("2018-02-16T07:20Z")));
+
+
+                        // find all pageview since the pageview summary timestamp
+                        var rawTable = this.GetPageViewTable();
+                        var pageviewQuery = new TableQuery<PageView>();
+                        var count = rawTable.ExecuteQuery<PageView>(pageviewQuery.Where(pvQueryString)).Count();
+
+                        pvs.PageViews += count;
+
+                        summaryTable.Execute(TableOperation.InsertOrReplace(pvs));
                     }
+                }
+                */
 
-                    pv.Path = requestObject.Path;
-                    pv.QueryString = requestObject.QueryString;
-                    pv.Referer = requestObject.Referer;
-                    pv.UserAgent = requestObject.UserAgent;
-                    pv.UserIP = requestObject.UserIP;
-                    pv.Request = null;
+                Task.WaitAll(toWait.ToArray());
 
-                    queue.Add(pv);
-                });
+                return "Done";
 
-                queue.CompleteAdding();
+                //var regEx = new System.Text.RegularExpressions.Regex(@"\?source=(.*)");
+                //var source = this.SiteDatabase.Query("SELECT * FROM PageView WHERE Request IS NOT NULL ORDER BY Id", new PageView());
 
-                return "Done.";
+                //var queue = new BlockingCollection<PageView>();
+                //var connection = this.SiteDatabase.Connection;
+
+                //ThreadPool.QueueUserWorkItem(new WaitCallback((o) =>
+                //{
+                //    var localQueue = new Queue<PageView>();
+                //    foreach (var item in queue.GetConsumingEnumerable())
+                //    {
+                //        localQueue.Enqueue(item);
+
+                //        if (localQueue.Count < 100000)
+                //        {
+                //            continue;
+                //        }
+
+                //        connection.UpdateAll(localQueue);
+
+                //        localQueue = new Queue<PageView>();
+                //    }
+                //}));
+
+                //source.AsParallel().ForAll((item) =>
+                //{
+                //    var pv = JObject.FromObject(item).ToObject<PageView>();
+                //    var requestObject = JObject.Parse(pv.Request);
+
+                //    if (requestObject.QueryString != null && requestObject.QueryString != "")
+                //    {
+                //        var match = regEx.Match((string)requestObject.QueryString);
+                //        if (match.Groups.Count == 2)
+                //        {
+                //            pv.AffiliateCode = match.Groups[1].Value;
+                //        }
+                //        else
+                //        {
+                //            pv.AffiliateCode = ((string)requestObject.QueryString).Substring(1);
+                //        }
+                //    }
+
+                //    pv.Path = requestObject.Path;
+                //    pv.QueryString = requestObject.QueryString;
+                //    pv.Referer = requestObject.Referer;
+                //    pv.UserAgent = requestObject.UserAgent;
+                //    pv.UserIP = requestObject.UserIP;
+                //    pv.Request = null;
+
+                //    queue.Add(pv);
+                //});
+
+                //queue.CompleteAdding();
+
+                //return "Done.";
 
             });
 
@@ -143,77 +325,204 @@ namespace NantCom.NancyBlack.Modules
             var id = (int)arg.id;
 
             // invalid data type, also  prevent SQL Injection attack when we replace string
-            if ( this.SiteDatabase.DataType.FromName( table ) == null )
+            if (this.SiteDatabase.DataType.FromName(table) == null)
             {
                 return 400;
             }
 
-            dynamic cached = MemoryCache.Default.Get(table + id);
+            var key = table + id;
+            dynamic cached = MemoryCache.Default.Get(key);
             if (cached != null)
             {
                 return (string)cached;
             }
-            
-            dynamic result = this.SiteDatabase.Query
-                            (string.Format("SELECT COUNT(Id) as Hit FROM PageView WHERE ContentId = {0} AND TableName = '{1}'", id, table),
-                            new
-                            {
-                                Hit = 0
-                            }).FirstOrDefault();
 
-            if (result == null)
+            if (this.CurrentSite.analytics == null)
             {
-                return "0";
+                dynamic result = this.SiteDatabase.Query
+                                (string.Format("SELECT COUNT(Id) as Hit FROM PageView WHERE ContentId = {0} AND TableName = '{1}'", id, table),
+                                new
+                                {
+                                    Hit = 0
+                                }).FirstOrDefault();
+
+                if (result == null)
+                {
+                    return "0";
+                }
+
+                MemoryCache.Default.Add(key, result.Hit.ToString("0,0"), DateTimeOffset.Now.AddMinutes(10));
+                return result.Hit.ToString("0,0");
             }
-            
-            MemoryCache.Default.Add(table + id, result.Hit.ToString("0,0"), DateTimeOffset.Now.AddMinutes(10));
-            return result.Hit.ToString("0,0");
-        }
-
-        private dynamic UpdatePageViewSummary(dynamic arg)
-        {
-            //lastPageViewId have to be saved on setting (but we will re-count everytime for now)
-            var lastPageViewId = 0;
-            var results = this.SiteDatabase.Query
-                (string.Format("SELECT TableName, ContentId, COUNT(Id) as Hit, Request FROM PageView WHERE Id > {0} GROUP BY TableName, ContentId", lastPageViewId),
-                new
-                {
-                    TableName = "test",
-                    ContentId = 0,
-                    Hit = 0,
-                    Request = ""
-                }).ToList();
-            
-            foreach (dynamic pageView in results)
+            else
             {
-                string tableName = pageView.TableName;
-                int contentId = pageView.ContentId;
-                var summary = this.SiteDatabase.Query<PageViewSummary>()
-                    .Where(rec => rec.TableName == tableName && rec.ContentId == contentId).FirstOrDefault();
-
-                if (summary == null)
+                var content = this.SiteDatabase.QueryAsDynamic(table, "Id eq " + id).FirstOrDefault();
+                if (content == null)
                 {
-                    var request = JObject.Parse(pageView.Request);
-                    summary = new PageViewSummary()
+                    MemoryCache.Default.Add(key, "0", DateTimeOffset.Now.AddMinutes(10));
+                    return "0"; // wrong content
+                }
+
+                string url = content.Url;
+                if (url == null)
+                {
+                    MemoryCache.Default.Add(key, "0", DateTimeOffset.Now.AddMinutes(10));
+                    return "0"; // cannot get Url
+                }
+
+                url = url.Replace('/', '-');
+
+                long pageViews = 0;
+                lock ("PageViewSummary-" + url) // ensure only one thread is working on calculation
+                {
+                    // if multiple threads is locked - they will arrive here when lock is released
+                    // so check the cache again
+                    cached = MemoryCache.Default.Get(key);
+                    if (cached != null)
                     {
-                        ContentId = contentId,
-                        TableName = tableName,
-                        PageViews = pageView.Hit,
-                        Url = Uri.UnescapeDataString( request.Value<string>("Path") )
-                    };
-                }
-                else
-                {
-                    summary.PageViews += pageView.Hit;
+                        return (string)cached;
+                    }
+
+                    var summaryTable = this.GetSummaryTable();
+                    var queryString = TableQuery.CombineFilters(
+                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, url),
+                                    TableOperators.And,
+                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, url));
+
+                    var query = new TableQuery<PageViewSummary>();
+                    var result = summaryTable.ExecuteQuery<PageViewSummary>(query.Where(queryString)).FirstOrDefault();
+
+                    if (result == null)
+                    {
+                        result = new PageViewSummary();
+                        result.PageViews = 0;
+                        result.Path = url;
+                        result.PrepareForAzure();
+                        result.Timestamp = DateTimeOffset.MinValue;
+
+                        summaryTable.Execute(TableOperation.InsertOrReplace(result));
+                    }
+
+                    // find all pageview since the pageview summary timestamp
+                    var pvQueryString = TableQuery.CombineFilters(
+                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, url),
+                                    TableOperators.And,
+                                    TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.GreaterThanOrEqual, result.Timestamp));
+
+                    var rawTable = this.GetPageViewTable();
+                    var pageviewQuery = new TableQuery<PageView>();
+                    var count = rawTable.ExecuteQuery<PageView>(pageviewQuery.Where(pvQueryString)).Count();
+
+                    result.PageViews = result.PageViews + count;
+                    summaryTable.Execute(TableOperation.InsertOrReplace(result));
+
+                    pageViews = result.PageViews;
+
+                    MemoryCache.Default.Add(key, pageViews.ToString("0,0"), DateTimeOffset.Now.AddMinutes(10));
+                    return pageViews.ToString("0,0");
                 }
 
-                this.SiteDatabase.UpsertRecord(summary);
             }
-
-            return "OK";
         }
 
-#region Update Tag Table
+        /// <summary>
+        /// Gets the pageview table
+        /// </summary>
+        /// <returns></returns>
+        private CloudTable GetPageViewTable(bool cache = true)
+        {
+            Func<CloudTable> getTable = () =>
+            {
+                var cred = new StorageCredentials((string)this.CurrentSite.analytics.raw.credentials);
+                var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.raw.server), cred);
+                return client.GetTableReference((string)this.CurrentSite.analytics.raw.table);
+            };
+
+
+            if (cache == false)
+            {
+                return getTable();
+            }
+
+            var key = string.Format("azure{0}-{1}-{2}",
+                               (string)this.CurrentSite.analytics.raw.credentials,
+                               (string)this.CurrentSite.analytics.raw.server,
+                               (string)this.CurrentSite.analytics.raw.table).GetHashCode().ToString();
+
+            var table = MemoryCache.Default[key] as CloudTable;
+            if (table == null)
+            {
+                table = getTable();
+
+                MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
+            }
+
+            return table;
+        }
+
+        /// <summary>
+        /// Gets the Summary table
+        /// </summary>
+        /// <returns></returns>
+        private CloudTable GetSummaryTable(bool cache = true)
+        {
+            Func<CloudTable> getTable = () =>
+            {
+                var cred = new StorageCredentials((string)this.CurrentSite.analytics.summary.credentials);
+                var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.summary.server), cred);
+                return client.GetTableReference((string)this.CurrentSite.analytics.summary.table);
+            };
+
+            if (cache == false)
+            {
+                return getTable();
+            }
+
+            var key = string.Format("azure{0}-{1}-{2}",
+                               (string)this.CurrentSite.analytics.summary.credentials,
+                               (string)this.CurrentSite.analytics.summary.server,
+                               (string)this.CurrentSite.analytics.summary.table).GetHashCode().ToString();
+
+            var table = MemoryCache.Default[key] as CloudTable;
+            if (table == null)
+            {
+                table = getTable();
+
+                MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
+            }
+
+            return table;
+        }
+
+
+        private void SendPageView(PageView pageView)
+        {
+            // If not set to use azure table
+            if (this.CurrentSite.analytics == null)
+            {
+                this.SiteDatabase.DelayedInsert(pageView);
+                return;
+            }
+
+            var table = this.GetPageViewTable();
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    pageView.PrepareForAuzre();
+
+                    var op = TableOperation.Insert(pageView);
+                    table.Execute(op);
+                }
+                catch (Exception)
+                {
+                }
+            });
+
+        }
+
+        #region Update Tag Table
 
         private void UpdateTag_ObjectUpdate(NancyBlackDatabase db, string table, dynamic obj)
         {
@@ -294,7 +603,7 @@ namespace NantCom.NancyBlack.Modules
             this.InsertTag(db, content);
         }
 
-#endregion
+        #endregion
 
         private void SiteMapModule_SiteMapRequested(NancyContext ctx, SiteMap sitemap)
         {
@@ -304,7 +613,7 @@ namespace NantCom.NancyBlack.Modules
                 sitemap.RegisterUrl("http://" + ctx.Request.Url.HostName + item.Url, item.__updatedAt);
             }
         }
-        
+
         /// <summary>
         /// Generates the layout page.
         /// </summary>
@@ -390,7 +699,7 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 var result = this.SiteDatabase.Query(typeName, string.Format("Url eq '{0}'", contentUrl)).FirstOrDefault();
-                
+
                 if (result != null)
                 {
                     // convert it to IContent
@@ -484,37 +793,7 @@ namespace NantCom.NancyBlack.Modules
                     UserUniqueId = this.Request.Cookies["userid"]
                 };
 
-                var key = string.Format("azure{0}-{1}-{2}",
-                                this.CurrentSite.analytics.credentials,
-                                this.CurrentSite.analytics.server,
-                                this.CurrentSite.analytics.table);
-
-                Task.Run(() =>
-                {
-                    var table = MemoryCache.Default[key] as CloudTable;
-                    if (table == null)
-                    {
-                        var cred = new StorageCredentials((string)this.CurrentSite.analytics.credentials);
-                        var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.server), cred);
-                        table = client.GetTableReference((string)this.CurrentSite.analytics.table);
-
-                        MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
-                    }
-                    
-                    try
-                    {
-                        pageView.PrepareForAuzre();
-
-                        var op = TableOperation.Insert(pageView);
-                        table.Execute(op);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-
-                });
-
+                this.SendPageView(pageView);
                 skip:;
             }
 
@@ -532,7 +811,7 @@ namespace NantCom.NancyBlack.Modules
             return View[(string)requestedContent.Layout, new StandardModel(this, requestedContent, requestedContent)];
         }
 
-#region All Logic Related to Content
+        #region All Logic Related to Content
 
         /// <summary>
         /// Get child content of given url
@@ -696,12 +975,8 @@ namespace NantCom.NancyBlack.Modules
             return createdContent;
         }
 
-#endregion
+        #endregion
 
-        private static void SendPageView( PageView p )
-        {
-
-        }
     }
 
 }
