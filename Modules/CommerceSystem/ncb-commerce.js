@@ -874,7 +874,7 @@
                     soIdentifier: $me.saleOrder.SaleOrderIdentifier,
                     trade_mony: $me.confirmedSelectedAmout,
                     pay_type: $me.paymentMethod.code,
-                    user_id: $scope.object.Customer.User.Id
+                    user_id: $me.user_id
                 })
                 .success(function (data) {
 

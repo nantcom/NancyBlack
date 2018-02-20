@@ -116,7 +116,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         {
             get
             {
-                if (this.PromotionReferenceDate != DateTime.MinValue)
+                if (this.PromotionReferenceDate != DateTime.MinValue &&
+                    this.PromotionReferenceDate.Year != 2001)
                 {
                     return this.PromotionReferenceDate.Date.ToLocalTime() <= this.PromotionEndDate.ToLocalTime() &&
                             this.PromotionReferenceDate.Date.ToLocalTime() >= this.PromotionStartDate.ToLocalTime();

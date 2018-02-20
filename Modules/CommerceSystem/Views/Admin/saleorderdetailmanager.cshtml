@@ -59,7 +59,7 @@
 
             <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/laptops' }">{{item.Title}}</span>
             <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/products/pc' }">{{item.Title}}</span> |
-            <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/gpu' }">{{item.Title}}</span> |
+            <span ng-repeat="item in object.ItemsDetail | filter : ctrl.getGPU">{{item.Title}}</span> |
             <span ng-repeat="item in object.ItemsDetail | filter : { Url: '/parts/monitor' }">{{item.Title}}</span>
         </h4>
     </div>
@@ -266,6 +266,7 @@
                                     </span>
                                 </div>
                             </div>
+
                             <div class="form-group">
                                 <label for="Status" class="col-sm-4 control-label">Status</label>
                                 <div class="col-sm-8">
@@ -761,10 +762,13 @@
                                                            refresh-delay="0">
 
                                             <span class="text-muted">
-                                                {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
+                                                {{item.Id}} - 
                                             </span>
                                             <span>
                                                 {{item.label}}
+                                            </span>
+                                            <span class="text-muted">
+                                                {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
                                             </span>
                                         </ui-select-choices>
                                     </ui-select>

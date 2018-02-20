@@ -231,7 +231,14 @@
 
             });
         };
-        
+
+        $me.getGPU = function (item) {
+
+            var correctUrl = item.Url.indexOf('/parts/gpu') > 0;
+            var qty = item.Attributes.Qty > 0;
+
+            return correctUrl && qty;
+        };
     }
 
     app.controller('PaymentController', function ($scope, $http) {

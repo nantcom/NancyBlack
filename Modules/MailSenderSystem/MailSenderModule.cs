@@ -45,6 +45,12 @@ namespace NantCom.NancyBlack.Modules
             {
                 _Outbox = new ConcurrentQueue<MailMessage>();
             }
+
+            if (string.IsNullOrEmpty(to))
+            {
+                System.Diagnostics.Debugger.Break();
+                return;
+            }
             
             MailMessage mail = new MailMessage();
 

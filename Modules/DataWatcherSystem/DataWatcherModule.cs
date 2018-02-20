@@ -127,13 +127,18 @@ namespace NantCom.NancyBlack.Modules
 
         static DataWatcherModule()
         {
-            var ignore = new string[] { "rowversion", "mailsenderlog", "sitesettings", "pageview", "pageviewsummary" };
+            var ignore = new string[] { "rowversion", "mailsenderlog", "sitesettings", "pageview", "pageviewsummary", "newAttachments" };
 
             // this handler will handle database event from NancyBlack Database system
             // and it will add information of all database actions in the request into buffer
 
             Action<string, NancyBlackDatabase, string, dynamic> genericHandler = (action, arg1, arg2, arg3) =>
             {
+                if (action == "newAttachments")
+                {
+                    return;
+                }
+
                 if (ignore.Contains( arg2.ToLowerInvariant() ))
                 {
                     return;
@@ -229,7 +234,7 @@ namespace NantCom.NancyBlack.Modules
                             var version = new RowVersion()
                             {
                                 Action = item.Action,
-                                js_Row = JsonConvert.SerializeObject(item.AffectedRow),
+                                RowData = item.AffectedRow,
                                 UserId = user.Id,
                                 UserHostAddress = userIP,
                                 __createdAt = DateTime.Now,
@@ -237,47 +242,7 @@ namespace NantCom.NancyBlack.Modules
                                 DataType = item.DataTypeName
                             };
 
-                            //if (siteconfig.Property("watcherazure") != null)
-                            //{
-                            //    dynamic azureSettings = siteconfig.Property("watcherazure").Value;
-
-                            //    var key = string.Format("azure{0}-{1}-{2}",
-                            //                    azureSettings.credentials,
-                            //                    azureSettings.server,
-                            //                    azureSettings.table);
-
-                            //    Task.Run(() =>
-                            //    {
-                            //        var table = MemoryCache.Default[key] as CloudTable;
-                            //        if (table == null)
-                            //        {
-                            //            var cred = new StorageCredentials((string)this.CurrentSite.analytics.credentials);
-                            //            var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.server), cred);
-                            //            table = client.GetTableReference((string)this.CurrentSite.analytics.table);
-
-                            //            MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
-                            //        }
-
-                            //        try
-                            //        {
-                            //            version.PrepareForAuzre();
-                            //            var op = TableOperation.Insert(version);
-                            //            table.Execute(op);
-                            //        }
-                            //        catch (Exception)
-                            //        {
-                            //            // if there is any error - just insert into database
-                            //            item.Database.UpsertRecord(version);
-                            //        }
-
-
-                            //    });
-
-                            //}
-                            //else
-                            {
-                                item.Database.UpsertRecord(version);
-                            }
+                            item.Database.UpsertRecord(version);
 
                         }
 

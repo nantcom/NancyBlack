@@ -44,10 +44,16 @@ using Sqlite3Statement = Sqlite.Statement;
 using Sqlite3DatabaseHandle = System.IntPtr;
 using Sqlite3Statement = System.IntPtr;
 using Newtonsoft.Json;
+using System.IO;
 #endif
 
 namespace SQLite
 {
+    [AttributeUsage(AttributeTargets.Property)]
+    public class KeepAsFile : Attribute
+    {
+    }
+
     internal class DefaultJsonSettings : JsonSerializerSettings
     {
         public DefaultJsonSettings()
@@ -105,7 +111,7 @@ namespace SQLite
             if (mapping != null && obj != null)
             {
                 this.Columns = from c in mapping.Columns
-                               where c.IsNullable == false && c.GetValue(obj) == null
+                               where c.IsNullable == false && c.GetColumnValueFromEntity(obj) == null
                                select c;
             }
         }
@@ -323,7 +329,7 @@ namespace SQLite
             TableMapping map;
             if (!_mappings.TryGetValue(type.FullName, out map))
             {
-                map = new TableMapping(type);
+                map = new TableMapping(type, this);
                 _mappings[type.FullName] = map;
             }
             else
@@ -333,7 +339,7 @@ namespace SQLite
                 if (map.MappedType.GUID != type.GUID)
                 {
                     // refresh the mapping
-                    map = new TableMapping(type);
+                    map = new TableMapping(type, this);
                     _mappings[type.FullName] = map;
                 }
             }
@@ -1416,7 +1422,7 @@ namespace SQLite
             var vals = new object[cols.Length];
             for (var i = 0; i < vals.Length; i++)
             {
-                vals[i] = cols[i].GetValue(obj);
+                vals[i] = cols[i].GetColumnValueFromEntity(obj);
             }
 
             var insertCmd = map.GetInsertCommand(this, extra);
@@ -1449,10 +1455,12 @@ namespace SQLite
             {
                 var id = SQLite3.LastInsertRowid(Handle);
                 map.SetAutoIncPK(obj, id);
+                map.StoreExternalColumns(obj);
 
                 return id;
             }
 
+            map.StoreExternalColumns(obj);
             return count;
         }
 
@@ -1511,15 +1519,16 @@ namespace SQLite
                        where p != pk
                        select p;
             var vals = from c in cols
-                       select c.GetValue(obj);
+                       select c.GetColumnValueFromEntity(obj);
             var ps = new List<object>(vals);
-            ps.Add(pk.GetValue(obj));
+            ps.Add(pk.GetColumnValueFromEntity(obj));
             var q = string.Format("update \"{0}\" set {1} where {2} = ? ", map.TableName, string.Join(",", (from c in cols
                                                                                                             select "\"" + c.Name + "\" = ? ").ToArray()), pk.Name);
 
             try
             {
                 rowsAffected = Execute(q, ps.ToArray());
+                map.StoreExternalColumns(obj);
             }
             catch (SQLiteException ex)
             {
@@ -1575,7 +1584,15 @@ namespace SQLite
                 throw new NotSupportedException("Cannot delete " + map.TableName + ": it has no PK");
             }
             var q = string.Format("delete from \"{0}\" where \"{1}\" = ?", map.TableName, pk.Name);
-            return Execute(q, pk.GetValue(objectToDelete));
+
+            try
+            {
+                return Execute(q, pk.GetColumnValueFromEntity(objectToDelete));
+            }
+            finally
+            {
+                map.DeleteExternalColumns(objectToDelete);
+            }
         }
 
         /// <summary>
@@ -1797,7 +1814,7 @@ namespace SQLite
     }
 
     public class TableMapping
-    {
+    {   
         public Type MappedType { get; private set; }
 
         public string TableName { get; private set; }
@@ -1812,7 +1829,9 @@ namespace SQLite
         Column[] _insertColumns;
         Column[] _insertOrReplaceColumns;
 
-        public TableMapping(Type type)
+        public SQLiteConnection Connection { get; private set; }
+
+        public TableMapping(Type type, SQLiteConnection connection)
         {
             MappedType = type;
 
@@ -1842,7 +1861,7 @@ namespace SQLite
 #endif
                 if (p.CanWrite && !ignore)
                 {
-                    cols.Add(new Column(p));
+                    cols.Add(new Column(p, this));
                 }
             }
             Columns = cols.ToArray();
@@ -1869,6 +1888,8 @@ namespace SQLite
                 // People should not be calling Get/Find without a PK
                 GetByPrimaryKeySql = string.Format("select * from \"{0}\" limit 1", TableName);
             }
+
+            this.Connection = connection;
         }
 
         public bool HasAutoIncPK { get; private set; }
@@ -1877,7 +1898,7 @@ namespace SQLite
         {
             if (_autoPk != null)
             {
-                _autoPk.SetValue(obj, Convert.ChangeType(id, _autoPk.ColumnType, null));
+                _autoPk.SetValueToEntity(obj, Convert.ChangeType(id, _autoPk.ColumnType, null));
             }
         }
 
@@ -1975,10 +1996,32 @@ namespace SQLite
             }
         }
 
+        /// <summary>
+        /// Persists the external columns to file
+        /// </summary>
+        /// <param name="entity"></param>
+        public void StoreExternalColumns( object entity)
+        {
+            foreach (var item in this.Columns)
+            {
+                item.StoreExternalColumn(entity);
+            }
+        }
+
+        /// <summary>
+        /// Delete external columns stored in file
+        /// </summary>
+        /// <param name="entity"></param>
+        public void DeleteExternalColumns(object entity)
+        {
+            foreach (var item in this.Columns)
+            {
+                item.DeleteExternalColumn(entity);
+            }
+        }
+
         public class Column
         {
-            PropertyInfo _prop;
-
             public string Name { get; private set; }
 
             public string PropertyName { get { return _prop.Name; } }
@@ -1998,8 +2041,19 @@ namespace SQLite
 
             public int? MaxStringLength { get; private set; }
 
-            public Column(PropertyInfo prop)
+            PropertyInfo _prop;
+            private bool _KeepAsFile = false;
+            private TableMapping _TableMapping = null;
+
+            /// <summary>
+            /// Whether this column will be kept in separated json file
+            /// </summary>
+            public bool KeepAsFile {  get { return _KeepAsFile; } }
+            
+            public Column(PropertyInfo prop, TableMapping mapping)
             {
+                
+
                 CreateFlags createFlags = CreateFlags.AllImplicit | CreateFlags.AutoIncPK;
                 var colAttr = (ColumnAttribute)prop.GetCustomAttributes(typeof(ColumnAttribute), true).FirstOrDefault();
 
@@ -2028,16 +2082,117 @@ namespace SQLite
                 }
                 IsNullable = !(IsPK || Orm.IsMarkedNotNull(prop));
                 MaxStringLength = Orm.MaxStringLength(prop);
+
+                _KeepAsFile = _prop.GetCustomAttributes<KeepAsFile>().FirstOrDefault() != null;
+                _TableMapping = mapping;
             }
 
-            public void SetValue(object obj, object val)
+            /// <summary>
+            /// The storage file name of this column
+            /// </summary>
+            /// <returns></returns>
+            private string GetStorageFileName(object obj)
             {
-                _prop.SetValue(obj, val, null);
+                var path = Path.GetDirectoryName( _TableMapping.Connection.DatabasePath );
+                var databaseName = Path.GetFileName(_TableMapping.Connection.DatabasePath);
+
+                var directory = Path.Combine(
+                    path,
+                    databaseName + "-externalrows",
+                    _TableMapping.TableName);
+
+                var file = string.Format("{0}_{1}.json", _TableMapping.PK.GetColumnValueFromEntity(obj), this.Name);
+
+                Directory.CreateDirectory(directory);
+
+                return Path.Combine( directory, file );
             }
 
-            public object GetValue(object obj)
+            /// <summary>
+            /// Store the value from database to target object
+            /// </summary>
+            /// <param name="target"></param>
+            /// <param name="val"></param>
+            public void SetValueToEntity(object target, object val)
             {
+                // restoring data from column to object
+                if (_KeepAsFile)
+                {
+                    try
+                    {
+                        var fullPath = this.GetStorageFileName(target);
+                        var json = File.ReadAllText(fullPath);
+                        val = JsonConvert.DeserializeObject(json, DefaultJsonSettings.Instance);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                _prop.SetValue(target, val, null);
+            }
+
+            /// <summary>
+            /// Gets column value for storage
+            /// </summary>
+            /// <param name="obj"></param>
+            /// <returns></returns>
+            public object GetColumnValueFromEntity(object obj)
+            {
+                // When "GetValue" is called - it means SQLite is trying to save the data
+                if (_KeepAsFile)
+                {
+                    return null; // for insert case - the obj might not have ID yet so we can't save the file
+                }
+
                 return _prop.GetValue(obj, null);
+            }
+
+            /// <summary>
+            /// Stores this column if it is external column
+            /// </summary>
+            /// <param name="obj"></param>
+            public void StoreExternalColumn(object obj)
+            {
+                if (_KeepAsFile == false)
+                {
+                    return;
+                }
+
+                var value = _prop.GetValue(obj, null);
+
+                try
+                {
+                    var fileName = this.GetStorageFileName(obj);
+                    var json = JsonConvert.SerializeObject(value, DefaultJsonSettings.Instance);
+                    File.WriteAllText(fileName, json);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception( "Cannot Persist External Column: " + this.Name + ", becasue: " + ex.Message, ex );
+                }
+            }
+
+            /// <summary>
+            /// Delete the external column stored in file
+            /// </summary>
+            /// <param name="obj"></param>
+            public void DeleteExternalColumn(object obj)
+            {
+                if (_KeepAsFile == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    var fileName = this.GetStorageFileName(obj);
+                    File.Delete(fileName);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Cannot Delete External Column: " + this.Name + ", becasue: " + ex.Message, ex);
+                }
             }
         }
     }
@@ -2319,7 +2474,7 @@ namespace SQLite
                             continue;
                         var colType = SQLite3.ColumnType(stmt, i);
                         var val = ReadCol(stmt, i, colType, cols[i].ColumnType);
-                        cols[i].SetValue(obj, val);
+                        cols[i].SetValueToEntity(obj, val);
                     }
                     OnInstanceCreated(obj);
                     yield return (T)obj;

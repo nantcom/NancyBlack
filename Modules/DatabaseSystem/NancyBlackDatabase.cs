@@ -670,7 +670,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             // create data type on the fly for query
             // since anonymous type cannot be created
             var dt = DataType.FromJObject(name, JObject.FromObject(sampleOutput));
-            var mapping = new TableMapping(dt.GetCompiledType());
+            var mapping = new TableMapping(dt.GetCompiledType(), _db);
 
             // dynamically invoke the method on SQLite database to read data with specified command
             var method = typeof(SQLiteCommand)
@@ -712,7 +712,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             foreach (var item in oldVersions)
             {
-                yield return JsonConvert.DeserializeObject<T>(item.js_Row);
+                yield return item.RowData;
             }
         }
 

@@ -193,10 +193,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public bool UseBillingAddress { get; set; }
 
+        private int[] _Items;
+
         /// <summary>
         /// Product IDs of Items in the Shopping Cart
         /// </summary>
-        public int[] Items { get; set; }
+        public int[] Items
+        {
+            get
+            {
+                return _Items;
+            }
+            set
+            {
+                _Items = value;
+            }
+        }
 
         /// <summary>
         /// Total Amount of this sale order, include Tax
@@ -344,59 +356,73 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             // New Logic 2018 - we will primariry use itemsdetail
             // if it already exists - so that admin can add/remove items
             // freely and customer still sees the old prices
+            
+            //lookupItemDetail is used for prevent duplication
+            var lookupItemDetail = new Dictionary<int, Product>();
+            Action<int> addnewProduct = (item) =>
+            {
+                var product = db.GetById<Product>(item);
+
+                if (product == null)
+                {
+                    return; // id does not exists
+                }
+
+                product.ContentParts = null;
+                product.MetaDescription = null;
+                product.MetaKeywords = null;
+                product.Layout = null;
+                product.PromotionReferenceDate = DateTime.Today;
+
+                // check for duplication
+                if (lookupItemDetail.ContainsKey(product.Id))
+                {
+                    var existProduct = lookupItemDetail[product.Id];
+                    JObject attr = existProduct.Attributes;
+                    attr["Qty"] = attr.Value<int>("Qty") + 1;
+                }
+                else
+                {
+                    JObject attr = product.Attributes;
+                    if (attr == null)
+                    {
+                        attr = new JObject();
+                        product.Attributes = attr;
+                    }
+                    attr["Qty"] = 1;
+                    this.ItemsDetail.Add(product);
+                    lookupItemDetail.Add(product.Id, product);
+                }
+
+                this.TotalAmount += product.CurrentPrice;
+                totalWithoutDiscount += product.Price;
+            };
 
             // generate itemsdetail list from items list if not exists
             if (this.ItemsDetail == null || this.ItemsDetail.Count == 0)
             {
-                //lookupItemDetail is used for provent duplication
-                var lookupItemDetail = new Dictionary<int, Product>();
                 this.ItemsDetail = new List<Product>();
 
                 foreach (var item in this.Items)
                 {
-                    var product = db.GetById<Product>(item);
-                    
-                    product.ContentParts = null;
-                    product.MetaDescription = null;
-                    product.MetaKeywords = null;
-                    product.Layout = null;
-                    product.PromotionReferenceDate = DateTime.Today;
-
-                    // check for duplication
-                    if (lookupItemDetail.ContainsKey(product.Id))
-                    {
-                        var existProduct = lookupItemDetail[product.Id];
-                        JObject attr = existProduct.Attributes;
-                        attr["Qty"] = attr.Value<int>("Qty") + 1;
-                    }
-                    else
-                    {
-                        JObject attr = product.Attributes;
-                        if (attr == null)
-                        {
-                            attr = new JObject();
-                            product.Attributes = attr;
-                        }
-                        attr["Qty"] = 1;
-                        this.ItemsDetail.Add(product);
-                        lookupItemDetail.Add(product.Id, product);
-                    }
-
-                    this.TotalAmount += product.CurrentPrice;
-                    totalWithoutDiscount += product.Price;
+                    addnewProduct(item);
                 }
             }
             else
             {
+                HashSet<int> processedProductId = new HashSet<int>();
+
                 // otherwise - the items list is being generated from the itemsdetail list
                 var newItemsList = new List<int>();
                 foreach (var item in this.ItemsDetail)
                 {
+                    processedProductId.Add(item.Id);
+
                     if (item.Url == "/dummy/dummy")
                     {
                         continue;
                     }
-
+                    
                     if (item.Attributes["Qty"] == null)
                     {
                         continue;
@@ -412,8 +438,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                         }
                     }
                 }
-
-
+                
+                foreach (var id in this.Items)
+                {
+                    if (processedProductId.Contains( id ) == false)
+                    {
+                        addnewProduct(id);
+                        newItemsList.Add(id);
+                    }
+                }
 
                 this.Items = newItemsList.ToArray();
             }
@@ -759,7 +792,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
-            this.Items = this.Items.Concat(new int[] { codeProduct.Id }).ToArray();
+            this.AddItem(db, currentSite, codeProduct.Id);
 
             return new PromotionApplyResult()
             {
@@ -776,7 +809,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 .Where(row => row.DataType == "SaleOrder" && row.RowId == this.Id)
                 .ToList();
 
-            return rows.Select(row => JsonConvert.DeserializeObject(row.js_Row));
+            return rows.Select(row => row.RowData);
         }
 
         public IEnumerable<object> GetPaymentLogs(NancyBlackDatabase db)

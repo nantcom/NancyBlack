@@ -226,9 +226,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// </summary>
         /// <param name="db"></param>
         /// <param name="saleOrder"></param>
-        internal static void ProcessSaleOrderUpdate(NancyBlackDatabase db, SaleOrder saleOrder, bool replay, DateTime now)
+        internal static void ProcessSaleOrderUpdate(NancyBlackDatabase db, SaleOrder saleOrder, bool forceUpdate, DateTime now)
         {
-            if (replay == false)
+            if (forceUpdate == false)
             {
                 now = DateTime.Now;
 
@@ -243,17 +243,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 // if previous status is already waiting for order - do nothing
-                if (db.GetOlderVersions(saleOrder).Any( s => s.Status == SaleOrderStatus.WaitingForOrder))
+                if (db.GetOlderVersions(saleOrder).Any(s => s.Status == SaleOrderStatus.WaitingForOrder))
                 {
-                    return;
-                }
-            }
-            else
-            {
-                // replay only run when any of previous status has beeen set to waiting for order before
-                if (db.GetOlderVersions(saleOrder).Any(s => s.Status == SaleOrderStatus.WaitingForOrder) == false)
-                {
-                    // this sale order never gets set to waiting for order
                     return;
                 }
             }

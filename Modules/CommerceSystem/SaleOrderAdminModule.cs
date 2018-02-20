@@ -70,7 +70,17 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 ShippingDetails = new JObject(),
                 ItemsDetail = new List<Product>(),
                 Items = new int[0],
-                Customer = new JObject(),
+                Customer = JObject.FromObject( new
+                {
+                    Email = "tempcustomer@nant.co",
+                    FirstName = "NewCustomer",
+                    LastName = "NewCustomer",
+
+                    User = new
+                    {
+                        Id = 0,
+                    }
+                })
             };
 
             so.Status = SaleOrderStatus.New;
@@ -215,13 +225,18 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var id = (int)arg.id;
             var so = this.SiteDatabase.GetById<SaleOrder>(id);
-            
+
+            if (so == null)
+            {
+                return 404;
+            }
+
             var dummyPage = new Page();
 
             List<AffiliateRewardsClaim> rewardList = null;
             List<AffiliateRewardsClaim> discountCodes = null;
             
-            if (so.Customer.User != null)
+            if (so.Customer != null && so.Customer.User != null)
             {
                 int userId = so.Customer.User.Id;
                 rewardList = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(i => i.NcbUserId == userId && i.RewardsName != null).ToList();
