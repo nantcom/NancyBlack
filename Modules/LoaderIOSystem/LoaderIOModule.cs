@@ -1,6 +1,5 @@
 ﻿using NantCom.NancyBlack.Modules;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
-using NantCom.NancyBlack.Site.Module.Types;
 using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using System;
