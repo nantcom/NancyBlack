@@ -18,6 +18,8 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using System.IO;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Manatee.Trello;
+using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.WindowsAzure.Storage.Auth;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem
 {
@@ -602,7 +604,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         Product p = new Product();
                         p.Url = "/promotions/code/" + code;
-                        p.Title = "Affiliate Discount: Subscribe 5 Friends";
+                        p.Title = "Affiliate Discount: " + code;
                         p.Price = -2000;
                         p.Attributes = new
                         {
@@ -902,7 +904,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     {
                         continue;
                     }
-
                     var reg = this.SiteDatabase.Query<AffiliateRegistration>().Where(r => r.AffiliateCode == claim.AffiliateCode).FirstOrDefault();
                     if (reg == null)
                     {
@@ -918,6 +919,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 foreach (var claim in claims)
                 {
+                    if (claim.IsSent == true)
+                    {
+                        continue;
+                    }
+
                     this.AddRewardsCard(this.CurrentSite, claim);
                 }
 
@@ -958,8 +964,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return "OK";
             });
         }
-
-
+        
         public void Hook(IPipelines p)
         {
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>

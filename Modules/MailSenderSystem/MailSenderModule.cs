@@ -98,6 +98,8 @@ namespace NantCom.NancyBlack.Modules
                         log.To = string.Join(",", from m in mail.To select m.Address);
                         log.Subject = mail.Subject;
                         log.Settings = settings;
+                        log.__createdAt = DateTime.Now;
+                        log.__updatedAt = DateTime.Now;
                         
                         var key = log.To + "-" + log.Subject + log.Body.GetHashCode();
                         if (MemoryCache.Default[key] != null)

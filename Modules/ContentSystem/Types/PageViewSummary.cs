@@ -32,14 +32,24 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Page View
         /// </summary>
         public long PageViews { get; set; }
-        
+
         /// <summary>
         /// Prepares the row to be inserted to azure
         /// </summary>
         public void PrepareForAzure()
         {
-            this.RowKey = this.Path.Replace('/', '-');
-            this.PartitionKey = this.Path.Replace('/', '-');
+            if (string.IsNullOrEmpty(this.AffiliateCode) == false)
+            {
+                this.PartitionKey = "Affiliate";
+                this.RowKey = this.AffiliateCode;
+            }
+            else
+            {
+
+                this.RowKey = this.Path.Replace('/', '-');
+                this.PartitionKey = this.Path.Replace('/', '-');
+
+            }
         }
     }
 }

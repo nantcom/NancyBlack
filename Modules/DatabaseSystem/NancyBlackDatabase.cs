@@ -890,8 +890,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                                 var p2 = Process.Start("net.exe", cmd);
                                 p2.WaitForExit();
                             };
-
-                            backupPath = Path.Combine(chosen + @":\", (string)backupOptions.sitename, "");
+                            
+                            backupPath = chosen + ":\\";
                         }
                     }
                 }
