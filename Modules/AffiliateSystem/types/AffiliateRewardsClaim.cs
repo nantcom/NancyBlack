@@ -51,6 +51,8 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 
         public string SerialNumber { get; set; }
 
+        public int IncludedInSaleOrderId { get; set; }
+
         #region Static Type Properties
 
         public int Id { get; set; }

@@ -572,6 +572,12 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
         public static List<string> GetCashAccounts(NancyBlackDatabase db)
         {
             var siteSettings = AdminModule.ReadSiteSettings();
+
+            if (siteSettings.accounting == null || siteSettings.accounting.accounts == null)
+            {
+                return new List<string>();
+            }
+
             var accountSettings = (from dynamic item in siteSettings.accounting.accounts as JArray
                                    select new
                                    {

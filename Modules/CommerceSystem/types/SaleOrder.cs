@@ -431,6 +431,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     {
                         for (int i = 0; i < (int)item.Attributes["Qty"]; i++)
                         {
+                            // suppose to throw because we cannot verify product price due to cannot specify PromotionReferenceDate
+                            if (item.PromotionReferenceDate == default(DateTime))
+                            {
+                                item.PromotionReferenceDate = this.__createdAt;
+                            }
+
                             newItemsList.Add(item.Id);
 
                             this.TotalAmount += item.CurrentPrice;
@@ -606,6 +612,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 newItem.MetaDescription = null;
                 newItem.MetaKeywords = null;
                 newItem.Layout = null;
+                newItem.PromotionReferenceDate = DateTime.Now;
 
                 this.ItemsDetail.Add(newItem);
             }
