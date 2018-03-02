@@ -239,8 +239,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             if (so.Customer != null && so.Customer.User != null)
             {
                 int userId = so.Customer.User.Id;
-                rewardList = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(i => i.NcbUserId == userId && i.RewardsName != null).ToList();
-                discountCodes = this.SiteDatabase.Query<AffiliateRewardsClaim>().Where(i => i.NcbUserId == userId && i.DiscountCode != null).ToList();
+                rewardList = AffiliateRewardsClaim.GetRewards(this.SiteDatabase, userId);
+                discountCodes = AffiliateRewardsClaim.GetDiscountCodes(this.SiteDatabase, userId);
             }
 
             var data = new
