@@ -196,6 +196,7 @@ namespace NantCom.NancyBlack.Configuration
             // Generic View for SubWebsite Location
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
+
                 string subSiteName = (string)context.Context.Items["SubSite"];
                 if (!string.IsNullOrEmpty(subSiteName))
                 {
@@ -296,14 +297,23 @@ namespace NantCom.NancyBlack.Configuration
             {
                 // Get Subsite Name if in main site will get null
                 string folder = Path.Combine(BootStrapper.RootPath, "Site", "SubSites");
-                var subSiteNames = from subDirectories in Directory.GetDirectories(folder) select Path.GetFileName(subDirectories);
-                var matchSubSiteName = (from subSite in subSiteNames where ctx.Request.Url.HostName.Contains(subSite) select subSite).FirstOrDefault();
+                if (Directory.Exists( folder))
+                {
+                    var subSiteNames = from subDirectories in Directory.GetDirectories(folder) select Path.GetFileName(subDirectories);
+                    var matchSubSiteName = (from subSite in subSiteNames where ctx.Request.Url.HostName.Contains(subSite) select subSite).FirstOrDefault();
 
-                ctx.Items["SubSite"] = matchSubSiteName;
+                    ctx.Items["SubSite"] = matchSubSiteName;
+                }
+                else
+                {
+                    ctx.Items["SubSite"] = null;
+                }
+
                 ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
                 ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
                 ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
                 ctx.Items["RootPath"] = BootStrapper.RootPath;
+
                 return null;
             });
 
