@@ -225,11 +225,12 @@
 
         $scope.reloadSiteView = function (url) {
 
-            if (url != null) {
+            if (typeof ( url ) == "string" ) {
+
                 siteView.contents()[0].location.href = url;
                 return;
             }
-
+            
             siteView.contents()[0].location.reload();
         };
 
@@ -690,7 +691,9 @@
 
             if ($scope.globals.editing == null) {
 
-                $scope.$apply($scope.reloadSiteView);
+                $scope.$apply(function () {
+                    $scope.reloadSiteView();
+                });
             }
         });
 
@@ -698,7 +701,9 @@
 
             if ($scope.globals.editing == null) {
 
-                $scope.$apply($scope.reloadSiteView);
+                $scope.$apply(function () {
+                    $scope.reloadSiteView();
+                });
             }
         });
     });
