@@ -3,16 +3,52 @@ using NantCom.NancyBlack.Modules;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
+using NantCom.NancyBlack.Modules.MultiLanguageSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
 
 namespace NantCom.NancyBlack
 {
+    public class CacheAccess
+    {
+        public dynamic Get( string key )
+        {
+            return MemoryCache.Default[key];
+        }
+
+        public void Set( string key, dynamic obj, int expireInMinutes, bool slidingExpiration)
+        {
+            if (slidingExpiration == true)
+            {
+                CacheItemPolicy ci = new CacheItemPolicy();
+                ci.SlidingExpiration = TimeSpan.FromMinutes(expireInMinutes);
+
+                MemoryCache.Default.Add(key, obj, ci);
+            }
+            else
+            {
+                MemoryCache.Default.Add(key, obj, DateTimeOffset.Now.AddMinutes(expireInMinutes));
+            }
+
+
+        }
+    }
+
     public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<StandardModel>
     {
+        private CacheAccess _CacheAccess = new CacheAccess();
+        public CacheAccess Cache
+        {
+            get
+            {
+                return _CacheAccess;
+            }
+        }
+
         /// <summary>
         /// Gets the information about current request.
         /// </summary>
@@ -255,8 +291,7 @@ namespace NantCom.NancyBlack
         {
             return this.Html.Raw( JsonConvert.SerializeObject(input) );
         }
-
-
+        
         public string GetJsonWithoutContentParts(object input)
         {
             var copy = JObject.FromObject(input);
@@ -337,8 +372,7 @@ namespace NantCom.NancyBlack
             _LastPropertyName = propertyName;
             return new NonEncodedHtmlString(string.Format("data-editable=\"true\" data-propertyName=\"{0}\" data-html=\"true\" data-id=\"{1}\" data-table=\"{2}\"", propertyName, content.Id, content.TableName));
         }
-
-
+        
         /// <summary>
         /// Get Edit Attributes for given property name of current site 
         /// </summary>
@@ -365,19 +399,33 @@ namespace NantCom.NancyBlack
                 // use the localized one if the localized content is requested
                 if (this.Language != string.Empty)
                 {
+                    var original = (string)contentParts[propertyName];
                     value = (string)contentParts[propertyName + "_" + this.Language];
 
-                    // try to get from english version
-                    if (value == null)
+                    if (this.AutoTranslateContent)
                     {
-                        value = (string)contentParts[propertyName + "_en"];
-                    }
+                        if (value == null)
+                        {
+                            value = _TranslateHelper.HtmlMachineTranslate(original, this.Language);
+                        }
 
-                    // try to get the non-localized version
-                    if (value == null)
-                    {
-                        value = (string)contentParts[propertyName];
+                        return value;
                     }
+                    else
+                    {
+                        // try to get from english version
+                        if (value == null)
+                        {
+                            value = (string)contentParts[propertyName + "_en"];
+                        }
+
+                        // try to get the non-localized version
+                        if (value == null)
+                        {
+                            value = (string)contentParts[propertyName];
+                        }
+                    }
+                    
                 }
                 else
                 {
@@ -803,5 +851,35 @@ namespace NantCom.NancyBlack
         }
 
         #endregion
+        
+        private TranslateHelper _TranslateHelper = new TranslateHelper();
+
+        /// <summary>
+        /// Whether to automatically translate the content
+        /// </summary>
+        public bool AutoTranslateContent { get; set; }
+
+        /// <summary>
+        /// Translates the string for current language,
+        /// if translation is not available - it will be created in database automatically with input string
+        /// </summary>
+        /// <param name="input">The string to translate</param>
+        /// <returns>Translated string</returns>
+        public NonEncodedHtmlString Translate(string input)
+        {
+            return _TranslateHelper.Translate(input, this.Language);
+        }
+        
+        /// <summary>
+        /// Translates the string for current language,
+        /// if translation is not available - it will be created in database automatically with provided default translation
+        /// </summary>
+        /// <param name="input">The string to translate</param>
+        /// <returns>Translated string</returns>
+        public NonEncodedHtmlString Translate(string input, string defaultTranslation)
+        {
+            return _TranslateHelper.Translate(input, this.Language, defaultTranslation);
+        }
+
     }
 }
