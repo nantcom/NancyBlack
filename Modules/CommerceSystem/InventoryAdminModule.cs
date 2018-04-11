@@ -249,7 +249,43 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
             }
 
-            // ensure that no inventory inbound can be run
+
+            if (saleOrder.Status == SaleOrderStatus.Cancel)
+            {
+                db.Transaction(() =>
+                {
+                    var relatedRequest = db.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == saleOrder.Id).ToList();
+                    foreach (var item in relatedRequest)
+                    {
+                        // remove the usage from purchase
+                        var relatedPurchase = db.Query<InventoryPurchase>().Where(ip => ip.InventoryItemId == item.Id).ToList();
+                        foreach (var p in relatedPurchase)
+                        {
+                            p.InventoryItemId = 0;
+                            db.UpsertRecord(p);
+                        }
+
+                        // remove the request from database
+                        db.DeleteRecord(item);
+                    }
+                });
+
+                return;
+            }
+
+            if (saleOrder.PaymentStatus == PaymentStatus.PaymentReceived ||
+                saleOrder.PaymentStatus == PaymentStatus.Deposit ||
+                saleOrder.PaymentStatus == PaymentStatus.Credit)
+            {
+
+            }
+            else
+            {
+
+                return;
+            }
+
+
             var totalDiscount = 0M;
 
             var items = new List<InventoryItem>();
@@ -414,11 +450,24 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 var saleOrder = this.SiteDatabase.Query<SaleOrder>().AsEnumerable();
 
+                IEnumerable<dynamic> priceListResult = this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingPrice) as AvgCost FROM InventoryPurchase GROUP BY ProductId",
+                                        new
+                                        {
+                                            ProductId = 1,
+                                            AvgCost = 0M
+                                        });
+
+                var priceList = priceListResult.ToLookup(i => i.ProductId);
+
                 foreach (var so in saleOrder)
                 {
-                    if (so.Status == "WaitingForOrder" || so.Status == "WaitingForParts")
+                    if (so.Status == "WaitingForOrder" ||
+                        so.Status == "WaitingForParts" ||
+                        so.Status == "Inbound" || 
+                        so.Status == "CustomsClearance" ||
+                        so.Status == "OrderProcessing")
                     {
-                        // all items must not be fullfilled
+                        // all items must not be fullfilled if status is not yet building or testing
                         var requests = this.SiteDatabase.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == so.Id).ToList();
                         foreach (var item in requests)
                         {
@@ -427,11 +476,52 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                                 item.IsFullfilled = false;
                                 item.FulfilledDate = DateTime.MinValue;
 
+                                // breaks connection with inventory purchase id
+                                if (item.InventoryPurchaseId != 0)
+                                {
+                                    var ip = this.SiteDatabase.GetById<InventoryPurchase>(item.InventoryPurchaseId);
+                                    if (ip != null)
+                                    {
+                                        ip.InventoryItemId = 0;
+                                        this.SiteDatabase.UpsertRecord(ip);
+                                    }
+
+                                    item.InventoryPurchaseId = 0;
+                                }
+
                                 this.SiteDatabase.Connection.Update(item);
                             }
                         }
 
                         InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, so, true, DateTime.Now);
+                    }
+
+                    if (so.Status == SaleOrderStatus.Cancel )
+                    {
+                        InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, so, true, DateTime.Now);
+                    }
+
+                    if (so.Status == "ReadyToShip" || so.Status == "Shipped" || so.Status == "Delivered")
+                    {
+                        // for those shipped, delivered - make it all fulfilled
+                        var requests = this.SiteDatabase.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == so.Id).ToList();
+                        foreach (var item in requests)
+                        {
+                            if (item.IsFullfilled == false)
+                            {
+                                item.IsFullfilled = true;
+                                item.FulfilledDate = DateTime.MinValue;
+                                
+                                var price = priceList[item.ProductId].FirstOrDefault();
+                                if (price != null)
+                                {
+                                    item.BuyingCost = (Decimal)price.AvgCost;
+                                }
+
+                                this.SiteDatabase.Connection.Update(item);
+                            }
+                        }
+                        
                     }
                 }
 

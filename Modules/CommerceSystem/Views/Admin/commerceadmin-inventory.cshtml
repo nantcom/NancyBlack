@@ -23,10 +23,12 @@
         window.data.Instock = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, SUM(1) as Qty FROM InventoryPurchase WHERE InventoryItemId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0M, Qty = 0 }));
         window.data.WaitingForInbound = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, SUM(1) as Qty FROM InventoryPurchase WHERE InventoryItemId = 0 AND IsInBound = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0M, Qty = 0 }));
         window.data.InventoryRequests = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(1) as Qty, AVG(SellingPrice) as SoldPrice FROM InventoryItem WHERE IsFullFilled = 0 GROUP BY ProductId", new { ProductId = 0, Qty = 0, SoldPrice = 0M }));
+        window.data.PendingSaleOrders = @this.GetJsonRaw(this.Database.Query("SELECT Id, Status FROM SaleOrder WHERE Status != 'Delivered' AND Status != 'Cancel' AND Status != 'New' AND Status != 'Confirmed'", new { Id = 0, Status = "" }));
+        window.data.InventoryRequestRaw = @this.GetJsonRaw(this.Database.Query("SELECT Id, SaleOrderId, ProductId FROM InventoryItem WHERE IsFullFilled = 0", new { Id = 0, SaleOrderId = 0, ProductId = 0 }));
 
         window.productUrlLookup = [];
         window.data.ProductUrl.forEach(function (item) {
-
+                       
             window.productUrlLookup[item.Id] = item.Url;
         });
 
@@ -56,58 +58,6 @@
 
             <div class="row">
 
-                @*<div ng-controller="InventoryNotFullfilled as ctrl"
-                     class="col-md-6">
-
-                    <h3 class="page-header text-primary">
-                        Waiting for Order
-
-                        <span class="pull-right">
-                            <b class="text-danger">
-                                {{totalBuying | number:2}}
-                            </b>
-                        </span>
-                    </h3>
-
-                    <div ng-repeat="(key, value) in data | groupBy:'SupplierId' | orderBy:'$key'">
-
-                        <div class="panel panel-info">
-                            <div class="panel-heading">
-                                <span ncb-vlookup="supplier" key="{{key}}" label="Name"></span>
-                            </div>
-                            <div class="panel-body">
-                                <table class="table table-striped table-hover table-responsive">
-
-                                    <tbody>
-                                        <tr>
-                                            <th width="60%">Item</th>
-                                            <th width="20%">Avg Price.</th>
-                                            <th>Qty</th>
-                                        </tr>
-                                        <tr ng-repeat="(key, value) in value | groupBy:'ProductId'">
-                                            <td>
-                                                <span ncb-vlookup="product" key="{{key}}" label="Title"></span>
-                                                 <div>
-                                                    <a ng-href="/Admin/tables/SaleOrder/{{item.InventoryItem.SaleOrderId}}"
-                                                       ng-repeat="item in value" target="_blank">
-                                                        {{item.InventoryItem.SaleOrderId}}
-                                                    </a>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {{averagePrices[key] | number:2}}
-                                            </td>
-                                            <td>
-                                                {{value.length}}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>*@
 
                 <div class="col-md-6">
 
@@ -126,7 +76,8 @@
                             <tbody>
                                 <tr>
                                     <th width="80%">Item</th>
-                                    <th>Need</th>
+                                    <th>Need (Total)</th>
+                                    <th>Need (Incoming)</th>
                                     <th>Stock</th>
                                     <th>Diff</th>
                                 </tr>
@@ -134,9 +85,29 @@
                                     ng-class="{'danger' : item.QtyStock - item.Qty < 0 }">
                                     <td>
                                         <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
+                                        <br />
+                                        <div ng-if="item.SaleOrderWaiting.length > 0">
+
+                                            <b>Waiting For Order:</b><br />
+                                            <a ng-repeat="so in item.SaleOrderWaiting track by $index" target="_blank"
+                                               href="/Admin/tables/saleorder/{{so}}">
+                                                {{so}}
+                                            </a>
+                                        </div>
+
+                                        <div ng-if="item.SaleOrderIncoming.length > 0">
+                                            <b>Incoming:</b>
+                                            <a ng-repeat="so in item.SaleOrderIncoming track by $index" target="_blank"
+                                               href="/Admin/tables/saleorder/{{so}}">
+                                                {{so}}
+                                            </a>
+                                        </div>
                                     </td>
                                     <td>
                                         {{item.Qty}}
+                                    </td>
+                                    <td>
+                                        {{item.SaleOrderIncoming.length}}
                                     </td>
                                     <td>
                                         {{item.QtyStock}}
@@ -153,7 +124,7 @@
                     </div>
 
                 </div>
-
+                
                 <div class="col-md-6">
 
                     <div ng-controller="InventoryInstock as ctrl">
@@ -206,7 +177,7 @@
 
                             <input ncb-textbox type="text" title="Scan Barcode" ng-model="inbound.barcode"
                                    ng-disabled="inbound.invoice == null"
-                                   ng-blur="ctrl.submit()"/>
+                                   ng-blur="ctrl.submit()" />
 
                             <ncb-alerts alerts="status">
                             </ncb-alerts>

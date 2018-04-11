@@ -17,7 +17,7 @@
         .bad {
             color: darkred;
         }
-    </style>    
+    </style>
     <link href="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
 }
 
@@ -31,38 +31,18 @@
 
 <div ng-module="AccountingGlModule">
 
-    <div ncb-datacontext table="AccountingEntry"
-         ng-controller="AccountingTransactionEditor as ctrl">
+    <div>
 
         <div class="page-header">
             <h1>
                 General Ledger
                 <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
-
-
-                <span class="pull-right">
-                    <a class="btn btn-primary" href="/tables/AccountingEntry.xlsx" target="_blank">
-                        <i class="fa fa-download"></i>
-                        <span>
-                            Excel
-                        </span>
-                    </a>
-
-                    <button class="btn btn-success"
-                            data-toggle="modal" data-target="#AccountingEntryModal"
-                            ng-click="object = {}">
-                        <span class="glyphicon glyphicon-plus-sign"></span>
-                        <span>
-                            Transaction
-                        </span>
-                    </button>
-                </span>
-
-
             </h1>
         </div>
-        
-        <div class="panel panel-info">
+
+        <div class="panel panel-info"
+             ng-controller="AccountingTransactionEditor as ctrl"
+             ncb-datacontext table="AccountingEntry">
 
             <div class="panel-heading">
                 Create Transaction
@@ -76,7 +56,7 @@
 
 
                 <div class="form-group">
-                    <button class="btn btn-success btn-lg pull-right" "
+                    <button class="btn btn-success btn-lg pull-right"
                             ng-disabled="ctrl.validate(object)"
                             ng-click="ctrl.save(object); object = {}">
 
@@ -89,9 +69,89 @@
             </div>
         </div>
 
-        <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="AccountingEntryModal"
-                     defaultsort="{ TransactionDate : 'desc' }">
-        </ncb-ngtable>
+        <tabset ng-init="ctrl.tabcontent='table-gl'">
+
+            <tab heading="All View" select="ctrl.tabcontent='table-gl'">
+            </tab>
+            <tab heading="View by Account" select="ctrl.tabcontent='table-byaccounts'">
+            </tab>
+        </tabset>
+
+        <div ng-include src="ctrl.tabcontent">
+        </div>
+
+        <script type="text/ng-template" id="table-gl">
+            <div ncb-datacontext table="AccountingEntry">
+
+                <ncb-ngtable tabletemplate="'tablecustomtemplate.html'" modalid="AccountingEntryModal"
+                             alwaysfilter="(TransactionDate lt datetime'@(DateTime.Today.AddDays(1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))')"
+                             defaultsort="{ TransactionDate : 'desc' }">
+                </ncb-ngtable>
+            </div>
+        </script>
+
+        <script type="text/ng-template" id="table-byaccounts">
+            <div ng-controller="ViewByAccountController as ctrl">
+
+                <select ncb-select
+                        ng-model="ctrl.viewbyaccountname"
+                        ng-change="ctrl.viewaccount(ctrl.viewbyaccountname)"
+                        ng-options="text for text in accounts"></select>
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <td>
+                                Transaction Date
+                            </td>
+                            <td style="width: 50%">
+                                Note
+                            </td>
+                            <td>
+                                Decrease
+                            </td>
+                            <td>
+                                Increase
+                            </td>
+                            <td>
+                                Balance
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in accountData">
+                            <td>
+                                {{item.TransactionDate | date:'dd/MM/yyyy HH:mm'}}
+                            </td>
+                            <td>
+                                {{item.Notes}}
+
+                                <p>
+                                    <b>Related Account:</b> {{item.RelatedAccount}}<br/>
+                                    <b>Project:</b>{{item.ProjectName }}<br />
+                                    <b>Related Party:</b>{{item.DebtorLoanerName }}                                    
+                                </p>
+                            </td>
+                            <td style="text-align:right">
+                                <span ng-if="item.DecreaseAmount != 0">
+
+                                    {{item.DecreaseAmount | number:2 }}
+                                </span>
+                            </td>
+                            <td  style="text-align:right">
+                                <span ng-if="item.IncreaseAmount != 0">
+                                    {{item.IncreaseAmount | number:2 }}
+                                </span>
+                            </td>
+                            <td  style="text-align:right">
+                                {{item.FinalAmount | number:2 }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+            </div>
+        </script>
 
         <script type="text/ng-template" id="tablecustomtemplate.html">
 
@@ -160,6 +220,58 @@
 
         </script>
 
+        <script type="text/ng-template" id="accountview.html">
+
+            <table id="NcbNgTable-account"
+                   ncb-datatable
+                   class="table table-striped table-hover"
+                   style="width: 100%"
+                   ng-table="tableParams"
+                   show-filter="true">
+
+                <tr ng-repeat="item in tableParams.data">
+
+                    <td data-title="'Date of Transaction'"
+                        sortable="'TransactionDate'">
+                        {{item.TransactionDate | date:'dd/MM/yyyy' }}
+                    </td>
+                    <td data-title="'Related Party'"
+                        sortable="'DebtorLoanerName'"
+                        filter="{ 'DebtorLoanerName': 'text' }">
+                        <b>{{item.DebtorLoanerName }}</b><br />
+
+                        <a ng-if="item.SaleOrderId != 0" target="_blank"
+                           href="{{'/Admin/tables/saleorder/' + item.SaleOrderId}}">SO-{{item.SaleOrderId}}</a>
+                    </td>
+                    <td data-title="'Project'"
+                        sortable="'ProjectName'"
+                        filter="{ 'ProjectName': 'text' }">
+                        {{item.ProjectName }}
+                    </td>
+                    <td data-title="'Notes'"
+                        sortable="'Notes'"
+                        filter="{ 'Notes': 'text' }">
+                        {{item.Notes }}
+                    </td>
+                    <td data-title="'Increased'"
+                        sortable="'IncreaseAmount'"
+                        filter="{ 'IncreaseAmount': 'text' }">
+
+                        <span>{{item.IncreaseAmount | number:2 }}</span>
+
+                    </td>
+                    <td data-title="'Decreased'"
+                        sortable="'DecreaseAmount'"
+                        filter="{ 'DecreaseAmount': 'text' }">
+
+                        <span>{{item.DecreaseAmount | number:2 }}</span>
+
+                    </td>
+                </tr>
+            </table>
+
+        </script>
+
         <div>
             <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">
                 {{alert.msg}}
@@ -215,6 +327,7 @@
                                 <option disabled>──────────</option>
                                 <option value="newar" style="background-color: lightgreen">New Receivable</option>
                                 <option value="arpayment" style="background-color: lightgreen">Receive Payment from Receivable</option>
+                                <option value="income" style="background-color: lightgreen">Income</option>
                                 <option disabled>──────────</option>
                                 <option value="newap" style="background-color: lightsalmon">New Payable</option>
                                 <option value="appayment" style="background-color: lightsalmon">Make Payment to Payable / Pay Bill / Pay Salary</option>
@@ -291,7 +404,7 @@
 
                                     <div class="col-sm-6">
                                         <div class="form-group">
-                                            <label>Monthly Recurring</label><br/>
+                                            <label>Monthly Recurring</label><br />
                                             <span class="pull-right">
                                                 <ncb-onoff ng-model="object.Addendum.Recurring"></ncb-onoff>
                                             </span>
@@ -511,6 +624,55 @@
 
                             </div>
 
+                            <div ng-if="object.TransactionType == 'income'">
+
+                                <div class="row">
+                                    <div class="col-sm-6">
+
+                                        <input type="text" name="DocumentNumber" title="Invoice Number"
+                                               ncb-textbox
+                                               ng-model="object.DocumentNumber" />
+
+                                    </div>
+                                    <div class="col-sm-6">
+
+                                        <input type="text" name="DebtorLoanerName" title="Customer/Supplier Name"
+                                               ncb-textbox required
+                                               ng-model="object.DebtorLoanerName"
+                                               typeahead="n for n in autocomplete.debtloan | filter:$viewValue | limitTo:8" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+
+                                        <select ncb-select title="Pay into Account"
+                                                ng-model="object.IncreaseAccount"
+                                                ng-options="text for text in autocomplete.account"></select>
+
+                                        <div class="form-group-lg">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">THB</span>
+                                                <input type="number" class="form-control"
+                                                       ng-model="object.IncreaseAmount"
+                                                       ng-change="object.DecreaseAmount = 0" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-6">
+
+                                        <input type="text" name="ProjectName" title="Related Project"
+                                               ncb-textbox
+                                               ng-model="object.ProjectName"
+                                               typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
+                                    </div>
+                                </div>
+
+                            </div>
+
                             <div ng-if="object.TransactionType == 'buy'">
 
                                 <div class="row">
@@ -577,62 +739,9 @@
 
                             <div ng-if="object.TransactionType == 'buystock'">
 
-                                <div class="row">
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="DocumentNumber" title="Receipt Number"
-                                               ncb-textbox
-                                               ng-model="object.DocumentNumber" />
-
-                                    </div>
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="DebtorLoanerName" title="Supplier Name"
-                                               ncb-textbox
-                                               ng-model="object.DebtorLoanerName"
-                                               typeahead="n for n in autocomplete.debtloan | filter:$viewValue | limitTo:8" />
-                                    </div>
-                                </div>
-
-                                <input type="text" name="ProjectName" title="Related Project"
-                                       ncb-textbox
-                                       ng-model="object.ProjectName"
-                                       typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
-
-                                <div class="row">
-
-                                    <div class="col-sm-6">
-
-                                        <select ncb-select title="Pay from Account"
-                                                ng-model="object.DecreaseAccount"
-                                                ng-options="text for text in autocomplete.account"></select>
-
-                                        <div class="form-group-lg">
-                                            <div class="input-group">
-                                                <span class="input-group-addon">THB</span>
-                                                <input type="number" class="form-control" readonly
-                                                       ng-model="object.DecreaseAmount" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="IncreaseAccount" title="To Account"
-                                               disabled readonly ncb-textbox
-                                               ng-model="object.IncreaseAccount" />
-
-                                        <div class="form-group-lg">
-                                            <div class="input-group">
-                                                <span class="input-group-addon">THB</span>
-                                                <input type="number" class="form-control"
-                                                       ng-model="object.IncreaseAmount"
-                                                       ng-change="object.DecreaseAmount = object.IncreaseAmount * -1" />
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
+                                <alert type="warning">
+                                    Use <a href="/Admin/tables/inventorypurchase" target="_blank">Inventory Purcahse</a> Instead
+                                </alert>
 
                             </div>
 
@@ -697,69 +806,10 @@
                             </div>
 
                             <div ng-if="object.TransactionType == 'newap_stock'">
-
-                                <div class="row">
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="DocumentNumber" title="Supplier Invoice Number"
-                                               ncb-textbox
-                                               ng-model="object.DocumentNumber" />
-
-                                    </div>
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="DebtorLoanerName" title="Supplier Name"
-                                               ncb-textbox required
-                                               ng-model="object.DebtorLoanerName"
-                                               typeahead="n for n in autocomplete.debtloan | filter:$viewValue | limitTo:8" />
-
-                                    </div>
-                                </div>
-
-                                <input type="text" name="ProjectName" title="Related Project"
-                                       ncb-textbox
-                                       ng-model="object.ProjectName"
-                                       typeahead="n for n in autocomplete.project | filter:$viewValue | limitTo:8" />
-
-                                <ncb-datepicker placeholder="Due Date" title="Due Date"
-                                                format="'dd MMMM yyyy'"
-                                                model="object.DueDate"></ncb-datepicker>
-
-                                <div class="row">
-
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="DecreaseAccount" title="Pay from Account"
-                                               disabled readonly ncb-textbox
-                                               ng-model="object.DecreaseAccount" />
-
-                                        <div class="form-group-lg">
-                                            <div class="input-group">
-                                                <span class="input-group-addon">THB</span>
-                                                <input type="number" class="form-control" readonly
-                                                       ng-model="object.DecreaseAmount" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-6">
-
-                                        <input type="text" name="IncreaseAccount" title="To Account"
-                                               disabled readonly ncb-textbox
-                                               ng-model="object.IncreaseAccount" />
-
-                                        <div class="form-group-lg">
-                                            <div class="input-group">
-                                                <span class="input-group-addon">THB</span>
-                                                <input type="number" class="form-control"
-                                                       ng-model="object.IncreaseAmount"
-                                                       ng-change="object.DecreaseAmount = object.IncreaseAmount * -1" />
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-
+                                
+                                <alert type="warning">
+                                    Use <a href="/Admin/tables/inventorypurchase" target="_blank">Inventory Purcahse</a> Instead
+                                </alert>
 
                             </div>
                         </div>

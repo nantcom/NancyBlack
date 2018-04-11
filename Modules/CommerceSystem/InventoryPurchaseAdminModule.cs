@@ -34,7 +34,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             var invoice = args.body.Value;
 
-            var head = (invoice as JObject).ToObject<InventoryPurchase>();
+            var head = (invoice as JObject).ToObject<PurchaseInvoice>();
 
             var exists = this.SiteDatabase.Query<InventoryPurchase>()
                             .Where(i => i.SupplierId == head.SupplierId &&
@@ -49,45 +49,56 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var toInsert = new List<InventoryPurchase>();
             var now = DateTime.Now;
-            
-            foreach (var item in invoice.Items as JArray)
-            {
-                var purchase = item.ToObject<InventoryPurchase>();
 
-                purchase.SupplierId = head.SupplierId;
-                purchase.SupplierInvoiceNumber = head.SupplierInvoiceNumber;
-                purchase.PaidByAccount = head.PaidByAccount;
+            decimal totalQty = head.Items.Sum(i => i.Qty);
+            var splitShipping = head.Shipping / totalQty;
+            var splitAdditional = head.AdditionalCost / totalQty;
+
+            foreach (var invoiceItem in head.Items)
+            {
+                invoiceItem.SupplierId = head.SupplierId;
+                invoiceItem.SupplierInvoiceNumber = head.SupplierInvoiceNumber;
+                invoiceItem.PaidByAccount = head.PaidByAccount;
 
                 if (invoice.IsPriceIncludeVat == true)
                 {
-                    var noTaxAmount = purchase.BuyingPrice * 100 / (100M + tax);
-                    var taxAmount = purchase.BuyingPrice - noTaxAmount;
-                    purchase.BuyingTax = taxAmount;
-                    purchase.BuyingPrice = noTaxAmount;
+                    var noTaxAmount = invoiceItem.BuyingPrice * 100 / (100M + tax);
+                    var taxAmount = invoiceItem.BuyingPrice - noTaxAmount;
+                    invoiceItem.BuyingTax = taxAmount;
+                    invoiceItem.BuyingPrice = noTaxAmount;
                 }
                 else
                 {
-
-                    var taxAmount = purchase.BuyingPrice * (tax / 100M);
-                    purchase.BuyingTax = taxAmount;
+                    var taxAmount = invoiceItem.BuyingPrice * (tax / 100M);
+                    invoiceItem.BuyingTax = taxAmount;
                 }
 
-                purchase.__createdAt = now;
-                purchase.__updatedAt = now;
-                purchase.PurchasedDate = head.PurchasedDate;
-                purchase.ProjectedReceiveDate = head.ProjectedReceiveDate;
+                // Add shipping and additional cost
+                invoiceItem.BuyingPrice += splitShipping + splitAdditional;
+                
+                invoiceItem.PurchasedDate = head.PurchasedDate;
+                invoiceItem.ProjectedReceiveDate = head.ProjectedReceiveDate;
 
                 // automatically set to inbound if received date is passed
                 // or it is today
-                if (purchase.ProjectedReceiveDate.Date <= now.Date)
+                if (invoiceItem.ProjectedReceiveDate.Date <= now.Date)
                 {
-                    purchase.IsInBound = true;
+                    invoiceItem.IsInBound = true;
                 }
 
-                var qty = item.Value<int>("Qty");
+                // the actual rows being inserted to database are of type inventory purchase
+                var qty = invoiceItem.Qty;
                 for (int i = 0; i < qty; i++)
                 {
-                    var copy = JObject.FromObject(purchase).ToObject<InventoryPurchase>();
+                    var copy = JObject.FromObject(invoiceItem).ToObject<InventoryPurchase>();
+
+                    if (copy.IsInBound)
+                    {
+                        copy.ActualReceiveDate = copy.ProjectedReceiveDate;
+                    }
+
+                    copy.__createdAt = now;
+                    copy.__updatedAt = now;
                     toInsert.Add(copy);
                 }
 
@@ -95,6 +106,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             this.SiteDatabase.Connection.InsertAll(toInsert);
 
+            if (head.IsRecordGL)
+            {
+                AccountingSystem.AccountingSystemModule.SubmitPurchaseInvoice(head, this.SiteDatabase);
+            }
+
+            
             return toInsert;
         }
         

@@ -52,6 +52,29 @@
             var key = instock[i].ProductId;
             instockLookup[key] = instock[i].Qty;
         }
+        
+        $scope.saleOrderStatus = [];
+        $window.data.PendingSaleOrders.forEach(function (item) {
+
+            $scope.saleOrderStatus[item.Id] = item.Status;
+        });
+
+        $scope.inventoryRequestsByProduct = [];
+        $window.data.InventoryRequestRaw.forEach(function (item) {
+
+            if ( item.Id == 2806 )
+            {
+                console.log( item );
+            }
+
+            var existing = $scope.inventoryRequestsByProduct[item.ProductId];
+            if (existing == null ) {
+                existing = [];
+                $scope.inventoryRequestsByProduct[item.ProductId] = existing;
+            }
+            existing.push( item );
+        });
+
 
         $http.get("/admin/tables/inventoryitem/__averageprice").success(function (data) {
 
@@ -63,10 +86,10 @@
             var total = 0;
             for (var i = 0; i < $scope.data.length; i++) {
 
-                var id = $scope.data[i].ProductId;
-                $scope.data[i].Url = $window.productUrlLookup[id]
+                var pId = $scope.data[i].ProductId;
+                $scope.data[i].Url = $window.productUrlLookup[pId]
 
-                var qtyStock = instockLookup[id];
+                var qtyStock = instockLookup[pId];
                 if (qtyStock == null) {
                     qtyStock = 0;
                 }
@@ -75,7 +98,7 @@
                 var diff = $scope.data[i].QtyStock - $scope.data[i].Qty;
                 if (diff < 0) {
 
-                    var price = $scope.averagePrices[id];
+                    var price = $scope.averagePrices[pId];
                     if (price == null) {
                         total += $scope.data[i].SoldPrice * (diff * -1);
                     } else {
@@ -84,6 +107,23 @@
                     }
 
                 }
+
+                $scope.data[i].Requests = $scope.inventoryRequestsByProduct[pId];
+                $scope.data[i].SaleOrderWaiting = [];                
+                $scope.data[i].SaleOrderIncoming = [];
+                $scope.data[i].Requests.forEach(function (item) {
+
+                    var waitingForOrder = $scope.saleOrderStatus[item.SaleOrderId] == "WaitingForOrder";
+                    if ( waitingForOrder )
+                    {
+                        $scope.data[i].SaleOrderWaiting.push(item.SaleOrderId);
+                    }
+                    else
+                    {
+                        $scope.data[i].SaleOrderIncoming.push(item.SaleOrderId);
+                    }
+
+                });
 
             }
 
@@ -186,11 +226,13 @@
                 var withoutVat = total * 100 / ($window.commerceSettings.billing.vatpercent + 100);
                 obj.Tax = total - withoutVat;                
                 obj.Total = total + obj.Shipping + obj.Additional; 
+                obj.TotalProductValue = withoutVat;
             }
             else
             {   
                 obj.Tax = ($window.commerceSettings.billing.vatpercent / 100) * total;
                 obj.Total = total + obj.Tax + obj.Shipping + obj.Additional; 
+                obj.TotalProductValue = total;
             }
 
 
@@ -202,6 +244,8 @@
 
             $scope.isBusy = true;
             $scope.object.IsPriceIncludeVat = $me.IsPriceIncludeVat == 1;
+
+            
 
             $http.post("/admin/tables/inventorypurchase/__submitinvoice", $scope.object).
                 success(function (data, status, headers, config) {

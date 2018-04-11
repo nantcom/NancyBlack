@@ -17,7 +17,7 @@
 
             });
         };
-        1
+        
         $me.validate = function (object) {
 
             var valid = false;
@@ -39,6 +39,14 @@
             }
 
             if (object.TransactionType == "newar") {
+
+                valid &= object.IncreaseAccount != "" &&
+                    object.IncreaseAccount != null &&
+                    object.DebtorLoanerName != null &&
+                    object.IncreaseAmount > 0
+            }
+
+            if (object.TransactionType == "income") {
 
                 valid &= object.IncreaseAccount != "" &&
                     object.IncreaseAccount != null &&
@@ -110,6 +118,10 @@
                     object.DocumentNumber != null &&
                     object.DocumentNumber != "" &&
                     object.DebtorLoanerName == "Tax";
+            }
+
+            if (object.TransactionType == "buystock") {
+                value = false;
             }
             
             return valid == false;
@@ -258,6 +270,32 @@
 
         };
 
+
+    });
+
+
+    module.controller("ViewByAccountController", function ($scope, $rootScope, $http) {
+
+        $me = this;
+        $scope.accountToView = null;
+        $scope.accountData = {};
+        $scope.accounts = [];
+        
+        $http.get("/admin/tables/accountingentry/__autocompletes").success(function (data) {
+
+            $scope.accounts = data.account;
+
+        });
+
+        $me.viewaccount = function (account) {
+
+            $http.get("/admin/tables/accountingentry/accounts/" + account  ).success(function (data) {
+
+                $scope.accountData = data;
+
+            });
+
+        };
 
     });
 

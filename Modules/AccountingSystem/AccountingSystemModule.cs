@@ -525,6 +525,49 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
             });
 
+            Get["/admin/tables/accountingentry/accounts/{accountname}"] = this.HandleRequest((arg) =>
+            {
+                var summary = this.SiteDatabase.QueryAsDynamic(
+                                        @"
+                                        SELECT * FROM (
+
+                                        SELECT Id, TransactionDate, Transactiontype, DecreaseAccount as RelatedAccount, IncreaseAmount, 0 As DecreaseAmount, 0 As FinalAmount, Notes, ProjectName, DebtorLoanerName FROM AccountingEntry
+                                        WHERE IncreaseAccount = ?
+
+                                        UNION
+
+                                        SELECT Id, TransactionDate, Transactiontype, IncreaseAccount as RelatedAccount, 0 As IncreaseAmount,  DecreaseAmount, 0 As FinalAmount, Notes, ProjectName, DebtorLoanerName FROM AccountingEntry
+                                        WHERE DecreaseAccount = ? )
+
+                                        ORDER BY TransactionDate
+                                        ",
+                                        new {
+                                            TransactionDate = DateTime.MinValue,
+                                            Transactiontype = "",
+                                            RelatedAccount = "",
+                                            IncreaseAmount = 0M,
+                                            DecreaseAmount = 0M,
+                                            FinalAmount = 0M,
+                                            Notes = "",
+                                            ProjectName = "",
+                                            DebtorLoanerName = ""
+                                        }, new object[] { (string)arg.accountname, (string)arg.accountname }).ToList();
+
+                if (summary.Count == 0)
+                {
+                    return summary;
+                }
+
+                summary[0].FinalAmount = summary[0].IncreaseAmount == 0 ? summary[0].DecreaseAmount : summary[0].IncreaseAmount;
+
+                for (int i = 1; i < summary.Count - 1; i++)
+                {
+                    summary[i].FinalAmount = summary[i - 1].FinalAmount + summary[i].IncreaseAmount + summary[i].DecreaseAmount;
+                }
+
+                return summary;
+            });
+
             Get["/admin/tables/accountingentry/__replayreceipt"] = this.HandleRequest((arg) =>
             {
                 // replay receipt since 2018 only
@@ -572,6 +615,15 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
         public static List<string> GetCashAccounts(NancyBlackDatabase db)
         {
             var siteSettings = AdminModule.ReadSiteSettings();
+
+            if (siteSettings.accounting == null)
+            {
+                return db.QueryAsDynamic("SELECT DISTINCT IncreaseAccount AS Name FROM AccountingEntry", new { Name = "" })
+                   .AsEnumerable()
+                   .Select(item => (string)item.Name )
+                   .ToList();
+            }
+
             var accountSettings = (from dynamic item in siteSettings.accounting.accounts as JArray
                                    select new
                                    {
@@ -584,6 +636,98 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 .Select(item => (string)item.Name )
                 .Where(s => string.IsNullOrEmpty(s) == false && accountSettings[s].FirstOrDefault() == "Cash")
                 .ToList();
+        }
+
+        /// <summary>
+        /// Submit purchase invoice and create neccessary accounting entries
+        /// </summary>
+        /// <param name="pi"></param>
+        public static void SubmitPurchaseInvoice( PurchaseInvoice pi, NancyBlackDatabase db)
+        {
+            List<AccountingEntry> toAdd = new List<AccountingEntry>();
+
+            var inventoryEntry = new AccountingEntry();
+            inventoryEntry.TransactionDate = pi.PurchasedDate;
+            inventoryEntry.IncreaseAccount = "Inventory";
+            inventoryEntry.IncreaseAmount = pi.TotalProductValue;
+            inventoryEntry.DecreaseAccount = pi.PaidByAccount;
+            inventoryEntry.DecreaseAmount = pi.TotalProductValue * -1;
+            inventoryEntry.DocumentNumber = pi.SupplierInvoiceNumber;
+            inventoryEntry.DebtorLoanerName = db.GetById<Supplier>(pi.SupplierId).Name;
+            inventoryEntry.Notes = "";
+            foreach (var item in pi.Items)
+            {
+                inventoryEntry.Notes += item.Qty + "x" + db.GetById<Product>(item.ProductId).Title + "\r\n";
+            }
+            toAdd.Add(inventoryEntry);
+            
+            var taxCredit = new AccountingEntry();
+            taxCredit.TransactionDate = pi.PurchasedDate;
+            taxCredit.IncreaseAccount = "Tax Credit";
+            taxCredit.IncreaseAmount = pi.Tax;
+            taxCredit.DecreaseAccount = pi.PaidByAccount;
+            taxCredit.DecreaseAmount = pi.Tax * -1;
+            taxCredit.DocumentNumber = pi.SupplierInvoiceNumber;
+            taxCredit.DebtorLoanerName = "Tax";
+            taxCredit.Notes = "Tax Credit from Invoice: " + pi.SupplierInvoiceNumber + ", " + inventoryEntry.DebtorLoanerName;
+            toAdd.Add(taxCredit);
+
+            if (pi.AdditionalCost != 0)
+            {
+                var addCost = new AccountingEntry();
+                addCost.TransactionDate = pi.PurchasedDate;
+                addCost.IncreaseAccount = "Expense";
+                addCost.IncreaseAmount = pi.AdditionalCost;
+                addCost.DecreaseAccount = pi.PaidByAccount;
+                addCost.DecreaseAmount = pi.AdditionalCost * -1;
+                addCost.DocumentNumber = pi.SupplierInvoiceNumber;
+                addCost.DebtorLoanerName = inventoryEntry.DebtorLoanerName;
+                addCost.Notes = "Additional cost of buying from: " + pi.SupplierInvoiceNumber;
+                toAdd.Add(addCost);
+            }
+
+            if (pi.Shipping != 0)
+            {
+                var shipping = new AccountingEntry();
+                shipping.TransactionDate = pi.PurchasedDate;
+                shipping.IncreaseAccount = "Expense";
+                shipping.IncreaseAmount = pi.Shipping;
+                shipping.DecreaseAccount = pi.PaidByAccount;
+                shipping.DecreaseAmount = pi.Shipping * -1;
+                shipping.DocumentNumber = pi.SupplierInvoiceNumber;
+                shipping.DebtorLoanerName = inventoryEntry.DebtorLoanerName;
+                shipping.Notes = "Shipping cost of buying from: " + pi.SupplierInvoiceNumber;
+
+                if (!string.IsNullOrEmpty(pi.ShippingInvoiceNumber))
+                {
+                    shipping.DocumentNumber = pi.ShippingInvoiceNumber;
+                }
+
+                toAdd.Add(shipping);
+            }
+            
+            foreach (var item in toAdd)
+            {
+                item.__createdAt = DateTime.Now;
+                item.__updatedAt = DateTime.Now;
+            }
+            
+            if (pi.IsConsignment)
+            {
+                inventoryEntry.DecreaseAccount = "Payable";
+                inventoryEntry.DueDate = pi.ConsignmentDueDate;
+
+                if (pi.TaxEffectiveDate == default(DateTime))
+                {
+                    toAdd.Remove(taxCredit);
+                }
+                else
+                {
+                    taxCredit.TransactionDate = pi.TaxEffectiveDate;
+                }
+            }
+
+            db.Connection.InsertAll(toAdd);
         }
     }
 }
