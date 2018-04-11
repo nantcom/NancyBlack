@@ -53,7 +53,6 @@ namespace NantCom.NancyBlack.Modules
             }
             
             MailMessage mail = new MailMessage();
-
             mail.To.Add(to);
             mail.Subject = subject;
             mail.Body = body;
@@ -77,6 +76,11 @@ namespace NantCom.NancyBlack.Modules
                 }
 
                 var toSend = _Outbox.ToList();
+                if (toSend.Count == 0)
+                {
+                    return;
+                }
+
                 _Outbox = null;
 
                 var site = ctx.Items["SiteSettings"] as JObject;

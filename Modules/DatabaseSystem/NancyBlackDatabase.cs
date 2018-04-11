@@ -712,7 +712,18 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
             foreach (var item in oldVersions)
             {
-                yield return item.RowData;
+                if (item.RowData is JObject)
+                {
+                    yield return ((JObject)item.RowData).ToObject<T>();
+                }
+                else if ( item.RowData == null)
+                {
+                    
+                }
+                else
+                {
+                    yield return item.RowData;
+                }
             }
         }
 

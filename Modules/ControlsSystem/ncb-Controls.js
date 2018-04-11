@@ -1328,7 +1328,7 @@
             $scope.$on('$destroy', function () {
                 // Do someting to prevent memory leak
             });
-
+            
             $scope.alwaysfilter = attrs.alwaysfilter;
             $scope.defaultSort = attrs.defaultsort;
 
@@ -1422,11 +1422,14 @@
                     $scope.tableParams.reload();
                 };
 
+                $scope.$parent.reloadTable = reload;
+
                 $rootScope.$on("updated", reload);
                 $rootScope.$on("inserted", reload);
                 $rootScope.$on("deleted", reload);
                 $rootScope.$on("ncb-datacontext.deleted", reload);
             }
+
 
 
             if ($scope.tableTemplateId == null) {
@@ -1483,7 +1486,7 @@
 
                     var filter = null;
                     try {
-                        filter = $scope.$eval($scope.alwaysfilter);
+                        filter = $scope.$parent.$eval($scope.alwaysfilter);
                     } catch (e) {
                         filter = $scope.alwaysfilter;
                     }

@@ -35,6 +35,13 @@ namespace NantCom.NancyBlack.Configuration
                 return;
             }
 
+            // this is most probably XmlHttpRequest
+            if (context.Request.Method == "PATCH" ||
+                context.Request.Method == "DELETE")
+            {
+                return;
+            }
+
             if (context.Request.Method == "GET" ||
                 context.Request.Method == "POST" ||
                 context.Request.Headers.UserAgent.Contains("Mozilla") ||
@@ -46,7 +53,8 @@ namespace NantCom.NancyBlack.Configuration
                 response.ContentType = "text/html; charset=utf-8";
                 context.Response = response;
             }
-            
+
+
         }
 
         public bool HandlesStatusCode(Nancy.HttpStatusCode statusCode, Nancy.NancyContext context)

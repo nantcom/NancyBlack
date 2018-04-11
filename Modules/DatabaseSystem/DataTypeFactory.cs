@@ -27,6 +27,50 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             _db = db;
             _db.CreateTable<DataType>();
         }
+
+        private void Initialize()
+        {
+            if (_CachedDataType != null)
+            {
+                return;
+            }
+
+            lock ("DatatypeFactoryInitialize")
+            {
+                // the thread that just unlocked will have to check again
+                if (_CachedDataType != null)
+                {
+                    return;
+                }
+
+                var dynamicTypes = _db.Table<DataType>().ToList();
+                var staticTypes = StaticDataType.GetStaticDataTypes();
+
+                _CachedDataType = new Dictionary<string, DataType>();
+
+                // remaps all table to ensure the database
+                // get updated to latest type that was created on-the-fly
+                foreach (var table in dynamicTypes.Concat(staticTypes))
+                {
+                    _CachedDataType[table.NormalizedName] = table;
+
+                    var type = table.GetCompiledType();
+                    if (type.Name.StartsWith("anonymous"))
+                    {
+                        continue;
+                    }
+                    _db.CreateTable(type);
+
+                    // index all column by default
+                    foreach (var item in table.Properties)
+                    {
+                        _db.CreateIndex(type.Name, item.Name, item.Name == "Id");
+                    }
+
+                }
+            }
+
+        }
         
         private Dictionary<string, DataType> _CachedDataType;
 
@@ -42,35 +86,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             {
                 if (_CachedDataType == null)
                 {
-                    var dynamicTypes = _db.Table<DataType>().ToList();
-                    var staticTypes = StaticDataType.GetStaticDataTypes();
-
-                    _CachedDataType = new Dictionary<string, DataType>();
-
-                    // remaps all table to ensure the database
-                    // get updated to latest type that was created on-the-fly
-                    foreach (var table in dynamicTypes.Concat(staticTypes))
-                    {
-                        if (_CachedDataType.ContainsKey(table.NormalizedName) == true)
-                        {
-                            continue;
-                        }
-                        _CachedDataType.Add(table.NormalizedName, table);
-
-                        var type = table.GetCompiledType();
-                        if (type.Name.StartsWith("anonymous"))
-                        {
-                            continue;
-                        }
-                        _db.CreateTable(type);
-
-                        // index all column by default
-                        foreach (var item in table.Properties)
-                        {
-                            _db.CreateIndex(type.Name, item.Name, item.Name == "Id");
-                        }
-
-                    }
+                    this.Initialize();
                 }
                 return _CachedDataType;
             }
@@ -330,10 +346,8 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
 
             var created = new DataTypeFactory(db);
-
-            // Triggers migration
-            created.RegisteredTypes.ToList();
-
+            created.Initialize();
+            
             MemoryCache.Default.Add(key, created, DateTimeOffset.MaxValue );
 
             return created;
