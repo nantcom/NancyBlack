@@ -181,7 +181,7 @@
 
             $scope.menu.stack.push(url);
             $scope.menu.content = url;
-
+            
             if (args != null) {
 
                 $scope.menu.backbuttonText = args.backbuttonText;
@@ -243,8 +243,7 @@
 
             $("#working").removeClass("working");
         });
-
-        var siteView = $("#siteview");
+        
         var menu = $("#menu");
 
         // list editable areas on page load

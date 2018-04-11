@@ -778,6 +778,40 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
             });
 
+            Post["/__affiliate/addtosaleorder"] = this.HandleRequest((arg) =>
+            {
+                if (this.CurrentUser.IsAnonymous)
+                {
+                    return 400;
+                }
+
+                var requestBody = (arg.body.Value as JObject);
+                var saleOrderId = requestBody.Value<int>("saleOrderId");
+                var affiliateRewardsClaimId = requestBody.Value<int>("arcId");
+
+                if (saleOrderId != 0 && affiliateRewardsClaimId != 0)
+                {
+                    var aRC = this.SiteDatabase.GetById<AffiliateRewardsClaim>(affiliateRewardsClaimId);
+
+                    if (aRC.IncludedInSaleOrderId != 0 || aRC.DiscountCode != null)
+                    {
+                        return 403;
+                    }
+
+                    aRC.IncludedInSaleOrderId = saleOrderId;
+                    this.SiteDatabase.UpsertRecord(aRC);
+
+                    return new
+                    {
+                        AffiliateRewardsClaim = aRC
+                    };
+                }
+
+
+                return 403;
+
+            });
+
             Post["/__affiliate/updateprofile"] = this.HandleRequest((arg) =>
             {
                 var requestBody = arg.body.Value;

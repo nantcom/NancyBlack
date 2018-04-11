@@ -137,6 +137,42 @@
 
         };
 
+        // code for add RewardsClaim to SaleOrder
+        $scope.rewardsClaims = window.allData.AffiliateRewardsClaims;
+        $me.addRewardsClaim = function (arcItem) {
+
+            $scope.isBusy = true;
+
+            var saleOrderPara = { Id: 0, Qty: 1 }
+
+            if (arcItem.RewardsName == 'subscribe2') {
+                saleOrderPara.Id = 961;
+            } else if (arcItem.RewardsName == 'buy1') {
+                saleOrderPara.Id = 929;
+            }
+
+            var arcPara = { saleOrderId: $scope.object.Id, arcId: arcItem.Id };
+
+            $http.post("/__affiliate/addtosaleorder/", arcPara)
+                .then(function (success1) {
+
+                    $scope.alerts.push({ type: 'success', msg: 'AffiliateRewardsClaim has been mark as included this SaleOrder. you have to click refresh to view updated data in AffiliateRewardsClaim tab.' });
+                    $scope.selectedARC = success1.data.AffiliateRewardsClaim;
+
+                    setTimeout(function ()
+                    {
+                        $me.addItem(saleOrderPara);
+                        
+                    }, 2000);
+
+                }, function (error) {
+
+                    $scope.isBusy = false;
+                    $scope.alerts.push({ type: 'danger', msg: 'AffiliateRewardsClaim might already been included in SaleOrder. for furture info please debug.'});
+
+                });
+        };
+
         $me.setPrice = function (so, item, $index) {
 
             item.EditPrice = false;

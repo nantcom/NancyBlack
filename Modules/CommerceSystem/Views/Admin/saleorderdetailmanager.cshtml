@@ -762,7 +762,7 @@
                                                            refresh-delay="0">
 
                                             <span class="text-muted">
-                                                {{item.Id}} - 
+                                                {{item.Id}} -
                                             </span>
                                             <span>
                                                 {{item.label}}
@@ -931,6 +931,20 @@
                                 </a>
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="6">
+                                <div class="input-group pull-right" style="width: 250px">
+                                    <select class="form-control" ng-model="selectedARC"
+                                            ng-options="arcItem as ('Id: ' + arcItem.Id + ' ' + (arcItem.RewardsName == 'buy1'? 'Patriot Viper Gaming Mouse' : 'LEVEL51 Bagpack')) for arcItem in rewardsClaims"></select>
+
+                                    <span class="input-group-btn">
+                                        <a class="btn btn-success" ng-click="ctrl.addRewardsClaim(selectedARC)">
+                                            <i class="fa fa-plus-circle"></i> Add AFC id
+                                        </a>
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
 
 
@@ -939,8 +953,8 @@
 
         </tab>
 
-            <tab heading="Affliate Rewards Claim">
-                @Html.Partial("Admin/affiliateadmin-rewardsclaim", this.Model)
+        <tab heading="Affliate Rewards Claim">
+            @Html.Partial("Admin/affiliateadmin-rewardsclaim", this.Model)
         </tab>
 
         <tab heading="Inventory Requests">
