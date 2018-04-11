@@ -407,6 +407,19 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     if (initialProfile != null)
                     {
                         existing.Profile = initialProfile;
+
+                        // this will allow admin to add Email to User and have the profile updated
+                        if (existing.Email != null && initialProfile.email == null && existing.Email.StartsWith("fb_") == false)
+                        {
+                            existing.Profile.email = existing.Email;
+                        }
+
+                        // if use has set the email, we extract the email into email field
+                        if (initialProfile.email != null && existing.Email.StartsWith("fb_"))
+                        {
+                            existing.Email = initialProfile.email;
+                        }
+
                         db.UpsertRecord(existing);
                     }
 

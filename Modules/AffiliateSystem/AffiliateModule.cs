@@ -496,6 +496,37 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 }
                 else
                 {
+                    var input = arg.body.Value;
+                    if (input == null)
+                    {
+                        return existing;
+                    }
+
+                    string customEmail = input.email;
+                    if (customEmail != null)
+                    {
+                        // update user's email
+                        var user = this.SiteDatabase.GetById<NcbUser>(this.CurrentUser.Id);
+                        user.Email = (string)customEmail;
+                        user.Profile.email = (string)customEmail;
+
+                        this.SiteDatabase.UpsertRecord(user);
+
+                        var existingSub = this.SiteDatabase.Query<NcbMailingListSubscription>().Where(sub => sub.Email == (string)customEmail).FirstOrDefault();
+                        if (existingSub == null)
+                        {
+                            NcbMailingListSubscription sub = new NcbMailingListSubscription();
+                            sub.FirstName = user.Profile.first_name;
+                            sub.LastName = user.Profile.last_name;
+                            sub.Email = user.Profile.email;
+                            sub.BirthDay = user.Profile.birthday;
+                            sub.RefererAffiliateCode = existing.RefererAffiliateCode;
+
+                            this.SiteDatabase.UpsertRecord(sub);
+                        }
+                    }
+
+
                     return existing;
                 }
 
@@ -817,6 +848,14 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 {
                     var key = "dashboard-" + registration.NcbUserId;
                     object dashboardData = MemoryCache.Default[key];
+
+                    if (this.Request.Query.code != null)
+                    {
+                        dashboardData = null; // force refresh
+
+                        MemoryCache.Default.Remove(key);
+                        MemoryCache.Default.Remove("AffiliateReg-" + registration.AffiliateCode);
+                    }
 
                     if (dashboardData == null)
                     {

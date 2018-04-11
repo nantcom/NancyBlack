@@ -95,7 +95,7 @@
                             if (text === false)
                                 return false;
 
-                            apply(email);
+                            apply(text);
 
                         });
 
