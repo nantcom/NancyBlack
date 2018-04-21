@@ -2,45 +2,9 @@
 
     var module = angular.module('InventoryAdminModule', ['ui.bootstrap', 'angular.filter']);
 
-    //module.controller("InventoryNotFullfilled", function ($scope, $rootScope, $http) {
-
-    //    $me = this;
-    //    $scope.totalBuying = 0;
-    //    $scope.totalSelling = 0;
-    //    $scope.averagePrices = [];
-
-    //    $http.get("/admin/tables/inventoryitem/__averageprice").success(function (data) {
-
-    //        for (var i = 0; i < data.length; i++) {
-    //            var key = data[i].ProductId;
-    //            $scope.averagePrices[key] = data[i].Price;
-    //        }
-
-    //        $http.get("/admin/tables/inventoryitem/__notfullfilled").success(function (data) {
-
-    //            $scope.data = data;
-
-    //            var totalSellingPrice = 0;
-    //            var totalAveragePrice = 0;
-    //            for (var i = 0; i < data.length; i++) {
-
-    //                var avgPrice = $scope.averagePrices[data[i].ProductId]
-
-    //                totalAveragePrice += (avgPrice == null ? 0 : avgPrice);
-    //                totalSellingPrice += data[i].InventoryItem.SellingPrice;
-    //            }
-
-    //            $scope.totalSelling = totalSellingPrice;
-    //            $scope.totalBuying = totalAveragePrice;
-    //        });
-
-    //    });
-
-    //});
-    
     module.controller("InventoryNotFullfilled2", function ($scope, $rootScope, $http, $window) {
 
-        $me = this;
+        var $me = this;
         $scope.totalBuying = 0;
         $scope.totalSelling = 0;
         $scope.averagePrices = [];
@@ -75,19 +39,22 @@
             existing.push( item );
         });
 
+        if ($window.commerceSettings.inventory == null) {
+            $window.commerceSettings.inventory = {};
+        }
 
-        $http.get("/admin/tables/inventoryitem/__averageprice").success(function (data) {
+        if ($window.commerceSettings.inventory.priceOverrides == null) {
+            $window.commerceSettings.inventory.priceOverrides = [];
+        }
 
-            for (var i = 0; i < data.length; i++) {
-                var key = data[i].ProductId;
-                $scope.averagePrices[key] = data[i].Price;
-            }
-            
+        $me.updateRequiredDashboard = function () {
+
             var total = 0;
             for (var i = 0; i < $scope.data.length; i++) {
 
                 var pId = $scope.data[i].ProductId;
-                $scope.data[i].Url = $window.productUrlLookup[pId]
+                $scope.data[i].Url = $window.productUrlLookup[pId];
+                $scope.data[i].SupplierId = $window.productSupplierLookup[pId];
 
                 var qtyStock = instockLookup[pId];
                 if (qtyStock == null) {
@@ -96,30 +63,28 @@
                 $scope.data[i].QtyStock = qtyStock;
 
                 var diff = $scope.data[i].QtyStock - $scope.data[i].Qty;
-                if (diff < 0) {
+                diff = diff * -1;
 
-                    var price = $scope.averagePrices[pId];
-                    if (price == null) {
-                        total += $scope.data[i].SoldPrice * (diff * -1);
-                    } else {
+                var price = $scope.averagePrices[pId];
+                if (price == null) {
+                    total += $scope.data[i].SoldPrice * diff;
+                    $scope.data[i].Price = $scope.data[i].SoldPrice;
+                } else {
 
-                        total += price * $scope.data[i].Qty;
-                    }
-
+                    total += price * diff;
+                    $scope.data[i].Price = price;
                 }
 
                 $scope.data[i].Requests = $scope.inventoryRequestsByProduct[pId];
-                $scope.data[i].SaleOrderWaiting = [];                
+                $scope.data[i].SaleOrderWaiting = [];
                 $scope.data[i].SaleOrderIncoming = [];
                 $scope.data[i].Requests.forEach(function (item) {
 
                     var waitingForOrder = $scope.saleOrderStatus[item.SaleOrderId] == "WaitingForOrder";
-                    if ( waitingForOrder )
-                    {
+                    if (waitingForOrder) {
                         $scope.data[i].SaleOrderWaiting.push(item.SaleOrderId);
                     }
-                    else
-                    {
+                    else {
                         $scope.data[i].SaleOrderIncoming.push(item.SaleOrderId);
                     }
 
@@ -128,7 +93,48 @@
             }
 
             $scope.totalValue = total;
+        }
+
+        $http.get("/admin/tables/inventoryitem/__averageprice").success(function (data) {
+            
+            for (var i = 0; i < data.length; i++) {
+                var key = data[i].ProductId;
+                $scope.averagePrices[key] = data[i].Price;
+
+            };
+
+            for( var key in $window.commerceSettings.inventory.priceOverrides) {
+                
+                if ($window.commerceSettings.inventory.priceOverrides[key] != null) {
+                    $scope.averagePrices[parseInt(key)] = $window.commerceSettings.inventory.priceOverrides[key];
+                }
+            }
+        
+
+
+            $me.updateRequiredDashboard();
+
         });
+        
+        $me.overridePrice = function (item) {
+
+            var newPrice = prompt("Enter Override Price", item.Price);
+            if (newPrice == false) {
+                return;
+            }
+            $scope.averagePrices[item.ProductId] = parseFloat(newPrice);
+
+            $window.commerceSettings.inventory.priceOverrides[item.ProductId + ""] = $scope.averagePrices[item.ProductId];
+            $http.post('/Admin/sitesettings/commerce', $window.commerceSettings)
+                .success(function (data) {
+                    
+                })
+                .error(function (data) {
+                    alert("Failed to Save Settings");
+                });
+
+            $me.updateRequiredDashboard();
+        };
         
     });
 
@@ -185,7 +191,7 @@
     
     module.controller("InboundController", function ($scope, $rootScope, $http, $window) {
 
-        $me = this;
+        var $me = this;
         $me.IsPriceIncludeVat = 1;
         $scope.object = {};
         $scope.object.Items = [];
@@ -198,15 +204,13 @@
         $scope.autocomplete = {};
         $scope.totalToDistribute = 0;
 
-                  
-
         $http.get("/admin/tables/accountingentry/__autocompletes").success(function (data) {
 
             $scope.autocomplete = data;
 
         });
 
-        $me.getTotal = function (obj) {
+        $me.getTotal = function (obj, setVat) {
 
             if (obj == null) {
                 return;
@@ -220,7 +224,11 @@
             for (var i = 0; i < obj.Items.length; i++) {
                 total += obj.Items[i].BuyingPrice * obj.Items[i].Qty;
             }
-            
+
+            if (setVat != null) {
+                $me.IsPriceIncludeVat = 0;
+            }
+
             if ( $me.IsPriceIncludeVat == 1 ) 
             {
                 var withoutVat = total * 100 / ($window.commerceSettings.billing.vatpercent + 100);
@@ -230,7 +238,16 @@
             }
             else
             {   
-                obj.Tax = ($window.commerceSettings.billing.vatpercent / 100) * total;
+                if (setVat) {
+
+                    obj.Tax = parseFloat( setVat );
+
+                } else {
+
+                    obj.Tax = ($window.commerceSettings.billing.vatpercent / 100) * total;
+                }
+
+
                 obj.Total = total + obj.Tax + obj.Shipping + obj.Additional; 
                 obj.TotalProductValue = total;
             }
@@ -244,8 +261,6 @@
 
             $scope.isBusy = true;
             $scope.object.IsPriceIncludeVat = $me.IsPriceIncludeVat == 1;
-
-            
 
             $http.post("/admin/tables/inventorypurchase/__submitinvoice", $scope.object).
                 success(function (data, status, headers, config) {
@@ -273,7 +288,7 @@
 
     module.controller("InventoryInboundController2", function ($scope, $rootScope, $http) {
 
-        $me = this;
+        var $me = this;
         $scope.inbound = {};
         $scope.invoicenumbers = [];
         $scope.status = [{ type: 'info', msg: 'Select Invoice and Scan Barcode' }];

@@ -443,7 +443,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/tables/inventoryitem"] = this.HandleViewRequest("/Admin/commerceadmin-inventory");
             Get["/admin/tables/inventoryitem/__averageprice"] = this.HandleRequest((arg) =>
             {
-                return this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingPrice) as Price FROM InventoryPurchase WHERE BuyingPrice > 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0 });
+                return this.SiteDatabase.Query("SELECT ProductId, AVG(BuyingPrice + BuyingTax) as Price FROM InventoryPurchase WHERE BuyingPrice > 0 GROUP BY ProductId", new { ProductId = 0, Price = 0.0 });
+
             });
 
             Get["/admin/tables/inventoryitem/__recheck"] = this.HandleRequest((arg) =>

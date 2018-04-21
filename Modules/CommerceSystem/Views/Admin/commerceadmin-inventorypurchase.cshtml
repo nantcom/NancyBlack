@@ -18,422 +18,450 @@
         window.commerceSettings = @this.Html.Raw(this.Site.commerce.ToString());
     </script>
 }
-<div ng-module="InventoryAdminModule">
+    <div ng-module="InventoryAdminModule">
 
-    <div class="page-header">
-        <h1>
-            Inventory Purchase
-            <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
-        </h1>
-    </div>
+        <div class="page-header">
+            <h1>
+                Inventory Purchase
+                <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+            </h1>
+        </div>
 
-    <div ng-init="alerts = []">
-        <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="alerts.splice($index, 1)">
-            {{alert.msg}}
-        </alert>
-    </div>
+        <tabset>
 
-    <tabset>
-
-        <tab heading="New Purchase">
+            <tab heading="New Purchase">
 
 
-            <div class="panel panel-info">
+                <div class="panel panel-info">
 
-                <div class="panel-heading">
-                    Create new Purchase
-                </div>
-                <div class="panel-body"
-                     ng-controller="InboundController as ctrl">
+                    <div class="panel-heading">
+                        Create new Purchase
+                    </div>
+                    <div class="panel-body"
+                         ng-controller="InboundController as ctrl">
 
-                    <form role="form" name="InventoryInboundForm">
+                        <form role="form" name="InventoryInboundForm">
 
 
-                        <div class="row">
+                            <div class="row">
 
-                            <div class="col-md-3">
+                                <div class="col-md-3">
 
-                                <ncb-datepicker placeholder="Purchase Date" title="Purchase Date"
-                                                format="'dd MMMM yyyy'"
-                                                model="object.PurchasedDate"></ncb-datepicker>
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <ncb-datepicker placeholder="Expected Receive Date" title="Exepected Receive Date"
-                                                format="'dd MMMM yyyy'"
-                                                model="object.ProjectedReceiveDate"></ncb-datepicker>
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="form-group"
-                                     ncb-lookupscope
-                                     table="Supplier" labelpath="Name" filter="$filter=startswith(Name, $key)">
-
-                                    <label class="control-label" for="SupplierId">
-                                        Supplier
-                                        <i class="fa fa-spin fa-circle-o-notch"
-                                           ng-show="isBusy"></i>
-                                    </label>
-                                    <ui-select theme="bootstrap" ng-model="object.SupplierId"
-                                               reset-search-input="false">
-                                        <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                                        <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                                           refresh="refreshLookup($select.search)"
-                                                           refresh-delay="0">
-                                            <span>{{item.label}}</span>
-                                        </ui-select-choices>
-                                    </ui-select>
+                                    <ncb-datepicker placeholder="Purchase Date" title="Purchase Date"
+                                                    format="'dd MMMM yyyy'"
+                                                    model="object.PurchasedDate"></ncb-datepicker>
                                 </div>
 
+                                <div class="col-md-3">
+
+                                    <ncb-datepicker placeholder="Expected Receive Date" title="Exepected Receive Date"
+                                                    format="'dd MMMM yyyy'"
+                                                    model="object.ProjectedReceiveDate"></ncb-datepicker>
+                                </div>
+
+                                <div class="col-md-3">
+
+                                    <div class="form-group"
+                                         ncb-lookupscope
+                                         table="Supplier" labelpath="Name" filter="$filter=startswith(Name, $key)">
+
+                                        <label class="control-label" for="SupplierId">
+                                            Supplier
+                                            <i class="fa fa-spin fa-circle-o-notch"
+                                               ng-show="isBusy"></i>
+                                        </label>
+                                        <ui-select theme="bootstrap" ng-model="object.SupplierId"
+                                                   reset-search-input="false">
+                                            <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                            <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                               refresh="refreshLookup($select.search)"
+                                                               refresh-delay="0">
+                                                <span>{{item.label}}</span>
+                                            </ui-select-choices>
+                                        </ui-select>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-3">
+
+                                    <input type="text" name="SupplierInvoiceNumber" title="Supplier Invoice Number"
+                                           ncb-textbox required
+                                           ng-model="object.SupplierInvoiceNumber" />
+
+                                </div>
                             </div>
 
-                            <div class="col-md-3">
 
-                                <input type="text" name="SupplierInvoiceNumber" title="Supplier Invoice Number"
-                                       ncb-textbox required
-                                       ng-model="object.SupplierInvoiceNumber" />
+                            <div class="row"
+                                 ng-init="object.IsRecordGL = false; object.IsConsignment = false;">
 
-                            </div>
-                        </div>
+                                <div class="col-md-3">
 
-
-                        <div class="row"
-                             ng-init="object.IsRecordGL = false; object.IsConsignment = false;">
-
-                            <div class="col-md-3">
-
-                                <div style="margin-bottom: 5px; font-weight: bold">Record GL</div>
-                                <span class="pull-right">
-                                    <ncb-onoff ng-model="object.IsRecordGL"></ncb-onoff>
-                                </span>
-                                <div>Automatically record accoutning entries.</div>
-                            </div>
-                            <div class="col-md-3">
-
-                                <div ng-if="object.IsRecordGL == true">
-
-                                    <div style="margin-bottom: 5px; font-weight: bold">Consignment</div>
+                                    <div style="margin-bottom: 5px; font-weight: bold">Record GL</div>
                                     <span class="pull-right">
-                                        <ncb-onoff ng-model="object.IsConsignment"></ncb-onoff>
+                                        <ncb-onoff ng-model="object.IsRecordGL"></ncb-onoff>
                                     </span>
-                                    <div>Pay later (credit)</div>
+                                    <div>Automatically record accoutning entries.</div>
                                 </div>
+                                <div class="col-md-3">
+
+                                    <div ng-if="object.IsRecordGL == true">
+
+                                        <div style="margin-bottom: 5px; font-weight: bold">Consignment</div>
+                                        <span class="pull-right">
+                                            <ncb-onoff ng-model="object.IsConsignment"></ncb-onoff>
+                                        </span>
+                                        <div>Pay later (credit)</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+
+
+                                    <div ng-if="!object.IsConsignment && object.IsRecordGL">
+
+                                        <input type="text" name="IncreaseAccount" title="Paid with Account"
+                                               ncb-textbox required
+                                               ng-model="object.PaidByAccount"
+                                               typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
+                                    </div>
+
+                                    <div ng-if="object.IsConsignment">
+
+                                        <ncb-datepicker placeholder="Due Date" title="Due Date"
+                                                        format="'dd MMMM yyyy'"
+                                                        model="object.ConsignmentDueDate"></ncb-datepicker>
+
+                                    </div>
+
+                                </div>
+                                <div class="col-md-3" ng-if="object.IsConsignment">
+
+                                    <ncb-datepicker placeholder="Tax Date" title="Tax Effective Date"
+                                                    format="'dd MMMM yyyy'"
+                                                    model="object.TaxDate"></ncb-datepicker>
+                                </div>
+
                             </div>
 
-                            <div class="col-md-3">
+
+                            <div class="row">
+
+                                <div class="col-md-12">
+
+                                    <table class="table table-hover"
+                                           ncb-listeditor
+                                           target="object.Items">
+                                        <thead>
+                                            <tr>
+                                                <th width="50%">Product</th>
+                                                <th width="12%">Quantity</th>
+                                                <th width="12%">Price</th>
+                                                <th>Total</th>
+                                                <th width="5%"></th>
+                                            </tr>
+                                        </thead>
+                                        <tr ng-repeat="element in target">
+                                            <td>
+                                                <span ncb-vlookup="product" key="{{element.ProductId}}"></span>
+                                            </td>
+                                            <td>
+                                                {{element.Qty | number:2 }}
+                                            </td>
+                                            <td>
+                                                {{element.BuyingPrice | number:2 }}
+                                            </td>
+                                            <td>
+                                                {{element.BuyingPrice * element.Qty | number:2 }}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-danger"
+                                                        ng-click="remove(element);">
+                                                    <i class="fa fa-minus-circle"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td ncb-lookupscope
+                                                table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/archive') eq False)&$orderby=Title">
+                                                <ui-select theme="bootstrap" ng-model="newItem.ProductId"
+                                                           reset-search-input="false">
+                                                    <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                                    <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                                       refresh="refreshLookup($select.search)"
+                                                                       refresh-delay="0">
+                                                        <span>
+                                                            {{item.label}}
+                                                        </span>
+                                                        <span class="text-muted">
+                                                            {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
+                                                        </span>
+                                                    </ui-select-choices>
+                                                </ui-select>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control"
+                                                       placeholder="Qty" ng-model="newItem.Qty">
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control"
+                                                       placeholder="Price" ng-model="newItem.BuyingPrice">
+
+                                            </td>
+                                            <td>
+                                                <div class="form-control-static">
+                                                    {{newItem.BuyingPrice * newItem.Qty | number:2 }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-success"
+                                                        ng-click="add();ctrl.getTotal(object)">
+                                                    <i class="fa fa-plus-circle"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" style="text-align: right">
+                                                <b class="form-control-static">
+                                                    Shipping
+                                                </b>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control"
+                                                       placeholder="Shipping Cost" ng-model="object.Shipping">
+                                            </td>
+                                            <td></td>
+                                        </tr>
+
+                                        <tr>
+                                            <td colspan="3" style="text-align: right">
+                                                <b class="form-control-static">
+                                                    Shipping Invoice Number
+                                                </b>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control"
+                                                       ng-blur="ctrl.getTotal(object)"
+                                                       placeholder="Shipping Invoice Number" ng-model="object.ShippingInvoiceNumber">
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" style="text-align: right">
+                                                <b class="form-control-static">
+                                                    Additional Cost
+                                                </b>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control"
+                                                       ng-blur="ctrl.getTotal(object)"
+                                                       placeholder="Additional Cost" ng-model="object.Additional">
+                                            </td>
+                                            <td></td>
+                                        </tr>
+
+                                        <tr>
+                                            <td colspan="3" style="text-align: right">
+                                                <b class="form-control-static">
+                                                    Invoice Format
+                                                </b>
+                                            </td>
+                                            <td>
+
+                                                <select ng-model="ctrl.IsPriceIncludeVat" ncb-select
+                                                        ng-change="ctrl.getTotal(object)">
+                                                    <option value="1">Price Include VAT</option>
+                                                    <option value="0">Add VAT to Price</option>
+                                                </select>
+
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" style="text-align: right">
+                                                <b class="form-control-static">
+                                                    Tax (VAT)
+                                                </b>
+                                            </td>
+                                            <td>
+                                                <div class="input-group"
+                                                     ng-init="edittax = false; ctrl.TaxOverride = 0">
+                                                    <input type="text" class="form-control"
+                                                           ng-if="edittax == false" readonly
+                                                           placeholder="tax" ng-model="object.Tax">
+
+                                                    <input type="text" class="form-control"
+                                                           ng-if="edittax == true"
+                                                           placeholder="tax" ng-model="ctrl.TaxOverride">
+
+                                                    <span class="input-group-btn">
+                                                        <a class="btn btn-danger disabled"
+                                                           ng-show="edittax == false && ctrl.IsPriceIncludeVat == true">
+                                                            <i class="fa fa-pencil-square"></i>
+                                                        </a>
+                                                        <a class="btn btn-info"
+                                                           ng-show="edittax == false && ctrl.IsPriceIncludeVat == false"
+                                                           ng-click="edittax = true; ctrl.TaxOverride = object.Tax;">
+                                                            <i class="fa fa-pencil-square"></i>
+                                                        </a>
+
+                                                        <a class="btn btn-success"
+                                                           ng-show="edittax == true && ctrl.IsPriceIncludeVat == false"
+                                                           ng-click="edittax = false; ctrl.getTotal(object, ctrl.TaxOverride)">
+                                                            <i class="fa fa-check"></i>
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" style="text-align: right"></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-lg" style="width: 100%; text-align: left"
+                                                        ng-disabled="InventoryInboundForm.$invalid || object.Items.length == 0 || isBusy"
+                                                        ng-click="ctrl.submit(object)">
+                                                    {{ object.Total | number:2}}
+                                                    <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
+                                                </button>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+
+                                        <tr>
+                                            <td colspan="5">
+                                                <alert ng-if="!object.TaxEffectiveDate && object.IsConsignment" type="warning">
+                                                    If Tax Effective Date is not Set, it must be added manually using Accounting Entry
+                                                </alert>
+
+                                                <alert ng-if="object.Shipping != 0 || object.Additional != 0" type="info">
+                                                    Shipping and Additional Cost does not include in TAX/VAT calculation
+                                                </alert>
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+
+            </tab>
+
+            <tab heading="Items List">
+
+                <div ncb-datacontext table="InventoryPurchase">
+
+                    <ncb-ngtable tabletemplate="'inboundlist.html'" modalid="InventoryInboundModal">
+                    </ncb-ngtable>
+
+                    <script type="text/ng-template" id="inboundlist.html">
+
+                        <table id="NcbNgTable"
+                               ncb-datatable
+                               class="table table-striped table-hover"
+                               style="width: 100%"
+                               ng-table="tableParams"
+                               show-filter="false">
+
+                            <tr ng-repeat="item in tableParams.data">
+
+                                <td data-title="'PurchasedDate'"
+                                    sortable="'PurchasedDate'">
+                                    {{item.PurchasedDate | date: 'd MMMM yyyy'}}
+                                </td>
+
+                                <td data-title="'ProjectedReceivedDate'"
+                                    sortable="'ProjectedReceivedDate'">
+                                    {{item.ProjectedReceivedDate | date: 'd MMMM yyyy'}}
+                                </td>
+
+                                <td data-title="'Supplier'"
+                                    sortable="'SupplierId'">
+                                    <span ncb-vlookup="Supplier" key="{{item.SupplierId}}" label="Name">
+                                    </span>
+                                </td>
+
+                                <td data-title="'ProductId'"
+                                    sortable="'ProductId'">
+                                    <span ncb-vlookup="Product" key="{{item.ProductId}}" label="Title">
+                                    </span>
+                                </td>
+                                <td data-title="'BuyingPrice'"
+                                    sortable="'BuyingPrice'">
+                                    {{item.BuyingPrice | number:2 }}<br />
+                                    <span class="text-muted">Tax: {{item.BuyingTax | number:2}}</span>
+                                </td>
+
+                                <td style="white-space: nowrap">
+
+                                    <button class="btn btn-info"
+                                            data-toggle="modal" data-target="#InventoryInboundModal"
+                                            ng-if="item.InventoryItemId == 0"
+                                            ng-click="data.view(item)">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
 
 
-                                <div ng-if="!object.IsConsignment && object.IsRecordGL">
+                    </script>
+
+                    <ncb-modal id="InventoryInboundModal"
+                               title="Inventory Purchase"
+                               closebutton deletebutton>
+
+                        <form role="form" name="InventoryInboundViewForm">
+
+                            <tabset>
+                                <tab heading="General">
+
+                                    <ncb-datepicker placeholder="Receive Date"
+                                                    format="'dd MMMM yyyy'"
+                                                    model="object.ActualReceivedData"></ncb-datepicker>
 
                                     <input type="text" name="IncreaseAccount" title="Paid with Account"
                                            ncb-textbox required
                                            ng-model="object.PaidByAccount"
                                            typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
-                                </div>
 
-                                <div ng-if="object.IsConsignment">
+                                    <input type="number" class="form-control" ncb-textbox title="Price (without Tax)"
+                                           placeholder="Price" ng-model="object.BuyingPrice">
 
-                                    <ncb-datepicker placeholder="Due Date" title="Due Date"
-                                                    format="'dd MMMM yyyy'"
-                                                    model="object.ConsignmentDueDate"></ncb-datepicker>
+                                    <input type="number" class="form-control" ncb-textbox title="Tax"
+                                           placeholder="Tax" ng-model="object.BuyingTax">
 
-                                </div>
-
-                            </div>
-                            <div class="col-md-3" ng-if="object.IsConsignment">
-
-                                <ncb-datepicker placeholder="Tax Date" title="Tax Effective Date"
-                                                format="'dd MMMM yyyy'"
-                                                model="object.TaxDate"></ncb-datepicker>
-                            </div>
-
-                        </div>
+                                </tab>
+                            </tabset>
+                        </form>
 
 
-                        <div class="row">
-
-                            <div class="col-md-12">
-
-                                <table class="table table-hover"
-                                       ncb-listeditor
-                                       target="object.Items">
-                                    <thead>
-                                        <tr>
-                                            <th width="50%">Product</th>
-                                            <th width="12%">Quantity</th>
-                                            <th width="12%">Price</th>
-                                            <th>Total</th>
-                                            <th width="5%"></th>
-                                        </tr>
-                                    </thead>
-                                    <tr ng-repeat="element in target">
-                                        <td>
-                                            <span ncb-vlookup="product" key="{{element.ProductId}}"></span>
-                                        </td>
-                                        <td>
-                                            {{element.Qty | number:2 }}
-                                        </td>
-                                        <td>
-                                            {{element.BuyingPrice | number:2 }}
-                                        </td>
-                                        <td>
-                                            {{element.BuyingPrice * element.Qty | number:2 }}
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-danger"
-                                                    ng-click="remove(element);">
-                                                <i class="fa fa-minus-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td ncb-lookupscope
-                                            table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/archive') eq False)&$orderby=Title">
-                                            <ui-select theme="bootstrap" ng-model="newItem.ProductId"
-                                                       reset-search-input="false">
-                                                <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
-                                                <ui-select-choices repeat="item.Id as item in lookup track by $index"
-                                                                   refresh="refreshLookup($select.search)"
-                                                                   refresh-delay="0">
-                                                    <span>
-                                                        {{item.label}}
-                                                    </span>
-                                                    <span class="text-muted">
-                                                        {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
-                                                    </span>
-                                                </ui-select-choices>
-                                            </ui-select>
-                                        </td>
-                                        <td>
-                                            <input type="number" class="form-control"
-                                                   placeholder="Qty" ng-model="newItem.Qty">
-                                        </td>
-                                        <td>
-                                            <input type="number" class="form-control"
-                                                   placeholder="Price" ng-model="newItem.BuyingPrice">
-
-                                        </td>
-                                        <td>
-                                            <div class="form-control-static">
-                                                {{newItem.BuyingPrice * newItem.Qty | number:2 }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-success"
-                                                    ng-click="add();">
-                                                <i class="fa fa-plus-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" style="text-align: right">
-                                            <b class="form-control-static">
-                                                Shipping
-                                            </b>
-                                        </td>
-                                        <td>
-                                            <input type="number" class="form-control"
-                                                   placeholder="Shipping Cost" ng-model="object.Shipping">
-                                        </td>
-                                        <td></td>
-                                    </tr>
-
-                                    <tr>
-                                        <td colspan="3" style="text-align: right">
-                                            <b class="form-control-static">
-                                                Shipping Invoice Number
-                                            </b>
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control"
-                                                   placeholder="Shipping Invoice Number" ng-model="object.ShippingInvoiceNumber">
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" style="text-align: right">
-                                            <b class="form-control-static">
-                                                Additional Cost
-                                            </b>
-                                        </td>
-                                        <td>
-                                            <input type="number" class="form-control"
-                                                   placeholder="Additional Cost" ng-model="object.Additional">
-                                        </td>
-                                        <td></td>
-                                    </tr>
-
-                                    <tr>
-                                        <td colspan="3" style="text-align: right">
-                                            <b class="form-control-static">
-                                                Invoice Format
-                                            </b>
-                                        </td>
-                                        <td>
-
-                                            <select ng-model="ctrl.IsPriceIncludeVat" ncb-select>
-                                                <option value="1">Price Include VAT</option>
-                                                <option value="0">Add VAT to Price</option>
-                                            </select>
-
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" style="text-align: right">
-                                            <b class="form-control-static">
-                                                Tax (VAT)
-                                            </b>
-                                        </td>
-                                        <td>
-                                            <p class="form-control-static">
-                                                {{object.Tax | number:2}}
-                                            </p>
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" style="text-align: right"></td>
-                                        <td>
-                                            <button class="btn btn-primary btn-lg" style="width: 100%; text-align: left"
-                                                    ng-disabled="InventoryInboundForm.$invalid || object.Items.length == 0 || isBusy"
-                                                    ng-click="ctrl.submit(object)">
-                                                {{ctrl.getTotal(object) | number:2}}
-                                                <i class="fa fa-spinner fa-circle-o-notch" ng-show="isBusy"></i>
-                                            </button>
-                                        </td>
-                                        <td></td>
-                                    </tr>
-
-                                    <tr>
-                                        <td colspan="5">
-                                            <alert ng-if="!object.TaxEffectiveDate && object.IsConsignment" type="warning">
-                                                If Tax Effective Date is not Set, it must be added manually using Accounting Entry
-                                            </alert>
-
-                                            <alert ng-if="object.Shipping != 0 || object.Additional != 0" type="info">
-                                                Shipping and Additional Cost does not include in TAX/VAT calculation
-                                            </alert>
-                                        </td>
-                                    </tr>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
-                    </form>
+                        <ncb-footer>
+                            <button class="btn btn-primary btn-lg"
+                                    ng-click="ctrl.save(object)">
+                                <span ng-show="object.id == null">Create</span>
+                                <span ng-show="object.id != null">Save</span>
+                            </button>
+                        </ncb-footer>
+                    </ncb-modal>
 
                 </div>
-            </div>
 
-        </tab>
+            </tab>
 
-        <tab heading="Items List">
+        </tabset>
 
-            <div ncb-datacontext table="InventoryPurchase">
+        <div ng-init="alerts = []">
+            <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="alerts.splice($index, 1)">
+                {{alert.msg}}
+            </alert>
+        </div>
 
-                <ncb-ngtable tabletemplate="'inboundlist.html'" modalid="InventoryInboundModal">
-                </ncb-ngtable>
-
-                <script type="text/ng-template" id="inboundlist.html">
-
-                    <table id="NcbNgTable"
-                           ncb-datatable
-                           class="table table-striped table-hover"
-                           style="width: 100%"
-                           ng-table="tableParams"
-                           show-filter="false">
-
-                        <tr ng-repeat="item in tableParams.data">
-
-                            <td data-title="'PurchasedDate'"
-                                sortable="'PurchasedDate'">
-                                {{item.PurchasedDate | date: 'd MMMM yyyy'}}
-                            </td>
-
-                            <td data-title="'ProjectedReceivedDate'"
-                                sortable="'ProjectedReceivedDate'">
-                                {{item.ProjectedReceivedDate | date: 'd MMMM yyyy'}}
-                            </td>
-
-                            <td data-title="'Supplier'"
-                                sortable="'SupplierId'">
-                                <span ncb-vlookup="Supplier" key="{{item.SupplierId}}" label="Name">
-                                </span>
-                            </td>
-
-                            <td data-title="'ProductId'"
-                                sortable="'ProductId'">
-                                <span ncb-vlookup="Product" key="{{item.ProductId}}" label="Title">
-                                </span>
-                            </td>
-                            <td data-title="'BuyingPrice'"
-                                sortable="'BuyingPrice'">
-                                {{item.BuyingPrice | number:2 }}<br />
-                                <span class="text-muted">Tax: {{item.BuyingTax | number:2}}</span>
-                            </td>
-
-                            <td style="white-space: nowrap">
-
-                                <button class="btn btn-info"
-                                        data-toggle="modal" data-target="#InventoryInboundModal"
-                                        ng-if="item.InventoryItemId == 0"
-                                        ng-click="data.view(item)">
-                                    <i class="fa fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </table>
-
-
-                </script>
-
-                <ncb-modal id="InventoryInboundModal"
-                           title="Inventory Purchase"
-                           closebutton deletebutton>
-
-                    <form role="form" name="InventoryInboundViewForm">
-
-                        <tabset>
-                            <tab heading="General">
-
-                                <ncb-datepicker placeholder="Receive Date"
-                                                format="'dd MMMM yyyy'"
-                                                model="object.ActualReceivedData"></ncb-datepicker>
-
-                                <input type="text" name="IncreaseAccount" title="Paid with Account"
-                                       ncb-textbox required
-                                       ng-model="object.PaidByAccount"
-                                       typeahead="n for n in autocomplete.account | filter:$viewValue | limitTo:8" />
-
-                                <input type="number" class="form-control" ncb-textbox title="Price (without Tax)"
-                                       placeholder="Price" ng-model="object.BuyingPrice">
-
-                                <input type="number" class="form-control" ncb-textbox title="Tax"
-                                       placeholder="Tax" ng-model="object.BuyingTax">
-
-                            </tab>
-                        </tabset>
-                    </form>
-
-
-                    <ncb-footer>
-                        <button class="btn btn-primary btn-lg"
-                                ng-click="ctrl.save(object)">
-                            <span ng-show="object.id == null">Create</span>
-                            <span ng-show="object.id != null">Save</span>
-                        </button>
-                    </ncb-footer>
-                </ncb-modal>
-
-            </div>
-
-        </tab>
-
-    </tabset>
-
-</div>
+    </div>

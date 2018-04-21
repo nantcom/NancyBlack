@@ -39,7 +39,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/commerce/api/paymentstatus"] = this.HandleRequest(this.GetPaymentStatusList);
 
             Get["/admin/commerce/api/printing/saleorder/current/month/list"] = this.HandleRequest(this.GetSaleorderForPrintingReceiptList);
-            
+
+            Post["/admin/saleorder/__updatedhlstatus"] = this.HandleRequest(this.UpdateDHLStatus);
+        }
+        
+        private dynamic UpdateDHLStatus(dynamic arg)
+        {
+            return 200;
         }
 
         private dynamic SaleOrderManagerPage(dynamic arg)

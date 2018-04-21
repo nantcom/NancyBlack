@@ -29,6 +29,7 @@ namespace NantCom.NancyBlack.Modules
 
             Get["/Admin/sitesettings"] = this.HandleViewRequest("admin-sitesettings");
             Post["/Admin/sitesettings/current"] = this.HandleRequest(this.SaveSiteSettings);
+            Post["/Admin/sitesettings/{section}"] = this.HandleRequest(this.SaveSiteSettings);
 
             Post["/Admin/api/testemail"] = this.HandleRequest(this.TestSendEmail);
 
@@ -75,6 +76,14 @@ namespace NantCom.NancyBlack.Modules
         private dynamic SaveSiteSettings(dynamic arg)
         {
             var input = arg.body.Value as JObject;
+
+            if (arg.section != null && arg.section.ToString() != "current")
+            {
+                var jobj = this.CurrentSite as JObject;
+                jobj[(string)arg.section] = input;
+
+                input = jobj;
+            }
 
             AdminModule.WriteSiteSettings( this.Context, input);
 
