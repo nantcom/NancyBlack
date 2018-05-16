@@ -14,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.LogisticsSystem.Types;
 using NantCom.NancyBlack.Modules.AffiliateSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
+using NantCom.NancyBlack.Modules.CommerceSystem.types;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
@@ -50,6 +51,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 LogisticsCompanies = this.SiteDatabase.Query<LogisticsCompany>().ToList(),
                 AffiliateRewardsClaims = AffiliateRewardsClaim.GetRewards(this.SiteDatabase, member.Id),
                 AffiliateDiscountCodes = AffiliateRewardsClaim.GetDiscountCodes(this.SiteDatabase, member.Id),
+                PurchaseHistory = SaleOrder.GetFromNcbUserId(member.Id, this.SiteDatabase)
             };
 
 

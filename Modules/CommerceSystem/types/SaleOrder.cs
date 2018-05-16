@@ -79,7 +79,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public string error { get; set; }
     }
-    
+
     public class SaleOrder : IStaticType
     {
 
@@ -178,6 +178,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// </summary>
         public dynamic Customer { get; set; }
 
+        public int NcbUserId { get; set; }
+
         /// <summary>
         /// Shipping Address
         /// </summary>
@@ -260,7 +262,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// The Latest Site Settings that were used to perform calculation
         /// </summary>
         public dynamic SiteSettings { get; set; }
-        
+
         /// <summary>
         /// Set Fees from current site settings
         /// </summary>
@@ -356,7 +358,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             // New Logic 2018 - we will primariry use itemsdetail
             // if it already exists - so that admin can add/remove items
             // freely and customer still sees the old prices
-            
+
             //lookupItemDetail is used for prevent duplication
             var lookupItemDetail = new Dictionary<int, Product>();
             Action<int> addnewProduct = (item) =>
@@ -422,7 +424,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     {
                         continue;
                     }
-                    
+
                     if (item.Attributes["Qty"] == null)
                     {
                         continue;
@@ -444,10 +446,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                         }
                     }
                 }
-                
+
                 foreach (var id in this.Items)
                 {
-                    if (processedProductId.Contains( id ) == false)
+                    if (processedProductId.Contains(id) == false)
                     {
                         addnewProduct(id);
                         newItemsList.Add(id);
@@ -481,7 +483,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
                 for (int i = 0; i < orderList.Length; i++)
                 {
-                    if (p.Url.IndexOf( orderList[i] ) > 0)
+                    if (p.Url.IndexOf(orderList[i]) > 0)
                     {
                         return i;
                     }
@@ -518,8 +520,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
                 this.ItemsDetail.Add(discountItem);
 
-                this.TotalDiscount = (discountItem.Price + totalNegativePrices ) * -1;
-                this.TotalWithoutDiscount = totalWithoutDiscount + (totalNegativePrices *-1);
+                this.TotalDiscount = (discountItem.Price + totalNegativePrices) * -1;
+                this.TotalWithoutDiscount = totalWithoutDiscount + (totalNegativePrices * -1);
             }
             else
             {
@@ -564,7 +566,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.PaymentFee = toWant(this.PaymentFee);
                 this.TotalAmount = toWant(this.TotalAmount);
             }
-            
+
             if (save == false)
             {
                 return; // Just update the details for calculation
@@ -624,8 +626,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             this.UpdateSaleOrder(currentSite, db, true);
         }
-        
-        public void RemoveItem(NancyBlackDatabase db, dynamic currentSite, Product existingItem )
+
+        public void RemoveItem(NancyBlackDatabase db, dynamic currentSite, Product existingItem)
         {
             if (this.ItemsDetail == null)
             {
@@ -657,10 +659,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             if (this.Status == SaleOrderStatus.Delivered ||
                 this.Status == SaleOrderStatus.Shipped ||
                 this.Status == SaleOrderStatus.ReadyToShip ||
-                this.Status == SaleOrderStatus.Testing )
+                this.Status == SaleOrderStatus.Testing)
             {
 
-                if (this.ItemsDetail.Any( p => p.Attributes == null || p.Attributes.Serial == null ))
+                if (this.ItemsDetail.Any(p => p.Attributes == null || p.Attributes.Serial == null))
                 {
                     var ivt = db.Query<InventoryItem>().Where(row => row.SaleOrderId == this.Id).ToLookup(row => row.ProductId);
 
@@ -728,7 +730,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     string list = codeProduct.Attributes.require.ToString();
                     int[] idList = list.Split(',').Select(s => int.Parse(s)).ToArray();
 
-                    if (idList.All( id => this.Items.Contains( id )) == true )
+                    if (idList.All(id => this.Items.Contains(id)) == true)
                     {
                         goto OK;
                     }
@@ -809,7 +811,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 discount = codeProduct.Price
             };
         }
-        
+
         public IEnumerable<object> GetRowVersions(NancyBlackDatabase db)
         {
             var rows = db.Query<RowVersion>()
@@ -841,6 +843,20 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     PaymentMethod = log.PaymentSource
                 };
             }
+        }
+
+        /// <summary>
+        /// get saleorder from NcbUser.Id (customer)
+        /// </summary>
+        /// <param name="ncbUserId"></param>
+        /// <param name="db"></param>
+        /// <returns></returns>
+        public static List<SaleOrder> GetFromNcbUserId(int ncbUserId, NancyBlackDatabase db)
+        {
+            return db.Query<SaleOrder>().Where(so => so.NcbUserId == ncbUserId
+                && (so.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.PaymentReceived ||
+                        so.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.Deposit)).ToList();
+
         }
     }
 }
