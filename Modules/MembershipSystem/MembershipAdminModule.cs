@@ -31,6 +31,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             };
 
             Get["/Admin/Member/{id}"] = this.HandleRequest(this.HandleMemberDetailPage);
+            Get["/Admin/Member/Readjust/SaleOrder"] = this.HandleRequest(this.HandleRecordNcbUserInSaleOrder);
 
         }
 
@@ -56,6 +57,31 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
 
             return View["Admin/memberprofile-admin", new StandardModel(this, dummyPage, data)];
+        }
+
+        private dynamic HandleRecordNcbUserInSaleOrder(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            var allSO = this.SiteDatabase.Query<SaleOrder>();
+            foreach (var so in allSO)
+            {
+                if (so.Customer == null || so.Customer.User == null || so.Customer.User.Id == 0)
+                {
+                    continue;
+                }
+
+                if (so.Id == 1177)
+                    continue;
+
+                so.NcbUserId = so.Customer.User.Id;
+                this.SiteDatabase.UpsertRecord(so);
+            }
+
+            return 200;
         }
 
     }
