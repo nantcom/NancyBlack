@@ -32,7 +32,7 @@
         <form id="treepay_form" name="treepay_form"
               style="display: none;">
             <input Type="Hidden" Name="ret_url" ng-value="tpCtrl.settings.postUrl" />
-            <input type="Hidden" Name="user_id" ng-value="object.Customer.User.Id" />
+            <input type="Hidden" Name="user_id" ng-value="tpCtrl.user_id" />
             <input Type="Hidden" Name="order_no" ng-value="tpCtrl.orderNo" />
             <input Type="Hidden" Name="good_name" ng-value="'LEVEL51 -' + object.SaleOrderIdentifier" />
             <input Type="Hidden" Name="trade_mony" ng-value="tpCtrl.confirmedSelectedAmout" />
