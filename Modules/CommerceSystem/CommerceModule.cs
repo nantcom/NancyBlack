@@ -256,8 +256,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return 400;
             }
 
-            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();            
-            
+            var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
+
+            saleorder.NcbUserId = this.CurrentUser.Id;
             saleorder.PaymentStatus = PaymentStatus.WaitingForPayment;
             saleorder.Customer = this.CurrentUser.Profile;
             saleorder.AffiliateCode = this.Request.Cookies["source"];

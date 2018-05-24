@@ -4,12 +4,15 @@
 }
 
 @section Head{
+    <link href="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.css" rel="stylesheet" />
 }
 
 @section Scripts{
     <script>
         window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
     </script>
+    <script src="/NancyBlack/Content/Scripts/Chart.js-master/Chart.min.js"></script>
+    <script src="/NancyBlack/Content/Scripts/angular-chart.js-master/dist/angular-chart.js"></script>
     <script src="~/NancyBlack/Modules/MembershipSystem/Views/Admin/memberprofile-admin.js"></script>
     <script src="/NancyBlack/Modules/AffiliateSystem/Views/js/affiliate-rewardsclaim.js"></script>
 }
@@ -21,7 +24,7 @@
 
     <div class="page-header">
         <h1>
-            ({{member.Id}}) {{member.Profile.first_name}} {{member.Profile.last_name}}
+            <img src="http://graph.facebook.com/{{member.Profile.id}}/picture?type=square" /> ({{member.Id}}) {{member.Profile.first_name}} {{member.Profile.last_name}}
 
             <span class="pull-right">
 
@@ -37,22 +40,94 @@
 
     <tabset>
 
-        <tab heading="Affliate Rewards Claim">
-            @Html.Partial("Admin/affiliateadmin-rewardsclaim", this.Model)
-        </tab>
-
-        <tab heading="Profile">
-
-            <ncb-alerts alerts="alerts"></ncb-alerts>
-
-            Soon
-
-        </tab>
-
         <tab heading="Purchase History">
 
-            Soon
+            <table ncb-datatable
+                   class="table table-striped table-hover"
+                   style="width: 100%"
+                   ng-table="tableParams"
+                   show-filter="true">
 
+                <tr ng-repeat="item in purchaseHistory">
+                    <td data-title="'Order#'"
+                        sortable="'SaleOrderIdentifier'"
+                        filter="{ 'SaleOrderIdentifier': 'text' }">
+                        <a href="/Admin/tables/saleorder/{{item.Id}}" target="_blank">
+                            {{item.SaleOrderIdentifier }}
+                        </a>
+                    </td>
+                    <td data-title="'Status'"
+                        sortable="'Status'"
+                        filter="{ 'Status': 'text' }">
+                        {{item.Status }}
+                    </td>
+                    <td data-title="'PaymentReceivedDate'"
+                        sortable="'PaymentReceivedDate'">
+                        {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
+                    </td>
+                    <td data-title="'Customer'"
+                        filter="{ 'Customer': 'text' }">
+                        {{item.Customer.FirstName}} {{item.Customer.LastName}}<br />
+                        {{item.Customer.PhoneNumber}}<br />
+                        {{item.Customer.Email}}
+                    </td>
+                    <td data-title="'Address'"
+                        filter="{ 'ShipTo': 'text' }">
+                        <div ng-if="item.ShipTo.To != null">
+                            {{item.ShipTo.To}}<br />
+                            {{item.ShipTo.Address}}<br />
+                            {{item.ShipTo.SubDistrict}}
+                            {{item.ShipTo.District}}<br />
+                            {{item.ShipTo.State}},
+                            {{item.ShipTo.PostalCode}}
+                        </div>
+                        <div ng-if="item.ShipTo.To == null">
+                            (Pick Up)
+                        </div>
+                        <b>Billing:</b>
+                        <div ng-if="item.UseBillingAddress">
+                            {{item.BillTo.To }}<br />
+                            {{item.BillTo.Address}}<br />
+                            {{item.BillTo.SubDistrict}}
+                            {{item.BillTo.District}}<br />
+                            {{item.BillTo.State}},
+                            {{item.BillTo.PostalCode}}
+                        </div>
+
+                        <div ng-if="item.UseBillingAddress == false">
+                            (not used)
+                        </div>
+
+                    </td>
+                    <td data-title="'Product'"
+                        filter="{ 'ItemsDetail': 'text' }">
+
+                        <p style="font-weight: bold">
+                            <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc' }">{{i.Title}}</span>
+                            <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/laptops' }">{{i.Title}}</span><br />
+                            <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/gpu' }">{{i.Title}}</span><br />
+                            <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/monitor' }">{{i.Title}}</span>
+                        </p>
+
+                        <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
+                            <a href="{{product.Url}}" target="_blank"
+                               ng-if="product.CurrentPrice > 0">
+                                {{product.Title}}
+                                x{{product.Attributes.Qty}}
+                            </a>
+                        </div>
+                    </td>
+                    <td data-title="'Total (net)'"
+                        sortable="'TotalAmount'"
+                        filter="{ 'TotalAmount': 'text' }">
+                        {{item.TotalAmount | number:2 }}
+                    </td>
+                </tr>
+            </table>
+        </tab>
+
+        <tab heading="Affliate Rewards Claim">
+            @Html.Partial("Admin/affiliateadmin-rewardsclaim", this.Model)
         </tab>
 
 
