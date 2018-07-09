@@ -184,13 +184,16 @@
                                         </tr>
                                         <tr>
                                             <td ncb-lookupscope
-                                                table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/archive') eq False)&$orderby=Title">
+                                                table="Product" labelpath="Title" filter="$filter=contains(Title, $key)&$orderby=Title">
                                                 <ui-select theme="bootstrap" ng-model="newItem.ProductId"
                                                            reset-search-input="false">
                                                     <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
                                                     <ui-select-choices repeat="item.Id as item in lookup track by $index"
                                                                        refresh="refreshLookup($select.search)"
                                                                        refresh-delay="0">
+                                                        <span class="text-muted">
+                                                            {{item.Id }} - 
+                                                        </span>
                                                         <span>
                                                             {{item.label}}
                                                         </span>

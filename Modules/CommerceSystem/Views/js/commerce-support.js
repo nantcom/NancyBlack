@@ -37,9 +37,35 @@
         if ($scope.object.DHLTrackingNumber != null) {
             $scope.trackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.DHLTrackingNumber);
         }
-
+        
         if ($scope.object.InboundDHLTrackingNumber != null) {
             $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.InboundDHLTrackingNumber);
+        }
+
+        if ($scope.object.InboundTrackingNumber != null) {
+
+            if ($scope.object.InboundShippingMethod == 'DHL') {
+                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('https://track.aftership.com/dhl/' + $scope.object.InboundTrackingNumber);
+            }
+
+            if ($scope.object.InboundShippingMethod == 'FedEx') {
+                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('https://track.aftership.com/fedex/' + $scope.object.InboundTrackingNumber);
+            }
+        }
+
+        if ($scope.object.OutboundTrackingNumber != null) {
+
+            if ($scope.object.ShippingDetails.provider == 'DHL') {
+                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.OutboundTrackingNumber);
+            }
+
+            if ($scope.object.ShippingDetails.provider == 'Kerry') {
+                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('https://th.kerryexpress.com/th/track/?track=' + $scope.object.OutboundTrackingNumber);
+            }
+
+            if ($scope.object.ShippingDetails.method == 'deliveree') {
+                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl($scope.object.OutboundTrackingNumber);
+            }
         }
 
         $scope.laptopStatus = [];

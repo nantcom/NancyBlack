@@ -274,7 +274,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return;
                 }
 
-                card = list.Cards.Add(title);
+                card = list.Cards.Add(title).Result;
             }
 
             card.DueDate = claim.__createdAt.AddDays(7);
@@ -336,7 +336,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return;
                 }
 
-                card = list.Cards.Add(title);
+                card = list.Cards.Add(title).Result;
             }
 
             if (transaction.IsPendingApprove)

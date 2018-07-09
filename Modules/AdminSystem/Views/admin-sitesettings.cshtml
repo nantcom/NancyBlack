@@ -24,42 +24,6 @@
     <ncb-alerts alerts="alerts"></ncb-alerts>
     <div class="row">
 
-        <div class="col-md-4">
-
-            <h2>APPID/API Key</h2>
-
-            <input type="text" title="Facebook Application Id"
-                   ncb-textbox ng-model="object.Application.FacebookAppId" />
-
-            <input type="text" title="Facebook Page Name"
-                   ncb-textbox ng-model="object.Application.FacebookPageName" />
-
-            <input type="text" title="Facebook Pixel Id"
-                   ncb-textbox ng-model="object.Application.FacebookPixelId" />
-
-            <input type="text" title="Instagram Account"
-                   ncb-textbox ng-model="object.Application.InstagramName" />
-
-            <input type="text" title="Twitter Name"
-                   ncb-textbox ng-model="object.Application.TwitterName" />
-
-            <input type="text" title="LIN At Name"
-                   ncb-textbox ng-model="object.Application.LineAtName" />
-
-            <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
-                   ncb-textbox ng-model="object.Application.GoogleAnalyticsId" />
-
-            <div class="form-group">
-                <input type="text" title="Google Site Verification"
-                       ncb-textbox ng-model="object.Application.GoogleSiteVerification" />
-                <span class="text-muted">
-                    Use the "Meta Tag" verification method, copy the attribute <b>content</b> (no quotes) into this box.
-                    for example, if the tag is :<br/>
-                    &lt;meta name="google-site-verification" content="<b>1eDxakJwEISMtQUXfeUzshYDBlD-GvEm9sx-coN6o_I</b>" /&gt;
-                    copy the <b>1eDxakJwEISMtQUXfeUzshYDBlD-GvEm9sx-coN6o_I</b> into this box.
-                </span>
-            </div>
-        </div>
 
         <div class="col-md-4">
 
@@ -113,6 +77,96 @@
 
             </div>
 
+        </div>
+
+
+        <div class="col-md-4">
+
+            <h2>APPID/API Key</h2>
+
+            <input type="text" title="Facebook Application Id"
+                   ncb-textbox ng-model="object.Application.FacebookAppId" />
+
+            <input type="text" title="Facebook Page Name"
+                   ncb-textbox ng-model="object.Application.FacebookPageName" />
+
+            <input type="text" title="Facebook Pixel Id"
+                   ncb-textbox ng-model="object.Application.FacebookPixelId" />
+
+            <input type="text" title="Instagram Account"
+                   ncb-textbox ng-model="object.Application.InstagramName" />
+
+            <input type="text" title="Twitter Name"
+                   ncb-textbox ng-model="object.Application.TwitterName" />
+
+            <input type="text" title="LIN At Name"
+                   ncb-textbox ng-model="object.Application.LineAtName" />
+
+            <input type="text" title="Google Analytics Id" placeholder="UA-XXX"
+                   ncb-textbox ng-model="object.Application.GoogleAnalyticsId" />
+
+            <div class="form-group">
+                <input type="text" title="Google Site Verification"
+                       ncb-textbox ng-model="object.Application.GoogleSiteVerification" />
+                <span class="text-muted">
+                    Use the "Meta Tag" verification method, copy the attribute <b>content</b> (no quotes) into this box.
+                    for example, if the tag is :<br />
+                    &lt;meta name="google-site-verification" content="<b>1eDxakJwEISMtQUXfeUzshYDBlD-GvEm9sx-coN6o_I</b>" /&gt;
+                    copy the <b>1eDxakJwEISMtQUXfeUzshYDBlD-GvEm9sx-coN6o_I</b> into this box.
+                </span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+
+            <h2>Facebook Messenger</h2>
+
+            <div class="form-group">
+                <input type="text" title="Webhook Verify Token"
+                       ncb-textbox ng-model="object.FacebookMessenger.VerifyToken" />
+
+                <span class="text-muted">
+                    Use by Facebook to register webhook.
+                </span>
+            </div>
+
+            <div class="form-group">
+                <input type="text" title="Page Access Token"
+                       ncb-textbox ng-model="object.FacebookMessenger.PageAccessToken" />
+
+                <span class="text-muted">
+                    Page Access Token used for Send Api.
+                </span>
+            </div>
+
+            <h2>Webhook Tracing</h2>
+
+            <div class="form-group">
+                <input type="text" title="Azure Table Server"
+                       ncb-textbox ng-model="object.FacebookMessenger.TracingServer" />
+
+                <span class="text-muted">
+                    Azure Table Storage Server
+                </span>
+            </div>
+
+            <div class="form-group">
+                <input type="text" title="Azure Table Name"
+                       ncb-textbox ng-model="object.FacebookMessenger.TracingTableName" />
+
+                <span class="text-muted">
+                    Azure Table Name
+                </span>
+            </div>
+
+            <div class="form-group">
+                <input type="text" title="Azure Table Credentials"
+                       ncb-textbox ng-model="object.FacebookMessenger.TracingTableCredentials" />
+
+                <span class="text-muted">
+                    Azure Table Credentials (Query String from Azure Storage Explorer)
+                </span>
+            </div>
         </div>
 
         <div class="col-md-4">

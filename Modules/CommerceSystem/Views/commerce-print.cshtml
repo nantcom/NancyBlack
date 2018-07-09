@@ -10,9 +10,15 @@
     <link href="/NancyBlack/Modules/CommerceSystem/ncb-commerce.min.css" rel="stylesheet" />
     <link href="/NancyBlack/Modules/CommerceSystem/Views/css/commerce-print.min.css" rel="stylesheet" />
     <style>
-        body {
-            -webkit-print-color-adjust: exact;
+
+        @@media print {
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+            }
+
         }
+        
 
         .hide {
             display: none;
@@ -167,7 +173,7 @@
                                     {
                                         <text>
                                             <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yyyy'}}</span>
-                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | date:'dd/MM/yyyy'}}</span>
+                                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd/MM/yyyy'}}</span>
                                         </text>
                                     }
                                 </div>
@@ -312,13 +318,13 @@
                 <tr>
                     <td class="blank" colspan="2"
                         style="vertical-align: middle; background-color: lightblue">
-                        ( {{getBathText( getProductTotal() + discount.Price )}} )
+                        ( {{getBathText( so.TotalAmount )}} )
                     </td>
                     <td class="total-line" colspan="2">
                         รวมเงินทั้งสิ้น GRAND TOTAL
                     </td>
                     <td class="total-value">
-                        {{ getProductTotal() + discount.Price  | number : 2}}
+                        {{ so.TotalAmount  | number : 2}}
                     </td>
                 </tr>
                 <tr>
@@ -327,7 +333,7 @@
                         ภาษีมูลค่าเพิ่ม VALUE ADDED TAX
                     </td>
                     <td class="total-value">
-                        {{ getVat() | number: 2}}
+                        {{ so.TotalAmount - (so.TotalAmount * 100 / 107) | number: 2}}
                     </td>
                 </tr>
                 <tr>
@@ -348,142 +354,14 @@
                         รวมมูลค่าสินค้า TOTAL
                     </td>
                     <td class="total-value">
-                        {{ getProductValue() | number : 2}}
+                        {{ so.TotalAmount * 100 / 107 | number : 2}}
                     </td>
                 </tr>
             </table>
 
             <div class="row"
                  style="margin-top: 20px"></div>
-
-            @if (type == "invoice")
-            {
-                <div ng-hide="so.Status == 'New'"
-                     ng-controller="PaysbuyBySaleOrderController as psbCtrl">
-
-                    <div class="row" ng-show="so.IsPayWithCreditCart">
-
-                        <div class="col-md-6">
-                            <div style="margin-bottom: 10px">
-                                ชำระผ่าน <b>PAYSBUY</b> (สามารถใช้บริการผ่อนชำระได้)<br />
-                                Payment via Paysbuy
-                            </div>
-
-                            <div class="btn-group" role="group" aria-label="..."
-                                 ng-show="paymentType != 'Split'">
-                                <button class="btn btn-md btn-primary"
-                                        ng-click="psbCtrl.pay()">
-                                    ชำระเงินทั้งหมด / Full Amount
-                                </button>
-                                <button class="btn btn-md btn-primary"
-                                        ng-click="paymentType = 'Split'">
-                                    แบ่งชำระ / Split Payment
-                                </button>
-                            </div>
-
-                            <div ng-show="paymentType == 'Split'">
-                                <div ng-show="paymentDetail.TransactionLog.length > 0">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>วันที่ชำระ / Date</th>
-                                                <th class="text-center">จำนวนเงินที่ชำระ / Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tr ng-repeat="paymentLog in paymentDetail.TransactionLog">
-                                            <td>{{paymentLog.PaymentDate | date:'dd MMMM yyyy HH:mm'}}</td>
-                                            <td>
-                                                <div class="text-right">
-                                                    {{paymentLog.Amount | number:2}}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="total-line">
-                                                <div class="text-right" style="font-weight: bold">
-                                                    ชำระแล้วทั้งสิ้น / Total Paid
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="text-right" style="color:green">
-                                                    {{paymentDetail.TotalPaid | number:2}}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="total-line">
-                                                <div class="text-right" style="font-weight: bold">
-                                                    ชำระเพิ่ม / Additional Payment
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="text-right" style="font-weight: bold">
-                                                    {{paymentDetail.PaymentRemaining | number:2}}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="จำนวนเงินที่แบ่งชำระ... / Amount..."
-                                           ng-model="toPay">
-                                    <span class="input-group-btn">
-                                        <button class="btn btn-primary" type="button"
-                                                ng-click="psbCtrl.splitPay(toPay)"
-                                                ng-disabled="ctrl.checkAmount(toPay) == false">
-                                            <i class="fa fa-shopping-cart"></i> ชำระ / Pay
-                                        </button>
-                                    </span>
-                                </div>
-                                <div>
-                                    การแบ่งชำระ สำหรับการใช้บัตรเครดิตหลายใบ หรือต้องการแบ่งชำระเป็นบัตรเครดิตบางส่วน ไม่ใช่การผ่อนชำระ <br/>
-                                    Split payment is NOT installment, you may use this form to split payment among many credit cards.
-                                </div>
-
-                                <div>
-                                    ถ้าต้องการใช้การผ่อนชำระ กรุณาเลือกชำระเต็มจำนวน แล้วใช้หน้าจอของ Paysuby เพื่อดำเนินการ (เฉพาะบัตร KBANK) <br />
-                                    If you wish to apply for installments, please choose full amount and apply for installment in Paysbuy system.
-                                </div>
-                            </div>
-
-                            <div class="row"
-                                 style="margin-top: 20px"></div>
-                        </div>
-
-                        <div class="col-md-6 text-right">
-
-                            <a class="pull-right">
-                                <img src="/NancyBlack/Modules/CommerceSystem/images/ipsb_01.png" />
-                            </a>
-                            <form id="paysbuy_form" name="formpaysbuy" method="post"
-                                  action=""
-                                  style="display: none;">
-                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
-                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
-                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
-                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
-                                <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
-                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
-                            </form>
-                            <form id="paysbuy_split_form" name="formpaysbuy" method="post"
-                                  action=""
-                                  style="display: none;">
-                                <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
-                                <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
-                                <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
-                                <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
-                                <input Type="Hidden" Name="amt" ng-value="splitValue" />
-                                <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
-                            </form>
-
-                        </div>
-
-                    </div>
-
-
-                </div>
-            }
-            else if (type == "receipt")
+            @if (type == "receipt")
             {
                 <div class="row">
                     <div class="col-md-12">
@@ -500,7 +378,7 @@
                                         <div class="collector">ผู้รับเงิน / Collector</div>
                                         <div class="collect-date">
                                             <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b>
-                                            <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | date:'dd/MM/yy'}}</b>
+                                            <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd/MM/yy'}}</b>
                                             <br />วันที่/Date
                                         </div>
                                     </div>

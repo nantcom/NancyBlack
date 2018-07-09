@@ -790,6 +790,16 @@
             return r;
         }
 
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
         var setOrderNO = function () {
             if ($me.selectedAmout == $me.saleOrder.TotalAmount && soPaymentLogs.length == 0) {
                 $me.orderNo = $me.saleOrder.SaleOrderIdentifier;
@@ -845,6 +855,37 @@
             // automatically pay with remaining amount using split mode to reduce confusion
             $me.paymentType = 'Split';
             $me.selectedAmout = $me.remainingAmount;
+
+            if (getParameterByName("autopay") != null) {
+
+                if (getParameterByName("amount") != null) {
+                    $me.selectedAmout = parseFloat(getParameterByName("amount"));
+                }
+
+                if (getParameterByName("method") != null) {
+                    $me.paymentMethod = $me.paymentMethods[parseFloat(getParameterByName("method"))];
+                } else {
+                    $me.paymentMethod = $me.paymentMethods[0];
+                }
+
+                if ($me.paymentMethod == null) {
+
+                    swal({
+                        title: "Error...",
+                        type: 'error',
+                        text: "Payment method is not valid",
+                        timer: 1000,
+                        showConfirmButton: false
+                    });
+
+                    return;
+                }
+
+                window.setTimeout(function () {
+
+                    $me.pay();
+                }, 1000 );
+            }
         }
 
         $me.pay = function () {

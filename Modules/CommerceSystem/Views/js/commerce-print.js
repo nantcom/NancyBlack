@@ -17,7 +17,7 @@
         $scope.discount = { Price: 0 };
 
         $scope.getPriceBeforeVat = function (Price) {
-            return Price / 1.07;
+            return Price * 100 / 107;
         };
 
         $scope.getProductValue = function () {

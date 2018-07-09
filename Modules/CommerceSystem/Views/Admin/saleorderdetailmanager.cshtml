@@ -248,9 +248,17 @@
                                 <div class="form-group">
                                     <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
                                     <div class="col-sm-8">
-                                        <span class="ncb-editable-span"
-                                              id="CreatedAt">
+                                        <span>
                                             {{object.__createdAt | date: 'medium'}}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="Last Updated" class="col-sm-4 control-label">Last Updated</label>
+                                    <div class="col-sm-8">
+                                        <span>
+                                            {{object.__updatedAt | date: 'medium'}}
                                         </span>
                                     </div>
                                 </div>
@@ -293,17 +301,59 @@
                                     </div>
                                 </div>
 
+                                @*<div class="form-group">
+            <label for="DHLTrackingNumber" class="col-sm-4 control-label">Outbound DHL AWB</label>
+            <div class="col-sm-8">
+                <span class="ncb-editable-span"
+                      id="DHLTrackingNumber"
+                      e-name="DHLTrackingNumber"
+                      editable-text="object.DHLTrackingNumber">
+                    {{object.DHLTrackingNumber || 'empty'}}
+                </span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="InboundDHLTrackingNumber" class="col-sm-4 control-label">Inbound DHL AWB</label>
+            <div class="col-sm-8">
+                <span class="ncb-editable-span"
+                      id="DHLTrackingNumber"
+                      e-name="InboundDHLTrackingNumber"
+                      editable-text="object.InboundDHLTrackingNumber">
+                    {{object.InboundDHLTrackingNumber || 'empty'}}
+                </span>
+            </div>
+        </div>*@
+
+                                <h3>Shipping</h3>
+
                                 <div class="form-group">
-                                    <label for="InboundDHLTrackingNumber" class="col-sm-4 control-label">Inbound DHL AWB</label>
+                                    <label for="InboundShippingMethod" class="col-sm-4 control-label">Inbound Method</label>
                                     <div class="col-sm-8">
                                         <span class="ncb-editable-span"
-                                              id="DHLTrackingNumber"
-                                              e-name="InboundDHLTrackingNumber"
-                                              editable-text="object.InboundDHLTrackingNumber">
-                                            {{object.InboundDHLTrackingNumber || 'empty'}}
+                                              id="ShippingMethod"
+                                              e-name="ShippingMethod"
+                                              editable-select="object.InboundShippingMethod"
+                                              e-ng-options="s as s for s in ['DHL', 'FedEx']">
+                                            {{object.InboundShippingMethod}}
+
                                         </span>
                                     </div>
                                 </div>
+
+                                <div class="form-group">
+                                    <label for="InboundTrackingNumber" class="col-sm-4 control-label">Inbound Tracking</label>
+                                    <div class="col-sm-8">
+                                        <span class="ncb-editable-span"
+                                              id="InboundTrackingNumber"
+                                              e-name="InboundTrackingNumber"
+                                              editable-text="object.InboundTrackingNumber">
+                                            {{object.InboundTrackingNumber || 'empty'}}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <h3>Totals</h3>
 
                                 <div class="form-group">
                                     <label for="TotalAmount" class="col-sm-4 control-label">Total Amount</label>
@@ -495,7 +545,7 @@
                             </h3>
                         </div>
                         <div class="panel-body">
-                            
+
                             <div class="form-group">
                                 <label for="ShippingMethod" class="col-sm-4 control-label">Method</label>
                                 <div class="col-sm-8">
@@ -510,7 +560,33 @@
                                 </div>
                             </div>
 
+                            <div class="form-group">
+                                <label for="OutboundTrackingNumber" class="col-sm-4 control-label">Outbound Tracking</label>
+                                <div class="col-sm-8">
+                                    <span class="ncb-editable-span"
+                                          id="OutboundTrackingNumber"
+                                          e-name="OutboundTrackingNumber"
+                                          editable-text="object.OutboundTrackingNumber">
+                                        {{object.OutboundTrackingNumber || 'empty'}}
+                                    </span>
+                                </div>
+                            </div>
+
                             <div ng-if="object.ShippingDetails.method == 'shipping'">
+                                
+                                <div class="form-group">
+                                    <label for="ShippingProvider" class="col-sm-4 control-label">Provider</label>
+                                    <div class="col-sm-8">
+                                        <span class="ncb-editable-span"
+                                              id="ShippingProvider"
+                                              e-name="ShippingProvider"
+                                              editable-select="object.ShippingDetails.provider"
+                                              e-ng-options="s as s for s in ['DHL', 'Kerry']">
+                                            {{object.ShippingDetails.provider}}
+
+                                        </span>
+                                    </div>
+                                </div>
 
                                 <div class="form-group">
                                     <label for="To" class="col-sm-4 control-label">To</label>

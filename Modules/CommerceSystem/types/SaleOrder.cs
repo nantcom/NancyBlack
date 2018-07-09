@@ -153,6 +153,26 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Inbound DHL Tracking Number
         /// </summary>
         public string InboundDHLTrackingNumber { get; set; }
+        
+        /// <summary>
+        /// Inbound Shipping Method
+        /// </summary>
+        public string InboundShippingMethod { get; set; }
+
+        /// <summary>
+        /// Inbound Tracking Number
+        /// </summary>
+        public string InboundTrackingNumber { get; set; }
+
+        /// <summary>
+        /// Outbound Shipping Method
+        /// </summary>
+        public string OutboundShippingMethod { get; set; }
+
+        /// <summary>
+        /// Outbound Tracking Number
+        /// </summary>
+        public string OutboundTrackingNumber { get; set; }
 
         public decimal PaymentFee { get; set; }
 

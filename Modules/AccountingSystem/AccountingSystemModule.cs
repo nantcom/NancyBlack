@@ -333,7 +333,6 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                                             SELECT
                                                 SUM(DecreaseAmount) as Amount,
                                                 DebtorLoanerName,
-                                                DocumentNumber,
                                                 MAX(TransactionDate) as LastUpdated,      
                                                 MIN(DueDate) as DueDate
                                             FROM
@@ -348,14 +347,13 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                                             SELECT
                                                 SUM(IncreaseAmount) as Amount,
                                                 DebtorLoanerName,
-                                                DocumentNumber,
                                                 MAX(TransactionDate) as LastUpdated,      
                                                 MAX(DueDate) as DueDate
                                             FROM
                                                 AccountingEntry
                                             WHERE
                                                 IncreaseAmount > 0
-                                                AND DecreaseAccount = 'Payable' 
+                                                AND IncreaseAccount = 'Payable' 
                                             GROUP BY DebtorLoanerName, DocumentNumber",
                                            new { Amount = 0M, DebtorLoanerName = "", DocumentNumber = "", LastUpdated = default(DateTime), DueDate = default(DateTime) }).ToLookup(item => (string)item.DebtorLoanerName + "-" + (string)item.DocumentNumber);
 
@@ -586,6 +584,7 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
                 return "OK";
 
             });
+
         }
 
         private dynamic GenerateAutoComplete(dynamic args)
