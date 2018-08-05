@@ -20,6 +20,8 @@ using NantCom.NancyBlack.Modules.MembershipSystem;
 using Manatee.Trello;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.WindowsAzure.Storage.Auth;
+using NantCom.NancyBlack.Modules.ContentSystem.Types;
+using System.Threading.Tasks;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem
 {
@@ -908,7 +910,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                             Traffic = this.SiteDatabase.Query("SELECT COUNT(Id) As Count, Path FROM PageView WHERE AffiliateCode=? GROUP BY Path",
                             new { Count = 0, Path = "" },
                             new object[] { registration.AffiliateCode }).ToList(),
-
+                            
                             CommissionTotal = this.SiteDatabase.QueryAsDynamic("SELECT SUM(CommissionAmount) As Amount FROM AffiliateTransaction WHERE AffiliateCode=?",
                             new { Amount = 0M },
                             new object[] { registration.AffiliateCode }).First().Amount,
@@ -940,10 +942,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                                 new object[] { registration.AffiliateCode }).First().Count,
 
                             Profile = this.SiteDatabase.GetById<NcbUser>(registration.NcbUserId).Profile,
-
                         };
 
                         MemoryCache.Default.Add(key, dashboardData, DateTimeOffset.Now.AddMinutes(10));
+
+                        this.UpdatePageView(registration);
                     }
 
                     standardModel.Data = dashboardData;
@@ -1037,7 +1040,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return "OK";
             });
         }
-        
+                
         public void Hook(IPipelines p)
         {
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
@@ -1118,6 +1121,113 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddDays(1)));
                 }
             });
+        }
+
+        /// <summary>
+        /// Query Azure Table Storage and update page view
+        /// </summary>
+        private void UpdatePageView(AffiliateRegistration reg)
+        {
+            // Fire and Forget - if multiple threads have spaned
+            var database = this.SiteDatabase;
+            var key = reg.AffiliateCode + "-updatepageview";
+
+            reg = database.GetById<AffiliateRegistration>(reg.Id);
+            if (reg.LastPageViewUpdate.Date == DateTime.Now.Date)
+            {
+                return;
+            }
+
+            Task.Run(() =>
+            {
+                lock (BaseModule.GetLockObject( key ))
+                {
+                    var cached = MemoryCache.Default[key] as AffiliateRegistration;
+                    if (cached != null)
+                    {
+                        // someone has recently do the update
+                        if (cached.LastPageViewUpdate.Date == DateTime.Now.Date)
+                        {
+                            return;
+                        }
+                    }
+
+                    if (reg.LastPageViewUpdate == default(DateTime))
+                    {
+                        reg.LastPageViewUpdate = reg.__createdAt;
+                    }
+
+                    var table = this.GetPageViewTable();
+
+
+                    var pageViews = (from pv in table.CreateQuery<PageView>()
+                                     where
+                                        pv.Timestamp > reg.LastPageViewUpdate &&
+                                        pv.AffiliateCode == reg.AffiliateCode
+                                     select pv);
+
+                    var userSet = new HashSet<string>();
+
+                    foreach (var item in pageViews)
+                    {
+                        reg.TotalPageView++;
+                        userSet.Add(item.UserUniqueId);
+
+                        if (item.QueryString.Contains("source="))
+                        {
+                            reg.TotalAffiliateLinkClicks++;
+                        }
+
+                        if (item.QueryString.Contains("subscribe=1"))
+                        {
+                            reg.TotalSubscribeLinkClicks++;
+                        }
+                    }
+
+                    reg.LastPageViewUpdate = DateTime.Now;
+                    reg.TotalUniqueUser = userSet.Count;
+                    this.SiteDatabase.UpsertRecord(reg);
+
+                    // Make the instance for checking available for 1 hour
+                    MemoryCache.Default.Add(key, reg, DateTimeOffset.Now.AddHours(1));
+                }
+            });
+        }
+
+        /// <summary>
+        /// Gets the page view table
+        /// </summary>
+        /// <param name="cache"></param>
+        /// <returns></returns>
+        private CloudTable GetPageViewTable(bool cache = true)
+        {
+            Func<CloudTable> getTable = () =>
+            {
+                var cred = new StorageCredentials((string)this.CurrentSite.analytics.raw.credentials);
+                var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.raw.server), cred);
+                return client.GetTableReference((string)this.CurrentSite.analytics.raw.table);
+            };
+
+
+            if (cache == false)
+            {
+                return getTable();
+            }
+
+            var key = string.Format("azure{0}-{1}-{2}",
+                               (string)this.CurrentSite.analytics.raw.credentials,
+                               (string)this.CurrentSite.analytics.raw.server,
+                               (string)this.CurrentSite.analytics.raw.table).GetHashCode().ToString();
+
+            var table = MemoryCache.Default[key] as CloudTable;
+            if (table == null)
+            {
+                table = getTable();
+
+                MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
+            }
+
+            return table;
         }
     }
 }

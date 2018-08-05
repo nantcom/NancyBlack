@@ -24,7 +24,7 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
                 return;
             }
 
-            lock ("TranslateHelper-Initialize")
+            lock (BaseModule.GetLockObject("TranslateHelper-Initialize"))
             {
                 if (_Database != null || _Translations != null)
                 {
@@ -79,7 +79,7 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
                     }
                 }
 
-                lock ("Translate-" + key)
+                lock (BaseModule.GetLockObject("Translate-" + key))
                 {
                     // when other threads unlocked - we have to check again
                     if (_Translations.ContainsKey(key))
@@ -170,7 +170,7 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
                 return translated;
             }
 
-            lock ("Translate-" + key)
+            lock (BaseModule.GetLockObject("Translate-" + key))
             {
 
                 // when other threads unlocked - we have to check again

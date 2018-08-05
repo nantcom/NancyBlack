@@ -49,7 +49,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     return;
                 }
 
-                lock ("InventoryPurchase")
+                lock (BaseModule.GetLockObject("InventoryPurchase"))
                 {
                     var available = db.Query<InventoryPurchase>()
                             .Where(i => i.InventoryItemId == 0 && i.ProductId == req.ProductId)
@@ -183,7 +183,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             // we try to match the inventorypurchase into this request
             // ensure that only this thread is running
-            lock ("InventoryPurchase")
+            lock (BaseModule.GetLockObject("InventoryPurchase"))
             {
                 // In memory cache of the inventory
                 var availableInventory = db.Query<InventoryPurchase>()

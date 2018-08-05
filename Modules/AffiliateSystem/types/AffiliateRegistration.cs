@@ -43,6 +43,31 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// </summary>
         public string AffiliateMessage { get; set; }
 
+        /// <summary>
+        /// Last Date that page view was updated
+        /// </summary>
+        public DateTime LastPageViewUpdate { get; set; }
+
+        /// <summary>
+        /// Total Page view of this affiliate since Last Page View Update
+        /// </summary>
+        public int TotalPageView { get; set; }
+
+        /// <summary>
+        /// Total Unique Users
+        /// </summary>
+        public int TotalUniqueUser { get; set; }
+        
+        /// <summary>
+        /// Total Unique Affiliate Clicks
+        /// </summary>
+        public int TotalAffiliateLinkClicks { get; set; }
+
+        /// <summary>
+        /// Total Unique Affiliate Clicks
+        /// </summary>
+        public int TotalSubscribeLinkClicks { get; set; }
+
         #region Static Type Properties
 
         public int Id { get; set; }

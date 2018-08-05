@@ -35,7 +35,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return;
             }
 
-            lock ("DatatypeFactoryInitialize")
+            lock (BaseModule.GetLockObject("DatatypeFactoryInitialize"))
             {
                 // the thread that just unlocked will have to check again
                 if (_CachedDataType != null)

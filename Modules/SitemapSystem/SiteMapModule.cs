@@ -27,7 +27,7 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem
                 MemoryCache.Default.Add(cacheKey, sm, p);
             };
 
-            lock ("SiteMap") // ensures only one thread can build sitemap
+            lock (BaseModule.GetLockObject("SiteMap")) // ensures only one thread can build sitemap
             {
                 // try from memory (1 hour cache)
                 {

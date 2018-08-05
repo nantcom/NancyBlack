@@ -132,7 +132,7 @@ namespace NantCom.NancyBlack.Modules
                 url = url.Replace('/', '-');
 
                 long pageViews = 0;
-                lock ("PageViewSummary-" + url) // ensure only one thread is working on calculation
+                lock (BaseModule.GetLockObject( "PageViewSummary-" + url)) // ensure only one thread is working on calculation
                 {
                     // if multiple threads is locked - they will arrive here when lock is released
                     // so check the cache again

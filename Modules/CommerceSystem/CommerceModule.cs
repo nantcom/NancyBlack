@@ -417,7 +417,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         public static void HandlePayment(NancyBlackDatabase db, PaymentLog log, DateTime paidWhen)
         {
             // ensure only one thread is processing this so
-            lock (log.SaleOrderIdentifier)
+            lock (BaseModule.GetLockObject(log.SaleOrderIdentifier))
             {
                 // find the sale order
                 var so = db.Query<SaleOrder>()

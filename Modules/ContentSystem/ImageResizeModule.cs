@@ -497,7 +497,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
             var resizeFile = Path.Combine(rootPath, resizeRelativePath);
 
-            lock (resizeFile)
+            lock (BaseModule.GetLockObject(resizeFile))
             {
                 if (File.Exists(resizeFile) == true)
                 {

@@ -1,4 +1,4 @@
-﻿
+
 (function () {
 
     var mod = angular.module('Page', []);
@@ -56,15 +56,15 @@
         if ($scope.object.OutboundTrackingNumber != null) {
 
             if ($scope.object.ShippingDetails.provider == 'DHL') {
-                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.OutboundTrackingNumber);
+                $scope.trackingUrl = $sce.trustAsResourceUrl('http://www.dhl.com/cgi-bin/tracking.pl?AWB=' + $scope.object.OutboundTrackingNumber);
             }
 
             if ($scope.object.ShippingDetails.provider == 'Kerry') {
-                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl('https://th.kerryexpress.com/th/track/?track=' + $scope.object.OutboundTrackingNumber);
+                $scope.trackingUrl = $sce.trustAsResourceUrl('https://th.kerryexpress.com/th/track/?track=' + $scope.object.OutboundTrackingNumber);
             }
 
             if ($scope.object.ShippingDetails.method == 'deliveree') {
-                $scope.inboundTrackingUrl = $sce.trustAsResourceUrl($scope.object.OutboundTrackingNumber);
+                $scope.trackingUrl = $sce.trustAsResourceUrl($scope.object.OutboundTrackingNumber);
             }
         }
 

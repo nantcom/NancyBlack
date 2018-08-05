@@ -88,6 +88,19 @@ namespace NantCom.NancyBlack.Modules
 
     public abstract class BaseModule : NancyModule
     {
+        private static Dictionary<string, object> _Locker = new Dictionary<string, object>();
+        public static object GetLockObject( string key )
+        {
+            object locker;
+            if (_Locker.TryGetValue( key, out locker ))
+            {
+                return locker;
+            }
+
+            _Locker[key] = new object();
+            return _Locker[key];
+        }
+
         /// <summary>
         /// Gets the root path.
         /// </summary>

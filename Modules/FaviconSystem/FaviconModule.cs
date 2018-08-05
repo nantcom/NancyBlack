@@ -61,7 +61,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
                 return response;
             }
 
-            lock (key)
+            lock (BaseModule.GetLockObject(key))
             {
                 Image source = Image.FromFile(sourceFile, true);
 

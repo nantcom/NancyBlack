@@ -341,7 +341,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         {
             dynamic site = context.Items["CurrentSite"];
 
-            lock ("RoleEdit-" + site.HostName)
+            lock (BaseModule.GetLockObject("RoleEdit-" + site.HostName))
             {
                 if (site.Roles == null)
                 {
