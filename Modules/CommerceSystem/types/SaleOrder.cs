@@ -80,7 +80,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string error { get; set; }
     }
 
-    public class SaleOrder : IStaticType
+    public partial class SaleOrder : IStaticType
     {
 
         public int Id { get; set; }
