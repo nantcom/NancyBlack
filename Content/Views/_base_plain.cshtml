@@ -47,14 +47,22 @@
         <meta property="og:image" content="@this.GetAttachmentUrl("OpenGraphImage", fullPath:true)" />
     }
 
+    <!-- Facebook Open Graph Tag-->
+    @if (string.IsNullOrEmpty(this.Request.Url.Query))
+    {
+        <meta property="og:url" content="@(this.Request.Url)" />
+    }
+    else
+    {
+        <meta property="og:url" content="@(this.Request.Url.ToString().Replace( this.Request.Url.Query.ToString(), "" ))" />
+    }
+
+    <meta property="og:type" content="article" />
 
     @if (this.Site.Application != null && this.Site.Application.GoogleSiteVerification != null)
     {
         <meta name="google-site-verification" content="@(this.Site.Application.GoogleSiteVerification)" />
 
-        <!-- Facebook Open Graph Tag-->
-        <meta property="og:url" content="@this.Request.Url" />
-        <meta property="og:type" content="article" />
         <meta property="fb:app_id" content="@(this.Site.Application.FacebookAppId)" />
     }
 

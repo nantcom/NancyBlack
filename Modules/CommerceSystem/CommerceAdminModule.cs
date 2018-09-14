@@ -5,6 +5,7 @@ using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -61,7 +62,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return new StandardModel(this, null, result);
             });
 
-
             Get["/admin/commerce/printreceipt/{year}-{month}"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", (arg) =>
             {
                 var now = DateTime.Now;
@@ -77,6 +77,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 return new StandardModel(this, null, result);
             });
+
+            Get["/admin/commerce/facebookexport"] = this.HandleRequest(this.HandleFacebookCustomAudienceExport);
 
             #region Quick Actions
 
@@ -262,6 +264,118 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return product;
         }
 
+        /// <summary>
+        /// Custom Audience Export
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic HandleFacebookCustomAudienceExport( dynamic arg )
+        {
+            var response = new Response();
+            response.ContentType = "text/csv";
+            response.Headers["Content-Disposition"] =
+                string.Format("attachment; filename=\"FacebookExport-{0:yyyyMMdd}{1}.csv\"",
+                    DateTime.Now,
+                    this.Request.Query.status == null ? "" : "-" + this.Request.Query.status.ToString().Replace("!", "Not" ));
+
+            response.Headers["Expires"] = "0";
+            response.Headers["Cache-Control"] = "must-revalidate, post-check=0, pre-check=0";
+            response.Headers["Pragma"] = "public";
+
+            var q = this.SiteDatabase.Query<SaleOrder>();
+            TableQuery<SaleOrder> notq = null;
+
+            if (this.Request.Query.status != null)
+            {
+                string status = this.Request.Query.status;
+                if (status.StartsWith("!"))
+                {
+                    status = status.Substring(1);
+                    q = q.Where(so => so.Status != status);
+                    notq = this.SiteDatabase.Query<SaleOrder>().Where(so => so.Status == status);
+                }
+                else
+                {
+                    q = q.Where(so => so.Status == status);
+                }
+            }
+
+            var result = q.ToList();
+
+            if (notq != null)
+            {
+                Func<dynamic,string> keyGetter = (so) =>
+                {
+                    if (so.Customer == null)
+                    {
+                        return "";
+                    }
+
+                    string key = so.Customer.Email;
+
+                    if (key == null)
+                    {
+                        return "";
+                    }
+
+                    return key.ToLowerInvariant()
+                            .Replace(" ", "")
+                            .Replace("-", "");
+                };
+
+
+                var subtraction = notq.ToLookup( so => keyGetter(so) );
+                var finalResult = from so in result
+                                  where
+                                    so.Customer != null &&
+                                    subtraction[keyGetter(so)].Count() == 0
+                                  select so;
+
+                result = finalResult.ToList();
+            }
+
+            response.Contents = (s) =>
+            {
+                var sw = new StreamWriter(s);
+                sw.WriteLine("Name,LastName,Phone,Email,FacebookId,Value");
+
+                Func<dynamic, string> normalizer = (input) =>
+                {
+                    if (input == null)
+                    {
+                        return "";
+                    }
+                    string output = input;
+                    return output.Replace(",", ";").ToLowerInvariant();
+                };
+
+                foreach (var item in result)
+                {
+                    try
+                    {
+                        sw.WriteLine(
+                            normalizer(item.Customer.FirstName) + "," +
+                            normalizer(item.Customer.LastName) + "," +
+                            normalizer(item.Customer.PhoneNumber) + "," +
+                            normalizer(item.Customer.Email) + "," +
+                            (item.Customer.User != null ? item.Customer.User.Profile.id : "") + "," +
+                            item.TotalAmount
+                        );
+                    }
+                    catch (Exception)
+                    {
+                    } 
+                }
+
+                sw.Flush();
+                sw.Close();
+            };
+
+            return response;
+        }
+
+        #region Exchange Rate
+
         private dynamic GetExchangeRate(dynamic arg)
         {
             byte[] cached = CommerceAdminModule.GetExchangeRateData();
@@ -284,8 +398,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return JObject.Parse(Encoding.UTF8.GetString(exchangeRateData)).Property("rates").Value;
             }
         }
-
-
+        
         private static byte[] GetExchangeRateData()
         {
             byte[] array = MemoryCache.Default["ExchangeRates"] as byte[];
@@ -298,5 +411,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
             return array;
         }
+
+        #endregion
     }
 }
