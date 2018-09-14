@@ -248,12 +248,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             string title = "SQUAD51: ";
             if (claim.RewardsName == "subscribe2")
             {
-                title += "กระเป๋า ( " + claim.AffiliateCode + " )";
+                title += string.Format("กระเป๋า (MemberId: {0}, {1} )", this.CurrentUser.Id, claim.AffiliateCode);
             }
 
-            if (claim.RewardsName == "buy1")
+            else if (claim.RewardsName == "buy1")
             {
-                title += "เมาส์ ( " + claim.AffiliateCode + " )";
+                title += string.Format("เมาส์ (MemberId: {0}, {1} )", this.CurrentUser.Id, claim.AffiliateCode);
             }
 
             if (title == "SQUAD51: ")
@@ -276,7 +276,14 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return;
                 }
 
-                card = list.Cards.Add(title).Result;
+                //if we use ist.Cards.Add(title).Result server will not response and instructions will not be complated
+                Task t = Task.Run(async () =>
+               {
+                   var myCard = await list.Cards.Add(title);
+                   card = myCard;
+               });
+
+                t.Wait();
             }
 
             card.DueDate = claim.__createdAt.AddDays(7);
@@ -288,6 +295,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 profile.first_name + " " + profile.last_name + "\r\n" +
                 "Tel: " + profile.phone + "\r\n" +
                 "Email: " + profile.email + "\r\n\r\n";
+            
 
             if (profile.address != null)
             {
@@ -306,11 +314,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             if (card.Labels.Where((l) => l.Id == "5a5f92592a473c65883fa71a").Count() == 0)
             {
                 var board = new Board("59e89f443cfc9dcef8afa098", auth);
-                var label = (from l in board.Labels
-                             where l.Id == "5a5f92592a473c65883fa71a"
-                             select l).FirstOrDefault();
 
-                card.Labels.Add(label);
+                var label = (from l in board.Labels
+                            where l.Id == "5a5f92592a473c65883fa71a"
+                            select l).FirstOrDefault();
+
+                // recently somehow this code could not get member in board.Labels (got .Count == 0) 
+                if (label != null)
+                {
+                    card.Labels.Add(label);
+                }
+
             }
 
         }
@@ -338,7 +352,14 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return;
                 }
 
-                card = list.Cards.Add(title).Result;
+                //if we use ist.Cards.Add(title).Result server will not response and instructions will not be complated
+                Task t = Task.Run(async () =>
+                {
+                    var myCard = await list.Cards.Add(title);
+                    card = myCard;
+                });
+
+                t.Wait();
             }
 
             if (transaction.IsPendingApprove)
@@ -371,8 +392,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 var label = (from l in board.Labels
                              where l.Id == "5a5f93bd84565fbcba08f536"
                              select l).FirstOrDefault();
-
-                card.Labels.Add(label);
+                
+                // recently somehow this code could not get member in board.Labels (got .Count == 0) 
+                if (label != null)
+                {
+                    card.Labels.Add(label);
+                }
             }
 
         }
@@ -693,6 +718,15 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                             text = "รบกวนกรอกข้อมูลหมายเลขโทรศัพท์ และอีเมลล์ก่อนจ้า",
                         };
                     }
+                    if (profile.address == null || string.IsNullOrEmpty((string)profile.address.PostalCode) || string.IsNullOrEmpty((string)profile.address.Address1))
+                    {
+                        return new
+                        {
+                            type = "warning",
+                            title = "ขอโทษนะ",
+                            text = "รบกวนกรอกข้อมูลที่อยู่จัดส่งของรางวัลก่อนจ้า",
+                        };
+                    }
 
                     var claim = this.SiteDatabase.QueryAsDynamic("SELECT DiscountCode FROM AffiliateRewardsClaim WHERE AffiliateCode=? AND RewardsName=?",
                                 new { DiscountCode = "" },
@@ -1000,7 +1034,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         continue;
                     }
 
-                    this.AddRewardsCard(this.CurrentSite, claim);
+                    this.AddRewardsCard(this.CurrentSite, claim).Result();
                 }
 
                 return "OK";
