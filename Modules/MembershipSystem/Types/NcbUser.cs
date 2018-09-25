@@ -79,9 +79,14 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public DateTime CodeRequestDate { get; set; }
 
         /// <summary>
+        /// Facebook App Scoped Id
+        /// </summary>
+        public string FacebookAppScopedId { get; set; }
+
+        /// <summary>
         /// Facebook Messenger Platform PSID - this will help when responding to user in the future
         /// </summary>
-        public string PSID { get; set; }
+        public string FacebookPageScopedId { get; set; }
 
         /// <summary>
         /// Whether this is an anonymous user

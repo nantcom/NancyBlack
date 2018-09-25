@@ -414,7 +414,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                             existing.Profile.email = existing.Email;
                         }
 
-                        // if use has set the email, we extract the email into email field
+                        // if user has set the email, we extract the email into email field
                         if (initialProfile.email != null && existing.Email.StartsWith("fb_"))
                         {
                             existing.Email = initialProfile.email;
@@ -440,6 +440,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 user.Code = Guid.NewGuid().ToString();
                 user.CodeRequestDate = DateTime.Now;
+            }
+
+            // if user is facebook user, keep the id from profile too
+            if (user.UserName.StartsWith("fb_") && user.Profile != null)
+            {
+                user.FacebookAppScopedId = user.Profile.id;
             }
 
             db.UpsertRecord(user);

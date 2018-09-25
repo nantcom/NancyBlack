@@ -40,6 +40,31 @@ namespace NantCom.NancyBlack
 
     public abstract class NancyBlackRazorViewBase : NancyRazorViewBase<StandardModel>
     {
+        /// <summary>
+        /// Gets the OpenGraph URL
+        /// </summary>
+        public string GetOpenGraphUrl()
+        {
+            string url = this.Request.Url;
+            if (string.IsNullOrEmpty(this.Request.Url.Query) == false)
+            {
+                url = url.Replace(this.Request.Url.Query.ToString(), "");
+            }
+
+            if (url.StartsWith("https://"))
+            {
+                url = url.Replace("https://", "http://");
+            }
+
+            // try to normalize the url
+            if (url.StartsWith("http://www.") == false)
+            {
+                url = url.Replace("http://", "http://www.");
+            }
+
+            return url;
+        }
+
         private CacheAccess _CacheAccess = new CacheAccess();
         public CacheAccess Cache
         {

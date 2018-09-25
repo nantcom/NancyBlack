@@ -2,6 +2,7 @@
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -165,6 +166,38 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Price of this product in Multi Currency
         /// </summary>
         public dynamic PriceMultiCurrency { get; set; }
+
+        /// <summary>
+        /// Gets the attached picture of this product
+        /// </summary>
+        public string Image
+        {
+            get
+            {
+                if (this.Attachments == null)
+                {
+                    return null;
+                }
+
+                if (this.Attachments.Length == 0)
+                {
+                    return null;
+                }
+
+                // Use the type Picture
+                foreach (object item in this.Attachments)
+                {
+                    var a = JObject.FromObject(item).ToObject<StandardAttachment>();
+                    if (a.AttachmentType == "Image")
+                    {
+                        return a.Url;
+                    }
+                }
+
+                return this.Attachments[0].Url;
+                
+            }
+        }
         
         #region Product Variation
 

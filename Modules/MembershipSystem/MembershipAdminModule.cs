@@ -31,7 +31,8 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             };
 
             Get["/Admin/Member/{id}"] = this.HandleRequest(this.HandleMemberDetailPage);
-            Get["/Admin/Member/Readjust/SaleOrder"] = this.HandleRequest(this.HandleRecordNcbUserInSaleOrder);
+
+            //Get["/Admin/Member/Readjust/SaleOrder"] = this.HandleRequest(this.HandleRecordNcbUserInSaleOrder);
 
         }
 

@@ -8,6 +8,7 @@ using RestSharp;
 using Newtonsoft.Json.Linq;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using System.Runtime.Caching;
+using System.Net;
 
 namespace NantCom.NancyBlack.Modules.CommerceSystem
 {
@@ -20,6 +21,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             OMG = 26
         }
 
+        static BitCoinModule()
+        {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        }
+
         /// <summary>
         /// Performs Bx API Call
         /// </summary>
@@ -29,7 +36,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// <returns></returns>
         private static JObject BxApiCall( dynamic site, Method method, string url, object parameters = null, string twofa = null )
         {
-            RestClient c = new RestClient("https://bx.in.th/");
+            RestClient c = new RestClient("http://bx.in.th/");
             RestRequest req = new RestRequest(url, method);
 
             if (method == Method.POST) // all POST method are private methods

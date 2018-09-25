@@ -1,5 +1,5 @@
 (function () {
-
+    
     function addIcon(element, iconName) {
 
         var icon = $('<i></i>');
@@ -2585,18 +2585,45 @@
         };
     });
     
-    module.directive('ncbGettext', function ($timeout, $http) {
+    module.directive('ncbGettext', function ($http) {
 
+        var hashCode = function (s) {
+            return s.split("").reduce(function (a, b) { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+        }
+
+        var getCached = function (key, age, callback, url) {
+
+            var cached = localStorage.getItem(key);
+            if (cached != null) {
+
+                cached = JSON.parse(cached);
+
+                var loadTime = new Date(cached.time);
+                var now = new Date();
+                if (now - loadTime < age * 1000) {
+                    callback(cached.data);
+                    return;
+                }
+            }
+
+            $http.get(url).success(
+                function (data, status, headers, config) {
+
+                    localStorage.setItem(key, JSON.stringify({
+                        time: new Date(),
+                        data: data
+                    }));
+
+                    callback(data);
+                });
+        };
+        
         function link($scope, element, attrs) {
 
-            $timeout(function () {
+            getCached("gettext-" + hashCode(attrs.url), 60 * 60, function (data) {
+                element.text(data);
 
-                $http.get(attrs.url).success(function (data) {
-
-                    element.text(data);
-                });
-
-            }, 1000);
+            }, attrs.url);
         };
 
         return {

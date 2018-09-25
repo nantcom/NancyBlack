@@ -188,6 +188,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 var userName = "fb_" + input.me.id;
                 var user = UserManager.Current.Register(this.SiteDatabase, userName, input.me.email == null ? userName : (string)input.me.email, this.GetHash( userName ), false, true, input.me);
+                
                 return this.ProcessLogin(user);
             });
 

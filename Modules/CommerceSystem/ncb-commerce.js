@@ -199,7 +199,7 @@
                 var now = (new Date()).getTime();
                 var downloaded = currencyRate.timestamp * 1000;
 
-                if (now - downloaded > 1000 * 60) {
+                if (now - downloaded > (1000 * 60 * 60)) { // valid for one hour
                     reloadExhcangeRate($http, localStorageService);
                 }
             }

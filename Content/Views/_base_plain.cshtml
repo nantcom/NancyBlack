@@ -48,15 +48,7 @@
     }
 
     <!-- Facebook Open Graph Tag-->
-    @if (string.IsNullOrEmpty(this.Request.Url.Query))
-    {
-        <meta property="og:url" content="@(this.Request.Url)" />
-    }
-    else
-    {
-        <meta property="og:url" content="@(this.Request.Url.ToString().Replace( this.Request.Url.Query.ToString(), "" ))" />
-    }
-
+    <meta property="og:url" content="@this.GetOpenGraphUrl()" />
     <meta property="og:type" content="article" />
 
     @if (this.Site.Application != null && this.Site.Application.GoogleSiteVerification != null)

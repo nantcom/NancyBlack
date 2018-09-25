@@ -18,6 +18,31 @@ namespace NantCom.NancyBlack
         public const string THEMEPART_FOOTER_ABOUT = "Theme_Footer_About";
         public const string THEMEPART_FOOTER_ADDRESS = "Theme_Footer_Address";
         public const string THEMEPART_FOOTER_COPYRIGHT = "Theme_Footer_Copyright";
+        
+        /// <summary>
+        /// Gets the OpenGraph URL
+        /// </summary>
+        public string GetOpenGraphUrl()
+        {
+            string url = this.Request.Url;
+            if (string.IsNullOrEmpty(this.Request.Url.Query) == false)
+            {
+                url = url.Replace(this.Request.Url.Query.ToString(), "");
+            }
+
+            if (url.StartsWith("https://"))
+            {
+                url = url.Replace("https://", "http://");
+            }
+
+            // try to normalize the url
+            if (url.StartsWith("http://www.") == false)
+            {
+                url = url.Replace("http://", "http://www.");
+            }
+
+            return url.ToLowerInvariant();
+        }
 
         /// <summary>
         /// Currently accessing user
