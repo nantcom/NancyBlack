@@ -67,20 +67,32 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return 403;
             }
 
-            var allSO = this.SiteDatabase.Query<SaleOrder>();
-            foreach (var so in allSO)
+            DataWatcherModule.readyToSendMail = false;
+
+            try
             {
-                if (so.Customer == null || so.Customer.User == null || so.Customer.User.Id == 0)
+                var allSO = this.SiteDatabase.Query<SaleOrder>();
+                foreach (var so in allSO)
                 {
-                    continue;
+                    if (so.Customer == null || so.Customer.User == null || so.Customer.User.Id == null || so.NcbUserId != 0)
+                    {
+                        continue;
+                    }
+
+                    if (so.Id == 1177)
+                        continue;
+
+                    so.NcbUserId = so.Customer.User.Id;
+                    this.SiteDatabase.UpsertRecord(so);
                 }
-
-                if (so.Id == 1177)
-                    continue;
-
-                so.NcbUserId = so.Customer.User.Id;
-                this.SiteDatabase.UpsertRecord(so);
             }
+            catch (Exception e)
+            {
+                DataWatcherModule.readyToSendMail = true;
+                return 500;
+            }
+            
+            DataWatcherModule.readyToSendMail = true;
 
             return 200;
         }

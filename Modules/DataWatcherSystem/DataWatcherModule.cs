@@ -125,6 +125,8 @@ namespace NantCom.NancyBlack.Modules
 
         private static ConcurrentBag<DatabaseEvent> _Events;
 
+        public static bool readyToSendMail = true;
+
         static DataWatcherModule()
         {
             var ignore = new string[] { "rowversion", "mailsenderlog", "sitesettings", "pageview", "pageviewsummary", "newAttachments" };
@@ -147,6 +149,11 @@ namespace NantCom.NancyBlack.Modules
                 if (_Events == null)
                 {
                     _Events = new ConcurrentBag<DatabaseEvent>();
+                }
+
+                if (!readyToSendMail)
+                {
+                    return;
                 }
 
                 _Events.Add(new DatabaseEvent()
