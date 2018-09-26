@@ -1,6 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
 using Nancy;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json;
@@ -27,6 +28,8 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             Get["/__fbmp/webhook"] = this.HandleRequest(this.WebhookGet);
 
             Post["/__fbmp/webhook"] = this.HandleRequest(this.WebhookPost);
+
+            Post["/__fbmp/optout/{type}"] = this.HandleRequest(this.HandleOptOut);
         }
 
         /// <summary>
@@ -68,8 +71,6 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             return table;
         }
 
-        private static Dictionary<string, object> _SyncLock = new Dictionary<string, object>();
-
         private dynamic WebhookPost(dynamic args)
         {
             dynamic body = args.body.Value;
@@ -101,29 +102,29 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                     }
 
                     // Gets the body of the webhook event
-                    var message = entry.messaging[0];
+                    var input = entry.messaging[0];
+                    
+                    if (input.delivery != null) // this is just delivery message
+                    {
+                        return "EVENT_RECEIVED";
+                    }
+
+                    if (input.read != null) // this is just delivery message
+                    {
+                        return "EVENT_RECEIVED";
+                    }
 
                     // Get the sender PSID
-                    string customerPSID = message.sender.id;
+                    string customerPSID = input.sender.id;
                     bool willHandle = true;
 
                     if (customerPSID == (string)entry.id) // this is message sent by bot 
                     {
                         willHandle = false;
-                        customerPSID = message.recipient.id; // so the cusotmer psid is recipient
+                        customerPSID = input.recipient.id; // so the cusotmer psid is recipient
                     }
 
-                    object locker = null;
-
-                    lock (_SyncLock)
-                    {
-                        if (_SyncLock.TryGetValue(customerPSID, out locker) == false)
-                        {
-                            _SyncLock[customerPSID] = new object();
-                        }
-                    }
-
-                    lock (_SyncLock[customerPSID])
+                    lock (BaseModule.GetLockObject(customerPSID))
                     {
                         // try to get the current chat session
                         var existingSession = MemoryCache.Default["FBMP:" + customerPSID] as FacebookChatSession;
@@ -152,7 +153,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
                         if (willHandle)
                         {
-                            existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, message);
+                            existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, input);
                         }
                         else
                         {
@@ -160,7 +161,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                             {
                                 existingSession.Messages = new List<dynamic>();
                             }
-                            existingSession.Messages.Add(message);
+                            existingSession.Messages.Add(input);
 
                             this.SiteDatabase.UpsertRecord(existingSession);
                         }
@@ -226,6 +227,30 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             }
 
             return 400;
+        }
+
+        /// <summary>
+        /// Opt Out
+        /// </summary>
+        /// <returns></returns>
+        private dynamic HandleOptOut(dynamic arg)
+        {
+            if (this.CurrentUser.IsAnonymous)
+            {
+                return 401;
+            }
+
+            string type = arg.type;
+            var optin = this.SiteDatabase.Query<FacebookMessengerOptIn>()
+                            .Where(o => o.NcbUserId == this.CurrentUser.Id && o.OptInType == type)
+                            .FirstOrDefault();
+
+            if (optin != null)
+            {
+                this.SiteDatabase.DeleteRecord(optin);
+            }
+
+            return 200;
         }
 
         /// <summary>
@@ -341,7 +366,6 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             });
         }
 
-
         /// <summary>
         /// Call Facebook Graph API with given set of parameters
         /// </summary>
@@ -412,6 +436,43 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             }
 
             return JObject.Parse(response.Content);
+        }
+
+        /// <summary>
+        /// See status of user opt-in
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsOptInActive( NancyBlackDatabase db, NancyContext ctx, string type )
+        {
+            NcbUser user = ctx.CurrentUser as NcbUser;
+
+            if (user.IsAnonymous)
+            {
+                return false;
+            }
+
+            var optin = db.Query<FacebookMessengerOptIn>()
+                            .Where(o => o.NcbUserId == user.Id && o.OptInType == type)
+                            .FirstOrDefault();
+
+            return optin == null;
+        }
+
+        /// <summary>
+        /// See status of user opt-in
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsOptInActive(NancyBlackDatabase db, int userId, string type)
+        {
+            var optin = db.Query<FacebookMessengerOptIn>()
+                            .Where(o => o.NcbUserId == userId && o.OptInType == type)
+                            .FirstOrDefault();
+
+            return optin == null;
         }
     }
 }

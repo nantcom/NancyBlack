@@ -94,8 +94,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         [JsonIgnore]
         public bool IsAnonymous
         {
-            get;
-            private set;
+            get
+            {
+                return this.Id == 0;
+            }
         }
         
         /// <summary>
@@ -119,14 +121,20 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             return this.Claims.Contains(claim);
         }
         
+        public NcbUser()
+        {
+            this.Claims = new string[0];
+            this.UserName = "Anonymous";
+        }
+
         /// <summary>
         /// Localhost Admin
         /// </summary>
-        public static readonly NcbUser LocalHostAdmin = new NcbUser() { UserName = "LocalHostAdmin", Claims = new string[] { "admin" }, IsAnonymous = false };
-        
+        public static readonly NcbUser LocalHostAdmin = new NcbUser() { UserName = "LocalHostAdmin", Claims = new string[] { "admin" }};
+
         /// <summary>
-        /// Anonymous User
+        /// 'Anonymous'
         /// </summary>
-        public static readonly NcbUser Anonymous = new NcbUser() { UserName = "Anonymous", Claims = new string[0], IsAnonymous = true };
+        public const string Anonymous = "Anonymous";
     }
 }

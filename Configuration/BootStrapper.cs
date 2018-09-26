@@ -18,6 +18,7 @@ using NantCom.NancyBlack.Configuration;
 using Nancy.Conventions;
 using System.Diagnostics;
 using System.Reflection;
+using Nancy.Cookies;
 
 namespace NantCom.NancyBlack
 {
@@ -197,7 +198,7 @@ namespace NantCom.NancyBlack.Configuration
             this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
             {
 
-                string subSiteName = (string)context.Context.Items["SubSite"];
+                string subSiteName = (string)context.Context.Items[ContextItems.SubSite];
                 if (!string.IsNullOrEmpty(subSiteName))
                 {
                     return "Site/SubSites/" + subSiteName + "/Views/" + viewName;
@@ -302,11 +303,11 @@ namespace NantCom.NancyBlack.Configuration
                     var subSiteNames = from subDirectories in Directory.GetDirectories(folder) select Path.GetFileName(subDirectories);
                     var matchSubSiteName = (from subSite in subSiteNames where ctx.Request.Url.HostName.Contains(subSite) select subSite).FirstOrDefault();
 
-                    ctx.Items["SubSite"] = matchSubSiteName;
+                    ctx.Items[ContextItems.SubSite] = matchSubSiteName;
                 }
                 else
                 {
-                    ctx.Items["SubSite"] = null;
+                    ctx.Items[ContextItems.SubSite] = null;
                 }
 
                 ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
@@ -314,7 +315,21 @@ namespace NantCom.NancyBlack.Configuration
                 ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
                 ctx.Items["RootPath"] = BootStrapper.RootPath;
 
+                if (ctx.Request.Cookies.ContainsKey("userid") == false)
+                {
+                    ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
+                }
+
                 return null;
+            });
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            {
+                if (ctx.Request.Cookies.ContainsKey("userid"))
+                {
+                    ctx.Response.Cookies.Add(
+                        new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddDays(1)));
+                }
             });
 
             foreach (var item in container.ResolveAll<IPipelineHook>())

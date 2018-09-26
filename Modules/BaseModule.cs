@@ -136,11 +136,6 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                if (this.Context.CurrentUser == null)
-                {
-                    return NcbUser.Anonymous;
-                }
-
                 return this.Context.CurrentUser as NcbUser;
             }
         }

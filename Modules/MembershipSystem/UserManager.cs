@@ -1,13 +1,10 @@
 ﻿using Nancy;
 using Nancy.Authentication.Forms;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
-using System.Web;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
@@ -42,7 +39,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 MemoryCache.Default.Remove("User-" + item.UserGuid);
             }
         }
-        
+
         /// <summary>
         /// Find the role by Name, roles are cached for 5 minutes
         /// </summary>
@@ -75,16 +72,16 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     Name = "admin"
                 };
 
-                siteDb.UpsertRecord( role );
+                siteDb.UpsertRecord(role);
                 MemoryCache.Default.Remove("Membership-RolesByName");
                 MemoryCache.Default.Remove("Membership-Roles");
 
                 return role;
             }
-            
-            this.RefreshRoleInCache(siteDb);
 
-            throw new InvalidOperationException("Invalid Role Name: " + name );
+            RefreshRoleInCache(siteDb);
+
+            throw new InvalidOperationException("Invalid Role Name: " + name);
         }
 
         /// <summary>
@@ -93,7 +90,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="siteDb"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        private NcbRole GetRoleById(NancyBlackDatabase siteDb, int id )
+        private NcbRole GetRoleById(NancyBlackDatabase siteDb, int id)
         {
             var roles = MemoryCache.Default["Membership-Roles"] as Dictionary<int, NcbRole>;
             if (roles == null)
@@ -107,7 +104,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             try
             {
-                
+
                 if (roles.TryGetValue(id, out role))
                 {
                     return role;
@@ -121,23 +118,24 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             catch (InvalidOperationException e)
             {
                 // Retry only one time
-                if ( _CountRetry > 1) {
+                if (_CountRetry > 1)
+                {
                     throw e;
                 }
 
-                this.RefreshRoleInCache(siteDb);
+                RefreshRoleInCache(siteDb);
             }
 
             return new NcbRole();
 
-        }    
-            
+        }
+
         /// <summary>
         /// Re-add role from DB to MemCache
         /// </summary>
         private void RefreshRoleInCache(NancyBlackDatabase siteDb)
         {
-            MemoryCache.Default.Remove("Membership-RolesByName");            
+            MemoryCache.Default.Remove("Membership-RolesByName");
             var roleByName = siteDb.Query<NcbRole>().ToDictionary(r => r.Name.ToLowerInvariant());
             MemoryCache.Default.Add("Membership-RolesByName", roleByName, DateTimeOffset.Now.AddMinutes(5));
 
@@ -151,7 +149,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// </summary>
         /// <param name="siteDb"></param>
         /// <param name="user"></param>
-        private void AssignClaims(NancyBlackDatabase siteDb, NcbUser user )
+        private void AssignClaims(NancyBlackDatabase siteDb, NcbUser user)
         {
             var enroll = siteDb.Query<NcbEnroll>()
                             .Where(e => e.IsActive && e.NcbUserId == user.Id)
@@ -162,13 +160,13 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 var claims = new List<string>();
                 foreach (var item in enroll)
                 {
-                    var _claims = this.GetRoleById(siteDb, item.NcbRoleId).Claims;
-                    if(_claims == null )
+                    var _claims = GetRoleById(siteDb, item.NcbRoleId).Claims;
+                    if (_claims == null)
                     {
                         continue;
                     }
 
-                    claims.AddRange(from c in this.GetRoleById(siteDb, item.NcbRoleId).Claims
+                    claims.AddRange(from c in GetRoleById(siteDb, item.NcbRoleId).Claims
                                     select c);
                 }
 
@@ -203,11 +201,14 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             if (user == null)
             {
-                return NcbUser.Anonymous;
+                return new NcbUser()
+                {
+                    Guid = Guid.Parse( context.Request.Cookies[BuiltInCookies.UserId])
+                };
             }
 
             user.PasswordHash = null;
-            this.AssignClaims(siteDb, user);
+            AssignClaims(siteDb, user);
 
             // cache, expires every 15 minutes
             //MemoryCache.Default.Add(key, user,
@@ -242,7 +243,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="newProfile"></param>
         public void UpdateProfile(NancyBlackDatabase siteDb, int userId, dynamic newProfile)
         {
-            var user = siteDb.GetById<NcbUser>( userId );
+            var user = siteDb.GetById<NcbUser>(userId);
             user.Profile = newProfile;
 
             if (user.Profile != null)
@@ -266,18 +267,18 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="isFailSafe">Whether this enroll is fail safe enroll which will automatically create code</param>
         public bool EnrollUser(Guid guid, NancyContext context, Guid code, bool isFailSafe = false)
         {
-            var user = this.GetUserByGuid(guid, context);
-            if (user == NcbUser.Anonymous)
+            var user = GetUserByGuid(guid, context);
+            if (user.UserName == NcbUser.Anonymous)
             {
                 throw new InvalidOperationException("User is not found");
             }
-            
+
             var siteDb = context.Items["SiteDatabase"] as NancyBlackDatabase;
-            
+
             var existing = siteDb.Query<NcbEnroll>()
                                     .Where(e => e.EnrollCode == code)
                                     .FirstOrDefault();
-            
+
             // code was not found, so it was not used
             if (existing == null)
             {
@@ -287,7 +288,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     siteDb.UpsertRecord<NcbEnroll>(new NcbEnroll()
                     {
                         EnrollCode = code,
-                        NcbRoleId = this.GetRoleByName(siteDb, "admin").Id,
+                        NcbRoleId = GetRoleByName(siteDb, "admin").Id,
                         NcbUserId = user.Id,
                         IsActive = true
                     });
@@ -299,7 +300,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 // code was not found
                 return false;
             }
-            
+
             // code was used, and it is this user - nothing to do
             if (existing.NcbUserId == user.Id)
             {
@@ -329,7 +330,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <returns></returns>
         public Nancy.Security.IUserIdentity GetUserFromIdentifier(Guid identifier, NancyContext context)
         {
-            return this.GetUserByGuid(identifier, context);
+            return GetUserByGuid(identifier, context);
         }
 
         /// <summary>
@@ -337,7 +338,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// </summary>
         /// <param name="context"></param>
         /// <param name="role"></param>
-        public void EnsureRoleRegistered( NancyContext context, string role )
+        public void EnsureRoleRegistered(NancyContext context, string role)
         {
             dynamic site = context.Items["CurrentSite"];
 
@@ -369,7 +370,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="email"></param>
         /// <param name="passwordHash"></param>
         /// <returns></returns>
-        public NcbUser GetUserFromLogin( NancyBlackDatabase db, string email, string passwordHash )
+        public NcbUser GetUserFromLogin(NancyBlackDatabase db, string email, string passwordHash)
         {
             var user = db.Query<NcbUser>()
                 .Where(u => u.Email == email && u.PasswordHash == passwordHash)
@@ -382,7 +383,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             }
 
             user.PasswordHash = null;
-            this.AssignClaims(db, user);
+            AssignClaims(db, user);
 
             return user;
         }
@@ -393,14 +394,14 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="db"></param>
         /// <param name="registerParameters"></param>
         /// <returns></returns>
-        public NcbUser Register( NancyBlackDatabase db, string userName, string email, string passwordHash, bool genCode = false, bool returnExisting = false, dynamic initialProfile = null)
+        public NcbUser Register(NancyBlackDatabase db, string userName, string email, string passwordHash, bool genCode = false, bool returnExisting = false, dynamic initialProfile = null, Guid? existingGuid = null)
         {
             var existing = db.Query<NcbUser>()
                             .Where(u => u.UserName == userName)
                             .FirstOrDefault();
 
-            if (existing != null )
-            {  
+            if (existing != null)
+            {
                 if (returnExisting == true)
                 {
                     // Update the profile
@@ -433,8 +434,16 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             user.UserName = userName;
             user.Email = email;
             user.PasswordHash = passwordHash;
-            user.Guid = Guid.NewGuid();
             user.Profile = initialProfile;
+
+            if (existingGuid != null)
+            {
+                user.Guid = existingGuid.Value;
+            }
+            else
+            {
+                user.Guid = Guid.NewGuid();
+            }
 
             if (genCode == true)
             {
@@ -472,7 +481,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 throw new InvalidOperationException("Not a valid user");
             }
 
-            if (existing.Code != code )
+            if (existing.Code != code)
             {
                 throw new InvalidOperationException("Invalid Code");
             }
@@ -489,9 +498,9 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             user.Code = Guid.NewGuid().ToString().Substring(0, 5).ToUpper();
             user.CodeRequestDate = DateTime.Now;
 
-            db.UpsertRecord<NcbUser>(user);            
+            db.UpsertRecord<NcbUser>(user);
         }
-    
+
     }
 
 }

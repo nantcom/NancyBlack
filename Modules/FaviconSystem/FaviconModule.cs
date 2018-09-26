@@ -22,7 +22,7 @@ namespace NantCom.NancyBlack.Modules.FaviconSystem
         {
             // select sub website to use if none match will go for mainsite
             string sourceFile;
-            string subSiteName = (string)this.Context.Items["SubSite"];
+            string subSiteName = (string)this.Context.Items[ContextItems.SubSite];
             if (string.IsNullOrEmpty(subSiteName))
             {
                 sourceFile = Path.Combine(this.RootPath, "Site", "favicon.png");

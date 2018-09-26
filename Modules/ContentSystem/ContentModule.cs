@@ -22,7 +22,7 @@ using System.Net;
 
 namespace NantCom.NancyBlack.Modules
 {
-    public class ContentModule : BaseModule, IPipelineHook
+    public class ContentModule : BaseModule
     {
         /// <summary>
         /// Allow custom mapping of input url into another url
@@ -43,13 +43,6 @@ namespace NantCom.NancyBlack.Modules
         private static DateTime _LastPageViewUpdated;
         private const int PAGEVIEW_DELAYTIME = 5;
 
-        /// <summary>
-        /// Perform hook 
-        /// </summary>
-        /// <param name="p"></param>
-        public void Hook(IPipelines p)
-        {
-        }
 
         public ContentModule()
         {
@@ -439,7 +432,7 @@ namespace NantCom.NancyBlack.Modules
             var parts = url.Split('/');
 
             url = ContentModule.RewriteUrl(this.Context, arg, url);
-            var subSiteName = (string)this.Context.Items["SubSite"];
+            var subSiteName = (string)this.Context.Items[ContextItems.SubSite];
 
             // can be /products/product1
             if (parts.Length > 2 && parts[1].EndsWith("s"))
@@ -512,7 +505,7 @@ namespace NantCom.NancyBlack.Modules
                 if (required.Any(c => user.HasClaim(c)) == false)
                 {
                     // user does not have any required claims
-                    if (this.Context.CurrentUser == NcbUser.Anonymous)
+                    if (this.Context.CurrentUser.UserName == NcbUser.Anonymous)
                     {
                         return 401;
                     }

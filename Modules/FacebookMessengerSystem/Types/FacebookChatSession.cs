@@ -74,6 +74,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         /// Handlers
         /// </summary>
         private static List<HandlerMethod> _Handlers;
+        private static List<HandlerMethod> _OptInHandlers;
 
         /// <summary>
         /// Handles the webhook
@@ -89,8 +90,27 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
             }
             this.Messages.Add(message);
 
-            this.currentMessageText = message.message.text;
+            if (message.optin != null)
+            {
+                string type = (string)message.optin.@ref;
+                var isActive = FacebookMessengerModule.IsOptInActive(db,
+                                this.NcbUserId, type);
 
+                if (!isActive)
+                {
+                    db.UpsertRecord(new FacebookMessengerOptIn()
+                    {
+                        NcbUserId = this.NcbUserId,
+                        OptInType = type
+                    });
+                }
+            }
+
+            if (message.message != null)
+            {
+                this.currentMessageText = message.message.text;
+            }
+            
             if (_Handlers == null)
             {
                 _Handlers = new List<HandlerMethod>();
@@ -101,10 +121,10 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
                                 m.ReturnType == typeof(bool) &&
                                 m.GetParameters().Length == 2
                               select m;
-                                
+
                 foreach (var method in methods)
                 {
-                    HandlerMethod d = (HandlerMethod)Delegate.CreateDelegate( typeof(HandlerMethod), method);
+                    HandlerMethod d = (HandlerMethod)Delegate.CreateDelegate(typeof(HandlerMethod), method);
                     _Handlers.Add(d);
                 }
             }
@@ -129,14 +149,20 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         /// <returns></returns>
         private dynamic SendText( string th, string en, string messagingType = "RESPONSE", params QuickReply[] quickreplies)
         {
-            var text = th;
+            var text = "";
             if (this.SessionData.lang == "en")
             {
                 text = en + " \n\n#wan";
             }
+            else if (this.SessionData.lang == "th")
+            {
+                text = th + "\n\n#น้องวัน";
+            }
             else
             {
-                text = text + "\n\n#น้องวัน";
+                // send both
+                text = th + "\n\n" + en +
+                       "\n\n#น้องวัน #wan";
             }
 
             object message;

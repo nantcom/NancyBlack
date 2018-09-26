@@ -1127,11 +1127,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 }
 
-                if (ctx.Request.Cookies.ContainsKey("userid") == false)
-                {
-                    ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
-                }
-
                 return null;
             });
 
@@ -1149,11 +1144,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         new NancyCookie("affiliatename", ctx.Request.Cookies["affiliatename"], DateTime.Now.AddDays(7)));
                 }
 
-                if (ctx.Request.Cookies.ContainsKey("userid"))
-                {
-                    ctx.Response.Cookies.Add(
-                        new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddDays(1)));
-                }
             });
         }
 

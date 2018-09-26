@@ -96,12 +96,23 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 if (ctx.CurrentUser == null)
                 {
-                    ctx.CurrentUser = NcbUser.Anonymous;
                     if (ctx.Request.Url.HostName == "localhost" ||
                         ctx.Request.Url.HostName.StartsWith( "local." ))
                     {
                         ctx.CurrentUser = NcbUser.LocalHostAdmin;
                     }
+                    else
+                    {
+                        ctx.CurrentUser = new NcbUser()
+                        {
+                            Guid = Guid.Parse(ctx.Request.Cookies[BuiltInCookies.UserId])
+                        };
+                    }
+                }
+                else
+                {
+                    // ensure that we use same guid as currently logged in user
+                    ctx.Request.Cookies[BuiltInCookies.UserId] = (ctx.CurrentUser as NcbUser).Guid.ToString();
                 }
 
                 return null;
@@ -186,16 +197,27 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     return 400;
                 }
 
+                // this is the guid that nancyblack generated to identify session
+                var existingGuid = Guid.Parse( this.Request.Cookies[BuiltInCookies.UserId] );
+
                 var userName = "fb_" + input.me.id;
-                var user = UserManager.Current.Register(this.SiteDatabase, userName, input.me.email == null ? userName : (string)input.me.email, this.GetHash( userName ), false, true, input.me);
+                var user = UserManager.Current.Register(this.SiteDatabase,
+                        userName,
+                        input.me.email == null ? userName : (string)input.me.email,
+                        this.GetHash( userName ),
+                        false,
+                        true,
+                        input.me,
+                        existingGuid);
                 
                 return this.ProcessLogin(user);
             });
 
             Post["/__membership/register"] = p =>
             {
+                var existingGuid = Guid.Parse(this.Request.Cookies[BuiltInCookies.UserId]);
                 var registerParams = this.Bind<LoginParams>();
-                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Email, registerParams.Password);
+                var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Email, registerParams.Password, existingGuid: existingGuid);
 
                 return this.ProcessLogin(user);
             };
@@ -218,7 +240,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             Get["/__membership/enroll"] = _ =>
             {
                 if (this.Context.CurrentUser == null ||
-                    this.Context.CurrentUser == NcbUser.Anonymous)
+                    this.Context.CurrentUser.UserName == NcbUser.Anonymous)
                 {
                     return this.Response.AsRedirect("/__membership/login?returnUrl=/__membership/enroll");
                 }
@@ -299,7 +321,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         private dynamic HandleEnroll(dynamic arg)
         {
             if (this.Context.CurrentUser == null ||
-                       this.Context.CurrentUser == NcbUser.Anonymous)
+                       this.Context.CurrentUser.UserName == NcbUser.Anonymous)
             {
                 return 401;
             }

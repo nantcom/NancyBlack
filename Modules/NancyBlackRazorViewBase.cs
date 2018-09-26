@@ -236,11 +236,6 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                if (this.RenderContext.Context.CurrentUser == null)
-                {
-                    return NcbUser.Anonymous;
-                }
-
                 return this.RenderContext.Context.CurrentUser as NcbUser;
             }
         }
