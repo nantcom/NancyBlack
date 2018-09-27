@@ -65,7 +65,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
             return false;
         }
 
-        private NancyBlackDatabase _db;
+        private NancyBlackDatabase db;
         private dynamic sitesettings;
         private string currentMessageText;
         private delegate bool HandlerMethod( FacebookChatSession session, object message);
@@ -81,7 +81,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         /// </summary>
         public void HandleWebhook( NancyBlackDatabase db, dynamic siteSettings,  dynamic message )
         {
-            this._db = db;
+            this.db = db;
             this.sitesettings = siteSettings;
 
             if (this.Messages == null)
@@ -120,6 +120,8 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
                                 m.Name.StartsWith("Handle_") &&
                                 m.ReturnType == typeof(bool) &&
                                 m.GetParameters().Length == 2
+                              orderby
+                                m.Name
                               select m;
 
                 foreach (var method in methods)
@@ -131,10 +133,20 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
 
             foreach (var handler in _Handlers)
             {
-                var handled = handler(this, message);
-                if (handled)
+                try
                 {
-                    break;
+                    var handled = handler(this, message);
+                    if (handled)
+                    {
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MailSenderModule.SendEmail("company@nant.co",
+                        "FacebookWebHook Handler Error",
+                        ex.Message + "\r\n" +
+                        ex.StackTrace);
                 }
             }
 

@@ -25,28 +25,34 @@
 
                 $http.post("/__affiliate/apply", { code: 'auto', email: email }).success(function (data) {
 
+                    var source = Cookies.get("source");
+                    var name = Cookies.get("affiliatename");
+
                     var code = data.AffiliateCode;
                     var url = "http://www.level51pc.com/?subscribe=1&source=" + code;
+
+                    window.setTimeout(function () {
+                        FB.XFBML.parse(document.getElementById('subscribebutton'));
+                    }, 1000);
 
                     swal({
                         type: 'success',
                         title: 'หวัดดี SQUAD51 คนที่ ' + data.Id,
                         text:
-                        'ชวนเพื่อนมาเป็น SQUAD51 เพิ่ม' +
-                        '<p style="margin-top: 10px;">' +
-                        '<a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url) + '" alt="share">' +
-                        '<img src="http://www.level51pc.com/Site/images/affiliate/share-fb.png" alt="Share On Facebook" />' +
-                        '</a> ' +
-                        '<a ' +
-                        'href="https://twitter.com/intent/tweet?text=' + encodeURIComponent("Check Out LEVEL51 Custom Laptop! " + url) + '"' +
-                        'data-size="large">' +
-                        '<img src="http://www.level51pc.com/Site/images/affiliate/share-tw.png" alt="Share On Twitter" />' +
-                        '</a>' +
-                        '</p>' +
-                        '<p style="margin-top: 10px; font-weight: bold;">ครบตามจำนวนที่กำหนด ก็รับของรางวัลตามนี้เลย</p>' +
-                        '<img src="/Site/images/promo/squad-2.png" />',
+                            'ลงทะเบียนรับข่าวสารจาก LEVEL51' +
+                            '<div id="subscribebutton"><div class="fb-send-to-messenger" style="width: 210px; margin: 20px auto; display: block"         ' +
+                                'messenger_app_id="1741895542697602"   ' +
+                                'page_id="569378559865549"             ' +
+                                'data-ref="squad51=' + source + '"      ' +
+                                'cta_text="SUBSCRIBE_IN_MESSENGER"            ' +
+                                'color="blue"                          ' +
+                                'size="xlarge"></div>                        ' +
+                            '</div>' 
+
+                        ,
                         html: true,
                         closeOnConfirm: true,
+                        showConfirmButton: false,
                         confirmButtonText: "โอเคร!!",
                         animation: "slide-from-top"
                     });
@@ -86,7 +92,7 @@
                             html: true,
                             showCancelButton: true,
                             showLoaderOnConfirm: true,
-                            closeOnConfirm: false,
+                            closeOnConfirm: true,
                             confirmButtonText: "บันทึก",
                             cancelButtonText: "ไม่เอาละ",
                             animation: "slide-from-top"
@@ -124,7 +130,7 @@
                     html: true,
                     showCancelButton: false,
                     showLoaderOnConfirm: true,
-                    closeOnConfirm: false,
+                    closeOnConfirm: true,
                     confirmButtonText: "ลงทะเบียนด้วยเฟสบุ้ค",
                     cancelButtonText: "ไม่เอา เราบ้านรวย",
                     animation: "slide-from-top"

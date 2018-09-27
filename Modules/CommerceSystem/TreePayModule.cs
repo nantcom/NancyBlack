@@ -31,7 +31,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 #if DEBUG
             settings.postUrl = "http://" + this.Request.Url.HostName + ":10096" + PostbackPath;
 #else
-            settings.postUrl = "http://" + this.Request.Url.HostName + PostbackPath;
+            settings.postUrl = "https://" + this.Request.Url.HostName + PostbackPath;
 #endif
 
             return settings;

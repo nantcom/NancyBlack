@@ -29,7 +29,13 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             Post["/__fbmp/webhook"] = this.HandleRequest(this.WebhookPost);
 
+            Delete["/__fbmp/optin/{type}"] = this.HandleRequest(this.HandleOptOut);
             Post["/__fbmp/optout/{type}"] = this.HandleRequest(this.HandleOptOut);
+
+            Get["/__fbmp/optin/{type}"] = this.HandleRequest((arg)=>
+            {
+                return FacebookMessengerModule.IsOptInActive(this.SiteDatabase, this.Context, (string)arg.type);
+            });
         }
 
         /// <summary>
@@ -94,86 +100,113 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             if (body["object"] == "page")
             {
-                foreach (dynamic entry in body.entry as JArray)
+                if (body.entry != null)
                 {
-                    if (entry.messaging == null)
-                    {
-                        continue;
-                    }
-
-                    // Gets the body of the webhook event
-                    var input = entry.messaging[0];
-                    
-                    if (input.delivery != null) // this is just delivery message
-                    {
-                        return "EVENT_RECEIVED";
-                    }
-
-                    if (input.read != null) // this is just delivery message
-                    {
-                        return "EVENT_RECEIVED";
-                    }
-
-                    // Get the sender PSID
-                    string customerPSID = input.sender.id;
-                    bool willHandle = true;
-
-                    if (customerPSID == (string)entry.id) // this is message sent by bot 
-                    {
-                        willHandle = false;
-                        customerPSID = input.recipient.id; // so the cusotmer psid is recipient
-                    }
-
-                    lock (BaseModule.GetLockObject(customerPSID))
-                    {
-                        // try to get the current chat session
-                        var existingSession = MemoryCache.Default["FBMP:" + customerPSID] as FacebookChatSession;
-                        if (existingSession == null)
-                        {
-                            existingSession = this.SiteDatabase.Query<FacebookChatSession>().Where(u => u.PageScopedId == customerPSID).FirstOrDefault();
-
-                            if (existingSession == null)
-                            {
-                                existingSession = new FacebookChatSession();
-                                MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
-
-                                existingSession.PageScopedId = customerPSID;
-
-                                // no prior session - see if user have logged in with us before
-                                var result = FacebookMessengerModule.FacebookApiGet(this.CurrentSite, string.Format("/{0}/ids_for_apps", customerPSID), true);
-                                string appId = result[0].id;
-
-                                var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == appId).FirstOrDefault();
-                                if (existingUser != null)
-                                {
-                                    existingSession.NcbUserId = existingUser.Id;
-                                }
-                            }
-                        }
-
-                        if (willHandle)
-                        {
-                            existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, input);
-                        }
-                        else
-                        {
-                            if ( existingSession.Messages == null )
-                            {
-                                existingSession.Messages = new List<dynamic>();
-                            }
-                            existingSession.Messages.Add(input);
-
-                            this.SiteDatabase.UpsertRecord(existingSession);
-                        }
-                    }
-
-
+                    return this.HandlePageWebhook(body, body.entry[0]);
                 }
 
-                return "EVENT_RECEIVED";
             }
 
             return 404;
+        }
+
+        private dynamic HandlePageWebhook(dynamic fullbody, dynamic entry)
+        {
+            if (entry.messaging != null)
+            {
+                return this.HandleMessagingWebhook(entry, entry.messaging[0]);
+            }
+
+            return "EVENT_RECEIVED";
+        }
+
+        private dynamic HandleMessagingWebhook(dynamic entry, dynamic messaging )
+        {
+
+            if (messaging.delivery != null) // this is just delivery message
+            {
+                return "EVENT_RECEIVED";
+            }
+
+            if (messaging.read != null) // this is just delivery message
+            {
+                return "EVENT_RECEIVED";
+            }
+
+            // Get the sender PSID
+            string customerPSID = messaging.sender.id;
+            bool willHandle = true;
+
+            if (customerPSID == (string)entry.id) // this is message sent by bot 
+            {
+                willHandle = false;
+                customerPSID = messaging.recipient.id; // so the cusotmer psid is recipient
+            }
+
+            lock (BaseModule.GetLockObject(customerPSID))
+            {
+                // try to get the current chat session
+                var existingSession = MemoryCache.Default["FBMP:" + customerPSID] as FacebookChatSession;
+                if (existingSession == null)
+                {
+                    existingSession = this.SiteDatabase.Query<FacebookChatSession>().Where(u => u.PageScopedId == customerPSID).FirstOrDefault();
+
+                    if (existingSession == null)
+                    {
+                        existingSession = new FacebookChatSession();
+                        MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
+
+                        existingSession.PageScopedId = customerPSID;
+
+                        // no prior session - see if user have logged in with us before
+                        IEnumerable<dynamic> result = FacebookMessengerModule.FacebookApiGet(this.CurrentSite,
+                                        "/" + customerPSID + "/ids_for_apps",
+                                        true);
+
+                        var idList = result.FirstOrDefault();
+
+                        if (idList != null) // user have logged in with us before
+                        {
+                            var id = (string)idList.id;
+
+                            var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == id).FirstOrDefault();
+                            if (existingUser != null)
+                            {
+                                existingSession.NcbUserId = existingUser.Id;
+
+                                if (existingUser.FacebookPageScopedId == null)
+                                {
+                                    existingUser.FacebookPageScopedId = customerPSID;
+                                    this.SiteDatabase.UpsertRecord(existingUser);
+                                }
+                            }
+                            else
+                            {
+                                // cannot find in database - something must slipped
+                                // should create user here
+                            }
+                        }
+
+                    }
+                }
+
+                if (willHandle)
+                {
+                    existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, messaging);
+                }
+                else
+                {
+                    if (existingSession.Messages == null)
+                    {
+                        existingSession.Messages = new List<dynamic>();
+                    }
+                    existingSession.Messages.Add(messaging);
+
+                    this.SiteDatabase.UpsertRecord(existingSession);
+                }
+            }
+            
+            return "EVENT_RECEIVED";
         }
 
         private dynamic WebhookGet(dynamic args)
@@ -283,12 +316,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <param name="sendSecretProof"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static dynamic FacebookApiGet( dynamic siteSettings, string url, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
+        public static IEnumerable<dynamic> FacebookApiGet( dynamic siteSettings, string url, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            JArray data = new JArray();
 
-            RestClient client = new RestClient("https://graph.facebook.com/v2.11/");
-            RestRequest req = new RestRequest(url, Method.GET );
+            var client = new RestClient("https://graph.facebook.com/v2.11/");
+            var req = new RestRequest(url, Method.GET );
 
             // add parameters
             if (queryStringPair != null)
@@ -350,7 +382,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             {
                 foreach (var item in result.data)
                 {
-                    data.Add(item);
+                    yield return item;
                 }
             }
 
@@ -359,11 +391,6 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                 req.AddQueryParameter("after", (string)result.paging.cursors.after);
                 goto LoadMore;
             }
-
-            return JObject.FromObject( new
-            {
-                data = data
-            });
         }
 
         /// <summary>
@@ -457,7 +484,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                             .Where(o => o.NcbUserId == user.Id && o.OptInType == type)
                             .FirstOrDefault();
 
-            return optin == null;
+            return optin != null;
         }
 
         /// <summary>
@@ -472,7 +499,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                             .Where(o => o.NcbUserId == userId && o.OptInType == type)
                             .FirstOrDefault();
 
-            return optin == null;
+            return optin != null;
         }
     }
 }

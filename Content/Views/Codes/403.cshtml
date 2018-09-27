@@ -10,7 +10,7 @@
         You were not allowed to access this resource.
     </p>
     @if (this.RenderContext.Context.CurrentUser != null &&
-                  this.RenderContext.Context.CurrentUser != NantCom.NancyBlack.Modules.MembershipSystem.NcbUser.Anonymous)
+                  this.RenderContext.Context.CurrentUser.UserName != NantCom.NancyBlack.Modules.MembershipSystem.NcbUser.Anonymous)
     {
         <p>
             Your Current Permission:

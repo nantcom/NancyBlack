@@ -407,27 +407,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
         {
             AffiliateModule.TemplatePath = Path.Combine(this.RootPath, "Site", "Views", "EmailTemplates");
             
-            Get["/__affiliate/___fixname"] = this.HandleRequest((arg) =>
-            {
-                var affiliates = this.SiteDatabase.Query<AffiliateRegistration>().ToList();
-                var users = this.SiteDatabase.Query<NcbUser>().ToDictionary(u => u.Id);
-
-                foreach (var affiliate in affiliates)
-                {
-                    if (users.ContainsKey(affiliate.NcbUserId))
-                    {
-                        if (string.IsNullOrEmpty(affiliate.AffiliateName))
-                        {
-                            affiliate.AffiliateName = (string)users[affiliate.NcbUserId].Profile.first_name;
-                            this.SiteDatabase.Connection.Update(affiliate);
-                        }
-                    }
-
-                }
-
-
-                return "OK";
-            });
 
             Get["/__affiliate/___syncsubscription"] = this.HandleRequest((arg) =>
             {
@@ -477,10 +456,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     reg.AffiliateCode = Crc32.ComputeChecksumString(bytes);
                 }
 
-                if (this.Request.Cookies.ContainsKey("source"))
-                {
-                    reg.RefererAffiliateCode = this.Request.Cookies["source"];
-                }
+                // will not count until user register via messenger
+                // if (this.Request.Cookies.ContainsKey("source"))
+                // {
+                //     reg.RefererAffiliateCode = this.Request.Cookies["source"];
+                // }
 
                 // whether user already registered
                 var existing = this.SiteDatabase.Query<AffiliateRegistration>()
