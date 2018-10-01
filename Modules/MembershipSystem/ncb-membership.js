@@ -113,7 +113,7 @@
 
             };
 
-            $me.loginfacebook = function (callback, popupless, state) {
+            $me.loginfacebook = function (callback, popupless, state, isAutologin) {
 
                 if (typeof(FB) == undefined) {
                     return;
@@ -121,7 +121,7 @@
 
                 var processFacebookLogin = function () {
 
-                    FB.api('/me?fields=email,first_name,last_name,birthday,currency', function (resultMe) {
+                    FB.api('/me?fields=email,first_name,last_name,birthday', function (resultMe) {
                         
                         $http.post('/__membership/loginfacebook', { me: resultMe }).
                         success(function (data, status, headers, config) {
@@ -140,7 +140,11 @@
                 FB.getLoginStatus(function (response) {
 
                     if (response.status == 'unknown' || response.status == 'not_authorized') {
-                        
+
+                        if (isAutologin) {
+                            return;
+                        }
+
                         // will redirect and user has to do the action again
                         if (popupless == true) {
 
@@ -174,6 +178,14 @@
                 });
 
             };
+
+            var loginTimeout = null;
+            loginTimeout = window.setInterval(function () {
+
+                $me.loginfacebook(null, null, null, true);
+                window.clearInterval(loginTimeout);
+
+            }, 2000);
 
             $me.reset = function (code, password, callback) {
 

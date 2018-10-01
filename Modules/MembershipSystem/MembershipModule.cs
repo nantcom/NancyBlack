@@ -79,13 +79,27 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             p.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
             {
                 // Auto-Login Facebook User
-                if (ctx.Request.Cookies.ContainsKey("_ncbfbuser"))
+                if (ctx.Request.Cookies.ContainsKey("_ncbfbuser") &&
+                    ctx.Request.Cookies.ContainsKey("_ncfa") == false )
                 {
                     var userName = "fb_" + ctx.Request.Cookies["_ncbfbuser"];
-                    var user = UserManager.Current.Register(this.SiteDatabase, userName, userName, this.GetHash(userName), false, true);
-                    var response = this.LoginWithoutRedirect(user.Guid);
 
-                    ctx.Request.Cookies["_ncfa"] = response.Cookies[0].Value;
+                    var guid = (Guid?)MemoryCache.Default["Membership-" + userName];
+
+                    if (guid == null)
+                    {
+                        var user = UserManager.Current.Register(this.SiteDatabase, userName, userName, this.GetHash(userName), false, true);
+                        var response = this.LoginWithoutRedirect(user.Guid, DateTime.Now.AddYears(1));
+
+                        ctx.Request.Cookies["_ncfa"] = response.Cookies[0].Value;
+
+                        guid = user.Guid;
+                        MemoryCache.Default.Add("Membership-" + userName, guid, DateTimeOffset.Now.AddDays(1));
+                    }
+                    else
+                    {
+                        ctx.Request.Cookies["_ncfa"] = this.LoginWithoutRedirect(guid.Value).Cookies[0].Value;
+                    }
                 }
 
                 return null;

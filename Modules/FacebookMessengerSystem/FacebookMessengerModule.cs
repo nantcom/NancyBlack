@@ -135,11 +135,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             // Get the sender PSID
             string customerPSID = messaging.sender.id;
-            bool willHandle = true;
+            bool sentByCustomer = true;
 
             if (customerPSID == (string)entry.id) // this is message sent by bot 
             {
-                willHandle = false;
+                sentByCustomer = false;
                 customerPSID = messaging.recipient.id; // so the cusotmer psid is recipient
             }
 
@@ -190,7 +190,19 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                     }
                 }
 
-                if (willHandle)
+                // Update profile if profile is outdated
+                if (DateTime.Now.Subtract(existingSession.LastProfileUpdate).TotalDays > 7)
+                {
+                    IEnumerable<dynamic> result = FacebookMessengerModule.FacebookApiGet(this.CurrentSite,
+                                    "/" + customerPSID,
+                                    false);
+
+                    existingSession.UserProfile = result.FirstOrDefault();
+                    existingSession.LastProfileUpdate = DateTime.Now;
+                    this.SiteDatabase.UpsertRecord(existingSession);
+                }
+
+                if (sentByCustomer)
                 {
                     existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, messaging);
                 }
@@ -385,6 +397,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                     yield return item;
                 }
             }
+            else
+            {
+                // this is a single item response
+                yield return result;
+            }
 
             if (result.paging != null && result.paging.next != null)
             {
@@ -457,9 +474,14 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             var response = client.Execute(req);
 
-            if (throwOnError && response.StatusCode != System.Net.HttpStatusCode.OK)
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                throw new Exception("Server Returned: " + response.StatusCode);
+                MailSenderModule.SendEmail("company@nant.co", "Facebook API Post Error", response.ToString());
+
+                if (throwOnError)
+                {
+                    throw new Exception("Server Returned: " + response.StatusCode);
+                }
             }
 
             return JObject.Parse(response.Content);

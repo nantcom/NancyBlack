@@ -1,6 +1,7 @@
 ﻿using Nancy;
 using Nancy.Authentication.Forms;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -404,24 +405,30 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 if (returnExisting == true)
                 {
-                    // Update the profile
+                    // try to get email if user specified one in facebook
                     if (initialProfile != null)
                     {
-                        existing.Profile = initialProfile;
+                        bool save = false;
 
                         // this will allow admin to add Email to User and have the profile updated
                         if (existing.Email != null && initialProfile.email == null && existing.Email.StartsWith("fb_") == false)
                         {
                             existing.Profile.email = existing.Email;
+                            save = true;
                         }
 
                         // if user has set the email, we extract the email into email field
                         if (initialProfile.email != null && existing.Email.StartsWith("fb_"))
                         {
                             existing.Email = initialProfile.email;
+                            save = true;
                         }
 
-                        db.UpsertRecord(existing);
+                        if (save)
+                        {
+                            db.UpsertRecord(existing);
+                        }
+
                     }
 
                     return existing;

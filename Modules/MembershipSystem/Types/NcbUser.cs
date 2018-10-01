@@ -69,6 +69,11 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public dynamic Profile { get; set; }
 
         /// <summary>
+        /// Last time that profile was updated
+        /// </summary>
+        public DateTime LastProfileUpdate { get; set; }
+
+        /// <summary>
         /// Current Code for verify and register password
         /// </summary>
         public string Code { get; set; }
@@ -130,7 +135,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <summary>
         /// Localhost Admin
         /// </summary>
-        public static readonly NcbUser LocalHostAdmin = new NcbUser() { UserName = "LocalHostAdmin", Claims = new string[] { "admin" }};
+        public static readonly NcbUser LocalHostAdmin = new NcbUser() { Id = 1, UserName = "LocalHostAdmin", Claims = new string[] { "admin" }};
 
         /// <summary>
         /// 'Anonymous'

@@ -50,6 +50,16 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         public dynamic SessionData { get; set; }
 
         /// <summary>
+        /// User Profile
+        /// </summary>
+        public dynamic UserProfile { get; set; }
+
+        /// <summary>
+        /// Last User Profile update
+        /// </summary>
+        public DateTime LastProfileUpdate { get; set; }
+
+        /// <summary>
         /// Whether we still can send message to this user (24+1 hour rule)
         /// </summary>
         /// <returns></returns>
@@ -243,6 +253,19 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// JSTime to DateTime - result in UTC
+        /// </summary>
+        /// <param name="jstime"></param>
+        /// <returns></returns>
+        private DateTime JSTimeToDateTime( long jstime )
+        {
+            var result = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                     .AddMilliseconds(jstime);
+
+            return result;
         }
 
         private class QuickReply
