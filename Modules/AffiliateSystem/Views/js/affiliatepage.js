@@ -18,25 +18,6 @@
             };
         };
 
-        $scope.BTCRate = { "avg": 127787.54, "high": 129500.00, "low": 125003.00, "volume": "460.18767603", "open": "129100.00", "close": "129439.00" };
-        $me.updateBTCRate = function () {
-
-            var now = new Date();
-            var date = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDate();
-
-            $http.get("/__commerce/btcquote").
-                success(function (data, status, headers, config) {
-
-                    $scope.BTCRate = data.data;
-                    $scope.BTCRate.avg = parseFloat($scope.BTCRate.avg);
-                    $scope.BTCRate.high = parseFloat($scope.BTCRate.high);
-                    $scope.BTCRate.low = parseFloat($scope.BTCRate.low);
-                }).
-                error(function (data, status, headers, config) {
-
-                });
-        };
-        $me.updateBTCRate();
 
         $scope.isBusy = false;
         $scope.object = {};
@@ -46,21 +27,40 @@
 
             $scope.data = window.data;
 
-            if ($scope.data.Traffic != null) {
+            $scope.data.altTotalCommission = 0;
+            $scope.data.totalCommission = 0;
+            $scope.data.totalApprovePending = 0;
+            $scope.data.totalPaid = 0;
+            $scope.data.totalCanWithdraw = 0;
+            $scope.data.AffiliateTransaction.forEach(function (item) {
 
-                $scope.data.alltraffic = 0;
-                $scope.data.Traffic.forEach(function (item) {
+                $scope.data.totalCommission += parseFloat(item.CommissionAmount);
 
-                    $scope.data.alltraffic += parseInt(item.Count);
+                if (item.IsCommissionPaid) {
+                    $scope.data.totalPaid += parseFloat(item.CommissionAmount);
+                }
+
+                if (item.IsPendingApprove) {
+                    $scope.data.totalApprovePending += parseFloat(item.CommissionAmount);
+                }
+
+                if (item.IsPendingApprove == false && item.IsCommissionPaid == false) {
+                    $scope.data.totalCanWithdraw += parseFloat(item.CommissionAmount);
+                }
+            });
+
+            $scope.so = null;
+
+            var paid = $scope.data.SaleOrders.filter(so => so.PaymentStatus == "PaymentReceived" || so.PaymentStatus == "Deposit");
+            if (paid.length > 0) {
+
+                paid.sort(function (a, b) {
+
+                    return a.Id - b.Id;
+
                 });
 
-                $scope.data.altTotalCommission = 0;
-                $scope.data.totalCommission = 0;
-                $scope.data.averageBTCRate = 0;
-                $scope.data.PendingCommission.forEach(function (item) {
-
-                    $scope.data.totalCommission += parseFloat(item.CommissionAmount);
-                });
+                $scope.so = paid[paid.length - 1];
             }
 
         }
@@ -91,6 +91,7 @@
         $me.updateProfile = function (object) {
 
             $scope.isBusy = true;
+            object.UserId = $scope.data.Registration.NcbUserId;
 
             $http.post("/__affiliate/updateprofile", object).success(function (data) {
 
@@ -109,61 +110,7 @@
 
         $me.requestPayment = function () {
 
-            if (!data.Registration.BTCAddress) {
-                
-                swal({
-                    html: true,
-                    title: "Wallet Address",
-                    text: 'กรุณาระบุ Wallet (Deposit) Address สำหรับรับส่วนแบ่งของคุณ ถ้ายังไม่มี สมัครได้ที่ <a href="https://bx.in.th/ref/La24X6/" target="_blank">http://www.bx.in.th</a>',
-                    type: "input",
-                    showCancelButton: true,
-                    showLoaderOnConfirm: true,
-                    closeOnConfirm: false,
-                    confirmButtonText: "ตรวจสอบ",
-                    cancelButtonText: "ยกเลิก",
-                    animation: "slide-from-top",
-                    inputPlaceholder: ""
-                },
-                    function (inputValue) {
-
-                        if (inputValue === false) {
-
-                            $scope.isBusy = false;
-                            return false;
-                        }
-
-                        if (inputValue === "") {
-
-                            $scope.isBusy = false;
-                            swal.showInputError("กรุณากรอก Wallet Address ด้วยนะ");
-                            return false;
-                        }
-
-                        $http.post("/__affiliate/requestpayment", { btcaddress : inputValue }).success(function (data) {
-
-                            $scope.isBusy = false;
-                            swal("ทุกอย่างดูดี!".translate("Looks Good!"), "ขอรีเฟรชหน้านี้แป๊บนะ...".translate("Refreshing this page..."), "success");
-
-                            window.setTimeout(function () {
-                                window.location.reload();
-                            }, 1000);
-
-                        }).error(function (data) {
-
-                            $scope.isBusy = false;
-                            swal("เกิดข้อผิดพลาด", "กรุณาลองใหม่อีกครั้ง", "error");
-
-                        });
-
-
-                    }
-                );
-
-
-                return;
-            }
-
-            if (confirm("กรุณากด OK เพื่อยืนยันว่าคุณต้องการดำเนินการเบิกเงินส่วนแบ่ง") == false) {
+            if (confirm("กรุณากด OK เพื่อยืนยันว่าคุณต้องการดำเนินการเบิกเงินส่วนแบ่ง เราจะติดต่อไปเพื่อขอข้อมูลเพิ่มเติม และดำเนินการโอนเงินทาง PromptPay ที่ผูกกับหมายเลขโทรศัพท์ที่คุณระบุไว้เท่านั้น") == false) {
 
                 return;
             }
@@ -205,17 +152,6 @@
             });
         };
 
-        $scope.$on('ncb-membership.login', function (a, e) {
-
-            $scope.object.Customer.User = e.user;
-            $scope.object.Customer.FirstName = e.user.Profile.first_name;
-            $scope.object.Customer.LastName = e.user.Profile.last_name;
-            $scope.object.Customer.Email = e.user.Profile.email;
-
-            fbq('track', 'CompleteRegistration');
-            ga('send', 'event', 'Login Facebook');
-
-        });
     });
 
 })();
