@@ -21,6 +21,7 @@
 
             });
 
+
             var apply = function (email) {
 
                 $http.post("/__affiliate/apply", { code: 'auto', email: email }).success(function (data) {
@@ -37,7 +38,7 @@
 
                     swal({
                         type: 'success',
-                        title: 'หวัดดี SQUAD51 คนที่ ' + data.Id,
+                        title: 'ยินดีต้อนรับ SQUAD51 ท่านที่ ' + data.Id,
                         text:
                             'ลงทะเบียนรับข่าวสารจาก LEVEL51' +
                             '<div id="subscribebutton"><div class="fb-send-to-messenger" style="width: 210px; margin: 20px auto; display: block"         ' +
@@ -48,12 +49,10 @@
                                 'color="blue"                          ' +
                                 'size="xlarge"></div>                        ' +
                             '</div>' 
-
                         ,
                         html: true,
                         closeOnConfirm: true,
                         showConfirmButton: false,
-                        confirmButtonText: "โอเคร!!",
                         animation: "slide-from-top"
                     });
 
@@ -70,81 +69,21 @@
 
             };
 
-            $scope.$on('ncb-membership.login', function (a, e) {
-
-                fbq('track', 'CompleteRegistration');
-                ga('send', 'event', 'Subscribe');
-
-
-            });
 
             $scope.affiliateProcessSubscribe = function () {
 
                 $scope.membership.loginfacebook(function () {
 
-                    var email = "";
-                    if ($scope.membership.currentUser.Profile.email == "" || $scope.membership.currentUser.Profile.email == null) {
-
-                        swal({
-                            type: 'input',
-                            title: 'เอ๊อะ!',
-                            text: 'ในเฟสบุ้คคุณ' + $scope.membership.currentUser.Profile.first_name + ' ไม่ได้ใส่อีเมลล์ไว้น่ะ รบกวนขออีเมลล์ด้วยนะ',
-                            html: true,
-                            showCancelButton: true,
-                            showLoaderOnConfirm: true,
-                            closeOnConfirm: true,
-                            confirmButtonText: "บันทึก",
-                            cancelButtonText: "ไม่เอาละ",
-                            animation: "slide-from-top"
-                        }, function (text) {
-
-                            if (text === false)
-                                return false;
-
-                            apply(text);
-
-                        });
-
-                    } else {
-
-                        apply();
-                    }
-
+                    // no longer require email - we will be as frictionless as possible
+                    apply();
+                    
 
                 }, true, "subscribe");
             };
 
             $scope.affiliateSubscribe = function () {
 
-                var name = Cookies.get("affiliatename");
-                var title = 'อยากได้โค๊ดส่วนลดไหม?';
-                if (name != null)
-                {
-                    title = name + ' ชวนให้คุณมาสมัครรับโค๊ดส่วนลดด้วยกัน';
-                }
-
-                swal({
-                    title: title,
-                    text:
-                    '<img src="/Site/images/promo/squad-1.png" />',
-                    html: true,
-                    showCancelButton: false,
-                    showLoaderOnConfirm: true,
-                    closeOnConfirm: true,
-                    confirmButtonText: "ลงทะเบียนด้วยเฟสบุ้ค",
-                    cancelButtonText: "ไม่เอา เราบ้านรวย",
-                    animation: "slide-from-top"
-                }, function (isConfirm) {
-
-                    if (isConfirm == false) {
-
-                        Cookies.set('subscribecheck', 'nope', { expires: 7 });
-                        return;
-                    }
-
-                    $scope.affiliateProcessSubscribe();
-
-                });
+                $scope.affiliateProcessSubscribe();
 
             };
 

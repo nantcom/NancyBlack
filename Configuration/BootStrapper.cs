@@ -310,7 +310,10 @@ namespace NantCom.NancyBlack.Configuration
                     ctx.Items[ContextItems.SubSite] = null;
                 }
 
-                ctx.Items["SiteDatabase"] = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
+                var db = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
+                GlobalVar.Default.Load(db);
+
+                ctx.Items["SiteDatabase"] = db;
                 ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
                 ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
                 ctx.Items["RootPath"] = BootStrapper.RootPath;
@@ -330,6 +333,8 @@ namespace NantCom.NancyBlack.Configuration
                     ctx.Response.Cookies.Add(
                         new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddDays(1)));
                 }
+
+                GlobalVar.Default.Persist(ctx.Items["SiteDatabase"] as NancyBlackDatabase);
             });
 
             foreach (var item in container.ResolveAll<IPipelineHook>())

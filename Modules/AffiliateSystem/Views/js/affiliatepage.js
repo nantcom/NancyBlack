@@ -1,13 +1,12 @@
 ﻿
 (function () {
-    
+
     var module = angular.module('Page', ["ui.bootstrap"]);
     
     module.controller("PageController", function ($scope, $http, $cookies) {
 
         var $me = this;
-
-
+        
         $scope.filterPath = function (url) {
             return function (item) {
 
@@ -27,42 +26,36 @@
 
             $scope.data = window.data;
 
-            $scope.data.altTotalCommission = 0;
-            $scope.data.totalCommission = 0;
-            $scope.data.totalApprovePending = 0;
-            $scope.data.totalPaid = 0;
-            $scope.data.totalCanWithdraw = 0;
-            $scope.data.AffiliateTransaction.forEach(function (item) {
+            if ( $scope.data.AffiliateTransaction != null ) {
 
-                $scope.data.totalCommission += parseFloat(item.CommissionAmount);
+                $scope.data.altTotalCommission = 0;
+                $scope.data.totalCommission = 0;
+                $scope.data.totalApprovePending = 0;
+                $scope.data.totalPaid = 0;
+                $scope.data.totalCanWithdraw = 0;
+                $scope.data.AffiliateTransaction.forEach(function (item) {
 
-                if (item.IsCommissionPaid) {
-                    $scope.data.totalPaid += parseFloat(item.CommissionAmount);
-                }
+                    $scope.data.totalCommission += parseFloat(item.CommissionAmount);
 
-                if (item.IsPendingApprove) {
-                    $scope.data.totalApprovePending += parseFloat(item.CommissionAmount);
-                }
+                    if (item.IsCommissionPaid) {
+                        $scope.data.totalPaid += parseFloat(item.CommissionAmount);
+                    }
 
-                if (item.IsPendingApprove == false && item.IsCommissionPaid == false) {
-                    $scope.data.totalCanWithdraw += parseFloat(item.CommissionAmount);
-                }
-            });
+                    if (item.IsPendingApprove) {
+                        $scope.data.totalApprovePending += parseFloat(item.CommissionAmount);
+                    }
 
-            $scope.so = null;
-
-            var paid = $scope.data.SaleOrders.filter(so => so.PaymentStatus == "PaymentReceived" || so.PaymentStatus == "Deposit");
-            if (paid.length > 0) {
-
-                paid.sort(function (a, b) {
-
-                    return a.Id - b.Id;
-
+                    if (item.IsPendingApprove == false && item.IsCommissionPaid == false) {
+                        $scope.data.totalCanWithdraw += parseFloat(item.CommissionAmount);
+                    }
                 });
 
-                $scope.so = paid[paid.length - 1];
-            }
+                if ($scope.data.Profile.birthday != null) {
+                    $scope.data.Profile.birthday = new Date($scope.data.Profile.birthday);
+                }
 
+                $scope.so = $scope.data.ActiveSaleOrder;
+            }
         }
 
         $me.register = function (object) {
@@ -134,15 +127,20 @@
             });
         };
 
-        $me.getRewards = function ( name ) {
+        $me.getRewards = function ( reward ) {
 
             $scope.isBusy = true;
 
-            $http.post("/__affiliate/getrewards", { rewardsName: name }).success(function (data) {
+            $http.post("/__affiliate/claimrewards", reward).success(function (data) {
 
                 $scope.isBusy = false;
-                swal(data);
-                
+                if ($scope.data.ClaimedRewards == null) {
+                    $scope.data.ClaimedRewards = [];
+                }
+                $scope.data.ClaimedRewards.push(data);
+
+                swal("เรียบร้อย", "ดูคูปองส่วนลดได้ใน 'My Rewards' เลยนะ", "success");
+                JsBarcode(".barcode").init();
 
             }).error(function (data) {
 

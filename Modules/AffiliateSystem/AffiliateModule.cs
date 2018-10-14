@@ -10,12 +10,14 @@ using NantCom.NancyBlack.Modules.CommerceSystem;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
+using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using NantCom.NancyBlack.Modules.FacebookMessengerSystem;
 using NantCom.NancyBlack.Modules.MailingListSystem;
 using NantCom.NancyBlack.Modules.MembershipSystem;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -402,7 +404,8 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
         }
 
-
+        public const string AFFILIATE_PROGRAM_NAME = "squad51"; 
+        
         public AffiliateModule()
         {
             AffiliateModule.TemplatePath = Path.Combine(RootPath, "Site", "Views", "EmailTemplates");
@@ -414,7 +417,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return 400;
                 }
 
-                return this.ApplyAffiliate( this.CurrentUser.Id, arg);
+                return AffiliateModule.ApplyAffiliate( this.SiteDatabase, this.CurrentUser.Id);
             });
 
             Post["/__affiliate/requestpayment"] = HandleRequest((arg) =>
@@ -476,199 +479,23 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return 200;
             });
 
-            Post["/__affiliate/getrewards"] = HandleRequest((arg) =>
+            Post["/__affiliate/claimrewards"] = HandleRequest((arg) =>
             {
                 dynamic param = (arg.body.Value as JObject);
-                if (param.rewardsName == null)
+                if (param.Id == null)
                 {
                     return 400;
                 }
 
-                var registration = SiteDatabase.Query<AffiliateRegistration>()
-                    .Where(t => t.NcbUserId == CurrentUser.Id).FirstOrDefault();
-
-                if (registration == null)
+                var registration = AffiliateModule.ApplyAffiliate(this.SiteDatabase, this.CurrentUser.Id);
+                
+                var result = AffiliateReward.ClaimReward(this.SiteDatabase, (int)param.Id, registration.Id);
+                if (result == null)
                 {
-                    return 400;
+                    return 403;
                 }
 
-                if (param.rewardsName == "subscribe1")
-                {
-                    var sub = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
-                                new { Count = 0 },
-                                new object[] { registration.AffiliateCode }).First().Count;
-
-                    if (sub < 5)
-                    {
-                        return new
-                        {
-                            type = "warning",
-                            title = "ขอโทษนะ",
-                            text = "ตอนนี้จำนวนคนสมัครรับข่าวมีแค่ " + sub + " คน ยังไม่ครบ 5 คนเลย",
-                        };
-                    }
-
-                    var claim = SiteDatabase.QueryAsDynamic("SELECT DiscountCode FROM AffiliateRewardsClaim WHERE AffiliateCode=? AND RewardsName=?",
-                                new { DiscountCode = "" },
-                                new object[] { registration.AffiliateCode, "subscribe1" }).FirstOrDefault();
-
-                    if (claim == null)
-                    {
-
-                        var bytes = Encoding.ASCII.GetBytes("sub1code" + CurrentUser.Id.ToString());
-                        var code = Crc32.ComputeChecksumString(bytes);
-
-                        Product p = new Product();
-                        p.Url = "/promotions/code/" + code;
-                        p.Title = "Affiliate Discount: " + code;
-                        p.Price = -2000;
-                        p.Attributes = new
-                        {
-                            description = "โค๊ดส่วนลดพิเศษสำหรับคุณ " + CurrentUser.Profile.first_name + " จำนวน 2,000 บาท เมื่อสั่งซื้อขั้นต่ำ 32,000 บาท",
-                            limit = "32000",
-                            onetime = true
-                        };
-
-                        claim = new AffiliateRewardsClaim();
-                        claim.AffiliateRegistrationId = registration.Id;
-                        claim.NcbUserId = registration.NcbUserId;
-                        claim.AffiliateCode = registration.AffiliateCode;
-                        claim.DiscountCode = code;
-                        claim.RewardsName = "subscribe1";
-
-                        SiteDatabase.UpsertRecord(p);
-                        this.SiteDatabase.UpsertRecord(claim);
-                    }
-
-                    return new
-                    {
-                        type = "success",
-                        title = "เยี่ยมกู๊ด",
-                        text = "ขอบคุณมากๆ โค๊ดส่วนลดของคุณคือ: <b>" + claim.DiscountCode + "</b> เก็บไว้ดีๆ ละ",
-                        html = true
-                    };
-
-                }
-
-                if (param.rewardsName == "subscribe2")
-                {
-                    var sub = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
-                                new { Count = 0 },
-                                new object[] { registration.AffiliateCode }).First().Count;
-
-                    if (sub < 10)
-                    {
-                        return new
-                        {
-                            type = "warning",
-                            title = "ขอโทษนะ",
-                            text = "ตอนนี้จำนวนคนสมัครรับข่าวมีแค่ " + sub + " คน ยังไม่ครบ 10 คนเลย",
-                        };
-                    }
-
-                    var profile = SiteDatabase.GetById<NcbUser>(registration.NcbUserId).Profile;
-                    if (profile.phone == null || profile.email == null)
-                    {
-                        return new
-                        {
-                            type = "warning",
-                            title = "ขอโทษนะ",
-                            text = "รบกวนกรอกข้อมูลหมายเลขโทรศัพท์ และอีเมลล์ก่อนจ้า",
-                        };
-                    }
-                    if (profile.address == null || string.IsNullOrEmpty((string)profile.address.PostalCode) || string.IsNullOrEmpty((string)profile.address.Address1))
-                    {
-                        return new
-                        {
-                            type = "warning",
-                            title = "ขอโทษนะ",
-                            text = "รบกวนกรอกข้อมูลที่อยู่จัดส่งของรางวัลก่อนจ้า",
-                        };
-                    }
-
-                    var claim = SiteDatabase.QueryAsDynamic("SELECT DiscountCode FROM AffiliateRewardsClaim WHERE AffiliateCode=? AND RewardsName=?",
-                                new { DiscountCode = "" },
-                                new object[] { registration.AffiliateCode, "subscribe2" }).FirstOrDefault();
-
-                    if (claim == null)
-                    {
-
-                        claim = new AffiliateRewardsClaim();
-                        claim.AffiliateRegistrationId = registration.Id;
-                        claim.NcbUserId = registration.NcbUserId;
-                        claim.AffiliateCode = registration.AffiliateCode;
-                        claim.RewardsName = "subscribe2";
-
-                        this.SiteDatabase.UpsertRecord(claim);
-
-                        this.AddRewardsCard(CurrentSite, claim, true);
-                    }
-
-
-                    return new
-                    {
-                        type = "success",
-                        title = "เยี่ยมกู๊ด",
-                        text = "ขอบคุณมากๆ เราได้รับคำขอรับขอของคุณแล้วนะ กรุณารอเราติดต่อกลับแป๊บนึง",
-                        html = true
-                    };
-                }
-
-
-                if (param.rewardsName == "buy1")
-                {
-                    var sub = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM SaleOrder WHERE AffiliateCode=? AND PaymentStatus='PaymentReceived'",
-                                new { Count = 0 },
-                                new object[] { registration.AffiliateCode }).First().Count;
-
-                    var profile = SiteDatabase.GetById<NcbUser>(registration.NcbUserId).Profile;
-                    if (profile.phone == null || profile.email == null)
-                    {
-                        return new
-                        {
-                            type = "warning",
-                            title = "ขอโทษนะ",
-                            text = "รบกวนกรอกข้อมูลหมายเลขโทรศัพท์ และอีเมลล์ก่อนจ้า",
-                        };
-                    }
-
-                    if (sub == 0)
-                    {
-                        return new
-                        {
-                            type = "warning",
-                            title = "ขอโทษนะ",
-                            text = "ยังไม่มีคนมาซื้อเลยนี่นา",
-                        };
-                    }
-
-                    var claim = SiteDatabase.QueryAsDynamic("SELECT DiscountCode FROM AffiliateRewardsClaim WHERE AffiliateCode=? AND RewardsName=?",
-                                new { DiscountCode = "" },
-                                new object[] { registration.AffiliateCode, "buy1" }).FirstOrDefault();
-
-                    if (claim == null)
-                    {
-
-                        claim = new AffiliateRewardsClaim();
-                        claim.AffiliateRegistrationId = registration.Id;
-                        claim.NcbUserId = registration.NcbUserId;
-                        claim.AffiliateCode = registration.AffiliateCode;
-                        claim.RewardsName = "buy1";
-
-                        this.SiteDatabase.UpsertRecord(claim);
-
-                    }
-                    return new
-                    {
-                        type = "success",
-                        title = "เยี่ยมกู๊ด",
-                        text = "ขอบคุณมากๆ เราได้รับคำขอรับขอของคุณแล้วนะ กรุณารอเราติดต่อกลับแป๊บนึง",
-                        html = true
-                    };
-                }
-
-
-                return 200;
+                return result;
 
             });
 
@@ -760,17 +587,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
             });
 
-            Get["/squad51"] = HandleRequest((arg) =>
+            Get["/" + AFFILIATE_PROGRAM_NAME + "/dashboard"] = HandleRequest((arg) =>
             {
+                if (this.CurrentUser.IsAnonymous)
+                {
+                    return this.Response.AsRedirect("/" + AFFILIATE_PROGRAM_NAME);
+                }
+
                 var id = this.CurrentUser.Id;
-
-            #if DEBUG
-                id = 1;
-            #endif
-
                 AffiliateRegistration registration = null;
 
-                if (id == 1 && Request.Query.code != null) // user 1 can impersonate anyone
+                if (this.CurrentUser.HasClaim("admin") && Request.Query.code != null) // admin impersonate anyone
                 {
                     var code = (string)Request.Query.code;
                     registration = SiteDatabase.Query<AffiliateRegistration>()
@@ -781,7 +608,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         return 404; // wrong code
                     }
                 }
-                else if ( id == 1 && Request.Query.so != null)
+                else if (this.CurrentUser.HasClaim("admin") && Request.Query.so != null)
                 {
                     var soId = (int)Request.Query.so;
                     var so = SiteDatabase.GetById<SaleOrder>(soId);
@@ -794,12 +621,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     registration = SiteDatabase.Query<AffiliateRegistration>()
                         .Where(t => t.NcbUserId == so.NcbUserId).FirstOrDefault();
 
-                    // for impersonation - automatically apply owner of given so
+                    // automatically apply owner of given so
                     if (registration == null &&
                         (so.PaymentStatus == PaymentStatus.PaymentReceived ||
-                         so.PaymentStatus == PaymentStatus.Deposit ))
+                         so.PaymentStatus == PaymentStatus.Deposit))
                     {
-                        registration = this.ApplyAffiliate(so.NcbUserId, arg);
+                        registration = AffiliateModule.ApplyAffiliate(this.SiteDatabase, so.NcbUserId);
                     }
                 }
                 else
@@ -809,34 +636,48 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         registration = SiteDatabase.Query<AffiliateRegistration>()
                             .Where(t => t.NcbUserId == id).FirstOrDefault();
                     }
-
                 }
 
                 if (registration == null)
                 {
-                    // no registration - try to see whether this user already a customer
-                    var saleOrder = this.SiteDatabase.Query<SaleOrder>()
-                                        .Where(so => so.NcbUserId == id &&
-                                                     (so.PaymentStatus == PaymentStatus.Deposit ||
-                                                      so.PaymentStatus == PaymentStatus.PaymentReceived))
-                                        .FirstOrDefault();
-
-                    if (saleOrder != null)
+                    if (id != 0) // some known user but we still can't get their registration
                     {
-                        registration = this.ApplyAffiliate(id, this.SiteDatabase);
+                        // no registration - try to see whether this user already a customer
+                        var saleOrder = this.SiteDatabase.Query<SaleOrder>()
+                                            .Where(so => so.NcbUserId == id &&
+                                                         (so.PaymentStatus == PaymentStatus.Deposit ||
+                                                          so.PaymentStatus == PaymentStatus.PaymentReceived))
+                                            .FirstOrDefault();
+
+                        // already customer - auto register them
+                        if (saleOrder != null)
+                        {
+                            registration = AffiliateModule.ApplyAffiliate(this.SiteDatabase, id);
+                            return this.AffiliateDashboard(registration, arg);
+                        }
                     }
 
-                    var content = ContentModule.GetPage(SiteDatabase, "/__affiliate", true);
+                    // redirect back to application page
+                    return this.Response.AsRedirect("/" + AFFILIATE_PROGRAM_NAME);
+                }
 
-                    return View["affiliate-apply", new StandardModel(this, content, new
-                    {
-                        Registration = registration
-                    })];
-                }
-                else
+
+                return this.AffiliateDashboard(registration, arg);
+
+            });
+
+            Get["/" + AFFILIATE_PROGRAM_NAME] = HandleRequest((arg) =>
+            {
+                var id = this.CurrentUser.Id;
+
+                AffiliateRegistration registration = SiteDatabase.Query<AffiliateRegistration>()
+                    .Where(t => t.NcbUserId == id).FirstOrDefault();
+
+                var content = ContentModule.GetPage(SiteDatabase, "/__affiliate", true);
+                return View["affiliate-apply", new StandardModel(this, content, new
                 {
-                    return this.AffiliateDashboard(registration, arg);
-                }
+                    Registration = registration
+                })];
 
             });
 
@@ -925,6 +766,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 return "OK";
             });
+
+            //Get["/__affiliate/registereveryone"] = HandleRequest((arg) =>
+            //{
+            //    foreach (var user in this.SiteDatabase.Query<NcbUser>().AsEnumerable())
+            //    {
+            //        AffiliateModule.ApplyAffiliate(this.SiteDatabase, user.Id);
+            //    }
+
+            //    return "OK";
+            //});
+
         }
 
         public void Hook(IPipelines p)
@@ -1024,33 +876,98 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 if (dashboardData == null)
                 {
                     var user = this.SiteDatabase.GetById<NcbUser>(registration.NcbUserId);
+                    var saleOrders = this.SiteDatabase.Query<SaleOrder>()
+                            .Where(so => so.NcbUserId == registration.NcbUserId)
+                            .ToList();
+
+                    var activeSaleOrder = (from so in saleOrders
+                                          where so.PaymentStatus == PaymentStatus.Credit ||
+                                                so.PaymentStatus == PaymentStatus.Deposit ||
+                                                so.PaymentStatus == PaymentStatus.PaymentReceived
+                                          select so).FirstOrDefault();
+
+                    if (activeSaleOrder != null)
+                    {
+                        // figure out delivery date
+                        activeSaleOrder.FindShipoutAndDeliveryDate(this.SiteDatabase);
+                    }
+
+                    Func<SaleOrder, SaleOrder> reduce = (so) =>
+                    {
+                        var thinCustomer = new
+                        {
+                            FirstName = (string)so.Customer.FirstName,
+                            LastName = (string)so.Customer.LastName
+                        };
+
+                        return new SaleOrder()
+                        {
+                            __createdAt = so.__createdAt,
+                            SaleOrderIdentifier = so.SaleOrderIdentifier,
+                            Status = so.Status,
+                            PaymentStatus = so.PaymentStatus,
+                            Customer = thinCustomer
+                        };
+                    };
+
+                    var stat = AffiliateReward.GetRewardStats(this.SiteDatabase, registration);
+                    Func<AffiliateReward, JObject> addCanClaim = (rew) =>
+                    {
+                        var canClaim = AffiliateReward.CanClaim(this.SiteDatabase, rew, registration, stat);
+                        var toReturn = JObject.FromObject(rew);
+
+                        toReturn.Add("canClaim", canClaim);
+
+                        return toReturn;
+                    };
 
                     dashboardData = new
                     {
                         Registration = registration,
                         Code = registration.AffiliateCode,
                         RelatedOrders = this.SiteDatabase.Query<SaleOrder>()
-                                            .Where( so => so.AffiliateCode == registration.AffiliateCode )
-                                            .ToList(),
+                                            .Where(so => so.AffiliateCode == registration.AffiliateCode)
+                                            .AsEnumerable()
+                                            .Select(s => reduce(s)).ToList(),
 
                         AffiliateTransaction = this.SiteDatabase.Query("SELECT * FROM AffiliateTransaction WHERE AffiliateCode=?",
                         new AffiliateTransaction(),
                         new object[] { registration.AffiliateCode }).ToList(),
 
-                        SubscribeAll = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
-                            new { Count = 0 },
-                            new object[] { registration.AffiliateCode }).First().Count,
-
                         Profile = user.Profile,
 
                         SaleOrders = this.SiteDatabase.Query<SaleOrder>()
-                            .Where( so => so.NcbUserId == registration.NcbUserId )
-                            .ToList(),
-                            
-                    };
-                    
-                    MemoryCache.Default.Add(key, dashboardData, DateTimeOffset.Now.AddMinutes(10));
+                            .Where(so => so.NcbUserId == registration.NcbUserId)
+                                            .AsEnumerable()
+                                            .Select(s => reduce(s)).ToList(),
 
+                        ActiveSaleOrder = activeSaleOrder,
+
+                        /* Stats */
+
+                        SubscribeAll = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateRegistration WHERE RefererAffiliateCode=?",
+                            new { Count = 0 },
+                            new object[] { registration.AffiliateCode }).First().Count,
+
+                        TotalShareClicks = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateShareClick WHERE AffiliateRegistrationId=?",
+                            new { Count = 0 },
+                            new object[] { registration.Id }).First().Count,
+
+                        Downline = AffiliateModule.DiscoverDownLine(this.SiteDatabase, registration.AffiliateCode),
+
+                        Rewards = from rew in this.SiteDatabase.Query<AffiliateReward>().AsEnumerable()
+                                  select addCanClaim( rew ),
+
+                        RewardsStat = stat,
+
+                        ClaimedRewards = this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                                                          .Where( c => c.NcbUserId == registration.NcbUserId)
+                                                          .AsEnumerable()
+                    };
+
+#if !DEBUG
+                    MemoryCache.Default.Add(key, dashboardData, DateTimeOffset.Now.AddMinutes(10));
+#endif
                     UpdatePageView(registration);
                 }
 
@@ -1062,106 +979,67 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
         }
 
-        private dynamic ApplyAffiliate( int userId, dynamic arg)
+        public static AffiliateRegistration ApplyAffiliate( NancyBlackDatabase db, int userId, string refererCode = null)
         {
             AffiliateRegistration reg = null;
-            if (arg.body.Value != null)
-            {
-                reg = (arg.body.Value as JObject).ToObject<AffiliateRegistration>();
-            }
-            else
-            {
-                reg = new AffiliateRegistration();
-            }
-
-            if (reg.AffiliateCode == null) // auto code
-            {
-                var bytes = Encoding.ASCII.GetBytes(userId.ToString());
-                reg.AffiliateCode = Crc32.ComputeChecksumString(bytes);
-            }
-
-
-            // will not count until user register via messenger
-            // if (this.Request.Cookies.ContainsKey("source"))
-            // {
-            //     reg.RefererAffiliateCode = this.Request.Cookies["source"];
-            // }
 
             // whether user already registered
-            var existing = SiteDatabase.Query<AffiliateRegistration>()
+            var existing = db.Query<AffiliateRegistration>()
                                 .Where(r => r.NcbUserId == userId)
                                 .FirstOrDefault();
 
             // dont replace existing code
             if (existing == null)
             {
+                reg = new AffiliateRegistration();
                 reg.NcbUserId = userId;
                 reg.Commission = 0.01M;  // start at 1 percent
 
-                var user = SiteDatabase.GetById<NcbUser>(userId);
-                reg.AffiliateName = user.Profile.first_name;
+                // automatic code
+                var bytes = Encoding.ASCII.GetBytes(userId.ToString());
+                reg.AffiliateCode = Crc32.ComputeChecksumString(bytes);
 
-                // enroll user into Mailing List Automatically
-                NcbMailingListSubscription sub = new NcbMailingListSubscription();
-                sub.FirstName = user.Profile.first_name;
-                sub.LastName = user.Profile.last_name;
-                sub.Email = user.Profile.email;
-                sub.BirthDay = user.Profile.birthday;
-
-                if (string.IsNullOrEmpty(sub.Email))
+                var user = db.GetById<NcbUser>(userId);
+                if (user.Profile != null && user.Profile.first_name != null)
                 {
-                    var customEmail = (arg.body.Value as JObject).Property("email").Value.ToString();
-                    sub.Email = customEmail;
-
-                    user.Profile.email = customEmail;
-                    user.Email = customEmail;
-
-                    SiteDatabase.UpsertRecord(user);
+                    reg.AffiliateName = user.Profile.first_name;
                 }
 
-                sub.RefererAffiliateCode = reg.RefererAffiliateCode;
+                if (reg.AffiliateName == null)
+                {
+                    reg.AffiliateName = "SQUAD51#" + userId;
+                }
 
-                SiteDatabase.UpsertRecord(reg);
-                SiteDatabase.UpsertRecord(sub);
+                reg.RefererAffiliateCode = refererCode;
+
+                db.UpsertRecord(reg);
 
                 return reg;
             }
             else
             {
-                var input = arg.body.Value;
-                if (input == null)
-                {
-                    return existing;
-                }
-
-                string customEmail = input.email;
-                if (customEmail != null)
-                {
-                    // update user's email
-                    var user = SiteDatabase.GetById<NcbUser>(userId);
-                    user.Email = (string)customEmail;
-                    user.Profile.email = (string)customEmail;
-
-                    SiteDatabase.UpsertRecord(user);
-
-                    var existingSub = SiteDatabase.Query<NcbMailingListSubscription>().Where(sub => sub.Email == (string)customEmail).FirstOrDefault();
-                    if (existingSub == null)
-                    {
-                        NcbMailingListSubscription sub = new NcbMailingListSubscription();
-                        sub.FirstName = user.Profile.first_name;
-                        sub.LastName = user.Profile.last_name;
-                        sub.Email = user.Profile.email;
-                        sub.BirthDay = user.Profile.birthday;
-                        sub.RefererAffiliateCode = existing.RefererAffiliateCode;
-
-                        SiteDatabase.UpsertRecord(sub);
-                    }
-                }
-
-
                 return existing;
             }
+        }
 
+        /// <summary>
+        /// Upate Referer code of given user
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="userId"></param>
+        /// <param name="refererCode"></param>
+        /// <returns></returns>
+        public static AffiliateRegistration UpdateReferer(NancyBlackDatabase db, int userId, string refererCode )
+        {
+            var registration = AffiliateModule.ApplyAffiliate(db, userId, refererCode);
+
+            if (registration.RefererAffiliateCode == null)
+            {
+                registration.RefererAffiliateCode = refererCode;
+                db.UpsertRecord(registration);
+            }
+
+            return registration;
         }
 
         /// <summary>
@@ -1226,13 +1104,55 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     }
 
                     reg.LastPageViewUpdate = DateTime.Now;
-                    reg.TotalUniqueUser = userSet.Count;
+                    reg.TotalUniqueUser += userSet.Count;
+
                     SiteDatabase.UpsertRecord(reg);
 
                     // Make the instance for checking available for 1 hour
                     MemoryCache.Default.Add(key, reg, DateTimeOffset.Now.AddHours(1));
                 }
             });
+        }
+
+        /// <summary>
+        /// Discovers down line of current user
+        /// </summary>
+        /// <param name="reg"></param>
+        /// <param name="maxLevel"></param>
+        /// <returns></returns>
+        public static IEnumerable<dynamic> DiscoverDownLine( NancyBlackDatabase db, string topCode, int maxLevel = 2)
+        {
+            Queue<string> referer = new Queue<string>();
+            referer.Enqueue(topCode);
+
+            int currentLevel = 1;
+            while (referer.Count > 0)
+            {
+                var current = referer.Dequeue();
+
+                var downline = db.Query<AffiliateRegistration>()
+                                    .Where(a => a.RefererAffiliateCode == current)
+                                    .OrderByDescending( a => a.Id );
+
+                foreach (var item in downline)
+                {
+                    yield return new
+                    {
+                        level = currentLevel,
+                        name = item.AffiliateName,
+                        facebookId = db.GetById<NcbUser>( item.NcbUserId ).FacebookAppScopedId,
+                        parent = current,
+                    };
+
+                    referer.Enqueue(item.AffiliateCode);
+                }
+
+                currentLevel++;
+                if (currentLevel > maxLevel)
+                {
+                    yield break;
+                }
+            }
         }
 
         /// <summary>

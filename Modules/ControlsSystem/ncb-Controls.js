@@ -2633,6 +2633,33 @@
         };
     });
 
+    module.directive('ncbBarcode', function () {
 
+        function link($scope, element, attrs) {
+
+            if (JsBarcode == undefined) {
+                console.log("JsBarcode library not included.");
+                return;
+            }
+                        
+            var keeptrying = function () {
+
+                if (element[0].getAttribute("jsbarcode-value").indexOf("{{") == 0) {
+                    window.setTimeout(keeptrying, 2000);
+                    return;
+                }
+
+                JsBarcode(element[0]).init();
+            };
+
+            keeptrying();
+        };
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false,
+        };
+    });
     
 })();

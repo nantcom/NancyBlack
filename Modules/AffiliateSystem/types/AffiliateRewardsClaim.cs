@@ -27,6 +27,16 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         public string AffiliateCode { get; set; }
 
         /// <summary>
+        /// Id of the rewards that was claimed
+        /// </summary>
+        public int AffiliateRewardsId { get; set; }
+
+        /// <summary>
+        /// Product Id that was claimed
+        /// </summary>
+        public int ProductId { get; set; }
+
+        /// <summary>
         /// Rewards that was claimed
         /// </summary>
         public string RewardsName { get; set; }
@@ -35,6 +45,16 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// Discount Code that was given
         /// </summary>
         public string DiscountCode { get; set; }
+
+        /// <summary>
+        /// Whether this coupon is ready for sharing
+        /// </summary>
+        public bool IsShareEnabled { get; set; }
+
+        /// <summary>
+        /// Attributes of the coupon
+        /// </summary>
+        public dynamic CouponAttributes { get; set; }
 
         /// <summary>
         /// Whether rewards were sent
