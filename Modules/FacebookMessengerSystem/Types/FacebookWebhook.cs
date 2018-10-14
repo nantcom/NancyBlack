@@ -17,5 +17,10 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         /// Payload sent to webhook
         /// </summary>
         public string Payload { get; set; }
+
+        /// <summary>
+        /// PSID that we are chatting with
+        /// </summary>
+        public string PSID { get; set; }
     }
 }

@@ -7,10 +7,68 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 
-using FM = NantCom.NancyBlack.Modules.FacebookMessengerSystem.FacebookMessengerModule;
+using FM = NantCom.NancyBlack.Modules.FacebookMessengerSystem.FacebookWebHook;
 
 namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
 {
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class StateAttribute : Attribute
+    {
+        public string[] State { get; set; }
+
+        public StateAttribute(params string[] names)
+        {
+            this.State = names;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class RequireChatText : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class RequireSessionData : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class MatchTextExactAttribute : Attribute
+    {
+        public string[] Text { get; set; }
+
+        public MatchTextExactAttribute(params string[] matches )
+        {
+            this.Text = matches;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class RequireOptin : Attribute
+    {
+        /// <summary>
+        /// Referrence Type (optin.ref)
+        /// </summary>
+        public string ReferenceType { get; set; }
+        
+        public RequireOptin(string referenceType)
+        {
+            this.ReferenceType = referenceType;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class RequireAttachments : Attribute
+    {
+    }
+
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ProcessEcho : Attribute
+    {
+    }
+
     /// <summary>
     /// Partial Implementation of Facebook Chat Session
     /// </summary>
@@ -40,9 +98,14 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         public DateTime LastMessageReceived { get; set; }
 
         /// <summary>
-        /// All Previous messages that user have sent
+        /// All Previous messages in this conversation
         /// </summary>
         public List<dynamic> Messages { get; set; }
+
+        /// <summary>
+        /// Current State
+        /// </summary>
+        public string CurrentState { get; set; }
 
         /// <summary>
         /// Session - related data
@@ -78,18 +141,20 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         private NancyBlackDatabase db;
         private dynamic sitesettings;
         private string currentMessageText;
+        private string currentQuickReply;
+
         private delegate bool HandlerMethod( FacebookChatSession session, object message);
 
         /// <summary>
         /// Handlers
         /// </summary>
-        private static List<HandlerMethod> _Handlers;
+        private static List<MethodInfo> _Handlers;
         private static List<HandlerMethod> _OptInHandlers;
 
         /// <summary>
         /// Handles the webhook
         /// </summary>
-        public void HandleWebhook( NancyBlackDatabase db, dynamic siteSettings,  dynamic message )
+        public void HandleWebhook( NancyBlackDatabase db, dynamic siteSettings,  dynamic messaging )
         {
             this.db = db;
             this.sitesettings = siteSettings;
@@ -98,12 +163,12 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
             {
                 this.Messages = new List<dynamic>();
             }
-            this.Messages.Add(message);
+            this.Messages.Add(messaging);
 
-            if (message.optin != null)
+            if (messaging.optin != null)
             {
-                string type = (string)message.optin.@ref;
-                var isActive = FacebookMessengerModule.IsOptInActive(db,
+                string type = (string)messaging.optin.@ref;
+                var isActive = FacebookWebHook.IsOptInActive(db,
                                 this.NcbUserId, type);
 
                 if (!isActive)
@@ -116,14 +181,19 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
                 }
             }
 
-            if (message.message != null)
+            if (messaging.message != null)
             {
-                this.currentMessageText = message.message.text;
+                this.currentMessageText = messaging.message.text;
+
+                if (messaging.message.quick_reply != null)
+                {
+                    this.currentQuickReply = messaging.message.quick_reply.payload;
+                }
             }
-            
+
             if (_Handlers == null)
             {
-                _Handlers = new List<HandlerMethod>();
+                _Handlers = new List<MethodInfo>();
 
                 var methods = from m in this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Static)
                               where
@@ -136,8 +206,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
 
                 foreach (var method in methods)
                 {
-                    HandlerMethod d = (HandlerMethod)Delegate.CreateDelegate(typeof(HandlerMethod), method);
-                    _Handlers.Add(d);
+                    _Handlers.Add(method);
                 }
             }
 
@@ -145,7 +214,94 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
             {
                 try
                 {
-                    var handled = handler(this, message);
+                    if (handler.GetCustomAttribute<ProcessEcho>() != null)
+                    {
+                        // method want to process echo - and this is not echo
+                        if (messaging.message != null && messaging.message.is_echo == null)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // method dont want echo - and this is echo
+                        if (messaging.message != null && messaging.message.is_echo == true)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (handler.GetCustomAttribute<RequireSessionData>() != null)
+                    {
+                        if (this.SessionData == null)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (handler.GetCustomAttribute<RequireChatText>() != null)
+                    {
+                        if (string.IsNullOrEmpty(this.currentMessageText))
+                        {
+                            continue;
+                        }
+                    }
+
+                    var requireOptin = handler.GetCustomAttribute<RequireOptin>();
+                    if (requireOptin != null)
+                    {
+                        if (messaging.optin == null)
+                        {
+                            continue;
+                        }
+
+                        string input = messaging.optin.@ref;
+                        if (input.StartsWith(requireOptin.ReferenceType) == false)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (handler.GetCustomAttribute<RequireAttachments>() != null)
+                    {
+                        if (messaging.message.attachments == null)
+                        {
+                            continue;
+                        }
+                    }
+
+                    var matchA = handler.GetCustomAttribute<MatchTextExactAttribute>();
+                    if (matchA != null)
+                    {
+                        if (string.IsNullOrEmpty(this.currentMessageText))
+                        {
+                            continue;
+                        }
+
+                        bool matched = matchA.Text.Any(s => this.currentMessageText.ToLowerInvariant() == s.ToLowerInvariant());
+                        if (matched == false)
+                        {
+                            continue;
+                        }
+                    }
+
+                    var stateA = handler.GetCustomAttribute<StateAttribute>();
+                    if (stateA != null)
+                    {
+                        if (string.IsNullOrEmpty(this.CurrentState))
+                        {
+                            continue;
+                        }
+
+                        bool stateMatched = stateA.State.Any(s => this.CurrentState == s || this.CurrentState.StartsWith(s));
+                        if (stateMatched == false)
+                        {
+                            continue;
+                        }
+                    }
+
+                    HandlerMethod d = (HandlerMethod)Delegate.CreateDelegate(typeof(HandlerMethod), handler);
+                    var handled = d(this, messaging);
                     if (handled)
                     {
                         break;
@@ -162,6 +318,19 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
 
             db.UpsertRecord(this);
         }
+
+        /// <summary>
+        /// Send Message using send API
+        /// </summary>
+        /// <param name="th"></param>
+        /// <param name="en"></param>
+        /// <param name="quickreplies"></param>
+        /// <returns></returns>
+        private dynamic SendText(string th, string en, params QuickReply[] quickreplies)
+        {
+            return this.SendText(th, en, "RESPONSE", quickreplies);
+        }
+
 
         /// <summary>
         /// Send Message using Send API

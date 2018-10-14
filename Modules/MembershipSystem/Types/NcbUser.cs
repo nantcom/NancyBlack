@@ -1,4 +1,5 @@
 ﻿using Nancy.Security;
+using NantCom.NancyBlack.Modules.AffiliateSystem.types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using Newtonsoft.Json;
@@ -94,6 +95,21 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         public string FacebookPageScopedId { get; set; }
 
         /// <summary>
+        /// Facebook Access Token
+        /// </summary>
+        public dynamic FacebookAccessToken { get; set; }
+
+        /// <summary>
+        /// Google Oauth token of this user
+        /// </summary>
+        public dynamic GoogleOAuthToken { get; set; }
+
+        /// <summary>
+        /// Google Information about current user
+        /// </summary>
+        public dynamic GoogleUserInfo { get; set; }
+
+        /// <summary>
         /// Whether this is an anonymous user
         /// </summary>
         [JsonIgnore]
@@ -104,7 +120,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.Id == 0;
             }
         }
-        
+
+        /// <summary>
+        /// Current Affiliate Registration Record
+        /// </summary>
+        public AffiliateRegistration AffiliateRegistration { get; set; }
+
         /// <summary>
         /// Determine whether user has give claim.
         /// If user has admin claim, this method always return true

@@ -524,6 +524,7 @@ namespace NantCom.NancyBlack.Modules
             // Insert the analytics to Azure Table Storage
             if (this.CurrentSite.analytics != null)
             {
+#if !DEBUG
                 if (this.Request.Headers.UserAgent.StartsWith("Pingdom.com") ||
                     this.Request.Headers.UserAgent.StartsWith("loader.io"))
                 {
@@ -547,6 +548,7 @@ namespace NantCom.NancyBlack.Modules
 
                 this.SendPageView(pageView);
                 skip:;
+#endif
             }
 
 
@@ -563,7 +565,7 @@ namespace NantCom.NancyBlack.Modules
             return View[(string)requestedContent.Layout, new StandardModel(this, requestedContent, requestedContent)];
         }
 
-        #region All Logic Related to Content
+#region All Logic Related to Content
 
         /// <summary>
         /// Get child content of given url
@@ -727,7 +729,7 @@ namespace NantCom.NancyBlack.Modules
             return createdContent;
         }
 
-        #endregion
+#endregion
 
     }
 

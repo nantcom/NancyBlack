@@ -97,6 +97,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime DueDate { get; set; }
 
         /// <summary>
+        /// Date that it sale order was delivered
+        /// </summary>
+        public DateTime DeliveryDate { get; set; }
+
+        /// <summary>
+        /// Date that it sale order was shipped out
+        /// </summary>
+        public DateTime ShipOutDate { get; set; }
+
+        /// <summary>
         /// Prefer language for customer
         /// </summary>
         public string Language { get; set; }
@@ -866,6 +876,91 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         }
 
         /// <summary>
+        /// Figure out Ship out and devliery date if not specified
+        /// </summary>
+        /// <param name="db"></param>
+        public void FindShipoutAndDeliveryDate( NancyBlackDatabase db)
+        {
+            // already figured - skip
+            if (this.ShipOutDate != default(DateTime) &&
+                this.DeliveryDate != default(DateTime))
+            {
+                return;
+            }
+
+            // logic only works with delivered sale order
+            if (this.Status != SaleOrderStatus.Delivered)
+            {
+                return;
+            }
+
+            var history = (from rv in db.Query<RowVersion>().Where(r => r.DataType == "SaleOrder" && r.Action == "update" && r.RowId == this.Id).AsEnumerable()
+                          orderby rv.Id
+                          let a = (rv.RowData.__updatedAt = rv.__createdAt) // make sure updated date is the date of update
+                          select rv.RowData).ToList();
+
+            if (history.Count < 2)
+            {
+                return;
+            }
+
+            var last = history[0];
+            for (int i = 1; i < history.Count; i++)
+            {
+                var current = history[i];
+
+                if (this.ShipOutDate == default(DateTime))
+                {
+                    if ((string)last.Status != SaleOrderStatus.Shipped &&
+                        (string)current.Status == SaleOrderStatus.Shipped)
+                    {
+                        // updated to shipped
+                        this.ShipOutDate = current.__updatedAt;
+                    }
+
+                }
+
+                if (this.DeliveryDate == default(DateTime))
+                {
+                    if ((string)last.Status != SaleOrderStatus.Delivered &&
+                        (string)current.Status == SaleOrderStatus.Delivered)
+                    {
+                        // updated to delivered
+                        this.DeliveryDate = current.__updatedAt;
+                    }
+                }
+            }
+
+            // also no payment received date, use date created
+            if (this.PaymentReceivedDate == default(DateTime))
+            {
+                this.PaymentReceivedDate = this.__createdAt;
+            }
+
+            if (this.ShipOutDate == default(DateTime))
+            {
+                if (this.DeliveryDate != default(DateTime))
+                {
+                    this.ShipOutDate = this.DeliveryDate;
+                }
+                else
+                {
+                    
+                    // make it 2 month after payment date also cannot be figured out
+                    this.ShipOutDate = this.PaymentReceivedDate.AddDays(60);
+                }
+            }
+
+            if (this.DeliveryDate == default(DateTime))
+            {
+                // cannot figure out - use last updated date
+                this.DeliveryDate = this.PaymentReceivedDate.AddDays(60);
+            }
+
+            db.Connection.Update(this); // update without messing with rowversion
+        }
+
+        /// <summary>
         /// get saleorder from NcbUser.Id (customer)
         /// </summary>
         /// <param name="ncbUserId"></param>
@@ -878,5 +973,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                         so.PaymentStatus == NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentStatus.Deposit)).ToList();
 
         }
+
+        
     }
 }

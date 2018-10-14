@@ -110,8 +110,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 if (ctx.CurrentUser == null)
                 {
-                    if (ctx.Request.Url.HostName == "localhost" ||
-                        ctx.Request.Url.HostName.StartsWith( "local." ))
+                    if (ctx.Request.Url.HostName == "localhost")
                     {
                         ctx.CurrentUser = NcbUser.LocalHostAdmin;
                     }
@@ -215,7 +214,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 var existingGuid = Guid.Parse( this.Request.Cookies[BuiltInCookies.UserId] );
 
                 var userName = "fb_" + input.me.id;
-                var user = UserManager.Current.Register(this.SiteDatabase,
+                NcbUser user = UserManager.Current.Register(this.SiteDatabase,
                         userName,
                         input.me.email == null ? userName : (string)input.me.email,
                         this.GetHash( userName ),
@@ -223,7 +222,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                         true,
                         input.me,
                         existingGuid);
-                
+
                 return this.ProcessLogin(user);
             });
 

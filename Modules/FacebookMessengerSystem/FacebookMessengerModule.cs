@@ -19,11 +19,11 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 {
-    public class FacebookMessengerModule : BaseModule
+    public partial class FacebookWebHook : BaseModule
     {
         private Dictionary<string, Func<dynamic>> _Handlers;
 
-        public FacebookMessengerModule()
+        public FacebookWebHook()
         {
             Get["/__fbmp/webhook"] = this.HandleRequest(this.WebhookGet);
 
@@ -34,7 +34,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             Get["/__fbmp/optin/{type}"] = this.HandleRequest((arg)=>
             {
-                return FacebookMessengerModule.IsOptInActive(this.SiteDatabase, this.Context, (string)arg.type);
+                return FacebookWebHook.IsOptInActive(this.SiteDatabase, this.Context, (string)arg.type);
             });
         }
 
@@ -117,7 +117,52 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                 return this.HandleMessagingWebhook(entry, entry.messaging[0]);
             }
 
+            if (entry.changes != null)
+            {
+                this.HandleChangesWebhook(fullbody, entry);
+            }
+
             return "EVENT_RECEIVED";
+        }
+
+        private void HandleChangesWebhook(dynamic fullbody, dynamic entry)
+        {
+            var change = entry.changes[0];
+
+            if (change.field == "live_videos" &&
+                change.value.status == "live")
+            {
+                string id = change.value.id;
+                IEnumerable<dynamic> getIdApiResult = FacebookWebHook.FacebookApiGet(this.CurrentSite, string.Format("/{0}?fields=video,title,description,permalink_url", id));
+
+                var result = getIdApiResult.FirstOrDefault();
+                this.HandleNewLiveVideo(fullbody, id, result);
+                return;
+            }
+
+            if (change.field == "feed" &&
+                change.value.reaction_type != null)
+            {
+                this.HandleReaction(fullbody,
+                    (string)change.value.post_id,
+                    (string)change.value.sender_id,
+                    (string)change.value.sender_name,
+                    (string)change.value.reaction_type,
+                    change.value);
+                return;
+            }
+
+            if (change.field == "feed" &&
+                change.value.comment_id != null)
+            {
+                this.HandleComment(fullbody,
+                    (string)change.value.post_id,
+                    (string)change.value.sender_id,
+                    (string)change.value.sender_name,
+                    (string)change.value.message,
+                    change.value);
+                return;
+            }
         }
 
         private dynamic HandleMessagingWebhook(dynamic entry, dynamic messaging )
@@ -135,11 +180,9 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             // Get the sender PSID
             string customerPSID = messaging.sender.id;
-            bool sentByCustomer = true;
 
             if (customerPSID == (string)entry.id) // this is message sent by bot 
             {
-                sentByCustomer = false;
                 customerPSID = messaging.recipient.id; // so the cusotmer psid is recipient
             }
 
@@ -159,7 +202,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                         existingSession.PageScopedId = customerPSID;
 
                         // no prior session - see if user have logged in with us before
-                        IEnumerable<dynamic> result = FacebookMessengerModule.FacebookApiGet(this.CurrentSite,
+                        IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
                                         "/" + customerPSID + "/ids_for_apps",
                                         true);
 
@@ -193,7 +236,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                 // Update profile if profile is outdated
                 if (DateTime.Now.Subtract(existingSession.LastProfileUpdate).TotalDays > 7)
                 {
-                    IEnumerable<dynamic> result = FacebookMessengerModule.FacebookApiGet(this.CurrentSite,
+                    IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
                                     "/" + customerPSID,
                                     false);
 
@@ -202,20 +245,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                     this.SiteDatabase.UpsertRecord(existingSession);
                 }
 
-                if (sentByCustomer)
-                {
-                    existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, messaging);
-                }
-                else
-                {
-                    if (existingSession.Messages == null)
-                    {
-                        existingSession.Messages = new List<dynamic>();
-                    }
-                    existingSession.Messages.Add(messaging);
-
-                    this.SiteDatabase.UpsertRecord(existingSession);
-                }
+                existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, messaging);
             }
             
             return "EVENT_RECEIVED";
@@ -315,7 +345,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             }
         }
 
-        static FacebookMessengerModule()
+        static FacebookWebHook()
         {
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -371,7 +401,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                 string hash = MemoryCache.Default["FacebookMessengerModule.appsecret_proof"] as string;
                 if (hash == null)
                 {
-                    hash = FacebookMessengerModule.HashHmac((string)siteSettings.FacebookMessenger.PageAccessToken,
+                    hash = FacebookWebHook.HashHmac((string)siteSettings.FacebookMessenger.PageAccessToken,
                                                         (string)siteSettings.Application.FacebookAppSecret);
 
                     MemoryCache.Default["FacebookMessengerModule.appsecret_proof"] = hash;
@@ -459,7 +489,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                 string hash = MemoryCache.Default["FacebookMessengerModule.appsecret_proof"] as string;
                 if (hash == null)
                 {
-                    hash = FacebookMessengerModule.HashHmac((string)siteSettings.FacebookMessenger.PageAccessToken,
+                    hash = FacebookWebHook.HashHmac((string)siteSettings.FacebookMessenger.PageAccessToken,
                                                         (string)siteSettings.Application.FacebookAppSecret);
 
                     MemoryCache.Default["FacebookMessengerModule.appsecret_proof"] = hash;
@@ -523,5 +553,36 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             return optin != null;
         }
+
+        #region Partial Handlers
+
+        /// <summary>
+        /// Handles when where is new live video on page
+        /// </summary>
+        /// <param name="liveId"></param>
+        /// <param name="videoId"></param>
+        partial void HandleNewLiveVideo(dynamic fullbody, string liveId, dynamic videoinfo);
+
+        /// <summary>
+        /// Handle reaction on post, give the post id
+        /// https://developers.facebook.com/docs/graph-api/reference/v3.1/object/reactions
+        /// enum {NONE, LIKE, LOVE, WOW, HAHA, SAD, ANGRY, THANKFUL}
+        /// </summary>
+        /// <param name="postId"></param>
+        /// <param name="values"></param>
+        partial void HandleReaction(dynamic fullbody, string postId, string senderId, string senderName, string reactionType, dynamic values);
+
+        /// <summary>
+        /// Handle comment on postm given the post id
+        /// </summary>
+        /// <param name="fullbody"></param>
+        /// <param name="postId"></param>
+        /// <param name="reactionType"></param>
+        /// <param name="values"></param>
+        partial void HandleComment(dynamic fullbody, string postId, string senderId, string senderName, string message, dynamic values);
+
+        #endregion
+
+
     }
 }

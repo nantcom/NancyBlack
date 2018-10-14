@@ -276,6 +276,29 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="CreatedAt" class="col-sm-4 control-label">Ship Out Date</label>
+                                    <div class="col-sm-8">
+                                        <span ng-show="!orderDetailForm.$visible">
+                                            {{object.ShipOutDate | date: 'medium'}}
+                                        </span>
+                                        <span ng-show="orderDetailForm.$visible">
+                                            <ncb-datepicker model="object.ShipOutDate" format="'dd MMMM yyyy'"></ncb-datepicker>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="CreatedAt" class="col-sm-4 control-label">Delivery Date</label>
+                                    <div class="col-sm-8">
+                                        <span ng-show="!orderDetailForm.$visible">
+                                            {{object.DeliveryDate | date: 'medium'}}
+                                        </span>
+                                        <span ng-show="orderDetailForm.$visible">
+                                            <ncb-datepicker model="object.DeliveryDate" format="'dd MMMM yyyy'"></ncb-datepicker>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label for="Status" class="col-sm-4 control-label">Status</label>
                                     <div class="col-sm-8">
                                         <span class="ncb-editable-span"
@@ -301,29 +324,6 @@
                                     </div>
                                 </div>
 
-                                @*<div class="form-group">
-            <label for="DHLTrackingNumber" class="col-sm-4 control-label">Outbound DHL AWB</label>
-            <div class="col-sm-8">
-                <span class="ncb-editable-span"
-                      id="DHLTrackingNumber"
-                      e-name="DHLTrackingNumber"
-                      editable-text="object.DHLTrackingNumber">
-                    {{object.DHLTrackingNumber || 'empty'}}
-                </span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="InboundDHLTrackingNumber" class="col-sm-4 control-label">Inbound DHL AWB</label>
-            <div class="col-sm-8">
-                <span class="ncb-editable-span"
-                      id="DHLTrackingNumber"
-                      e-name="InboundDHLTrackingNumber"
-                      editable-text="object.InboundDHLTrackingNumber">
-                    {{object.InboundDHLTrackingNumber || 'empty'}}
-                </span>
-            </div>
-        </div>*@
 
                                 <h3>Shipping</h3>
 
@@ -352,7 +352,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <h3>Totals</h3>
 
                                 <div class="form-group">

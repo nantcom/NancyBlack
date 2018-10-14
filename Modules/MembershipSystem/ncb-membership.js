@@ -128,6 +128,12 @@
 
                             processLogin(data, callback);
 
+                            if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
+                                fbq('track', 'CompleteRegistration');
+                            }
+                            ga('send', 'event', 'Login Facebook');
+
+
                         }).
                         error(function (data, status, headers, config) {
 
@@ -153,7 +159,7 @@
                                     "client_id=" + window.facebookAppId +
                                     "&redirect_uri=" + uri +
                                     "&state=" + state +
-                                    "&response_type=token&scope=email,public_profile,user_birthday");
+                                    "&response_type=token&scope=email,public_profile,user_birthday,user_friends");
 
                         } else {
                             
@@ -167,7 +173,7 @@
                                     console.log('User cancelled login or did not fully authorize.');
                                 }
 
-                            }, { scope: 'email,public_profile,user_birthday' });
+                            }, { scope: 'email,public_profile,user_birthday,user_friends' });
                         }
                     }
 
