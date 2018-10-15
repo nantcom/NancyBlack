@@ -76,34 +76,6 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="p"></param>
         public void Hook(IPipelines p)
         {
-            p.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
-            {
-                // Auto-Login Facebook User
-                if (ctx.Request.Cookies.ContainsKey("_ncbfbuser") &&
-                    ctx.Request.Cookies.ContainsKey("_ncfa") == false )
-                {
-                    var userName = "fb_" + ctx.Request.Cookies["_ncbfbuser"];
-
-                    var guid = (Guid?)MemoryCache.Default["Membership-" + userName];
-
-                    if (guid == null)
-                    {
-                        var user = UserManager.Current.Register(this.SiteDatabase, userName, userName, this.GetHash(userName), false, true);
-                        var response = this.LoginWithoutRedirect(user.Guid, DateTime.Now.AddYears(1));
-
-                        ctx.Request.Cookies["_ncfa"] = response.Cookies[0].Value;
-
-                        guid = user.Guid;
-                        MemoryCache.Default.Add("Membership-" + userName, guid, DateTimeOffset.Now.AddDays(1));
-                    }
-                    else
-                    {
-                        ctx.Request.Cookies["_ncfa"] = this.LoginWithoutRedirect(guid.Value).Cookies[0].Value;
-                    }
-                }
-
-                return null;
-            });
 
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
             {
@@ -130,6 +102,16 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 return null;
             });
+
+            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            {
+                if (ctx.CurrentUser.UserName == "Anonymous")
+                {
+                    ctx.Response.WithCookie("_ncbfbuser", "0", DateTime.MinValue);
+                }
+
+            });
+
         }
 
         /// <summary>
@@ -153,7 +135,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             if (user.UserName.StartsWith("fb_"))
             {
-                response = response.WithCookie("_ncbfbuser", user.UserName.Substring(3), nextDay);
+                response = response.WithCookie("_ncbfbuser", "1", nextDay);
             }
             
             return response;

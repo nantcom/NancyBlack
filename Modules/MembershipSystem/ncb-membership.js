@@ -26,17 +26,13 @@
                 throw "Membership was already used in this scope";
             }
 
+
             $scope.membership = {};
             $scope.membership.alerts = [];
 
             var $me = $scope.membership;
 
             $me.currentUser = $window.currentUser;
-
-            $me.closeAlert = function (index) {
-
-                $me.alerts.splice(index, 1);
-            };
 
             if ($me.currentUser == null) {
 
@@ -46,10 +42,23 @@
                     UserName: "Anonymous",
                 };
             }
+
             $me.currentUser.IsFacebookUser = $me.currentUser.UserName.indexOf('fb_') == 0;
             if ($me.currentUser.IsFacebookUser) {
                 $me.currentUser.Picture = "//graph.facebook.com/" + $me.currentUser.UserName.substr(3) + "/picture";
             }
+
+            var loginTimeout = null;
+            loginTimeout = window.setInterval(function () {
+
+                var tried = $me.loginfacebook(null, null, null, true);
+
+                if (tried == true) {
+                    window.clearInterval(loginTimeout);
+                }
+
+            }, 1000);
+
 
 
             var processLogin = function (response, callback) {
@@ -59,19 +68,19 @@
 
                 $me.currentUser.IsFacebookUser = $me.currentUser.UserName.indexOf('fb_') == 0;
                 $me.currentUser.Picture = "//graph.facebook.com/" + $me.currentUser.UserName.substr(3) + "/picture";
-                
+
                 $scope.$broadcast("ncb-membership.login", {
                     sender: $scope,
                     user: response,
                 });
-                
+
                 $scope.$emit("ncb-membership.login", {
                     sender: $scope,
                     user: response,
                 });
 
                 if (callback != null) {
-                    
+
                     callback();
                 }
             };
@@ -85,61 +94,68 @@
                 }
 
                 $http.post('/__membership/login', { Email: email, Password: utils.md5(password) }).
-                success(function (data, status, headers, config) {
+                    success(function (data, status, headers, config) {
 
-                    processLogin(data, callback);
-                }).
-                error(function (data, status, headers, config) {
+                        processLogin(data, callback);
+                    }).
+                    error(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'danger', msg: 'Invalid Credentials' });
-                });
+                        $me.alerts.push({ type: 'danger', msg: 'Invalid Credentials' });
+                    });
 
             };
 
             $me.register = function (email, password, callback) {
 
                 $http.post('/__membership/register', { Email: email, Password: utils.md5(password) }).
-                success(function (data, status, headers, config) {
+                    success(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'success', msg: 'Registration Completed.' });
-                    processLogin(data, callback);
+                        $me.alerts.push({ type: 'success', msg: 'Registration Completed.' });
+                        processLogin(data, callback);
 
-                }).
-                error(function (data, status, headers, config) {
+                    }).
+                    error(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
+                        $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
 
-                });
+                    });
 
             };
 
             $me.loginfacebook = function (callback, popupless, state, isAutologin) {
 
-                if (typeof(FB) == undefined) {
-                    return;
+                if (typeof (FB) == undefined) {
+                    return false;
                 }
 
                 var processFacebookLogin = function () {
 
+                    if (isAutologin && Cookies.get("_ncbfbuser") != null) {
+
+                        // _ncbfbuser will be added at the same time as facebook login 
+                        // so if this cookie is present then there is no need to login again
+                        return;
+                    }
+
                     FB.api('/me?fields=email,first_name,last_name,birthday', function (resultMe) {
-                        
+
                         $http.post('/__membership/loginfacebook', { me: resultMe }).
-                        success(function (data, status, headers, config) {
+                            success(function (data, status, headers, config) {
 
-                            processLogin(data, callback);
+                                processLogin(data, callback);
 
-                            if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
-                                fbq('track', 'CompleteRegistration');
-                            }
-                            ga('send', 'event', 'Login Facebook');
+                                if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
+                                    fbq('track', 'CompleteRegistration');
+                                }
+                                ga('send', 'event', 'Login Facebook');
 
 
-                        }).
-                        error(function (data, status, headers, config) {
+                            }).
+                            error(function (data, status, headers, config) {
 
-                            $me.alerts.push({ type: 'danger', msg: 'Cannot Login' });
+                                $me.alerts.push({ type: 'danger', msg: 'Cannot Login' });
 
-                        });
+                            });
                     });
                 };
 
@@ -156,13 +172,13 @@
 
                             var uri = encodeURI(window.location.href);
                             window.location = encodeURI("https://www.facebook.com/dialog/oauth?" +
-                                    "client_id=" + window.facebookAppId +
-                                    "&redirect_uri=" + uri +
-                                    "&state=" + state +
-                                    "&response_type=token&scope=email,public_profile,user_birthday,user_friends");
+                                "client_id=" + window.facebookAppId +
+                                "&redirect_uri=" + uri +
+                                "&state=" + state +
+                                "&response_type=token&scope=email,public_profile,user_birthday,user_friends");
 
                         } else {
-                            
+
                             FB.login(function (loginResponse) {
 
                                 if (loginResponse.authResponse) {
@@ -183,47 +199,40 @@
                     }
                 });
 
+                return true;
             };
-
-            var loginTimeout = null;
-            loginTimeout = window.setInterval(function () {
-
-                $me.loginfacebook(null, null, null, true);
-                window.clearInterval(loginTimeout);
-
-            }, 2000);
 
             $me.reset = function (code, password, callback) {
 
                 $http.post('/__membership/reset', { Code: code, Password: utils.md5(password) }).
-                success(function (data, status, headers, config) {
+                    success(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'success', msg: 'Password Reset Completed.' });
-                    processLogin(data, callback);
+                        $me.alerts.push({ type: 'success', msg: 'Password Reset Completed.' });
+                        processLogin(data, callback);
 
-                }).
-                error(function (data, status, headers, config) {
+                    }).
+                    error(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
+                        $me.alerts.push({ type: 'danger', msg: 'This email was used.' });
 
-                });
+                    });
 
             };
 
             $me.resetrequest = function (email, callback) {
 
                 $http.post('/__membership/resetrequest', { Email: email }).
-                success(function (data, status, headers, config) {
+                    success(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'success', msg: 'Password reset instructions were sent to your email.' });
-                    processLogin(data, callback);
+                        $me.alerts.push({ type: 'success', msg: 'Password reset instructions were sent to your email.' });
+                        processLogin(data, callback);
 
-                }).
-                error(function (data, status, headers, config) {
+                    }).
+                    error(function (data, status, headers, config) {
 
-                    $me.alerts.push({ type: 'danger', msg: 'Please try again.' });
+                        $me.alerts.push({ type: 'danger', msg: 'Please try again.' });
 
-                });
+                    });
 
             };
 
@@ -234,7 +243,7 @@
                     Guid: '',
                     UserName: "Anonymous",
                 };
-                
+
                 Cookies.remove('_ncfa', { path: '' }); // removed!
                 Cookies.remove('_ncbfbuser', { path: '' }); // removed!
             };
@@ -242,7 +251,7 @@
             $me.isLoggedIn = function () {
 
                 var result = $me.currentUser.Guid != null &&
-                        $me.currentUser.Guid != "" &&
+                    $me.currentUser.Guid != "" &&
                     $me.currentUser.Guid != '00000000-0000-0000-0000-000000000000';
 
                 return result;
@@ -274,6 +283,21 @@
                     });
             };
             
+            $me.closeAlert = function (index) {
+
+                $me.alerts.splice(index, 1);
+            };
+
+            $scope.$broadcast("ncb-membership.ready", {
+                sender: $scope,
+                user: $me,
+            });
+
+            $scope.$emit("ncb-membership.ready", {
+                sender: $scope,
+                user: $me,
+            });
+
         }
 
         return {
@@ -326,7 +350,7 @@
 
             $scope.membership.login($scope.login.email, $scope.login.password, $me.afterLogin);
         };
-        
+
         this.loginfacebook = function () {
 
 
@@ -384,7 +408,7 @@
         $timeout(function () {
 
             // show login modal if from login page
-            if ( window.location.pathname.toLowerCase() == "/__membership/login") {
+            if (window.location.pathname.toLowerCase() == "/__membership/login") {
 
                 $('#loginDialog').modal('show');
             }
@@ -465,7 +489,7 @@
 
                 if (scope.membership.currentUser.Id == 0) {
 
-                    if (typeof(FB) != undefined) {
+                    if (typeof (FB) != undefined) {
 
                         // initialize facebook login
                         FB.getLoginStatus(function (response) {
@@ -478,7 +502,7 @@
                                     scope.membership.loginfacebook(me, null);
                                 });
                             } else {
-                                
+
                                 window.location.href = "/__membership/login";
                             }
                         });
@@ -525,7 +549,7 @@
                                 scope.membership.loginfacebook(me, null);
                             });
                         } else {
-                            
+
                         }
                     });
 

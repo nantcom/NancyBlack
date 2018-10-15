@@ -105,7 +105,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             });
 
             Post["/__commerce/api/checkpromotion"] = this.HandleRequest(this.HandlePromotionCheckRequest);
-            
+
         }
 
         private StandardModel HandleCommercePrint( dynamic arg )

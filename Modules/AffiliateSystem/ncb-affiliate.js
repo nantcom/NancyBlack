@@ -24,7 +24,12 @@
 
             var apply = function (email) {
 
-                $http.post("/__affiliate/apply", { code: 'auto', email: email }).success(function (data) {
+                var sharedCoupon = window.localStorage.getItem("sharedcoupon");
+                if (sharedCoupon != null) {
+                    sharedCoupon = JSON.parse(sharedCoupon);
+                }
+
+                $http.post("/__affiliate/apply", { code: 'auto', email: email, sharedCoupon: sharedCoupon }).success(function (data) {
 
                     var source = Cookies.get("source");
                     var name = Cookies.get("affiliatename");
@@ -40,7 +45,9 @@
                         type: 'success',
                         title: 'ยินดีต้อนรับ SQUAD51 ท่านที่ ' + data.Id,
                         text:
-                            'ลงทะเบียนรับข่าวสารจาก LEVEL51' +
+                            (name == null ? 'และขอเชิญให้คุณ' : name + ' ชวนให้คุณ') +
+
+                            'ลงทะเบียนรับข่าวสารจาก LEVEL51 ผ่านทาง Facebook Messenger ด้วย' +
                             '<div id="subscribebutton"><div class="fb-send-to-messenger" style="width: 210px; margin: 20px auto; display: block"         ' +
                                 'messenger_app_id="1741895542697602"   ' +
                                 'page_id="569378559865549"             ' +
@@ -111,6 +118,65 @@
                     $scope.affiliateSubscribe();
                 }
 
+                if (Cookies.get("coupon") != null && window.localStorage.getItem("sharedcoupon") == null) {
+
+                    var couponId = Cookies.get("coupon");
+                    $http.get("/__affiliate/getsharedcoupon").success(function (data) {
+
+                        if (data.IsValid == false) {
+
+                            swal({
+                                html: true,
+                                type: 'warning',
+                                title: 'ขออภัยเป็นอย่างยิ่ง',
+                                showConfirmButton: true,
+                                showCancelButton: false,
+                                confirmButtonText: "เรียนรู้เพิ่มเติม",
+                                text:
+                                    'คูปองส่วนลดนี้ได้ถูกใช้งานไปแล้ว<br/>' +
+                                    'แต่เรายังมีโปรโมชั่นต่างๆ อีกมากมายสำหรับสมาชิกเว็บไซต์ของเรา'
+                            }, function (answer) {
+
+                                if (answer == true) {
+                                    window.location.href = window.location.origin + "/squad51";
+                                }
+
+                            });
+                            return;
+                        };
+
+                        window.localStorage.setItem("sharedcoupon", JSON.stringify(data));
+
+                        swal({
+                            type: '',
+                            title: '',
+                            text:
+                                '<img src="/__c' + couponId + '.jpg" style="margin-bottom: 5px"/><br/>' +
+                                '<b>' + data.AffiliateName + '</b> มอบคูปองนี้ให้คุณ คุณสามารถใช้งานคูปองนี้ได้ ในหน้าจอจัดเสปคของเครื่องทุกรุ่น' + 
+                                'โดยคูปองส่วนลดนี้จะใช้ได้จนกว่าจะปิดหน้าต่างนี้'
+                            ,
+                            html: true,
+                            closeOnConfirm: true,
+                            showConfirmButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: "บันทึกโค๊ดส่วนลดไว้ในโปรไฟล์",
+                            cancelButtonText: "ไม่บันทึก",
+                            animation: "slide-from-top"
+
+                        }, function (answer) {
+
+                            
+
+                            if (answer == true) {
+
+                                $scope.affiliateProcessSubscribe();
+
+                            }
+
+                        });
+
+                    });
+                }
             }
 
             

@@ -238,10 +238,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                     p.Price = rewards.CodeDiscountAmount;
                     p.Attributes = new
                     {
-                        description = "Discount Rewards for " + reg.AffiliateName + " minimum purchase" + rewards.MinimumPurchaseAmount,
-                        limit = rewards.MinimumPurchaseAmount,
+                        description = "Discount Rewards for " + reg.AffiliateName + " minimum purchase: " + rewards.MinimumPurchaseAmount,
+                        min = rewards.MinimumPurchaseAmount,
                         onetime = true,
-                        until = until
+                        until = until,
+                        discount = rewards.CodeDiscountAmount,
+                        affiliateName = reg.AffiliateName,
                     };
                     db.UpsertRecord(p);
 

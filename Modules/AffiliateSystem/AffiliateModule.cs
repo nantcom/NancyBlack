@@ -417,6 +417,38 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return 400;
                 }
 
+                var reg = AffiliateModule.ApplyAffiliate(this.SiteDatabase, this.CurrentUser.Id);
+
+                var body = arg.body.Value;
+                if (body.sharedCoupon != null)
+                {
+                    var discountCode = (string)body.sharedCoupon.CouponCode;
+
+                    lock (BaseModule.GetLockObject("SharedCouponCheck-" + reg.Id))
+                    {
+                        // prevent dubplicates
+                        var existing = this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                                                .Where(c => c.DiscountCode == discountCode && c.AffiliateRegistrationId == reg.Id)
+                                                .FirstOrDefault();
+
+                        if (existing == null)
+                        {
+                            var toCopy = this.SiteDatabase.GetById<AffiliateRewardsClaim>((int)body.sharedCoupon.CouponId);
+
+                            toCopy.Id = 0;
+                            toCopy.AffiliateRegistrationId = reg.Id;
+                            toCopy.AffiliateCode = reg.AffiliateCode;
+                            toCopy.NcbUserId = this.CurrentUser.Id;
+                            toCopy.RewardsName = "shared from ID:" + body.sharedCoupon.AffiliateId;
+                            toCopy.IsShareEnabled = false;
+
+                            this.SiteDatabase.UpsertRecord(toCopy);
+                        }
+                    }
+
+                }
+
+
                 return AffiliateModule.ApplyAffiliate( this.SiteDatabase, this.CurrentUser.Id);
             });
 
@@ -776,6 +808,58 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
             //    return "OK";
             //});
+
+            Get["/__affiliate/getsharedcoupon"] = this.HandleRequest((arg) =>
+            {
+                if (this.Request.Cookies.ContainsKey("coupon"))
+                {
+                    var id = this.Request.Cookies["coupon"];
+                    var coupon = this.SiteDatabase.GetById<AffiliateRewardsClaim>(int.Parse(id));
+
+                    if (coupon != null)
+                    {
+                        if (coupon.IsShareEnabled == false)
+                        {
+                            return 404;
+                        }
+
+                        var couponProduct = this.SiteDatabase.GetById<Product>(coupon.ProductId);
+                        if (couponProduct.Url.Contains("/archive/"))
+                        {
+                            return new {
+                                IsValid = false
+                            };
+                        }
+
+                        var reg = this.SiteDatabase.GetById<AffiliateRegistration>(coupon.AffiliateRegistrationId);
+
+                        return new
+                        {
+                            AffiliateId = reg.Id,
+                            AffiliateName = reg.AffiliateName,
+                            AffiliateRewardsId = coupon.AffiliateRewardsId,
+                            CouponId = coupon.Id,
+                            CouponCode = coupon.DiscountCode,
+                            CouponAttributes = coupon.CouponAttributes
+                        };
+                    }
+                }
+
+                return 404;
+            });
+
+            Get["/__affiliate/myrewards"] = this.HandleRequest((arg) =>
+            {
+                if (this.CurrentUser.IsAnonymous)
+                {
+                    return 401;
+                }
+
+                return this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                           .Where(c => c.NcbUserId == this.CurrentUser.Id)
+                           .AsEnumerable();
+
+            });
 
         }
 
