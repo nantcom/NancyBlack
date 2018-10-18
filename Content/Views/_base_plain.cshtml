@@ -144,6 +144,21 @@
             module.controller( "BaseController", function($scope) {
                 $scope.PAGE_URL = window.location.href;
                 $scope.Math = window.Math;
+
+                $scope.TicksToDate = function( input ) {
+
+                    var epochTicks = 621355968000000000,    // the number of .net ticks at the unix epoch
+                        ticksPerMillisecond = 10000,        // there are 10000 .net ticks per millisecond
+                        jsTicks = 0,                        // ticks in javascript environment
+
+                    jsTicks = (input - epochTicks) / ticksPerMillisecond;
+                    return new Date(jsTicks); // N.B. Js applies local timezone in automatic
+                }
+
+                if (typeof(moment) != "undefined") {
+                    $scope.moment = moment;
+                }
+
             });
 
         })();

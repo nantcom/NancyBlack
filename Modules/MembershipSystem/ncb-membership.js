@@ -124,7 +124,7 @@
 
             $me.loginfacebook = function (callback, popupless, state, isAutologin) {
 
-                if (typeof (FB) == undefined) {
+                if (typeof (FB) == "undefined") {
                     return false;
                 }
 
@@ -145,7 +145,20 @@
                                 processLogin(data, callback);
 
                                 if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
+
                                     fbq('track', 'CompleteRegistration');
+                                    ga('send', 'event', 'Register via Facebook');
+
+                                    if ($scope.socialprove != null) {
+
+                                        $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify( resultMe ));
+                                    }
+
+                                }
+
+                                if ($scope.socialprove != null) {
+
+                                    $scope.socialprove.getprovewithdata('Login', JSON.stringify(resultMe));
                                 }
                                 ga('send', 'event', 'Login Facebook');
 
