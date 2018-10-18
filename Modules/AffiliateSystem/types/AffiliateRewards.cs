@@ -67,6 +67,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         public bool IsCodeDiscount { get; set; }
 
         /// <summary>
+        /// Whether this free gift in sale order
+        /// </summary>
+        public bool IsFreeGiftInSaleOrder { get; set; }
+
+        /// <summary>
         /// Discount Amount
         /// </summary>
         public Decimal CodeDiscountAmount { get; set; }
@@ -90,6 +95,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// Whether this reward is active
         /// </summary>
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Whether this reward is for admin only
+        /// </summary>
+        public bool IsAdminOnly { get; set; }
 
         /// <summary>
         /// Terms and Condition to be displayed
@@ -154,6 +164,10 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                 stat = JObject.FromObject(statIn)
                               .ToObject<AffiliateReward>();
             }
+            
+            var claimed = db.Query<AffiliateRewardsClaim>()
+                           .Where(c => c.AffiliateRewardsId == rewards.Id && c.AffiliateRegistrationId == reg.Id)
+                           .Count();
 
             Func<AffiliateReward, AffiliateReward, Func<AffiliateReward, int?>, bool> compareStat = (rew, st, prop) =>
             {
@@ -163,12 +177,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                     return false;
                 }
 
+                if (prop(rew) == 0)
+                {
+                    if (rew.IsOneTime && claimed > 0) // if one time and already claimed, cannot claim anymore
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+
                 var multiple = prop(st) / prop(rew);
-
-                var claimed = db.Query<AffiliateRewardsClaim>()
-                               .Where(c => c.AffiliateRewardsId == rew.Id && c.AffiliateRegistrationId == reg.Id)
-                               .Count();
-
                 var remaining = multiple - claimed;
 
                 if (rew.IsOneTime && claimed > 0) // if one time and already claimed, cannot claim anymore
@@ -218,7 +237,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
             var reg = db.GetById<AffiliateRegistration>(registrationId);
             var rewards = db.GetById<AffiliateReward>(rewardsId);
 
-            if (rewards.IsCodeDiscount)
+            if (rewards.IsCodeDiscount || rewards.IsFreeGiftInSaleOrder)
             {
                 var until = DateTime.MaxValue.Ticks;
 
@@ -234,22 +253,58 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                 AffiliateRewardsClaim claim = null;
                 db.Transaction(() =>
                 {
+                    // free gift also gets created as code
+
                     Product p = new Product();
-                    p.Price = rewards.CodeDiscountAmount;
-                    p.Attributes = new
+
+                    if (rewards.IsCodeDiscount)
                     {
-                        description = "Discount Rewards for " + reg.AffiliateName + " minimum purchase: " + rewards.MinimumPurchaseAmount,
-                        min = rewards.MinimumPurchaseAmount,
-                        onetime = true,
-                        until = until,
-                        discount = rewards.CodeDiscountAmount,
-                        affiliateName = reg.AffiliateName,
-                    };
+                        p.Price = rewards.CodeDiscountAmount * -1;
+                        p.Attributes = new
+                        {
+                            rewardId = rewards.Id,
+                            description = "Discount Rewards for " + reg.AffiliateName + ", minimum purchase: " + rewards.MinimumPurchaseAmount,
+                            min = rewards.MinimumPurchaseAmount,
+                            onetime = true,
+                            until = until,
+                            discount = rewards.CodeDiscountAmount,
+                            affiliateName = reg.AffiliateName,
+                        };
+                    }
+
+                    if (rewards.IsFreeGiftInSaleOrder)
+                    {
+                        p.DiscountPrice = 0;
+                        p.Price = rewards.CodeDiscountAmount;
+                        p.PromotionEndDate = new DateTime(until);
+                        p.MasterProductId = rewards.RewardsProductId;
+                        p.IsVariation = true;
+
+                        p.Attributes = new
+                        {
+                            rewardId = rewards.Id,
+                            description = rewards.Title + ", minimum purchase: " + rewards.MinimumPurchaseAmount,
+                            min = rewards.MinimumPurchaseAmount,
+                            onetime = true,
+                            until = until,
+                            discount = rewards.CodeDiscountAmount, 
+                            isfreeproduct = 1,
+                            affiliateName = reg.AffiliateName,
+                        };
+                    }
+
                     db.UpsertRecord(p);
 
                     var code = hashids.Encode(p.Id, reg.Id);
                     p.Url = "/promotions/code/" + code;
                     p.Title = "Affiliate Discount: " + code;
+
+
+                    if (rewards.IsFreeGiftInSaleOrder)
+                    {
+                        p.Title = "GIFT ITEM:" + rewards.Title;
+                    }
+
                     db.UpsertRecord(p);
 
                     claim = new AffiliateRewardsClaim();

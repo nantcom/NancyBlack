@@ -48,20 +48,22 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// <summary>
         /// Creates the click tracking from current context
         /// </summary>
-        public static void CreateFromContext( NancyContext ctx, NancyBlackDatabase db, int affiliateRegistrationId)
+        public static void CreateFromContext( NancyContext ctx, NancyBlackDatabase db, AffiliateRegistration reg)
         {
+            var owner = db.GetById<NcbUser>(reg.NcbUserId);
             var record = new AffiliateShareClick();
+
             record.UserId = ctx.Request.Cookies["userid"];
 
             // wont track own click
-            if (record.UserId == (ctx.CurrentUser as NcbUser).Guid.ToString())
+            if (record.UserId == owner.Guid.ToString())
             {
                 return;
             }
 
             record.IPAddress = ctx.Request.UserHostAddress;
             record.Url = ctx.Request.Url.Path + "?" + ctx.Request.Url.Query;
-            record.AffiliateRegistrationId = affiliateRegistrationId;
+            record.AffiliateRegistrationId = reg.Id;
 
             db.UpsertRecord(record);
         }

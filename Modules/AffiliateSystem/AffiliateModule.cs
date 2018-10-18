@@ -96,53 +96,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
         static AffiliateModule()
         {
             CommerceModule.PaymentSuccess += CommerceModule_PaymentSuccess;
-            NancyBlackDatabase.ObjectCreated += NancyBlackDatabase_ObjectCreated;
-        }
-
-        private static void NancyBlackDatabase_ObjectCreated(NancyBlackDatabase db, string table, dynamic created)
-        {
-            if (table == "NcbMailingListSubscription")
-            {
-                string affiliateCode = created.RefererAffiliateCode;
-                var registration = db.Query<AffiliateRegistration>().Where(r => r.AffiliateCode == affiliateCode).FirstOrDefault();
-
-                if (registration == null)
-                {
-                    return;
-                }
-
-                var user = db.GetById<NcbUser>(registration.NcbUserId);
-                if (user == null)
-                {
-                    return;
-                }
-
-                int sub = db.QueryAsDynamic("SELECT COUNT(Id) As Count FROM NcbMailingListSubscription WHERE RefererAffiliateCode=?",
-                                new { Count = 0 },
-                                new object[] { registration.AffiliateCode }).First().Count;
-
-
-                var path = Path.Combine(AffiliateModule.TemplatePath, "Affiliate-NewSubscription.html");
-                string emailBody = File.ReadAllText(path);
-
-                var message = "เพียงแค่อีก {{To5}} เรามีโค๊ดส่วนลดแจกให้คุณ <b>2,000 บาท</b> แล้วก็ถ้ามีเพื่อนคุณมาสมัครรับข่าวจากเราอีกแค่ {{To10}} คนละก็ รับไปเลย กระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> นะจ๊ะ";
-
-                if (sub >= 5)
-                {
-                    message = "ตอนนี้มีคนมาสมัครครบ 5 คนแล้ว คลิกเข้าไปที่ Dashboard เพื่อขอโค๊ดลด <b>2,000 บาท</b> ของคุณได้เลย และถ้ามีเพื่อนมาอีก {{To10}}  คนละก็ รับไปเลย กระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> นะจ๊ะ";
-                }
-
-                if (sub >= 10)
-                {
-                    message = "ตอนนี้มีคนมาสมัครครบ 5 คนแล้ว คลิกเข้าไปที่ Dashboard เพื่อขอโค๊ดลด <b>2,000 บาท</b> ของคุณได้เลย และก็รอรับกระเป๋า SWISSGEAR เวอร์ชั่น LEVEL51 มีแค่ 200 ใบในโลก <b>มูลค่า 2,790 บาท</b> อยู่ที่บ้านได้เลย เราจะติดต่อไปนะจ๊ะ";
-                }
-
-                emailBody = emailBody.Replace("{{SubscriberTotal}}", sub.ToString());
-                emailBody = emailBody.Replace("{{ConvinceMessage}}", message.Replace("{{To5}}", (5 - sub).ToString()).Replace("{{To10}}", (10 - sub).ToString()));
-                emailBody = emailBody.Replace("{{Code}}", registration.AffiliateCode);
-
-                MailSenderModule.SendEmail(user.Email, "We have new subscriber thanks to you!", emailBody);
-            }
         }
 
         private static void CommerceModule_PaymentSuccess(SaleOrder so, DatabaseSystem.NancyBlackDatabase db)
@@ -1039,8 +992,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         Downline = AffiliateModule.DiscoverDownLine(this.SiteDatabase, registration.AffiliateCode),
 
-                        Rewards = from rew in this.SiteDatabase.Query<AffiliateReward>().AsEnumerable()
-                                  select addCanClaim( rew ),
+                        Rewards = this.SiteDatabase.Query<AffiliateReward>().AsEnumerable()
+                                      .Where( rew => rew.IsAdminOnly ? this.CurrentUser.HasClaim("admin") : true )
+                                      .Select( rew => addCanClaim( rew ) ),
 
                         RewardsStat = stat,
 

@@ -118,7 +118,7 @@
                     $scope.affiliateSubscribe();
                 }
 
-                if (Cookies.get("coupon") != null && window.localStorage.getItem("sharedcoupon") == null) {
+                if (Cookies.get("coupon") != "" && Cookies.get("coupon") != null) {
 
                     var couponId = Cookies.get("coupon");
                     $http.get("/__affiliate/getsharedcoupon").success(function (data) {
@@ -144,16 +144,13 @@
                             });
                             return;
                         };
-
-                        window.localStorage.setItem("sharedcoupon", JSON.stringify(data));
-
+                        
                         swal({
                             type: '',
                             title: '',
                             text:
                                 '<img src="/__c' + couponId + '.jpg" style="margin-bottom: 5px"/><br/>' +
-                                '<b>' + data.AffiliateName + '</b> มอบคูปองนี้ให้คุณ คุณสามารถใช้งานคูปองนี้ได้ ในหน้าจอจัดเสปคของเครื่องทุกรุ่น' + 
-                                'โดยคูปองส่วนลดนี้จะใช้ได้จนกว่าจะปิดหน้าต่างนี้'
+                                '<b>' + data.AffiliateName + '</b> มอบคูปองนี้ให้คุณ'
                             ,
                             html: true,
                             closeOnConfirm: true,
@@ -165,12 +162,14 @@
 
                         }, function (answer) {
 
-                            
 
                             if (answer == true) {
 
                                 $scope.affiliateProcessSubscribe();
 
+                            } else {
+
+                                Cookies.set("coupon", "");
                             }
 
                         });
