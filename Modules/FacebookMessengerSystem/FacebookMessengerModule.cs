@@ -163,6 +163,12 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                     change.value);
                 return;
             }
+
+            if (change.field == "leadgen")
+            {
+                this.HandleLeadGenSetup(fullbody, change.value);
+                return;
+            }
         }
 
         private dynamic HandleMessagingWebhook(dynamic entry, dynamic messaging )
@@ -327,6 +333,51 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             return 200;
         }
+        
+        /// <summary>
+        /// Handle lead generation ad
+        /// </summary>
+        /// <param name="fullbody"></param>
+        /// <param name="values"></param>
+        private void HandleLeadGenSetup(dynamic fullbody, dynamic values)
+        {
+            var leadId = (string)values.leadgen_id;
+            var created_time = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    .AddMilliseconds((long)values.created_time)
+                    .ToLocalTime();
+
+            IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite, "/" + leadId);
+
+            var lead = result.FirstOrDefault();
+            if (lead == null)
+            {
+                MailSenderModule.SendEmail("company@nant.co", "LeadGen Error - Cannot get Lead", "Lead Id: " + leadId);
+                return;
+            }
+
+            JObject fieldValues = new JObject();
+            foreach (var field in lead.field_data as JArray)
+            {
+                if (field["values"].Count() == 1)
+                {
+                    fieldValues.Add(field["name"].Value<string>(), field["values"][0].Value<string>());
+                }
+                else
+                {
+                    fieldValues.Add(field["name"].Value<string>(), field["values"]);
+                }
+            }
+
+            this.HandleLeadGen(
+                (string)values.ad_id,
+                (string)values.form_id,
+                (string)values.leadgen_id,
+                created_time,
+                (string)values.page_id,
+                (string)values.adgroup_id,
+                (object)lead,
+                fieldValues);
+        }
 
         /// <summary>
         /// PHP Compatible hash_hmac from : https://stackoverflow.com/questions/12804231/c-sharp-equivalent-to-hash-hmac-in-php
@@ -449,7 +500,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <returns></returns>
         public static dynamic FacebookApiPost(dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            RestClient client = new RestClient("https://graph.facebook.com/v2.11/");
+            RestClient client = new RestClient("https://graph.facebook.com/v3.1/");
             RestRequest req = new RestRequest(url, Method.POST);
 
             // add parameters
@@ -499,8 +550,15 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             req.AddQueryParameter("access_token", (string)siteSettings.FacebookMessenger.PageAccessToken);
 
-            req.RequestFormat = DataFormat.Json;
-            req.AddJsonBody(payload);
+            if (payload is string)
+            {
+                req.AddParameter("payload", payload);
+            }
+            else
+            {
+                req.RequestFormat = DataFormat.Json;
+                req.AddJsonBody(payload);
+            }
 
             var response = client.Execute(req);
 
@@ -580,6 +638,12 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <param name="reactionType"></param>
         /// <param name="values"></param>
         partial void HandleComment(dynamic fullbody, string postId, string senderId, string senderName, string message, dynamic values);
+
+        /// <summary>
+        /// Handle Leads Creation
+        /// </summary>
+        /// <param name="lead"></param>
+        partial void HandleLeadGen( string ad_id, string form_id, string leadgen_id, DateTime created_time, string page_id, string adgroup_id, object lead, JObject field_data);
 
         #endregion
 

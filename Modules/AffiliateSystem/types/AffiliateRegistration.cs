@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 {
-    public class AffiliateRegistration : IStaticType
+    public partial class AffiliateRegistration : IStaticType
     {
         /// <summary>
         /// Id of the user
@@ -67,6 +67,31 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// Total Unique Affiliate Clicks
         /// </summary>
         public int TotalSubscribeLinkClicks { get; set; }
+
+        /// <summary>
+        /// Total Sales so far
+        /// </summary>
+        public int TotalSales { get; set; }
+
+        /// <summary>
+        /// Any additional data
+        /// </summary>
+        public dynamic AdditionalData { get; set; }
+
+        /// <summary>
+        /// Bonus XP
+        /// </summary>
+        public int BonusPoints { get; set; }
+
+        /// <summary>
+        /// Update commission rate - calculation must be done in OnUpdateCommissionRate function
+        /// </summary>
+        public void UpdateCommissionRate()
+        {
+            this.OnUpdateCommissionRate();
+        }
+
+        partial void OnUpdateCommissionRate();
 
         #region Static Type Properties
 

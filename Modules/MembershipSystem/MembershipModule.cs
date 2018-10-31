@@ -79,7 +79,6 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
             {
-
                 if (ctx.CurrentUser == null)
                 {
                     if (ctx.Request.Url.HostName == "localhost")
@@ -105,7 +104,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
-                if (ctx.CurrentUser.UserName == "Anonymous")
+                if (ctx.CurrentUser == null || ctx.CurrentUser.UserName == "Anonymous")
                 {
                     ctx.Response.WithCookie("_ncbfbuser", "0", DateTime.MinValue);
                 }
@@ -143,6 +142,17 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
 
         private static string _FailSafeCode;
+
+        /// <summary>
+        /// Current Fail Safe code
+        /// </summary>
+        public static string FailSafeCode
+        {
+            get
+            {
+                return _FailSafeCode;
+            }
+        }
 
         public MembershipModule()
         {
@@ -247,29 +257,30 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             Post["/__membership/api/updateprofile"] = this.HandleRequest(this.UpdateProfile);
 
-            Get["/__membership/fixuser"] = this.HandleRequest((arg) =>
+            Get["/__membership/impersonate/{guid}"] = this.HandleRequest((arg) =>
             {
-                // fix user
-                var users = this.SiteDatabase.Query<NcbUser>().ToList();
-
-                foreach (var u in users)
+                if (this.Request.Query.failsafetoken != null)
                 {
-                    if (u.Profile != null && u.Profile.email != null)
+                    if (this.Request.Query.failsafetoken != _FailSafeCode)
                     {
-                        u.Email = u.Profile.email;
-                        this.SiteDatabase.UpsertRecord(u);
+                        return 403;
                     }
-
-                    if (u.Profile != null && u.Profile.id != null)
+                }
+                else
+                {
+                    if (this.CurrentUser.HasClaim("admin") == false)
                     {
-                        u.UserName = "fb_" + u.Profile.id;
-                        this.SiteDatabase.UpsertRecord(u);
+                        return 403;
                     }
                 }
 
-                return "OK";
+                string guid = arg.guid;
+                var user = UserManager.Current.GetUserFromIdentifier(Guid.Parse(guid), this.Context);
 
+                return this.ProcessLogin(user as NcbUser);
             });
+
+
         }
 
         private dynamic HandlePasswordRequest(dynamic arg)

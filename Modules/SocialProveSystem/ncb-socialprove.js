@@ -58,7 +58,7 @@
                             return;
                         }
 
-                        if (time == 5) {
+                        if (time == 8) {
                             // hide and apply the item
                             $scope.$apply(function () {
                                 $me.current = myItem;

@@ -49,12 +49,22 @@
                         $scope.data.totalCanWithdraw += parseFloat(item.CommissionAmount);
                     }
                 });
+            }
 
-                if ($scope.data.Profile.birthday != null) {
-                    $scope.data.Profile.birthday = new Date($scope.data.Profile.birthday);
-                }
+            $scope.so = $scope.data.ActiveSaleOrder;
 
-                $scope.so = $scope.data.ActiveSaleOrder;
+            if ($scope.data.Profile != null && $scope.data.Profile.birthday != null) {
+                $scope.data.Profile.birthday = new Date($scope.data.Profile.birthday);
+            }
+
+            if ($scope.data.ShareClicks != null) {
+                $scope.data.TotalShareClicks = 0;
+
+                $scope.data.ShareClicks.forEach(function (item) {
+
+                    $scope.data.TotalShareClicks += item.Count;
+                    $scope.data.ShareClicks[item.Url] = item;
+                });
             }
         }
 

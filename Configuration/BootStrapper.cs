@@ -331,7 +331,7 @@ namespace NantCom.NancyBlack.Configuration
                 if (ctx.Request.Cookies.ContainsKey("userid"))
                 {
                     ctx.Response.Cookies.Add(
-                        new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddDays(1)));
+                        new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddYears(10)));
                 }
 
                 GlobalVar.Default.Persist(ctx.Items["SiteDatabase"] as NancyBlackDatabase);

@@ -125,49 +125,6 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return;
             }
 
-            var oldRate = registration.Commission;
-            {
-                // calculate commission  rate based on number of transaction
-                int count = db.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateTransaction WHERE AffiliateCode=?",
-                                new { Count = 0 },
-                                new object[] { so.AffiliateCode }).First().Count;
-
-                if (count >= 2)
-                {
-                    registration.Commission = 0.02M;
-                }
-
-                if (count >= 6)
-                {
-                    registration.Commission = 0.05M;
-                }
-            }
-
-            {
-                // and also number of unique ip
-                int ipCount = db.QueryAsDynamic("SELECT COUNT(DISTINCT UserIP) As Count FROM PageView WHERE AffiliateCode=?",
-                                new { Count = 0 },
-                                new object[] { so.AffiliateCode }).First().Count;
-
-                var ipCount10000 = (ipCount / 10000);
-                var rate = (ipCount10000 / 100d) + 0.01;
-
-                if (rate > 0.05)
-                {
-                    rate = 0.05;
-                }
-
-                if (rate > (double)registration.Commission)
-                {
-                    registration.Commission = (Decimal)rate;
-                }
-            }
-
-            if (registration.Commission > oldRate)
-            {
-                db.UpsertRecord(registration);
-            }
-
             // create a transaction
             AffiliateTransaction commission = new AffiliateTransaction();
             commission.AffiliateCode = so.AffiliateCode;
@@ -890,12 +847,22 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
         private dynamic AffiliateDashboard(AffiliateRegistration registration, dynamic arg)
         {
-            var content = ContentModule.GetPage(SiteDatabase, "/__affiliate", true);
+            dynamic affiliateFacts = MemoryCache.Default["affiliatefacts"];
+            if (affiliateFacts == null)
+            {
+                affiliateFacts = new
+                {
+                    Total = this.SiteDatabase.Query<AffiliateRegistration>().Count(),
+                    TotalActive = this.SiteDatabase.Query("SELECT Distinct AffiliateCode FROM AffiliateTransaction", new { Count = 0 }).Count(),
+                    PayoutStats = this.SiteDatabase.Query("SELECT Count(Id) as Count, Avg(CommissionAmount) as Avg, Sum(CommissionAmount) as Sum FROM AffiliateTransaction", new { Count = 0, Avg = 0.0M, Sum = 0.0M }).FirstOrDefault(),
+                };
+                MemoryCache.Default.Add("affiliatefacts", affiliateFacts, DateTimeOffset.Now.AddHours(1));
+            }
 
+            var content = ContentModule.GetPage(SiteDatabase, "/__affiliate", true);
 
             var standardModel = new StandardModel(200);
             standardModel.Content = content;
-
 
             if (registration != null)
             {
@@ -958,10 +925,28 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         return toReturn;
                     };
 
+                    AffiliateRegistration refererReg;
+                    refererReg = this.SiteDatabase.Query<AffiliateRegistration>()
+                                         .Where(reg => reg.AffiliateCode == registration.RefererAffiliateCode)
+                                         .FirstOrDefault();
+
+                    if (refererReg != null)
+                    {
+                        var refererUser = this.SiteDatabase.GetById<NcbUser>(refererReg.NcbUserId);
+                        refererReg.AdditionalData = new
+                        {
+                            Id = refererUser.Profile.id
+                        };
+                    }
+
                     dashboardData = new
                     {
+                        Referer = refererReg,
+
                         Registration = registration,
+
                         Code = registration.AffiliateCode,
+
                         RelatedOrders = this.SiteDatabase.Query<SaleOrder>()
                                             .Where(so => so.AffiliateCode == registration.AffiliateCode)
                                             .AsEnumerable()
@@ -986,9 +971,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                             new { Count = 0 },
                             new object[] { registration.AffiliateCode }).First().Count,
 
-                        TotalShareClicks = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateShareClick WHERE AffiliateRegistrationId=?",
-                            new { Count = 0 },
-                            new object[] { registration.Id }).First().Count,
+                        ShareClicks = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count, Url FROM AffiliateShareClick WHERE AffiliateRegistrationId=? GROUP By Url",
+                            new { Count = 0, Url = "" },
+                            new object[] { registration.Id }),
 
                         Downline = AffiliateModule.DiscoverDownLine(this.SiteDatabase, registration.AffiliateCode),
 
@@ -1000,7 +985,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         ClaimedRewards = this.SiteDatabase.Query<AffiliateRewardsClaim>()
                                                           .Where( c => c.NcbUserId == registration.NcbUserId)
-                                                          .AsEnumerable()
+                                                          .AsEnumerable(),
+
+                        AffiliateFacts = affiliateFacts
                     };
 
 #if !DEBUG
@@ -1009,7 +996,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     UpdatePageView(registration);
                 }
 
-                standardModel.Data = dashboardData;
+                standardModel.Data = JObject.FromObject( dashboardData );
             }
 
 
@@ -1143,6 +1130,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                     reg.LastPageViewUpdate = DateTime.Now;
                     reg.TotalUniqueUser += userSet.Count;
+                    reg.TotalSales = SiteDatabase.Query<SaleOrder>()
+                                        .Where(so => so.AffiliateCode == reg.AffiliateCode &&
+                                               so.PaymentStatus == PaymentStatus.PaymentReceived).Count();
+
+                    reg.UpdateCommissionRate();
 
                     SiteDatabase.UpsertRecord(reg);
 

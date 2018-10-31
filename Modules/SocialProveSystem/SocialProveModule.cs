@@ -69,37 +69,49 @@ namespace NantCom.NancyBlack.Modules.SocialProveSystem
                 var spestat = MemoryCache.Default[cacheKey] as SocialProveStat;
                 if (spestat == null)
                 {
-                    var time = 30;
-
-                    loadmore:
-
-                    // find all event of same day in past time
-                    var past60Minutes = DateTime.Now.AddMinutes(time * -1).ToString("HH-mm");
-                    var speQueryString = TableQuery.CombineFilters(
-                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, spe.PartitionKey),
-                                    TableOperators.And,
-                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, past60Minutes));
-
-                    var speQuery = new TableQuery<SocialProveEvent>();
-
-                    var rawData = table.ExecuteQuery<SocialProveEvent>(speQuery.Where(speQueryString)).ToList();
-
-                    spestat = new SocialProveStat();
-                    spestat.DataList = rawData.Select(r => r.EventData).Distinct().ToList();
-                    spestat.Total = rawData.Count;
-                    spestat.Distinct = rawData.Distinct(_Comparer).Count();
-                    spestat.TimeInterval = time;
-
-                    if (spestat.Total < 50 )
+                    lock (BaseModule.GetLockObject(cacheKey))
                     {
-                        time = time + 30;
-                        if (time < 60 * 8) // up to 8 hours
+                        spestat = MemoryCache.Default[cacheKey] as SocialProveStat;
+                        if (spestat != null) // other thread might done it
                         {
-                            goto loadmore;
+                            spestat.Total += 1; // increase count on our side
+                            return spestat;
                         }
-                    }
 
-                    MemoryCache.Default.Add(cacheKey, spestat, DateTimeOffset.Now.AddMinutes(1));
+                        var time = 60;
+
+                        loadmore:
+
+                        var start = DateTime.Now.AddMinutes(time * -1);
+                        var partitionKey = start.ToString("yyyyMMdd") + "|" + Uri.EscapeDataString(eventName);
+                        var rowKey = start.ToString("HH-mm");
+
+                        var speQueryString = TableQuery.CombineFilters(
+                                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey),
+                                        TableOperators.And,
+                                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, rowKey));
+
+                        var speQuery = new TableQuery<SocialProveEvent>();
+
+                        var rawData = table.ExecuteQuery<SocialProveEvent>(speQuery.Where(speQueryString)).ToList();
+
+                        spestat = new SocialProveStat();
+                        spestat.DataList = rawData.Select(r => r.EventData).Distinct().ToList();
+                        spestat.Total = rawData.Count;
+                        spestat.Distinct = rawData.Distinct(_Comparer).Count();
+                        spestat.TimeInterval = time;
+
+                        if (spestat.Total < 50)
+                        {
+                            time = time + 60;
+                            if (time < 60 * 24) // up to 8 hours
+                            {
+                                goto loadmore;
+                            }
+                        }
+
+                        MemoryCache.Default.Add(cacheKey, spestat, DateTimeOffset.Now.AddMinutes(1));
+                    }
                 }
 
                 spestat.Total += 1; // increase count on our side

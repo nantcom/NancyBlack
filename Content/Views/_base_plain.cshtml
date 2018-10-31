@@ -72,6 +72,8 @@
         <script type="text/javascript" src="https://pay.treepay.co.th/js/plugin.tp"></script>
     }
 
+    <script src="/NancyBlack/Content/Scripts/moment-with-locales.min.js"></script>
+
 </head>
 <body ncb-membership
       ng-module="BaseModule"
@@ -141,10 +143,23 @@
         (function() {
 
             var module = angular.module('BaseModule', []);
-            module.controller( "BaseController", function($scope) {
+                module.controller("BaseController", function ($scope) {
+
+                    var $me = this;
+                    $me.trackandnavigate = function (url, event, value) {
+                        
+                        fbq('track', event, {
+                            value: value,
+                            currency: 'THB'
+                        });
+
+                        window.open(url, "_blank");
+
+                    };
+
                 $scope.PAGE_URL = window.location.href;
                 $scope.Math = window.Math;
-
+                
                 $scope.TicksToDate = function( input ) {
 
                     var epochTicks = 621355968000000000,    // the number of .net ticks at the unix epoch
@@ -158,6 +173,24 @@
                 if (typeof(moment) != "undefined") {
                     $scope.moment = moment;
                 }
+                
+                // social proves
+                $scope.$on('ncb-socialprove.ready', function (s, e) {
+
+                    e.user.getpageview(function (s) {
+
+                        var proof = $scope.socialprove.proves['TotalVisitor'];
+                        var totalPerTime = proof.Distinct / proof.TimeInterval;
+
+                        $scope.socialprove.showproof({
+                            img: "https://png.icons8.com/color/96/000000/group.png",
+                            title: s.Distinct + " ท่าน",
+                            message: "เข้าชมหน้านี้ จากผู้เข้าชมทั้งหมด <b>" + parseInt(totalPerTime * s.TimeInterval) + "</b> ท่าน",
+                            footer: 'ใน ' + moment().add(s.TimeInterval, 'minutes').to(moment())
+                        }, true);
+                    });
+                });
+
 
             });
 
