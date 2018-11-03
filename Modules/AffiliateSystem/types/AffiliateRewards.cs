@@ -94,7 +94,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// <summary>
         /// Whether this reward is active
         /// </summary>
-        public bool IsActive { get; set; }
+        public bool? IsActive { get; set; }
+
+        /// <summary>
+        /// Date/Time that user can start claiming this reward
+        /// </summary>
+        public DateTime? ActiveFrom { get; set; }
+
+        /// <summary>
+        /// Date/Time that user can claim this reward
+        /// </summary>
+        public DateTime? ActiveUntil { get; set; }
 
         /// <summary>
         /// Whether this reward is for admin only
@@ -102,9 +112,62 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         public bool IsAdminOnly { get; set; }
 
         /// <summary>
+        /// Whether this reward is direct claim
+        /// </summary>
+        public bool IsDirectClaim { get; set; }
+
+        /// <summary>
+        /// Comma separated list of product ids
+        /// </summary>
+        public string RequiredProductIds { get; set; }
+
+        /// <summary>
         /// Terms and Condition to be displayed
         /// </summary>
         public string Conditions { get; set; }
+
+        /// <summary>
+        /// Total Quota
+        /// </summary>
+        public int TotalQuota { get; set; }
+
+        /// <summary>
+        /// Remaining Quota
+        /// </summary>
+        public int RemainingQuota { get; set; }
+
+        /// <summary>
+        /// Whether this rewards is claimable
+        /// </summary>
+        public bool IsRewardsClaimable
+        {
+            get
+            {
+
+                if (this.IsActive == false)
+                {
+                    return false;
+                }
+
+                if (this.ActiveFrom != null)
+                {
+                    if (DateTime.Now < this.ActiveFrom.Value)
+                    {
+                        return false;
+                    }
+                }
+
+                if (this.ActiveUntil != null)
+                {
+                    if (DateTime.Now > this.ActiveUntil.Value)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
         
         /// <summary>
         /// Get Statistics that will be use to render reward dashboard
@@ -237,6 +300,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
             var reg = db.GetById<AffiliateRegistration>(registrationId);
             var rewards = db.GetById<AffiliateReward>(rewardsId);
 
+            if (rewards.IsRewardsClaimable == false)
+            {
+                return null;
+            }
+
             if (rewards.IsCodeDiscount || rewards.IsFreeGiftInSaleOrder)
             {
                 var until = DateTime.MaxValue.Ticks;
@@ -263,12 +331,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                         p.Attributes = new
                         {
                             rewardId = rewards.Id,
-                            description = "Discount Rewards for " + reg.AffiliateName + ", minimum purchase: " + rewards.MinimumPurchaseAmount,
+                            description = rewards.Title + ", ราคาก่อนส่วนลดขั้นต่ำ: " + rewards.MinimumPurchaseAmount,
                             min = rewards.MinimumPurchaseAmount,
                             onetime = true,
                             until = until,
                             discount = rewards.CodeDiscountAmount,
                             affiliateName = reg.AffiliateName,
+                            require = rewards.RequiredProductIds,
                         };
                     }
 
@@ -283,13 +352,14 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                         p.Attributes = new
                         {
                             rewardId = rewards.Id,
-                            description = rewards.Title + ", minimum purchase: " + rewards.MinimumPurchaseAmount,
+                            description = rewards.Title + ", ราคาก่อนส่วนลดขั้นต่ำ: " + rewards.MinimumPurchaseAmount,
                             min = rewards.MinimumPurchaseAmount,
                             onetime = true,
                             until = until,
                             discount = rewards.CodeDiscountAmount, 
                             isfreeproduct = 1,
                             affiliateName = reg.AffiliateName,
+                            require = rewards.RequiredProductIds,
                         };
                     }
 

@@ -53,6 +53,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string ERROR_MIN_AMOUNT = "MIN_AMOUT";
         public const string ERROR_PRODUCT_DISABLE = "ERROR_PRODUCT_DISABLE";
         public const string ERROR_REQUIRE_PRODUCT = "REQUIRE_PRODUCT";
+        public const string ERROR_OTHER = "OTHER";
+
+        /// <summary>
+        /// Error message
+        /// </summary>
+        public string message { get; set; }
 
         /// <summary>
         /// Promotion Code
@@ -620,7 +626,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         }
 
-        public void AddItem(NancyBlackDatabase db, dynamic currentSite, int itemId, int qty = 1)
+        public void AddItem(NancyBlackDatabase db, dynamic currentSite, int itemId, int qty = 1, bool save = true)
         {
             if (this.ItemsDetail == null)
             {
@@ -654,7 +660,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 attr["Qty"] = attr.Value<int>("Qty") + qty;
             }
 
-            this.UpdateSaleOrder(currentSite, db, true);
+            this.UpdateSaleOrder(currentSite, db, save);
         }
 
         public void RemoveItem(NancyBlackDatabase db, dynamic currentSite, Product existingItem)
@@ -714,11 +720,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         }
 
+
         /// <summary>
         /// Apply promotion code
         /// </summary>
         /// <param name="code"></param>
-        public PromotionApplyResult ApplyPromotion(dynamic currentSite, NancyBlackDatabase db, string code)
+        public PromotionApplyResult ApplyPromotion(dynamic currentSite, NancyBlackDatabase db, string code, bool save = true)
         {
             // Sale order
             this.UpdateSaleOrder(currentSite, db, false);
@@ -753,7 +760,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
-            if (codeProduct.Attributes.require != null)
+            if (codeProduct.Attributes.require != null && codeProduct.Attributes.require != "")
             {
                 if (codeProduct.Attributes.require.ToString().Contains(","))
                 {
@@ -831,7 +838,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
-            this.AddItem(db, currentSite, codeProduct.Id);
+            this.AddItem(db, currentSite, codeProduct.Id, save: save);
+
+
 
             return new PromotionApplyResult()
             {

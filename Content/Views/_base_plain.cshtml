@@ -159,6 +159,7 @@
 
                 $scope.PAGE_URL = window.location.href;
                 $scope.Math = window.Math;
+                $scope.window = window;
                 
                 $scope.TicksToDate = function( input ) {
 
@@ -170,8 +171,8 @@
                     return new Date(jsTicks); // N.B. Js applies local timezone in automatic
                 }
 
-                if (typeof(moment) != "undefined") {
-                    $scope.moment = moment;
+                if (typeof(window.moment) != "undefined") {
+                    $scope.moment = window.moment;
                 }
                 
                 // social proves
