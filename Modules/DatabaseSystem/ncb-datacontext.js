@@ -1344,6 +1344,10 @@
                     return;
                 }
 
+                if (attrs.format != null) {
+                    value = String.format(attrs.format, value);
+                }
+
                 if (attrs.attr == null) {
 
                     element.text(value);
