@@ -50,18 +50,7 @@ namespace NantCom.NancyBlack
             {
                 url = url.Replace(this.Request.Url.Query.ToString(), "");
             }
-
-            if (url.StartsWith("https://"))
-            {
-                url = url.Replace("https://", "http://");
-            }
-
-            // try to normalize the url
-            if (url.StartsWith("http://www.") == false)
-            {
-                url = url.Replace("http://", "http://www.");
-            }
-
+            
             return url;
         }
 

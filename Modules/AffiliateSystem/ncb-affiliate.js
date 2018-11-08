@@ -29,7 +29,12 @@
                     sharedCoupon = JSON.parse(sharedCoupon);
                 }
 
-                $http.post("/__affiliate/apply", { code: 'auto', email: email, sharedCoupon: sharedCoupon }).success(function (data) {
+                var sharedReward = window.localStorage.getItem("sharedreward");
+                if (sharedReward != null) {
+                    sharedReward = JSON.parse(sharedReward);
+                }
+
+                $http.post("/__affiliate/apply", { code: 'auto', email: email, sharedCoupon: sharedCoupon, sharedReward: sharedReward }).success(function (data) {
 
                     var source = Cookies.get("source");
                     var name = Cookies.get("affiliatename");
@@ -41,10 +46,42 @@
                         FB.XFBML.parse(document.getElementById('subscribebutton'));
                     }, 1000);
 
+                    var title = "ยินดีต้อนรับ SQUAD51 ท่านที่ " + data.Id;
+                    var preText = "";
+                    if (sharedCoupon != null && data.CouponSaved == true) {
+                        preText =
+                            '<div><img src="/__c' + sharedCoupon.CouponId + '.jpg" style="margin-bottom: 5px"/></div>' +
+                            '<div style="margin-bottom: 5px" >คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
+
+                        fbq('track', 'AddToWishlist', {
+                            value: 30000,
+                            currency: 'THB'
+                        });
+                    }
+
+                    if (sharedReward != null && data.RewardClaimed == true) {
+                        preText =
+                            '<div><img src="/Site/images/squad51/coupons/' + sharedReward.Id + '.jpg" style="margin-bottom: 5px"/></div>' +
+                            '<div style="margin-bottom: 5px">คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
+
+                        fbq('track', 'AddToWishlist', {
+                            value: 30000,
+                            currency: 'THB'
+                        });
+                    }
+
+                    Cookies.set("coupon", "");
+                    window.localStorage.removeItem("sharedcoupon");
+
+                    Cookies.set("reward", "");
+                    window.localStorage.removeItem("sharedreward");
+
                     swal({
                         type: 'success',
-                        title: 'ยินดีต้อนรับ SQUAD51 ท่านที่ ' + data.Id,
+                        title: title,
                         text:
+                            preText +
+
                             (name == null ? 'และขอเชิญให้คุณ' : name + ' ชวนให้คุณ') +
 
                             'ลงทะเบียนรับข่าวสารจาก LEVEL51 ผ่านทาง Facebook Messenger ด้วย' +
@@ -69,13 +106,74 @@
 
                     $scope.isBusy = false
 
-                    swal("เกิดข้อผิดพลาด".translate(), "กรุณาลองใหม่อีกครั้งค่ะ".translate("Please try sending the code again."), "error");
+                    swal("เกิดข้อผิดพลาด".translate(), "กรุณาลองใหม่อีกครั้งค่ะ".translate("Please try again."), "error");
 
                 });
 
 
             };
 
+            $scope.affiliate = {};
+            $scope.affiliate.claimreward = function (rewardId) {
+
+                Cookies.set("reward", rewardId);
+                $http.get("/__affiliate/getreward").success(function (data) {
+
+                    if (data.IsValid == false) {
+
+                        swal({
+                            html: true,
+                            type: 'warning',
+                            title: 'ขออภัยเป็นอย่างยิ่ง',
+                            showConfirmButton: true,
+                            showCancelButton: false,
+                            confirmButtonText: "เรียนรู้เพิ่มเติม",
+                            text:
+                                'คูปองส่วนลดนี้ไม่สามารถใช้งานได้แล้ว<br/>' +
+                                'แต่เรายังมีโปรโมชั่นต่างๆ อีกมากมายสำหรับสมาชิกเว็บไซต์ของเรา'
+                        }, function (answer) {
+
+                            if (answer == true) {
+                                window.location.href = window.location.origin + "/squad51";
+                            }
+
+                        });
+                        return;
+                    };
+
+                    swal({
+                        type: '',
+                        title: 'ยินดีด้วย คุณได้รับคูปองส่วนลด',
+                        text:
+                            '<img src="/site/images/squad51/coupons/' + data.Id + '.jpg" style="margin-bottom: 5px"/><br/>'
+                        ,
+                        html: true,
+                        closeOnConfirm: true,
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: "บันทึกไว้ในโปรไฟล์",
+                        cancelButtonText: "ไม่บันทึก",
+                        animation: "slide-from-top"
+
+                    }, function (answer) {
+
+
+                        if (answer == true) {
+
+                            window.localStorage.setItem("sharedreward", JSON.stringify(data));
+                            $scope.affiliateProcessSubscribe();
+
+                        } else {
+
+                            Cookies.set("reward", "");
+                            window.localStorage.removeItem("sharedreward");
+                        }
+
+                    });
+
+                });
+
+            };
 
             $scope.affiliateProcessSubscribe = function () {
 
@@ -143,8 +241,8 @@
 
                             });
                             return;
-                        };
-                        
+                        }
+
                         swal({
                             type: '',
                             title: '',
@@ -156,7 +254,7 @@
                             closeOnConfirm: true,
                             showConfirmButton: true,
                             showCancelButton: true,
-                            confirmButtonText: "บันทึกโค๊ดส่วนลดไว้ในโปรไฟล์",
+                            confirmButtonText: "บันทึกไว้ในโปรไฟล์",
                             cancelButtonText: "ไม่บันทึก",
                             animation: "slide-from-top"
 
@@ -165,16 +263,26 @@
 
                             if (answer == true) {
 
+                                window.localStorage.setItem("sharedcoupon", JSON.stringify(data));
                                 $scope.affiliateProcessSubscribe();
 
                             } else {
 
+                                window.localStorage.removeItem("sharedcoupon");
                                 Cookies.set("coupon", "");
                             }
 
                         });
 
                     });
+
+                    return;
+                }
+
+                if (Cookies.get("reward") != "" && Cookies.get("reward") != null) {
+
+                    var rewardId = Cookies.get("reward");
+                    $scope.affiliate.claimreward(rewardId);
                 }
             }
 
