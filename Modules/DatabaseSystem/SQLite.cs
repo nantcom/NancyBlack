@@ -2776,11 +2776,18 @@ namespace SQLite
 
                     try
                     {
-                        result = JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);
+                        try
+                        {
+                            result = JsonConvert.DeserializeObject(json, clrType, DefaultJsonSettings.Instance);
+                        }
+                        catch (Exception)
+                        {
+                            result = JsonConvert.DeserializeObject(json, clrType, NoTypeNameHandlingJsonSettings.Instance);
+                        }
                     }
                     catch (Exception)
                     {
-                        result = JsonConvert.DeserializeObject(json, clrType, NoTypeNameHandlingJsonSettings.Instance);
+
                     }
 
                     return result;

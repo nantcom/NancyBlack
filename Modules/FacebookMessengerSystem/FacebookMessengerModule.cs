@@ -196,6 +196,47 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             {
                 // try to get the current chat session
                 var existingSession = MemoryCache.Default["FBMP:" + customerPSID] as FacebookChatSession;
+
+                Action linkAccount = () =>
+                {
+
+                    // no prior session - see if user have logged in with us before
+                    IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
+                                    "/" + customerPSID + "/ids_for_apps",
+                                    true);
+
+                    var idList = result.FirstOrDefault();
+
+                    if (idList != null) // user have logged in with us before
+                    {
+                        var id = (string)idList.id;
+
+                        var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == id).FirstOrDefault();
+                        if (existingUser != null)
+                        {
+                            existingSession.NcbUserId = existingUser.Id;
+
+                            if (existingUser.FacebookPageScopedId == null)
+                            {
+                                existingUser.FacebookPageScopedId = customerPSID;
+                                this.SiteDatabase.UpsertRecord(existingUser);
+                            }
+                        }
+                        else
+                        {
+                            // cannot find in database - something must slipped
+                            // should create user here
+
+                            MailSenderModule.SendEmail("company@nant.co",
+                                "FacebookWebHook Handler Error",
+
+                                "<b>User :</b>" + customerPSID + "<br/>" +
+                                "User have logged in with us before, with App Scoped Id but did not have record in database");
+                        }
+                    }
+                };
+
+
                 if (existingSession == null)
                 {
                     existingSession = this.SiteDatabase.Query<FacebookChatSession>().Where(u => u.PageScopedId == customerPSID).FirstOrDefault();
@@ -206,36 +247,16 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                         MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
 
                         existingSession.PageScopedId = customerPSID;
-
-                        // no prior session - see if user have logged in with us before
-                        IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
-                                        "/" + customerPSID + "/ids_for_apps",
-                                        true);
-
-                        var idList = result.FirstOrDefault();
-
-                        if (idList != null) // user have logged in with us before
-                        {
-                            var id = (string)idList.id;
-
-                            var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == id).FirstOrDefault();
-                            if (existingUser != null)
-                            {
-                                existingSession.NcbUserId = existingUser.Id;
-
-                                if (existingUser.FacebookPageScopedId == null)
-                                {
-                                    existingUser.FacebookPageScopedId = customerPSID;
-                                    this.SiteDatabase.UpsertRecord(existingUser);
-                                }
-                            }
-                            else
-                            {
-                                // cannot find in database - something must slipped
-                                // should create user here
-                            }
-                        }
-
+                        linkAccount();
+                    }
+                }
+                else
+                {
+                    // this user have chat with us already
+                    // but may have registered on the website after they chat with us
+                    if (existingSession.NcbUserId == 0)
+                    {
+                        linkAccount();
                     }
                 }
 

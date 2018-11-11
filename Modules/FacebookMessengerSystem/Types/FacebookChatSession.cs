@@ -311,7 +311,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
                 {
                     MailSenderModule.SendEmail("company@nant.co",
                         "FacebookWebHook Handler Error",
-                        ex.Message + "\r\n" +
+
+                        "<b>Facebook Input:</b><br/>" +
+                        messaging.ToString() + "<br/><br/>" +
+
+                        "<b>Message:</b>" + ex.Message + "<br/>" +
                         ex.StackTrace);
                 }
             }

@@ -147,12 +147,19 @@
 
                     var $me = this;
                     $me.trackandnavigate = function (url, event, value) {
-                        
-                        fbq('track', event, {
-                            value: value,
-                            currency: 'THB'
-                        });
 
+                        if (value != null) {
+
+                            fbq('track', event, {
+                                value: value,
+                                currency: 'THB'
+                            });
+
+                        } else {
+
+                            fbq('track', event );
+                        }
+                        
                         window.open(url, "_blank");
 
                     };

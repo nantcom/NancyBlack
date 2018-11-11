@@ -689,7 +689,37 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         return toReturn;
                     };
-                    
+
+                    Func<AffiliateReward, bool> postProcess = (rew) =>
+                    {
+                        if (rew.IsRewardsClaimable)
+                        {
+                            return true;
+                        }
+
+                        if (rew.ActiveUntil.HasValue)
+                        {
+                            if (DateTime.Now.Subtract(rew.ActiveUntil.Value).TotalDays > 7)
+                            {
+                                return false; // skip rewards older than 1 week
+                            }
+
+                            return true; // show that they have missed this rewards
+                        }
+
+                        if (rew.TotalQuota > 0) // with quota, see created date
+                        {
+                            if (DateTime.Now.Subtract(rew.__createdAt).TotalDays > 7)
+                            {
+                                return false; // dont show old rewards
+                            }
+
+                            return true;
+                        }
+
+                        return true;
+                    };
+
                     AffiliateRegistration refererReg;
                     refererReg = this.SiteDatabase.Query<AffiliateRegistration>()
                                          .Where(reg => reg.AffiliateCode == registration.RefererAffiliateCode)
@@ -744,7 +774,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         Rewards = this.SiteDatabase.Query<AffiliateReward>().AsEnumerable()
                                       .Where( rew => rew.IsActive == true )
-                                      .Select( rew => addCanClaim( rew ) ),
+                                      .AsEnumerable()
+                                      .Where( rew => postProcess(rew))
+                                      .Select(rew => addCanClaim(rew)),
 
                         RewardsStat = stat,
 

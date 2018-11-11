@@ -139,7 +139,23 @@
 
                         });
                         return;
-                    };
+                    }
+
+                    if (data.MinimumPurchaseAmount > 0) {
+
+                        fbq('track', 'Lead', {
+                            value: data.MinimumPurchaseAmount,
+                            currency: 'THB'
+                        });
+                    }
+                    else
+                    {
+                        fbq('track', 'Lead', {
+                            value: 30000,
+                            currency: 'THB'
+                        });
+                    }
+
 
                     swal({
                         type: '',
