@@ -156,7 +156,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <summary>
         /// Localhost Admin
         /// </summary>
-        public static readonly NcbUser LocalHostAdmin = new NcbUser() { Id = 1, UserName = "LocalHostAdmin", Claims = new string[] { "admin" }};
+        public static readonly NcbUser LocalHostAdmin = new NcbUser() { Id = 1, UserName = "LocalHostAdmin", Claims = new string[] { "admin" }, Profile = new { first_name = "Admin", last_name = "Admin", email = "admin@localhost" } };
 
         /// <summary>
         /// 'Anonymous'

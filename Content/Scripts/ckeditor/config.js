@@ -14,6 +14,6 @@ CKEDITOR.editorConfig = function( config ) {
         [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ],
         [ 'Bold', 'Italic', 'Subscript', 'Superscript', '-', 'Format', 'FontSize', 'TextColor' ],
         [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ],
-        [ 'Link', 'Unlink', '-', 'Image', 'Table']
+        ['Link', 'Unlink', '-', 'Image', 'Table', 'Iframe']
     ];
 };

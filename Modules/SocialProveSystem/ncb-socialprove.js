@@ -94,10 +94,22 @@
 
 
                     }, 100);
+                };
+
+                notification.item = item;
+                notification.permanent = permanent;
+
+                for (var i = 0; i < queue.length; i++) {
+                    if (queue[i].item.title == item.title &&
+                        queue[i].item.message == item.message &&
+                        queue[i].item.footer == item.footer &&
+                        queue[i].item.img == item.img) {
+
+                        return;
+                    }
                 }
 
-                notification.permanent = permanent;
-                queue.push(notification);
+                queue.splice(currentIndex + 1, 0, notification);
 
                 if (queue.length == 1) {
                     notification(); // start the notification queue

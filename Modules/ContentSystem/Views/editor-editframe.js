@@ -451,7 +451,7 @@
                     item.element.find(".owl-stage").children().unwrap();
                 }
 
-                    content.ContentParts[$scope.editing.name] = $scope.editing.element.html();
+                    content.ContentParts[$scope.editing.name] = $scope.editing.ckeditor.getData();
 
                     // replace
                     datacontext.save(content, function () {

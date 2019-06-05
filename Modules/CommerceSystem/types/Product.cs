@@ -103,7 +103,22 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
         public DateTime PromotionStartDate { get; set; }
 
-        public DateTime PromotionEndDate { get; set; }
+        private DateTime _PromotionEndDate;
+
+        /// <summary>
+        /// End of promotion date - will be last second of given date
+        /// </summary>
+        public DateTime PromotionEndDate
+        {
+            get
+            {
+                return _PromotionEndDate.Date.AddDays(1).AddSeconds(-1);
+            }
+            set
+            {
+                _PromotionEndDate = value;
+            }
+        }
 
         /// <summary>
         /// The Date that will be used for reference when checking whether user will get promotion

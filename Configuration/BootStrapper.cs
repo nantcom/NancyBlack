@@ -333,8 +333,6 @@ namespace NantCom.NancyBlack.Configuration
                     ctx.Response.Cookies.Add(
                         new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddYears(10)));
                 }
-
-                GlobalVar.Default.Persist(ctx.Items["SiteDatabase"] as NancyBlackDatabase);
             });
 
             foreach (var item in container.ResolveAll<IPipelineHook>())

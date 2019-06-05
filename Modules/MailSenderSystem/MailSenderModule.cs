@@ -39,7 +39,7 @@ namespace NantCom.NancyBlack.Modules
         /// <param name="to"></param>
         /// <param name="subject"></param>
         /// <param name="body"></param>
-        public static void SendEmail( string to, string subject, string body)
+        public static void SendEmail( string to, string subject, string body, bool queue = true, Nancy.NancyContext ctx = null)
         {
             if (_Outbox == null)
             {
@@ -59,22 +59,35 @@ namespace NantCom.NancyBlack.Modules
             mail.IsBodyHtml = true;
 
             _Outbox.Enqueue(mail);
+
+            if (queue == false)
+            {
+                if (ctx == null)
+                {
+                    throw new InvalidOperationException("Context is required");
+                }
+
+                MailSenderModule.ProcessQueue(ctx);
+            }
         }
 
-        public void Hook(IPipelines p)
+        /// <summary>
+        /// Immediately Send out email
+        /// </summary>
+        public static void ProcessQueue(Nancy.NancyContext ctx)
         {
-            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            if (_Outbox == null)
             {
-                if (_Outbox == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (ctx.Items.ContainsKey("SiteSettings") == false)
-                {
-                    return;
-                }
+            if (ctx.Items.ContainsKey("SiteSettings") == false)
+            {
+                return;
+            }
 
+            lock (BaseModule.GetLockObject("MailSenderModule.ProcessQueue"))
+            {
                 var toSend = _Outbox.ToList();
                 if (toSend.Count == 0)
                 {
@@ -87,47 +100,53 @@ namespace NantCom.NancyBlack.Modules
                 var db = ctx.Items["SiteDatabase"] as NancyBlackDatabase;
                 var settings = site.Property("smtp").Value.ToObject<SmtpSettings>();
 
-                Task.Run(() =>
+                SmtpClient client = new SmtpClient(settings.server);
+                client.Port = settings.port;
+                client.Credentials = new System.Net.NetworkCredential(settings.username, settings.password);
+                client.EnableSsl = settings.useSSL;
+                client.Timeout = 30000;
+
+                foreach (var mail in toSend)
                 {
-                    SmtpClient client = new SmtpClient(settings.server);
-                    client.Port = settings.port;
-                    client.Credentials = new System.Net.NetworkCredential(settings.username, settings.password);
-                    client.EnableSsl = settings.useSSL;
-                    client.Timeout = 30000;
+                    var log = new NcbMailSenderLog();
+                    log.Body = mail.Body;
+                    log.To = string.Join(",", from m in mail.To select m.Address);
+                    log.Subject = mail.Subject;
+                    log.Settings = settings;
+                    log.__createdAt = DateTime.Now;
+                    log.__updatedAt = DateTime.Now;
 
-                    foreach (var mail in toSend)
+                    var key = log.To + "-" + log.Subject + log.Body.GetHashCode();
+                    if (MemoryCache.Default[key] != null)
                     {
-                        var log = new NcbMailSenderLog();
-                        log.Body = mail.Body;
-                        log.To = string.Join(",", from m in mail.To select m.Address);
-                        log.Subject = mail.Subject;
-                        log.Settings = settings;
-                        log.__createdAt = DateTime.Now;
-                        log.__updatedAt = DateTime.Now;
-                        
-                        var key = log.To + "-" + log.Subject + log.Body.GetHashCode();
-                        if (MemoryCache.Default[key] != null)
-                        {
-                            continue; // we just send this email to this user recently, skip
-                        }
-
-                        MemoryCache.Default.Add(key, 1, DateTimeOffset.Now.AddMinutes(10));
-
-                        try
-                        {
-                            mail.From = new MailAddress(settings.fromEmail);
-                            client.Send(mail);
-                        }
-                        catch (Exception e)
-                        {
-                            log.Exception = e;
-                        }
-                        
-                        db.DelayedInsert(log);
+                        continue; // we just send this email to this user recently, skip
                     }
 
-                });
+                    MemoryCache.Default.Add(key, 1, DateTimeOffset.Now.AddMinutes(10));
 
+                    try
+                    {
+                        mail.From = new MailAddress(settings.fromEmail);
+                        client.Send(mail);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Exception = e;
+                    }
+
+                    db.UpsertRecord(log);
+                }
+            }
+        }
+
+        public void Hook(IPipelines p)
+        {
+            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            {
+                Task.Run(() =>
+                {
+                    MailSenderModule.ProcessQueue(ctx);
+                });
             });
         }
     }

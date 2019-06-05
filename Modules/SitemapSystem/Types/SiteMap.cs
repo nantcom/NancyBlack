@@ -112,8 +112,14 @@ namespace NantCom.NancyBlack.Modules.SitemapSystem.Types
             foreach (var url in _Urls.Skip(page * pagesize).Take(pagesize))
             {
                 writer.WriteStartElement("url");
-
+                
                 this.WriteValueElement(writer, "loc", url.loc);
+
+                if (url.lastmod == default(DateTime))
+                {
+                    url.lastmod = DateTime.Now;
+                }
+
                 this.WriteValueElement(writer, "lastmod", url.lastmod.ToUniversalTime());
                 this.WriteValueElement(writer, "changefreq", url.changefreq.ToString());
                 this.WriteValueElement(writer, "priority", url.priority);

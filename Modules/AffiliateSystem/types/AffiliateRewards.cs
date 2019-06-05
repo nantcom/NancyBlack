@@ -301,15 +301,15 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// <returns></returns>
         public static AffiliateRewardsClaim ClaimReward(NancyBlackDatabase db, int rewardsId, int registrationId)
         {
-            var canClaim = AffiliateReward.CanClaim(db, rewardsId, registrationId);
-            if (canClaim == false)
-            {
-                return null;
-            }
-
             AffiliateReward rewards;
             var reg = db.GetById<AffiliateRegistration>(registrationId);
             rewards = db.GetById<AffiliateReward>(rewardsId);
+
+            var canClaim = AffiliateReward.CanClaim(db, rewardsId, registrationId);
+            if (canClaim == false && reg.NcbUserId != 1)
+            {
+                return null;
+            }
 
             if (rewards.MaxPerUser > 0)
             {
@@ -319,10 +319,18 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                                          .Where(c => c.AffiliateRewardsId == rewards.Id &&
                                                 c.AffiliateRegistrationId == registrationId).Count();
 
-                    if (totalClaimedByUser >= rewards.MaxPerUser)
+                    if (reg.NcbUserId == 1) // Super Admin
                     {
-                        return null;
+                        // not check
                     }
+                    else
+                    {
+                        if (totalClaimedByUser >= rewards.MaxPerUser)
+                        {
+                            return null;
+                        }
+                    }
+
                 }
             }
 

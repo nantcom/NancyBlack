@@ -794,9 +794,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 
             if (codeProduct.Attributes.until != null)
             {
-                var expire = new DateTime((long)codeProduct.Attributes.until);
+                var expire = new DateTime((long)codeProduct.Attributes.until, DateTimeKind.Utc);
 
-                if (DateTime.Now > expire.AddMinutes(15)) // give 10 minutes gap
+                if (DateTime.Now.ToUniversalTime() > expire.AddDays(1)) // give 10 minutes gap
                 {
                     return new PromotionApplyResult()
                     {
@@ -890,6 +890,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// <param name="db"></param>
         public void FindShipoutAndDeliveryDate( NancyBlackDatabase db)
         {
+#if DEBUG
+            return;
+#endif
+
             // already figured - skip
             if (this.ShipOutDate != default(DateTime) &&
                 this.DeliveryDate != default(DateTime))
