@@ -137,6 +137,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         public int RemainingQuota { get; set; }
 
         /// <summary>
+        /// Maximum number of claim per user
+        /// </summary>
+        public int MaxPerUser { get; set; }
+
+        /// <summary>
         /// Whether this rewards is claimable
         /// </summary>
         public bool IsRewardsClaimable
@@ -151,7 +156,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 
                 if (this.ActiveFrom != null)
                 {
-                    if (DateTime.Now < this.ActiveFrom.Value)
+                    if (DateTime.Now.ToUniversalTime() < this.ActiveFrom.Value)
                     {
                         return false;
                     }
@@ -159,10 +164,15 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 
                 if (this.ActiveUntil != null)
                 {
-                    if (DateTime.Now > this.ActiveUntil.Value)
+                    if (DateTime.Now.ToUniversalTime() > this.ActiveUntil.Value)
                     {
                         return false;
                     }
+                }
+
+                if (this.RemainingQuota <= 0 && this.TotalQuota > 0)
+                {
+                    return false;
                 }
 
                 return true;
@@ -291,19 +301,54 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         /// <returns></returns>
         public static AffiliateRewardsClaim ClaimReward(NancyBlackDatabase db, int rewardsId, int registrationId)
         {
+            AffiliateReward rewards;
+            var reg = db.GetById<AffiliateRegistration>(registrationId);
+            rewards = db.GetById<AffiliateReward>(rewardsId);
+
             var canClaim = AffiliateReward.CanClaim(db, rewardsId, registrationId);
-            if (canClaim == false)
+            if (canClaim == false && reg.NcbUserId != 1)
             {
                 return null;
             }
 
-            var reg = db.GetById<AffiliateRegistration>(registrationId);
-            var rewards = db.GetById<AffiliateReward>(rewardsId);
+            if (rewards.MaxPerUser > 0)
+            {
+                lock (BaseModule.GetLockObject("RewardClaim-Reg-" + registrationId))
+                {
+                    var totalClaimedByUser = db.Query<AffiliateRewardsClaim>()
+                                         .Where(c => c.AffiliateRewardsId == rewards.Id &&
+                                                c.AffiliateRegistrationId == registrationId).Count();
+
+                    if (reg.NcbUserId == 1) // Super Admin
+                    {
+                        // not check
+                    }
+                    else
+                    {
+                        if (totalClaimedByUser >= rewards.MaxPerUser)
+                        {
+                            return null;
+                        }
+                    }
+
+                }
+            }
+
+            if (rewards.TotalQuota > 0)
+            {
+                lock (BaseModule.GetLockObject("RewardClaim-" + rewardsId))
+                {
+                    var totalClaimed = db.Query<AffiliateRewardsClaim>().Where(c => c.AffiliateRewardsId == rewards.Id).Count();
+                    rewards.RemainingQuota = rewards.TotalQuota - totalClaimed;
+                    db.UpsertRecord(rewards);
+                }
+            }
 
             if (rewards.IsRewardsClaimable == false)
             {
                 return null;
             }
+
 
             if (rewards.IsCodeDiscount || rewards.IsFreeGiftInSaleOrder)
             {

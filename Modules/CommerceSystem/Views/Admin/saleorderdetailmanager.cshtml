@@ -264,13 +264,25 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Due Date</label>
+                                    <label for="DueDate" class="col-sm-4 control-label">Due Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.DueDate | date: 'medium'}}
                                         </span>
                                         <span ng-show="orderDetailForm.$visible">
                                             <ncb-datepicker model="object.DueDate" format="'dd MMMM yyyy'"></ncb-datepicker>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="CreatedAt" class="col-sm-4 control-label">Payment Received Date</label>
+                                    <div class="col-sm-8">
+                                        <span ng-show="!orderDetailForm.$visible">
+                                            {{object.PaymentReceivedDate | date: 'medium'}}
+                                        </span>
+                                        <span ng-show="orderDetailForm.$visible">
+                                            <ncb-datepicker model="object.PaymentReceivedDate" format="'dd MMMM yyyy'"></ncb-datepicker>
                                         </span>
                                     </div>
                                 </div>
@@ -423,6 +435,19 @@
 
                             </div>
                             <div class="panel-body">
+
+                                <div class="form-group">
+                                    <label for="DriveSerial" class="col-sm-4 control-label">Drive Serial</label>
+                                    <div class="col-sm-8">
+                                        <span class="ncb-editable-span"
+                                              id="DriveSerial"
+                                              e-name="DriveSerial"
+                                              editable-text="object.DriveSerial">
+                                            {{object.DriveSerial || 'empty'}}
+                                        </span>
+                                    </div>
+                                </div>
+
                                 <div class="form-group">
                                     <label for="FirstName" class="col-sm-4 control-label">FirstName</label>
                                     <div class="col-sm-8">

@@ -34,10 +34,10 @@
                     sharedReward = JSON.parse(sharedReward);
                 }
 
-                $http.post("/__affiliate/apply", { code: 'auto', email: email, sharedCoupon: sharedCoupon, sharedReward: sharedReward }).success(function (data) {
+                var source = Cookies.get("source");
+                var name = Cookies.get("affiliatename");
 
-                    var source = Cookies.get("source");
-                    var name = Cookies.get("affiliatename");
+                $http.post("/__affiliate/apply", { code: 'auto', email: email, sharedCoupon: sharedCoupon, sharedReward: sharedReward, source: source }).success(function (data) {
 
                     var code = data.AffiliateCode;
                     var url = "http://www.level51pc.com/?subscribe=1&source=" + code;
@@ -48,15 +48,30 @@
 
                     var title = "ยินดีต้อนรับ SQUAD51 ท่านที่ " + data.Id;
                     var preText = "";
-                    if (sharedCoupon != null && data.CouponSaved == true) {
-                        preText =
-                            '<div><img src="/__c' + sharedCoupon.CouponId + '.jpg" style="margin-bottom: 5px"/></div>' +
-                            '<div style="margin-bottom: 5px" >คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
 
-                        fbq('track', 'AddToWishlist', {
-                            value: 30000,
-                            currency: 'THB'
-                        });
+                    if (sharedCoupon != null) {
+
+                        if (data.CouponSaved == true) {
+
+                            preText =
+                                '<div><img src="/__c' + sharedCoupon.CouponId + '.jpg" style="margin-bottom: 5px"/></div>' +
+                                '<div style="margin-bottom: 5px" >คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
+
+                            fbq('track', 'AddToWishlist', {
+                                value: 30000,
+                                currency: 'THB'
+                            });
+                        }
+                        else {
+
+                            var messages = [];
+                            messages["SAME_TREE"] = "ระบบพบว่าเจ้าของคูปองนี้ ผู้ที่กดรับคูปองครั้งแรกคือคุณ:" + data.Owner + " ซึ่งถูกแนะนำโดยคุณ";
+                            messages["SAME_USER"] = "ระบบพบว่าเจ้าของคูปองนี้ ผู้ที่กดรับคูปองครั้งแรกคือคุณ:" + data.Owner + " ซึ่งเป็นคุณเอง";
+
+                            preText = '<div style="margin-bottom: 5px; color: red" >คุณไม่สามารถบันทึกคูปองนี้ได้ เนื่องจาก' + messages[data.Message] + '</div>';
+
+                        }
+
                     }
 
                     if (sharedReward != null && data.RewardClaimed == true) {
@@ -68,7 +83,9 @@
                             value: 30000,
                             currency: 'THB'
                         });
+
                     }
+
 
                     Cookies.set("coupon", "");
                     window.localStorage.removeItem("sharedcoupon");
@@ -80,25 +97,20 @@
                         type: 'success',
                         title: title,
                         text:
-                            preText +
-
-                            (name == null ? 'และขอเชิญให้คุณ' : name + ' ชวนให้คุณ') +
-
-                            'ลงทะเบียนรับข่าวสารจาก LEVEL51 ผ่านทาง Facebook Messenger ด้วย' +
-                            '<div id="subscribebutton"><div class="fb-send-to-messenger" style="width: 210px; margin: 20px auto; display: block"         ' +
-                                'messenger_app_id="1741895542697602"   ' +
-                                'page_id="569378559865549"             ' +
-                                'data-ref="squad51=' + source + '"      ' +
-                                'cta_text="SUBSCRIBE_IN_MESSENGER"            ' +
-                                'color="blue"                          ' +
-                                'size="xlarge"></div>                        ' +
-                            '</div>' 
+                            preText
                         ,
                         html: true,
                         closeOnConfirm: true,
-                        showConfirmButton: false,
-                        animation: "slide-from-top"
-                    });
+                        showConfirmButton: true,
+                        confirmButtonText: "เกี่ยวกับ SQUAD51"
+                    },
+                        function(answer) {
+
+                            if (answer == true) {
+                                window.location.href = window.location.origin + "/squad51/dashboard";
+                            }
+                        }
+                    );
 
                     Cookies.set('subscribecheck', 'already', { expires: 60 });
 
@@ -106,7 +118,7 @@
 
                     $scope.isBusy = false
 
-                    swal("เกิดข้อผิดพลาด".translate(), "กรุณาลองใหม่อีกครั้งค่ะ".translate("Please try again."), "error");
+                    swal("เกิดข้อผิดพลาด".translate(), "กรุณาลองใหม่อีกครั้ง".translate("Please try again."), "error");
 
                 });
 
@@ -116,10 +128,16 @@
             $scope.affiliate = {};
             $scope.affiliate.claimreward = function (rewardId) {
 
+                if (rewardId == "" || rewardId == null) {
+                    return;
+                }
+
                 Cookies.set("reward", rewardId);
                 $http.get("/__affiliate/getreward").success(function (data) {
 
                     if (data.IsValid == false) {
+
+                        Cookies.set("reward", "");
 
                         swal({
                             html: true,
@@ -139,7 +157,23 @@
 
                         });
                         return;
-                    };
+                    }
+
+                    if (data.MinimumPurchaseAmount > 0) {
+
+                        fbq('track', 'Lead', {
+                            value: data.MinimumPurchaseAmount,
+                            currency: 'THB'
+                        });
+                    }
+                    else
+                    {
+                        fbq('track', 'Lead', {
+                            value: 30000,
+                            currency: 'THB'
+                        });
+                    }
+
 
                     swal({
                         type: '',
@@ -152,8 +186,7 @@
                         showConfirmButton: true,
                         showCancelButton: true,
                         confirmButtonText: "บันทึกไว้ในโปรไฟล์",
-                        cancelButtonText: "ไม่บันทึก",
-                        animation: "slide-from-top"
+                        cancelButtonText: "ไม่บันทึก"
 
                     }, function (answer) {
 
@@ -176,6 +209,13 @@
             };
 
             $scope.affiliateProcessSubscribe = function () {
+
+                if (location.hostname == "localhost") {
+
+                    window.setTimeout(apply, 200);
+
+                    return;
+                }
 
                 $scope.membership.loginfacebook(function () {
 
@@ -223,6 +263,13 @@
 
                         if (data.IsValid == false) {
 
+                            var messages = [];
+                            messages["USED"] = "คูปองส่วนลดนี้ได้ถูกใช้งานไปแล้ว";
+                            messages["SAME_TREE"] = "คุณไม่สามารถรับคูปองส่วนลดนี้ได้";
+
+                            window.localStorage.removeItem("sharedcoupon");
+                            Cookies.set("coupon", "");
+
                             swal({
                                 html: true,
                                 type: 'warning',
@@ -231,7 +278,7 @@
                                 showCancelButton: false,
                                 confirmButtonText: "เรียนรู้เพิ่มเติม",
                                 text:
-                                    'คูปองส่วนลดนี้ได้ถูกใช้งานไปแล้ว<br/>' +
+                                    messages[data.Message] + '<br/>' +
                                     'แต่เรายังมีโปรโมชั่นต่างๆ อีกมากมายสำหรับสมาชิกเว็บไซต์ของเรา'
                             }, function (answer) {
 
@@ -256,7 +303,6 @@
                             showCancelButton: true,
                             confirmButtonText: "บันทึกไว้ในโปรไฟล์",
                             cancelButtonText: "ไม่บันทึก",
-                            animation: "slide-from-top"
 
                         }, function (answer) {
 

@@ -147,12 +147,21 @@
 
                     var $me = this;
                     $me.trackandnavigate = function (url, event, value) {
-                        
-                        fbq('track', event, {
-                            value: value,
-                            currency: 'THB'
-                        });
 
+                        if (value != null) {
+
+                            value = value.replace(/,/g, '');
+
+                            fbq('track', event, {
+                                value: value,
+                                currency: 'THB'
+                            });
+
+                        } else {
+
+                            fbq('track', event );
+                        }
+                        
                         window.open(url, "_blank");
 
                     };
@@ -160,6 +169,7 @@
                 $scope.PAGE_URL = window.location.href;
                 $scope.Math = window.Math;
                 $scope.window = window;
+                $scope.navigator = navigator;
                 
                 $scope.TicksToDate = function( input ) {
 
@@ -280,7 +290,7 @@
                     var js, fjs = d.getElementsByTagName(s)[0];
                     if (d.getElementById(id)) { return; }
                     js = d.createElement(s); js.id = id;
-                    js.src = "//connect.facebook.net/en_US/sdk.js";
+                    js.src = "//connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
                     fjs.parentNode.insertBefore(js, fjs);
                 }(document, 'script', 'facebook-jssdk'));
             </script>

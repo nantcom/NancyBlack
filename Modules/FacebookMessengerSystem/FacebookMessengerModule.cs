@@ -36,6 +36,62 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             {
                 return FacebookWebHook.IsOptInActive(this.SiteDatabase, this.Context, (string)arg.type);
             });
+
+            //Get["/__fbmp/migratetabledata"] = (arg) =>
+            //{
+            //    var table = this.GetTracingTable();
+            //    var entities = table.ExecuteQuery(new TableQuery<FacebookWebhookRequest>());
+
+            //    var toUpdate = new List<FacebookWebhookRequest>();
+            //    foreach (var row in entities)
+            //    {
+            //        var body = JObject.Parse(row.Payload);
+
+            //    }
+
+            //    return "OK";
+            //};
+
+            
+            Get["/__fbmp/linkaccounts"] = this.HandleRequest((arg) =>
+            {
+                var session = this.SiteDatabase.Query<FacebookChatSession>()
+                                  .Where(s => s.NcbUserId == 0)
+                                  .AsEnumerable();
+
+                foreach (var existingSession in session)
+                {
+                    var customerPSID = existingSession.PageScopedId;
+
+                    // no prior session - see if user have logged in with us before
+                    IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
+                                    "/" + customerPSID + "/ids_for_apps",
+                                    true);
+
+                    var idList = result.FirstOrDefault();
+
+                    if (idList != null) // user have logged in with us before
+                    {
+                        var id = (string)idList.id;
+
+                        var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == id).FirstOrDefault();
+                        if (existingUser != null)
+                        {
+                            existingSession.NcbUserId = existingUser.Id;
+                            existingSession.IsRecheckSubscriptionRequired = true;
+                            this.SiteDatabase.UpsertRecord(existingSession);
+
+                            if (existingUser.FacebookPageScopedId == null)
+                            {
+                                existingUser.FacebookPageScopedId = customerPSID;
+                                this.SiteDatabase.UpsertRecord(existingUser);
+                            }
+                        }
+                    }
+                }
+
+                return "OK";
+            });
         }
 
         /// <summary>
@@ -81,8 +137,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         {
             dynamic body = args.body.Value;
 
-#if DEBUG
-#else
+#if !DEBUG
             var table = this.GetTracingTable();
             if (table != null)
             {
@@ -92,6 +147,15 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                 trace.RowKey = now.ToString("HH-mm|") + now.Ticks;
                 trace.Method = "POST";
                 trace.Payload = ((JObject)body).ToString();
+
+                try
+                {
+                    trace.PSID = (string)body.entry[0].messaging[0].sender.id;
+                }
+                catch (Exception)
+                {
+                }
+
 
                 var op = TableOperation.Insert(trace);
                 table.Execute(op);
@@ -196,6 +260,47 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             {
                 // try to get the current chat session
                 var existingSession = MemoryCache.Default["FBMP:" + customerPSID] as FacebookChatSession;
+
+                Action linkAccount = () =>
+                {
+
+                    // no prior session - see if user have logged in with us before
+                    IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
+                                    "/" + customerPSID + "/ids_for_apps",
+                                    true);
+
+                    var idList = result.FirstOrDefault();
+
+                    if (idList != null) // user have logged in with us before
+                    {
+                        var id = (string)idList.id;
+
+                        var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == id).FirstOrDefault();
+                        if (existingUser != null)
+                        {
+                            existingSession.NcbUserId = existingUser.Id;
+
+                            if (existingUser.FacebookPageScopedId == null)
+                            {
+                                existingUser.FacebookPageScopedId = customerPSID;
+                                this.SiteDatabase.UpsertRecord(existingUser);
+                            }
+                        }
+                        else
+                        {
+                            // cannot find in database - something must slipped
+                            // should create user here
+
+                            MailSenderModule.SendEmail("company@nant.co",
+                                "FacebookWebHook Handler Error",
+
+                                "<b>User :</b>" + customerPSID + "<br/>" +
+                                "User have logged in with us before, with App Scoped Id but did not have record in database");
+                        }
+                    }
+                };
+
+
                 if (existingSession == null)
                 {
                     existingSession = this.SiteDatabase.Query<FacebookChatSession>().Where(u => u.PageScopedId == customerPSID).FirstOrDefault();
@@ -203,52 +308,44 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
                     if (existingSession == null)
                     {
                         existingSession = new FacebookChatSession();
-                        MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
 
                         existingSession.PageScopedId = customerPSID;
+                        linkAccount();
 
-                        // no prior session - see if user have logged in with us before
-                        IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
-                                        "/" + customerPSID + "/ids_for_apps",
-                                        true);
-
-                        var idList = result.FirstOrDefault();
-
-                        if (idList != null) // user have logged in with us before
-                        {
-                            var id = (string)idList.id;
-
-                            var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.FacebookAppScopedId == id).FirstOrDefault();
-                            if (existingUser != null)
-                            {
-                                existingSession.NcbUserId = existingUser.Id;
-
-                                if (existingUser.FacebookPageScopedId == null)
-                                {
-                                    existingUser.FacebookPageScopedId = customerPSID;
-                                    this.SiteDatabase.UpsertRecord(existingUser);
-                                }
-                            }
-                            else
-                            {
-                                // cannot find in database - something must slipped
-                                // should create user here
-                            }
-                        }
-
+                        MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
                     }
+                }
+                // this user have chat with us already
+                // but may have registered on the website after they chat with us
+                if (existingSession.NcbUserId == 0)
+                {
+                    linkAccount();
+
+                    MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
                 }
 
                 // Update profile if profile is outdated
                 if (DateTime.Now.Subtract(existingSession.LastProfileUpdate).TotalDays > 7)
                 {
-                    IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
-                                    "/" + customerPSID,
-                                    false);
+                    if (existingSession.NcbUserId != 0)
+                    {
+                        var user = this.SiteDatabase.GetById<NcbUser>( existingSession.NcbUserId );
 
-                    existingSession.UserProfile = result.FirstOrDefault();
+                        existingSession.UserProfile = user.Profile;
+                    }
+                    else
+                    {
+                        IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite,
+                                        "/" + customerPSID,
+                                        false);
+
+                        existingSession.UserProfile = result.FirstOrDefault();
+                    }
+
                     existingSession.LastProfileUpdate = DateTime.Now;
                     this.SiteDatabase.UpsertRecord(existingSession);
+
+                    MemoryCache.Default["FBMP:" + customerPSID] = existingSession;
                 }
 
                 existingSession.HandleWebhook(this.SiteDatabase, this.CurrentSite, messaging);
@@ -500,7 +597,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <returns></returns>
         public static dynamic FacebookApiPost(dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            RestClient client = new RestClient("https://graph.facebook.com/v3.1/");
+            RestClient client = new RestClient("https://graph.facebook.com/v3.2/");
             RestRequest req = new RestRequest(url, Method.POST);
 
             // add parameters

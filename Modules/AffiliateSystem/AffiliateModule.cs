@@ -164,45 +164,115 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     return 400;
                 }
 
-                var reg = AffiliateModule.ApplyAffiliate(this.SiteDatabase, this.CurrentUser.Id);
-                var regresult = JObject.FromObject(reg);
-
                 var body = arg.body.Value;
+
+                var currentUser = AffiliateModule.ApplyAffiliate(this.SiteDatabase, this.CurrentUser.Id, (string)body.source);
+                AffiliateModule.UpdateReferer(this.SiteDatabase, this.CurrentUser.Id, (string)body.source);
+
+                var regresult = JObject.FromObject(currentUser);
+
                 if (body.sharedCoupon != null)
                 {
                     var discountCode = (string)body.sharedCoupon.CouponCode;
 
-                    lock (BaseModule.GetLockObject("SharedCouponCheck-" + reg.Id))
+                    lock (BaseModule.GetLockObject("SharedCouponCheck-" + currentUser.Id))
                     {
-                        // prevent dubplicates
-                        var existing = this.SiteDatabase.Query<AffiliateRewardsClaim>()
-                                                .Where(c => c.DiscountCode == discountCode && c.AffiliateRegistrationId == reg.Id)
-                                                .FirstOrDefault();
+                        // original coupon
+                            var claim = this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                                               .Where(c => c.DiscountCode == discountCode)
+                                               .OrderBy( c => c.Id)
+                                               .FirstOrDefault();
 
-                        if (existing == null)
-                        {
-                            var toCopy = this.SiteDatabase.GetById<AffiliateRewardsClaim>((int)body.sharedCoupon.CouponId);
+                            // owner of the coupon
+                            var couponOwner = this.SiteDatabase.Query<AffiliateRegistration>()
+                                               .Where(r => r.NcbUserId == claim.NcbUserId)
+                                               .FirstOrDefault();
 
-                            toCopy.Id = 0;
-                            toCopy.AffiliateRegistrationId = reg.Id;
-                            toCopy.AffiliateCode = reg.AffiliateCode;
-                            toCopy.NcbUserId = this.CurrentUser.Id;
-                            toCopy.RewardsName = "shared from ID:" + body.sharedCoupon.AffiliateId;
-                            toCopy.IsShareEnabled = false;
+                            System.Action performShare = () =>
+                            {
 
-                            this.SiteDatabase.UpsertRecord(toCopy);
+                                // prevent dubplicates
+                                var existing = this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                                                        .Where(c => c.DiscountCode == discountCode && c.AffiliateRegistrationId == currentUser.Id)
+                                                        .FirstOrDefault();
 
-                            regresult.Add("CouponSaved", true);
-                        }
+                                if (existing != null)
+                                {
+                                    // already has this coupon
+                                    regresult.Add("CouponSaved", true);
+
+                                    return;
+                                }
+
+                                var toCopy = this.SiteDatabase.GetById<AffiliateRewardsClaim>((int)body.sharedCoupon.CouponId);
+
+                                toCopy.Id = 0;
+                                toCopy.AffiliateRegistrationId = currentUser.Id;
+                                toCopy.AffiliateCode = currentUser.AffiliateCode;
+                                toCopy.NcbUserId = this.CurrentUser.Id;
+                                toCopy.RewardsName = "shared from ID:" + body.sharedCoupon.AffiliateId;
+                                toCopy.IsShareEnabled = false;
+
+                                this.SiteDatabase.UpsertRecord(toCopy);
+
+                            };
+
+                            var ownerAncestors = AffiliateModule.DiscoverUpline( couponOwner.AffiliateCode, this.SiteDatabase );
+
+                            // same user, cannot share
+                            if (couponOwner.Id == currentUser.Id)
+                            {
+                                regresult.Add("CouponSaved", false);
+                                regresult.Add("Message", "SAME_USER");
+                                regresult.Add("Owner", couponOwner.AffiliateName);
+
+                            }
+                            else if (couponOwner.RefererAffiliateCode == currentUser.AffiliateCode)
+                            {
+                                // owner is direct downline of current user
+                                // meaning current user trying to get coupon from direct downline
+                                // this is not allowed
+
+                                regresult.Add("CouponSaved", false);
+                                regresult.Add("Message", "SAME_TREE");
+                                regresult.Add("Owner", couponOwner.AffiliateName);
+                            }
+                            else if (currentUser.RefererAffiliateCode == couponOwner.AffiliateCode)
+                            {
+                                // owner is upline of current user
+                                // can share coupon
+                                performShare();
+                            }
+                            else if (ownerAncestors.Contains( currentUser.AffiliateCode ) )
+                            {
+                                // current user is an ancestor of coupon owner, 
+                                // allow sharing but we keep track
+                                MailSenderModule.SendEmail("company@nant.co",
+                                    "Tricky Sharing Coupon Behavior Detected",
+                                    "Affiliate:" + couponOwner.AffiliateCode + " trying to share coupon to: " + currentUser.AffiliateCode +
+                                    "But " + currentUser.AffiliateCode + " is also ancestor of the person who own coupons." +
+                                    "Distance between affiliate is: " + ownerAncestors.IndexOf( currentUser.AffiliateCode ) + " Levels",
+                                    false,
+                                    this.Context);
+
+
+                                performShare();
+                            }
+                            else
+                            {
+                                // there is no relationship between  owner and current user, can share
+                                performShare();
+                            }
+
                     }
 
                 }
 
                 if (body.sharedReward != null)
                 {
-                    lock (BaseModule.GetLockObject("SharedRewardCheck-" + reg.Id))
+                    lock (BaseModule.GetLockObject("SharedRewardCheck-" + currentUser.Id))
                     {
-                        var result = AffiliateReward.ClaimReward(this.SiteDatabase, (int)body.sharedReward.Id, reg.Id);
+                        var result = AffiliateReward.ClaimReward(this.SiteDatabase, (int)body.sharedReward.Id, currentUser.Id);
                         if (result != null)
                         {
                             regresult.Add("RewardClaimed", true);
@@ -468,16 +538,31 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         {
                             return 404;
                         }
-
+                        
                         var couponProduct = this.SiteDatabase.GetById<Product>(coupon.ProductId);
                         if (couponProduct.Url.Contains("/archive/"))
                         {
                             return new {
-                                IsValid = false
+                                IsValid = false,
+                                Message = "USED"
                             };
                         }
 
                         var reg = this.SiteDatabase.GetById<AffiliateRegistration>(coupon.AffiliateRegistrationId);
+
+                        if (this.CurrentUser.IsAnonymous == false)
+                        {
+                            // prevent referee to share coupon back to referer
+                            var currentUser = AffiliateModule.ApplyAffiliate(this.SiteDatabase, this.CurrentUser.Id);
+                            if (reg.RefererAffiliateCode == currentUser.AffiliateCode)
+                            {
+                                return new
+                                {
+                                    IsValid = false,
+                                    Message = "SAME_TREE"
+                                };
+                            }
+                        }
 
                         return new
                         {
@@ -689,7 +774,37 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         return toReturn;
                     };
-                    
+
+                    Func<AffiliateReward, bool> postProcess = (rew) =>
+                    {
+                        if (rew.IsRewardsClaimable)
+                        {
+                            return true;
+                        }
+
+                        if (rew.ActiveUntil.HasValue)
+                        {
+                            if (DateTime.Now.Subtract(rew.ActiveUntil.Value).TotalDays > 7)
+                            {
+                                return false; // skip rewards older than 1 week
+                            }
+
+                            return true; // show that they have missed this rewards
+                        }
+
+                        if (rew.TotalQuota > 0) // with quota, see created date
+                        {
+                            if (DateTime.Now.Subtract(rew.__createdAt).TotalDays > 7)
+                            {
+                                return false; // dont show old rewards
+                            }
+
+                            return true;
+                        }
+
+                        return true;
+                    };
+
                     AffiliateRegistration refererReg;
                     refererReg = this.SiteDatabase.Query<AffiliateRegistration>()
                                          .Where(reg => reg.AffiliateCode == registration.RefererAffiliateCode)
@@ -744,7 +859,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         Rewards = this.SiteDatabase.Query<AffiliateReward>().AsEnumerable()
                                       .Where( rew => rew.IsActive == true )
-                                      .Select( rew => addCanClaim( rew ) ),
+                                      .AsEnumerable()
+                                      .Where( rew => postProcess(rew))
+                                      .Select(rew => addCanClaim(rew)),
 
                         RewardsStat = stat,
 
@@ -822,6 +939,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
         public static AffiliateRegistration UpdateReferer(NancyBlackDatabase db, int userId, string refererCode )
         {
             var registration = AffiliateModule.ApplyAffiliate(db, userId, refererCode);
+
+            // can only change referer if does not already have one
+            // NOTE: already tried allowing referer to change - this cause
+            // problem with cycle and also possible fraud attempt
+            // also - if we allow referer to change the number of
+            // downline will be limited and also referer can 'steal'
+            // downline from other referer.
 
             if (registration.RefererAffiliateCode == null)
             {
@@ -907,6 +1031,38 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     MemoryCache.Default.Add(key, reg, DateTimeOffset.Now.AddHours(1));
                 }
             });
+        }
+
+        /// <summary>
+        /// Find Ancestor of given affiliate code
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="db"></param>
+        /// <returns></returns>
+        private static List<string> DiscoverUpline( string code, NancyBlackDatabase db)
+        {
+            var ancestorList = new List<string>();
+            var currentCode = code;
+
+            while (true)
+            {
+                var parent = db.Query<AffiliateRegistration>()
+                        .Where(r => r.AffiliateCode == currentCode)
+                        .FirstOrDefault();
+
+                if (parent == null ||
+                    string.IsNullOrEmpty(parent.AffiliateCode) ||
+                    parent.AffiliateCode == ancestorList.LastOrDefault() || // BUG in previous version of website
+                    ancestorList.Contains(parent.AffiliateCode)) // BUG in previous version of website
+                {
+                    break;
+                }
+
+                ancestorList.Add(parent.AffiliateCode);
+                currentCode = parent.RefererAffiliateCode;
+            }
+
+            return ancestorList;
         }
 
         /// <summary>

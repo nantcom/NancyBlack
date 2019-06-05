@@ -45,6 +45,17 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
     }
 
     [AttributeUsage(AttributeTargets.Method)]
+    public class MatchTextPartialAttribute : Attribute
+    {
+        public string[] Text { get; set; }
+
+        public MatchTextPartialAttribute(params string[] matches)
+        {
+            this.Text = matches;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
     public class RequireOptin : Attribute
     {
         /// <summary>
@@ -121,6 +132,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         /// Last User Profile update
         /// </summary>
         public DateTime LastProfileUpdate { get; set; }
+
+        /// <summary>
+        /// Whether this user need to recheck for subscription due to bug
+        /// </summary>
+        public bool IsRecheckSubscriptionRequired { get; set; }
 
         /// <summary>
         /// Whether we still can send message to this user (24+1 hour rule)
@@ -311,7 +327,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
                 {
                     MailSenderModule.SendEmail("company@nant.co",
                         "FacebookWebHook Handler Error",
-                        ex.Message + "\r\n" +
+
+                        "<b>Facebook Input:</b><br/>" +
+                        messaging.ToString() + "<br/><br/>" +
+
+                        "<b>Message:</b>" + ex.Message + "<br/>" +
                         ex.StackTrace);
                 }
             }

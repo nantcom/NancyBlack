@@ -257,6 +257,29 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             Post["/__membership/api/updateprofile"] = this.HandleRequest(this.UpdateProfile);
 
+            Get["/__membership/impersonate/{id:int}"] = this.HandleRequest((arg) =>
+            {
+                if (this.Request.Query.failsafetoken != null)
+                {
+                    if (this.Request.Query.failsafetoken != _FailSafeCode)
+                    {
+                        return 403;
+                    }
+                }
+                else
+                {
+                    if (this.CurrentUser.HasClaim("admin") == false)
+                    {
+                        return 403;
+                    }
+                }
+
+                int id = arg.id;
+                var ncbUser = this.SiteDatabase.GetById<NcbUser>(id);
+                var user = UserManager.Current.GetUserFromIdentifier(ncbUser.Guid, this.Context);
+
+                return this.ProcessLogin(user as NcbUser);
+            });
             Get["/__membership/impersonate/{guid}"] = this.HandleRequest((arg) =>
             {
                 if (this.Request.Query.failsafetoken != null)
