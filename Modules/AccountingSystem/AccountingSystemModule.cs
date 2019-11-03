@@ -5,7 +5,9 @@ using NantCom.NancyBlack.Modules.DatabaseSystem;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 
 namespace NantCom.NancyBlack.Modules.AccountingSystem
@@ -583,6 +585,211 @@ namespace NantCom.NancyBlack.Modules.AccountingSystem
 
                 return "OK";
 
+            });
+            
+            Get["/admin/gen-report/bigaccount-report"] = this.HandleRequest((arg) =>
+            {
+                List<InComeMovement> movements = new List<InComeMovement>();
+
+                // all SO from Jan 2017 - Dec 2018
+                var tableQuery = this.SiteDatabase.Query<SaleOrder>()
+                        .Where(row => row.Status == "Delivered" && row.Id > 0);
+
+                // extract product from  saleOrder
+                foreach (var so in tableQuery)
+                {
+                    if (so.ItemsDetail == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var product in so.ItemsDetail)
+                    {
+                        InComeMovement movement = new InComeMovement()
+                        {
+                            Product = product,
+                            SaleOrderId = so.Id,
+                            MovementDate = so.PaymentReceivedDate,
+                            Price = product.CurrentPrice,
+                        };
+
+                        if (product.Attributes == null)
+                        {
+                            movement.Quantity = 1;
+                        }
+                        else
+                        {
+                            movement.Quantity = product.Attributes.Qty;
+                        }
+
+                        if (movement.Price > 0 && movement.Quantity != 0 && movement.MovementDate != default(DateTime))
+                        {
+                            movements.Add(movement);
+                        }
+                    }
+                }
+
+                var count1 = movements.Count();
+                var sum1 = movements.Sum(item => item.Price * item.Quantity);
+
+                // group movement with same product id together and merge duplicated movement
+                var groups = movements.GroupBy(movement => movement.Product.Id);
+                foreach (var group in groups)
+                {
+                    int starter = 0;
+                    List<int> duplicatedIndexes = new List<int>();
+                    int groupLength = group.Count();
+                    var list = group.ToList();
+                    for (int i = starter; i < groupLength - 1; i++)
+                    {
+                        if (duplicatedIndexes.Contains(i))
+                        {
+                            continue;
+                        }
+                        for (int j = i+1; j < groupLength; j++)
+                        {
+                            if (duplicatedIndexes.Contains(j))
+                            {
+                                continue;
+                            }
+
+                            if (list[i].IsEqualTo(list[j]))
+                            {
+                                list[i].Quantity += list[j].Quantity;
+                                duplicatedIndexes.Add(j);
+                            }
+                        }
+                    }
+
+                    // remove duplicated item from movements
+                    foreach (var index in duplicatedIndexes)
+                    {
+                        movements.Remove(list[index]);
+                    }
+                }
+
+                var count2 = movements.Count();
+                var sum2 = movements.Sum(item => item.Price * item.Quantity);
+
+                var csv = new StringBuilder();
+                csv.AppendLine("SaleOrder Id,Date,Product,Price,Qualtity,LineTotal");
+
+                // ex. when title price qty lineTotal
+                foreach (var movement in movements.OrderBy(item => item.MovementDate))
+                {
+                    var newLine = string.Join(",", 
+                        movement.SaleOrderId,
+                        movement.MovementDate.ToShortDateString(),
+                        "\"" + movement.Product.Title + "\"",
+                        movement.Price,
+                        movement.Quantity,
+                        movement.Price * movement.Quantity);
+                    csv.AppendLine(newLine);
+                }
+
+
+                //after your loop
+                File.WriteAllText("D:\\report-4bigaccount.csv", csv.ToString());
+
+                return 200;
+            });
+
+            Get["/admin/gen-report/2017-2018"] = this.HandleRequest((arg) =>
+            {
+                List<InComeMovement> movements = new List<InComeMovement>();
+
+                // all SO from Jan 2017 - Dec 2018
+                var tableQuery = this.SiteDatabase.Query<SaleOrder>()
+                        .Where(row => row.Id >= 115 && row.Id <= 1629
+                        && row.Status == "Delivered");
+
+                var saleOrders = tableQuery.ToList()
+                        .Where(row => row.__createdAt >= new DateTime(2016, 1, 1)
+                        && row.PaymentReceivedDate < new DateTime(2019, 1, 1));
+
+                // extract product from  saleOrder
+                foreach (var so in saleOrders)
+                {
+                    foreach (var product in so.ItemsDetail)
+                    {
+                        InComeMovement movement = new InComeMovement()
+                        {
+                            Product = product,
+                            MovementDate = so.PaymentReceivedDate,
+                            Price = product.CurrentPrice,
+                            Quantity = product.Attributes.Qty
+                        };
+
+                        if (movement.Product.Title != "Discount" && movement.Price != 0 && movement.Quantity != 0)
+                        {
+                            movements.Add(movement);
+                        }
+                    }
+                }
+
+                var count1 = movements.Count();
+                var sum1 = movements.Sum(item => item.Price * item.Quantity);
+
+                // group movement with same product id together and merge duplicated movement
+                var groups = movements.GroupBy(movement => movement.Product.Id);
+                foreach (var group in groups)
+                {
+                    int starter = 0;
+                    List<int> duplicatedIndexes = new List<int>();
+                    int groupLength = group.Count();
+                    var list = group.ToList();
+                    for (int i = starter; i < groupLength - 1; i++)
+                    {
+                        if (duplicatedIndexes.Contains(i))
+                        {
+                            continue;
+                        }
+                        for (int j = i + 1; j < groupLength; j++)
+                        {
+                            if (duplicatedIndexes.Contains(j))
+                            {
+                                continue;
+                            }
+
+                            if (list[i].IsEqualTo(list[j]))
+                            {
+                                list[i].Quantity += list[j].Quantity;
+                                duplicatedIndexes.Add(j);
+                            }
+                        }
+                    }
+
+                    // remove duplicated item from movements
+                    foreach (var index in duplicatedIndexes)
+                    {
+                        movements.Remove(list[index]);
+                    }
+                }
+
+                var count2 = movements.Count();
+                var sum2 = movements.Sum(item => item.Price * item.Quantity);
+
+                movements.Sort();
+
+                var csv = new StringBuilder();
+
+                // ex. when title price qty lineTotal
+                foreach (var movement in movements)
+                {
+                    var newLine = string.Join(",",
+                        movement.MovementDate.ToShortDateString(),
+                        "\"" + movement.Product.Title + "\"",
+                        movement.Price,
+                        movement.Quantity,
+                        movement.Price * movement.Quantity);
+                    csv.AppendLine(newLine);
+                }
+
+
+                //after your loop
+                File.WriteAllText("D:\\report-4bigaccount-2017-2018.csv", csv.ToString());
+
+                return 200;
             });
 
         }
