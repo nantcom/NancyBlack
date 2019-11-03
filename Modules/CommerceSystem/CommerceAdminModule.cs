@@ -45,6 +45,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Post["/admin/commerce/api/pay"] = this.HandleRequest(this.HandlePayRequest);
 
+            Get["/admin/search/by/serial"] = this.HandleRequest(this.HandleSearchBySerial);
+
             Get["/admin/commerce/printreceipt"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", (arg)=>
             {
                 var now = DateTime.Now;
@@ -85,6 +87,87 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Post["/admin/commerce/api/enablesizing"] = this.HandleRequest(this.EnableSizingVariations);
 
             #endregion
+        }
+
+        private dynamic HandleSearchBySerial(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            var serial = (string)this.Request.Query.key;
+            var saleOrders = this.SiteDatabase.Query<SaleOrder>().AsEnumerable();
+            var inventoryItems = this.SiteDatabase.Query<InventoryItem>().AsEnumerable();
+            var rmaItems = this.SiteDatabase.Query<RMAItem>().AsEnumerable();
+
+            var result = new List<SearchResult>();
+
+            foreach (var saleOrder in saleOrders)
+            {
+                if (saleOrder.CustomData != null && saleOrder.CustomData.SerialNumbers != null)
+                {
+                    foreach (var item in saleOrder.CustomData.SerialNumbers)
+                    {
+                        if (((string)item.Serial).Contains(serial))
+                        {
+                            var newResult = new SearchResult()
+                            {
+                                RecordDate = saleOrder.DeliveryDate == null ? saleOrder.__createdAt : saleOrder.DeliveryDate,
+                                Result = item.Serial,
+                                Source = string.Format("SaleOrder: {0}", saleOrder.Id)
+                            };
+
+                            result.Add(newResult);
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            foreach (var invItem in inventoryItems)
+            {
+                if (!string.IsNullOrEmpty(invItem.SerialNumber) && invItem.SerialNumber.Contains(serial))
+                {
+                    var newResult = new SearchResult()
+                    {
+                        RecordDate = invItem.__updatedAt,
+                        Result = invItem.SerialNumber,
+                        Source = string.Format("SaleOrder: {0}", invItem.SaleOrderId)
+                    };
+
+                    result.Add(newResult);
+                }
+            }
+
+            foreach (var rmaItem in rmaItems)
+            {
+                if (!string.IsNullOrEmpty(rmaItem.FromSerial) && rmaItem.FromSerial.Contains(serial))
+                {
+                    var newResult = new SearchResult()
+                    {
+                        RecordDate = rmaItem.__createdAt,
+                        Result = rmaItem.FromSerial,
+                        Source = string.Format("RMA: {0}, used for claim", rmaItem.Id)
+                    };
+
+                    result.Add(newResult);
+                }
+                else if (!string.IsNullOrEmpty(rmaItem.ToSerial) && rmaItem.ToSerial.Contains(serial))
+                {
+                    var newResult = new SearchResult()
+                    {
+                        RecordDate = rmaItem.__createdAt,
+                        Result = rmaItem.ToSerial,
+                        Source = string.Format("RMA: {0}, used for exchange", rmaItem.Id)
+                    };
+
+                    result.Add(newResult);
+                }
+            }
+
+            return from item in result orderby item.RecordDate select item;
         }
         
         private dynamic HandlePayRequest(dynamic arg)
