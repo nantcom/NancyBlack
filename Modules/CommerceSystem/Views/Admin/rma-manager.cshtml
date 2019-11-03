@@ -105,8 +105,8 @@
 
             <tr ng-repeat="item in tableParams.data">
                 <td data-title="'Order#'"
-                    sortable="'SaleOrderIdentifier'"
-                    filter="{ 'SaleOrderIdentifier': 'text' }">
+                    sortable="'Id'"
+                    filter="{ 'Id': 'text' }">
                     <a href="/rma/{{item.RMAIdentifier}}" target="_blank">
                         {{item.RMAIdentifier}}
                     </a>
