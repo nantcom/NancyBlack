@@ -276,7 +276,28 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Payment Received Date</label>
+                                    <label for="DueDate" class="col-sm-4 control-label">Est. Inbound Date</label>
+                                    <div class="col-sm-8">
+                                        <span ng-show="!orderDetailForm.$visible">
+                                            {{object.InboundDateEst | date: 'medium'}}
+                                        </span>
+                                        <span ng-show="orderDetailForm.$visible">
+                                            <ncb-datepicker model="object.InboundDateEst" format="'dd MMMM yyyy'"></ncb-datepicker>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="Inbound Date Actual" class="col-sm-4 control-label">Inbound Date Actual</label>
+                                    <div class="col-sm-8">
+                                        <span >
+                                            {{object.InboundDate | date: 'medium'}}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="PaymentReceivedDate" class="col-sm-4 control-label">Payment Received Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.PaymentReceivedDate | date: 'medium'}}
@@ -288,7 +309,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Ship Out Date</label>
+                                    <label for="ShipOutDate" class="col-sm-4 control-label">Ship Out Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.ShipOutDate | date: 'medium'}}
@@ -300,7 +321,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Delivery Date</label>
+                                    <label for="DeliveryDate" class="col-sm-4 control-label">Delivery Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.DeliveryDate | date: 'medium'}}
@@ -495,6 +516,27 @@
                                         </span>
                                     </div>
                                 </div>
+
+                                <div ng-if="object.Customer.User != null">
+                                    <div class="form-group">
+                                        <label for="FacebookName" class="col-sm-4 control-label">Facebook Id</label>
+                                        <div class="col-sm-8">
+                                            <span class="ncb-editable-span editable">
+                                                {{object.Customer.User.Profile.id || 'empty'}}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="FacebookName" class="col-sm-4 control-label">FacebookName</label>
+                                        <div class="col-sm-8">
+                                            <span class="ncb-editable-span editable">
+                                                {{object.Customer.User.Profile.first_name + ' ' + object.Customer.User.Profile.last_name || 'empty'}}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
 
                                 <div class="form-group">
                                     <label for="FacebookId" class="col-sm-4 control-label">FacebookId</label>
@@ -919,7 +961,7 @@
                             <td>
 
                                 <div ncb-lookupscope
-                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key)&$orderby=Title,__updatedAt desc">
+                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/laptops/') or startswith(Url, '/products/pc/') or startswith(Url, '/products/parts/'))&$orderby=Title,__updatedAt desc">
 
                                     <ui-select theme="bootstrap" ng-model="newItem.Id"
                                                reset-search-input="false">
@@ -931,11 +973,11 @@
                                             <span class="text-muted">
                                                 {{item.Id}} -
                                             </span>
-                                            <span>
+                                            <span ng-class="{ 'text-danger' : item.Url.indexOf('archive/') > 0 }">
                                                 {{item.label}}
                                             </span>
                                             <span class="text-muted">
-                                                {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
+                                                {{item.Url.substring( item.Url.lastIndexOf('/'))}}
                                             </span>
                                         </ui-select-choices>
                                     </ui-select>
