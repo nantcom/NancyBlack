@@ -1,5 +1,6 @@
 ﻿using Nancy;
 using NantCom.NancyBlack.Configuration;
+using NantCom.NancyBlack.Modules.AccountingSystem.Types;
 using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
@@ -47,38 +48,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Get["/admin/search/by/serial"] = this.HandleRequest(this.HandleSearchBySerial);
 
-            Get["/admin/commerce/printreceipt"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", (arg)=>
-            {
-                var now = DateTime.Now;
-                var lastMonth = now.AddMonths(-1);
-                lastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1, 0, 0, 0); // first second of last month
+            Get["/admin/search/serial"] = this.HandleViewRequest("/Admin/searchserialmanager", (arg) => new StandardModel(this, null, null));
 
-                var thisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
-                thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
+            Get["/admin/commerce/printreceipt"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", this.HandleReceiptRequest);
 
-                var result = this.SiteDatabase.Query<Receipt>()
-                                .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
-                                .OrderBy( r => r.Id )
-                                .ToList();
-
-                return new StandardModel(this, null, result);
-            });
-
-            Get["/admin/commerce/printreceipt/{year}-{month}"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", (arg) =>
-            {
-                var now = DateTime.Now;
-                var lastMonth = new DateTime((int)arg.year, (int)arg.month, 1, 0, 0, 0); // first second of last month
-
-                var thisMonth = lastMonth.AddMonths(1);
-                thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
-
-                var result = this.SiteDatabase.Query<Receipt>()
-                                .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
-                                .OrderBy(r => r.Id)
-                                .ToList();
-
-                return new StandardModel(this, null, result);
-            });
+            Get["/admin/commerce/printreceipt/{year}-{month}"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", this.HandleReceiptRequestWithSpecificMonth);
 
             Get["/admin/commerce/facebookexport"] = this.HandleRequest(this.HandleFacebookCustomAudienceExport);
 
@@ -88,6 +62,85 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             #endregion
         }
+
+        #region Generate AccountantMonthlyReceipt Code
+
+        private List<AccountantMonthlyReceipt> GetAccountantMonthlyReceipt(List<Receipt> receipts)
+        {
+            var result = new List<AccountantMonthlyReceipt>();
+
+            foreach (var receipt in receipts)
+            {
+                var record = new AccountantMonthlyReceipt();
+                record.Receipt = receipt;
+                record.SaleOrder = this.SiteDatabase.GetById<SaleOrder>(receipt.Id);
+                record.RelatedPaymentLogs = this.SiteDatabase.Query<PaymentLog>().Where(pl => pl.SaleOrderId == record.SaleOrder.Id).ToList();
+                record.PaymentLog = this.SiteDatabase.GetById<PaymentLog>(receipt.PaymentLogId);
+
+                if (record.SaleOrder.Attachments == null)
+                {
+                    record.SaleOrder.Attachments = new dynamic[0];
+                }
+
+                var total = record.SaleOrder.TotalAmount;
+                var sumPayment = record.RelatedPaymentLogs.Where(pl => pl.IsPaymentSuccess).Sum(pl => pl.Amount);
+
+                if (total == sumPayment)
+                {
+                    record.Status = "All Payment matched TotalAmount";
+                }
+                else if (total == sumPayment + record.SaleOrder.PaymentFee)
+                {
+                    record.Status = "Payment Fee missing syspected!";
+                }
+                else
+                {
+                    record.Status = string.Format("There is Amount: {0:0,0.0} missing from payment", total - sumPayment);
+                }
+
+                result.Add(record);
+            }
+
+            return result;
+        }
+
+        private StandardModel HandleReceiptRequest(dynamic arg)
+        {
+            var now = DateTime.Now;
+            var lastMonth = now.AddMonths(-1);
+            lastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1, 0, 0, 0); // first second of last month
+
+            var thisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
+            thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
+
+            var receipts = this.SiteDatabase.Query<Receipt>()
+                            .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
+                            .OrderBy(r => r.Id)
+                            .ToList();
+
+            var result = this.GetAccountantMonthlyReceipt(receipts);
+
+            return new StandardModel(this, null, result);
+        }
+
+        private StandardModel HandleReceiptRequestWithSpecificMonth(dynamic arg)
+        {
+            var lastMonth = new DateTime((int)arg.year, (int)arg.month, 1, 0, 0, 0); // first second of last month
+
+            var thisMonth = lastMonth.AddMonths(1);
+            thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
+
+            var receipts = this.SiteDatabase.Query<Receipt>()
+                            .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
+                            .OrderBy(r => r.Id)
+                            .ToList();
+
+            var result = this.GetAccountantMonthlyReceipt(receipts);
+
+            return new StandardModel(this, null, result);
+        }
+
+        #endregion
 
         private dynamic HandleSearchBySerial(dynamic arg)
         {
