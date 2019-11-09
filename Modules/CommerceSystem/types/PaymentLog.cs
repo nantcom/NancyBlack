@@ -99,6 +99,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public bool IsPaymentSuccess { get; set; }
 
         /// <summary>
+        /// Index of this payment in the same sale order which is successful
+        /// </summary>
+        public int SuccessfulPaymentIndex { get; set; }
+
+        /// <summary>
         /// Creates new instance of payment log from context
         /// </summary>
         /// <param name="context"></param>

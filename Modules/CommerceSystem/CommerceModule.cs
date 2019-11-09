@@ -44,9 +44,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
                 return content;
             };
-            
+
         }
-        
+
         private static bool _Triggered = false;
 
         public CommerceModule()
@@ -65,9 +65,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 {
                     return new StandardModel(404);
                 }
-                
+
                 var page = ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
-                return new StandardModel(this, page, JObject.FromObject( new SaleOrder()
+                return new StandardModel(this, page, JObject.FromObject(new SaleOrder()
                 {
                     SaleOrderIdentifier = "SO20990909-999999",
                 }));
@@ -78,7 +78,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 return new StandardModel(this, "Checkout");
             });
-            
+
             // get the product 
             Get["/__commerce/api/productstructure"] = this.HandleRequest(this.BuildProductStructure);
 
@@ -96,19 +96,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Patch["/tables/SaleOrder/{id:int}"] = this.HandleRequest(this.HandleSalorderSaveRequest);
 
             Post["/__commerce/api/resolvevariation"] = this.HandleRequest(this.HandleVariationRequest);
-            
+
             Get["/__commerce/banner"] = this.HandleRequest(this.HandleBannerRequest);
-            
-            Get["/__commerce/settings"] = this.HandleRequest( (arg)=>
-            {
-                return this.CurrentSite.commerce;
-            });
+
+            Get["/__commerce/settings"] = this.HandleRequest((arg) =>
+           {
+               return this.CurrentSite.commerce;
+           });
 
             Post["/__commerce/api/checkpromotion"] = this.HandleRequest(this.HandlePromotionCheckRequest);
 
         }
 
-        private StandardModel HandleCommercePrint( dynamic arg )
+        private StandardModel HandleCommercePrint(dynamic arg)
         {
             int soId = 0;
             var id = (string)arg.so_id;
@@ -124,7 +124,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             .FirstOrDefault();
 
             }
-            
+
             if (so == null)
             {
                 return new StandardModel(404); ;
@@ -186,13 +186,13 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         private dynamic HandlePromotionCheckRequest(dynamic arg)
         {
             var saleorder = ((JObject)arg.body.Value).ToObject<SaleOrder>();
-            return saleorder.ApplyPromotion( this.CurrentSite, this.SiteDatabase, this.Request.Query.code);
+            return saleorder.ApplyPromotion(this.CurrentSite, this.SiteDatabase, this.Request.Query.code);
         }
 
         private dynamic HandleBannerRequest(dynamic arg)
         {
-            var bannerList = this.SiteDatabase.Query<Banner>()                            
-                            .Take(5)                           
+            var bannerList = this.SiteDatabase.Query<Banner>()
+                            .Take(5)
                             .ToList();
 
             this.SaveDisplayedBanner(bannerList);
@@ -202,7 +202,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         private dynamic SaveDisplayedBanner(dynamic arg)
         {
-            foreach(var Banner in arg)
+            foreach (var Banner in arg)
             {
                 var Impression = new Impression()
                 {
@@ -264,7 +264,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             if (saleorder.Customer == null)
             {
-                saleorder.Customer = new {
+                saleorder.Customer = new
+                {
                     Email = this.CurrentUser.Email
                 };
             }
@@ -272,7 +273,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             {
                 saleorder.Customer.Email = this.CurrentUser.Email; // sets email
             }
-            
+
             saleorder.UpdateSaleOrder(this.SiteDatabase, this.CurrentSite);
 
             return saleorder;
@@ -389,7 +390,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                         tree[parentPath] = new Node()
                         {
                             id = id++,
-                            title = parentPath.Substring( parentPath.LastIndexOf('/') + 1),
+                            title = parentPath.Substring(parentPath.LastIndexOf('/') + 1),
                             fullPath = parentPath,
                         };
                     }
@@ -418,149 +419,201 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // ensure only one thread is processing this so
             lock (BaseModule.GetLockObject(log.SaleOrderIdentifier))
             {
-                // find the sale order
-                var so = db.Query<SaleOrder>()
-                            .Where(row => row.SaleOrderIdentifier == log.SaleOrderIdentifier)
-                            .FirstOrDefault();
-
-                bool isPaymentReceived = false;
-
-                JArray exceptions = new JArray();
-
-                if (so == null)
+                db.Transaction(() =>
                 {
-                    exceptions.Add(JObject.FromObject(new
-                    {
-                        type = "Wrong SO Number",
-                        description = "Wrong SO Number"
-                    }));
+                    paidWhen = DateTime.SpecifyKind(paidWhen, DateTimeKind.Utc);
 
-                    goto EndPayment;
-                }
+                    // find the sale order
+                    var so = db.Query<SaleOrder>()
+                                .Where(row => row.SaleOrderIdentifier == log.SaleOrderIdentifier)
+                                .FirstOrDefault();
 
-                log.SaleOrderId = so.Id;
-                log.PaymentDate = paidWhen;
 
-                // check duplicated payment log (sometime we got double request from PaySbuy)
-                if (log.PaymentSource == PaymentMethod.PaySbuy && !log.IsErrorCode)
-                {
-                    var jsonStr = ((JObject)log.FormResponse).ToString();
-                    var duplicatedRequests = db.QueryAsJObject("PaymentLog", "FormResponse eq '" + jsonStr + "'").ToList();
+                    bool isPaymentReceived = false;
 
-                    if (duplicatedRequests.Count > 0)
+                    JArray exceptions = new JArray();
+
+                    if (so == null)
                     {
                         exceptions.Add(JObject.FromObject(new
                         {
-                            type = "Duplicated Request",
-                            description = string.Format(
-                            "Duplicated with Id: {0}", duplicatedRequests.First().Value<int>("Id"))
+                            type = "Wrong SO Number",
+                            description = "Wrong SO Number"
                         }));
 
                         goto EndPayment;
                     }
-                }
-
-                // Wrong Payment Status
-                if (so.PaymentStatus == PaymentStatus.PaymentReceived)
-                {
-                    so.IsDuplicatePayment = true;
-                    exceptions.Add(JObject.FromObject(new
-                    {
-                        type = "Wrong Status",
-                        description = string.Format(
-                            "Current paymentlog status of SO is: {0}", PaymentStatus.DuplicatePayment)
-                    }));
-                }
-
-                // Error code received
-                if (log.IsErrorCode)
-                {
-                    so.PaymentStatus = PaymentStatus.WaitingForPayment;
-                    exceptions.Add(JObject.FromObject(new
-                    {
-                        type = "Error Code",
-                        description = "Error Code Received from Payment Processor: " + log.ResponseCode
-                    }));
-
-                    goto EndPayment;
-                }
-
-                // after this line will never be run until EndPayment when IsErrorCode == true
-                if (so.PaymentStatus != PaymentStatus.PaymentReceived && log.Amount != so.TotalAmount)
-                {
-                    log.IsPaymentSuccess = true;
-                    so.PaymentStatus = PaymentStatus.Deposit;
-                    so.PaymentReceivedDate = DateTime.Now; // Need to use this to manage queue
-
-                    exceptions.Add(JObject.FromObject(new
-                    {
-                        type = "Split Payment",
-                        description = string.Format(
-                            "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
-                    }));
                     
-                    var paymentlogs = db.Query<PaymentLog>()
-                        .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier);
+                    log.SaleOrderId = so.Id;
+                    log.PaymentDate = paidWhen;
 
-                    var splitPaymentLogs = (from sPLog in paymentlogs
-                                            where sPLog.IsErrorCode == false
-                                            select sPLog).ToList();
+                    // check duplicated payment log (sometime we got double request from PaySbuy)
+                    if (log.PaymentSource == PaymentMethod.PaySbuy && !log.IsErrorCode)
+                    {
+                        var jsonStr = ((JObject)log.FormResponse).ToString();
+                        var duplicatedRequests = db.QueryAsJObject("PaymentLog", "FormResponse eq '" + jsonStr + "'").ToList();
 
-                    isPaymentReceived = so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
-                }
-                
-                if (exceptions.Count == 0 || isPaymentReceived)
-                {
-                    log.IsPaymentSuccess = true;
+                        if (duplicatedRequests.Count > 0)
+                        {
+                            exceptions.Add(JObject.FromObject(new
+                            {
+                                type = "Duplicated Request",
+                                description = string.Format(
+                                "Duplicated with Id: {0}", duplicatedRequests.First().Value<int>("Id"))
+                            }));
 
-                    so.PaymentStatus = PaymentStatus.PaymentReceived;
-                    so.PaymentReceivedDate = DateTime.Now;
-                }
+                            goto EndPayment;
+                        }
+                    }
+
+                    // Wrong Payment Status
+                    if (so.PaymentStatus == PaymentStatus.PaymentReceived)
+                    {
+                        so.IsDuplicatePayment = true;
+                        exceptions.Add(JObject.FromObject(new
+                        {
+                            type = "Wrong Status",
+                            description = string.Format(
+                                "Current paymentlog status of SO is: {0}", PaymentStatus.DuplicatePayment)
+                        }));
+                    }
+
+                    // Error code received
+                    if (log.IsErrorCode)
+                    {
+                        so.PaymentStatus = PaymentStatus.WaitingForPayment;
+                        exceptions.Add(JObject.FromObject(new
+                        {
+                            type = "Error Code",
+                            description = "Error Code Received from Payment Processor: " + log.ResponseCode
+                        }));
+
+                        goto EndPayment;
+                    }
+
+
+                    var saleOrderPaymentLogs = db.Query<PaymentLog>()
+                                                 .Where(p => p.SaleOrderIdentifier == so.SaleOrderIdentifier);
+
+                    var totalSuccessful = saleOrderPaymentLogs.Where(l => l.IsPaymentSuccess).Count();
+                    log.SuccessfulPaymentIndex = (totalSuccessful + 1) - 1;
+
+                    // after this line will never be run until EndPayment when IsErrorCode == true
+                    if (so.PaymentStatus != PaymentStatus.PaymentReceived && log.Amount != so.TotalAmount)
+                    {
+                        log.IsPaymentSuccess = true;
+                        so.PaymentStatus = PaymentStatus.Deposit;
+                        so.PaymentReceivedDate = DateTime.Now; // Need to use this to manage queue
+
+                        exceptions.Add(JObject.FromObject(new
+                        {
+                            type = "Split Payment",
+                            description = string.Format(
+                                "Expects: {0} amount from SO, payment is {1}", so.TotalAmount, log.Amount)
+                        }));
+
+
+                        var splitPaymentLogs = (from sPLog in saleOrderPaymentLogs
+                                                where sPLog.IsErrorCode == false
+                                                select sPLog).ToList();
+
+                        isPaymentReceived = so.TotalAmount <= splitPaymentLogs.Sum(splog => splog.Amount) + log.Amount;
+                    }
+
+                    if (exceptions.Count == 0 || isPaymentReceived)
+                    {
+                        log.IsPaymentSuccess = true;
+
+                        so.PaymentStatus = PaymentStatus.PaymentReceived;
+                        so.PaymentReceivedDate = DateTime.Now;
+                    }
 
                 EndPayment:
 
-                log.Exception = exceptions;
-                db.UpsertRecord<PaymentLog>(log);
-                
-                CommerceModule.PaymentOccured(so, db);
+                    log.Exception = exceptions;
+                    db.UpsertRecord<PaymentLog>(log);
 
-                if (log.IsPaymentSuccess)
-                {
-                    // Set Receipt number
-                    var rc = db.UpsertRecord<Receipt>(new Receipt() { SaleOrderId = so.Id, PaymentLogId = log.Id });
-                    rc.SetIdentifier();
-                    db.UpsertRecord(rc);
+                    CommerceModule.PaymentOccured(so, db);
 
-                    CommerceModule.PaymentSuccess(so, db);
-                }
-                
-                db.UpsertRecord<SaleOrder>(so);
-
-                // reset the one time code used
-                foreach (var item in so.ItemsDetail)
-                {
-                    if (item.Url.StartsWith("/promotions/code"))
+                    if (log.IsPaymentSuccess)
                     {
-                        if (item.Attributes.onetime != null)
+
+                        // Set Receipt number
+                        var rc = db.UpsertRecord<Receipt>(new Receipt() { SaleOrderId = so.Id, PaymentLogId = log.Id });
+                        db.UpsertRecord(rc);
+
+                        CommerceModule.PaymentSuccess(so, db);
+                    }
+
+                    db.UpsertRecord<SaleOrder>(so);
+
+                    // reset the one time code used
+                    foreach (var item in so.ItemsDetail)
+                    {
+                        if (item.Url.StartsWith("/promotions/code"))
                         {
-                            var product = db.GetById<Product>(item.Id);
-                            product.Url = product.Url.Replace("/promotions/code", "/promotions/code/archive-onetime");
-                            db.UpsertRecord(product);
+                            if (item.Attributes.onetime != null)
+                            {
+                                var product = db.GetById<Product>(item.Id);
+                                product.Url = product.Url.Replace("/promotions/code", "/promotions/code/archive-onetime");
+                                db.UpsertRecord(product);
+                            }
                         }
                     }
-                }
 
-                // Automate change status to WaitingForOrder for add item to PO
-                if (exceptions.Count == 0 || isPaymentReceived)
-                {
-                    if (so.Status == SaleOrderStatus.Confirmed)
+                    // Automate change status to WaitingForOrder for add item to PO
+                    if (exceptions.Count == 0 || isPaymentReceived)
                     {
-                        so.Status = SaleOrderStatus.WaitingForOrder;
-                        db.UpsertRecord<SaleOrder>(so);
+                        if (so.Status == SaleOrderStatus.Confirmed)
+                        {
+                            so.Status = SaleOrderStatus.WaitingForOrder;
+                            db.UpsertRecord<SaleOrder>(so);
+                        }
                     }
-                }
+
+                });
+
+
+                CommerceModule.SetReceiptIdentifier(db, paidWhen);
             }
 
+        }
+
+        /// <summary>
+        /// Set Receipt Index
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="month"></param>
+        public static void SetReceiptIdentifier(NancyBlackDatabase db, DateTime month)
+        {
+            db.Transaction(() =>
+            {
+                // now, find all payment log of this month
+                var startOfMonth = new DateTime(month.Year, month.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+                var paymentsThisMonth = db.Query<PaymentLog>()
+                                          .Where(l => l.PaymentDate >= startOfMonth && l.PaymentDate <= endOfMonth)
+                                          .OrderBy( l => l.PaymentDate )
+                                          .ThenBy( l => l.Id ).ToList();
+
+                int counter = 1;
+                foreach (var l in paymentsThisMonth)
+                {
+                    var receipt = db.Query<Receipt>().Where(r => r.PaymentLogId == l.Id).FirstOrDefault();
+                    if (receipt == null)
+                    {
+                        // payment is not successful - so no receipt
+                    }
+                    else
+                    {
+                        receipt.Identifier = l.PaymentDate.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
+                        db.UpsertRecord(receipt);
+
+                        counter++;
+                    }
+                }
+
+            });
         }
 
         public static void SetPackingStatus(NancyBlackDatabase db, SaleOrder so)

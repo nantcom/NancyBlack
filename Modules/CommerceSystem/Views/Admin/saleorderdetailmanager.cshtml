@@ -90,27 +90,12 @@
                             <div class="panel-body">
 
                                 <div class="form-group row">
-                                    <div class="col-xs-6">
-                                        <ncb-datepicker model="paymentDetail.paidWhen" format="'dd MMMM yyyy'"
-                                                        title="Payment Date"></ncb-datepicker>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <select ncb-select title="Payment Time Hour"
-                                                ng-model="paymentTime.Hour">
-                                            @for (int i = 0; i < 24; i++)
-                                            {
-                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
-                                            }
-                                        </select>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <select ncb-select title="Minute"
-                                                ng-model="paymentTime.Min">
-                                            @for (int i = 0; i < 60; i++)
-                                            {
-                                                <option value="@(i)">@string.Format("{0:00}", i)</option>
-                                            }
-                                        </select>
+                                    <div class="col-xs-12">
+                                        <input type="date" style="display:block; width: 100%"
+                                               min="{{moment().startOf('month').format('YYYY-MM-DD')}}"
+                                               max="{{moment().format('YYYY-MM-DD')}}"
+                                               ng-model="paymentDetail.paidWhen" />
+
                                     </div>
                                 </div>
 
@@ -251,6 +236,18 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="Affiliate Code" class="col-sm-4 control-label">Affiliate Code</label>
+                                    <div class="col-sm-8">
+                                        <span class="ncb-editable-span"
+                                              id="AffiliateCode"
+                                              e-name="AffiliateCode"
+                                              editable-text="object.AffiliateCode">
+                                            {{object.AffiliateCode || 'empty'}}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
                                     <label for="CreatedAt" class="col-sm-4 control-label">CreatedAt</label>
                                     <div class="col-sm-8">
                                         <span>
@@ -295,7 +292,7 @@
                                 <div class="form-group">
                                     <label for="Inbound Date Actual" class="col-sm-4 control-label">Inbound Date Actual</label>
                                     <div class="col-sm-8">
-                                        <span >
+                                        <span>
                                             {{object.InboundDate | date: 'medium'}}
                                         </span>
                                     </div>
@@ -390,6 +387,7 @@
                                         </span>
                                     </div>
                                 </div>
+
 
                                 <h3>Totals</h3>
 

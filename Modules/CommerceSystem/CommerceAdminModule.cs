@@ -65,17 +65,32 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
         #region Generate AccountantMonthlyReceipt Code
 
-        private List<AccountantMonthlyReceipt> GetAccountantMonthlyReceipt(List<Receipt> receipts)
+        private List<AccountantMonthlyReceipt> GetAccountantMonthlyReceipt(List<Receipt> receipts, List<PaymentLog> payments)
         {
             var result = new List<AccountantMonthlyReceipt>();
+            var paymentLogs = payments.ToDictionary(l => l.Id);
 
             foreach (var receipt in receipts)
             {
                 var record = new AccountantMonthlyReceipt();
                 record.Receipt = receipt;
-                record.SaleOrder = this.SiteDatabase.GetById<SaleOrder>(receipt.Id);
-                record.RelatedPaymentLogs = this.SiteDatabase.Query<PaymentLog>().Where(pl => pl.SaleOrderId == record.SaleOrder.Id).ToList();
-                record.PaymentLog = this.SiteDatabase.GetById<PaymentLog>(receipt.PaymentLogId);
+                record.SaleOrder = this.SiteDatabase.GetById<SaleOrder>(receipt.SaleOrderId);
+                record.RelatedPaymentLogs = this.SiteDatabase.Query<PaymentLog>()
+                                                .Where(pl => pl.SaleOrderId == record.SaleOrder.Id && pl.IsPaymentSuccess)
+                                                .OrderBy( pl => pl.PaymentDate ).ToList();
+                record.PaymentLog = paymentLogs[receipt.PaymentLogId];
+
+                var index = 0;
+                for (int i = 0; i < record.RelatedPaymentLogs.Count; i++)
+                {
+                    if (record.RelatedPaymentLogs[i].Id == receipt.PaymentLogId)
+                    {
+                        record.PaymentLog.SuccessfulPaymentIndex = index;
+                        break;
+                    }
+
+                    index++;
+                }
 
                 if (record.SaleOrder.Attachments == null)
                 {
@@ -83,19 +98,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
 
                 var total = record.SaleOrder.TotalAmount;
-                var sumPayment = record.RelatedPaymentLogs.Where(pl => pl.IsPaymentSuccess).Sum(pl => pl.Amount);
+                var sumPayment = record.RelatedPaymentLogs.Sum(pl => pl.Amount);
 
                 if (total == sumPayment)
                 {
-                    record.Status = "All Payment matched TotalAmount";
+                    record.Status = "OK";
                 }
                 else if (total == sumPayment + record.SaleOrder.PaymentFee)
                 {
-                    record.Status = "Payment Fee missing syspected!";
+                    record.Status = "Missing Fee";
                 }
                 else
                 {
-                    record.Status = string.Format("There is Amount: {0:0,0.0} missing from payment", total - sumPayment);
+                    record.Status = string.Format("{0:0,0.0} to Collect.", total - sumPayment);
                 }
 
                 result.Add(record);
@@ -104,39 +119,54 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return result;
         }
 
+        private List<AccountantMonthlyReceipt> FindReceipt( int year, int month)
+        {
+            var begin = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc); // first second of last month
+
+            // the first month we use new receipt identifier format is 2019/11
+            if (begin >= new DateTime(2019, 11, 1, 0, 0, 0, DateTimeKind.Utc))
+            {
+                // set receipt identifier
+                CommerceModule.SetReceiptIdentifier(this.SiteDatabase, begin);
+            }
+
+            var end = begin.AddMonths(1);
+            end = end.AddSeconds(-1); // one second before start of this month
+
+            var paymentsThisMonth = this.SiteDatabase.Query<PaymentLog>()
+                                      .Where(l => l.PaymentDate >= begin && l.PaymentDate <= end)
+                                      .OrderBy(l => l.PaymentDate)
+                                      .ThenBy(l => l.Id).ToList();
+
+            List<Receipt> receipts = new List<Receipt>();
+
+            foreach (var l in paymentsThisMonth)
+            {
+                var receipt = this.SiteDatabase.Query<Receipt>().Where(r => r.PaymentLogId == l.Id).FirstOrDefault();
+                if (receipt == null)
+                {
+                    continue;
+                }
+                receipts.Add(receipt);
+            }
+
+            var result = this.GetAccountantMonthlyReceipt(receipts, paymentsThisMonth);
+
+            return result;
+        }
+
         private StandardModel HandleReceiptRequest(dynamic arg)
         {
             var now = DateTime.Now;
             var lastMonth = now.AddMonths(-1);
-            lastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1, 0, 0, 0); // first second of last month
 
-            var thisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
-            thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
-
-            var receipts = this.SiteDatabase.Query<Receipt>()
-                            .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
-                            .OrderBy(r => r.Id)
-                            .ToList();
-
-            var result = this.GetAccountantMonthlyReceipt(receipts);
-
+            var result = this.FindReceipt(lastMonth.Year, lastMonth.Month);
             return new StandardModel(this, null, result);
         }
 
         private StandardModel HandleReceiptRequestWithSpecificMonth(dynamic arg)
         {
-            var lastMonth = new DateTime((int)arg.year, (int)arg.month, 1, 0, 0, 0); // first second of last month
-
-            var thisMonth = lastMonth.AddMonths(1);
-            thisMonth = thisMonth.AddSeconds(-1); // one second before start of this month
-
-            var receipts = this.SiteDatabase.Query<Receipt>()
-                            .Where(r => r.__updatedAt >= lastMonth && r.__updatedAt <= thisMonth)
-                            .OrderBy(r => r.Id)
-                            .ToList();
-
-            var result = this.GetAccountantMonthlyReceipt(receipts);
-
+            var result = this.FindReceipt((int)arg.year, (int)arg.month);
             return new StandardModel(this, null, result);
         }
 

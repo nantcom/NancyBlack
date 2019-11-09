@@ -62,18 +62,18 @@
         ];
 
         $scope.modeView = "";
-        vm.changeView = function (view) {
+        vm.changeView = function (view, modeView) {
             $scope.currentMode = view;
             $scope.modeView = "";
 
             window.setTimeout(function () {
 
                 $scope.$apply(function () {
-                    $scope.modeView = "tableview";
+                    $scope.modeView = modeView;
                 });
 
             }, 400);
         };
-        vm.changeView($scope.modes[5]);
+        vm.changeView($scope.modes[5], "tableview");
     }
 })();

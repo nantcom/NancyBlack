@@ -65,6 +65,7 @@
 
     </div>
 
+
     <div ng-include src="modeView">
     </div>
 
@@ -99,21 +100,31 @@
                         {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
                     </p>
                     <p>
-                        <a href="/support/{{item.SaleOrderIdentifier}}" target="_blank" class="btn btn-info">
+                        <a href="/support/{{item.SaleOrderIdentifier}}" target="_blank" class="btn btn-info"
+                           style="margin-top: 2px; display: block">
                             <i class="fa fa-life-ring"></i> Support
                         </a><br />
 
+                        <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/checklist"
+                           class="btn btn-warning" target="_blank"
+                           style="margin-top: 2px; display: block"
+                           ng-if="item.PaymentStatus == 'PaymentReceived'">
+                            <span class="icon ion-printer"></span> Checklist
+                        </a>
+
                         <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
                            class="btn btn-primary" target="_blank"
+                           style="margin-top: 2px; display: block"
                            ng-if="item.PaymentStatus != 'PaymentReceived'">
                             <span class="icon ion-printer"></span> Invoice
-                        </a><br />
+                        </a>
 
                         <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/receipt"
                            class="btn btn-success" target="_blank"
+                           style="margin-top: 2px; display: block"
                            ng-if="item.PaymentStatus == 'PaymentReceived'">
                             <span class="icon ion-printer"></span> Receipt
-                        </a><br />
+                        </a>
                     </p>
                 </td>
                 <td data-title="'Status'"
@@ -192,7 +203,6 @@
         </table>
 
     </script>
-
 
     <script type="text/ng-template" id="tablecustomertemplate.html">
         
@@ -283,4 +293,9 @@
 
     </script>
 
+    <script type="text/ng-template" id="calendar">
+
+        @this.Html.Partial("CommerceSystem/Views/Admin/part-workcalendar", this.Model)
+
+    </script>
 </div>
