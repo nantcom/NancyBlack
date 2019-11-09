@@ -522,6 +522,27 @@
                                     </div>
                                 </div>
 
+                                <div ng-if="object.Customer.User != null">
+                                    <div class="form-group">
+                                        <label for="FacebookName" class="col-sm-4 control-label">Facebook Id</label>
+                                        <div class="col-sm-8">
+                                            <span class="ncb-editable-span editable">
+                                                {{object.Customer.User.Profile.id || 'empty'}}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="FacebookName" class="col-sm-4 control-label">FacebookName</label>
+                                        <div class="col-sm-8">
+                                            <span class="ncb-editable-span editable">
+                                                {{object.Customer.User.Profile.first_name + ' ' + object.Customer.User.Profile.last_name || 'empty'}}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
                                 <div class="form-group">
                                     <label for="FacebookId" class="col-sm-4 control-label">FacebookId</label>
                                     <div class="col-sm-8">
