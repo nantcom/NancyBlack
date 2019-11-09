@@ -50,6 +50,9 @@ namespace NantCom.NancyBlack
             {
                 url = url.Replace(this.Request.Url.Query.ToString(), "");
             }
+
+            url = url.Replace(":80", "");
+            url = url.Replace("http://", "https://");
             
             return url;
         }

@@ -112,6 +112,11 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
         public bool IsAdminOnly { get; set; }
 
         /// <summary>
+        /// Whether this reward is hidden
+        /// </summary>
+        public bool IsHidden { get; set; }
+
+        /// <summary>
         /// Whether this reward is direct claim
         /// </summary>
         public bool IsDirectClaim { get; set; }
@@ -237,9 +242,33 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                 stat = JObject.FromObject(statIn)
                               .ToObject<AffiliateReward>();
             }
+
+            Func<AffiliateRewardsClaim, bool> hasActiveCoupon = (c) =>
+            {
+                if (c.AffiliateRewardsId == rewards.Id && c.AffiliateRegistrationId == reg.Id)
+                {
+                    // claiming same reward
+                    if (c.CouponAttributes != null && c.CouponAttributes.until != null)
+                    {
+                        var until = new DateTime((long)c.CouponAttributes.until);
+                        if (until < DateTime.Now)
+                        {
+                            return false; // coupon already inactive
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            };
+
             
             var claimed = db.Query<AffiliateRewardsClaim>()
-                           .Where(c => c.AffiliateRewardsId == rewards.Id && c.AffiliateRegistrationId == reg.Id)
+                           .AsEnumerable()
+                           .Where( c => hasActiveCoupon( c ))
                            .Count();
 
             Func<AffiliateReward, AffiliateReward, Func<AffiliateReward, int?>, bool> compareStat = (rew, st, prop) =>

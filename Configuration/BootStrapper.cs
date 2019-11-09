@@ -323,6 +323,8 @@ namespace NantCom.NancyBlack.Configuration
                     ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
                 }
 
+                ctx.Items["userid"] = ctx.Request.Cookies["userid"];
+
                 return null;
             });
 

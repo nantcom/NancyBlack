@@ -116,13 +116,13 @@ namespace NantCom.NancyBlack.Modules
                     log.__createdAt = DateTime.Now;
                     log.__updatedAt = DateTime.Now;
 
-                    var key = log.To + "-" + log.Subject + log.Body.GetHashCode();
-                    if (MemoryCache.Default[key] != null)
+                    var today = DateTime.Now.Date;
+                    if (db.Query<NcbMailSenderLog>().Where( l => l.__createdAt > today && l.Subject == mail.Subject && l.To == log.To).FirstOrDefault() != null )
                     {
-                        continue; // we just send this email to this user recently, skip
+                        log.IsSkipped = true;
+                        db.UpsertRecord(log);
+                        continue;
                     }
-
-                    MemoryCache.Default.Add(key, 1, DateTimeOffset.Now.AddMinutes(10));
 
                     try
                     {

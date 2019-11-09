@@ -139,6 +139,11 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
         public bool IsRecheckSubscriptionRequired { get; set; }
 
         /// <summary>
+        /// Whether we have sent contact event to facebook
+        /// </summary>
+        public DateTime LastPixelContactEventSent { get; set; }
+
+        /// <summary>
         /// Whether we still can send message to this user (24+1 hour rule)
         /// </summary>
         /// <returns></returns>
@@ -205,6 +210,8 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem.Types
                 {
                     this.currentQuickReply = messaging.message.quick_reply.payload;
                 }
+
+                this.LastMessageReceived = DateTime.Now;
             }
 
             if (_Handlers == null)

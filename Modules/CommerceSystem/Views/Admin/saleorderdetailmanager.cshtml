@@ -47,6 +47,11 @@
                     <span class="icon ion-printer"></span> Invoice
                 </button>
 
+                <button ng-click="printDocument(object.SaleOrderIdentifier, 'checklist')"
+                        class="btn btn-primary">
+                    <span class="icon ion-printer"></span> Checklist
+                </button>
+
                 <a ng-href="/support/{{object.SaleOrderIdentifier}}"
                    target="_blank"
                    class="btn btn-primary">
@@ -152,7 +157,7 @@
                             <div class="panel-body">
 
 
-                                <table class="table" ">
+                                <table class="table">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -276,7 +281,28 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Payment Received Date</label>
+                                    <label for="DueDate" class="col-sm-4 control-label">Est. Inbound Date</label>
+                                    <div class="col-sm-8">
+                                        <span ng-show="!orderDetailForm.$visible">
+                                            {{object.InboundDateEst | date: 'medium'}}
+                                        </span>
+                                        <span ng-show="orderDetailForm.$visible">
+                                            <ncb-datepicker model="object.InboundDateEst" format="'dd MMMM yyyy'"></ncb-datepicker>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="Inbound Date Actual" class="col-sm-4 control-label">Inbound Date Actual</label>
+                                    <div class="col-sm-8">
+                                        <span >
+                                            {{object.InboundDate | date: 'medium'}}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="PaymentReceivedDate" class="col-sm-4 control-label">Payment Received Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.PaymentReceivedDate | date: 'medium'}}
@@ -288,7 +314,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Ship Out Date</label>
+                                    <label for="ShipOutDate" class="col-sm-4 control-label">Ship Out Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.ShipOutDate | date: 'medium'}}
@@ -300,7 +326,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="CreatedAt" class="col-sm-4 control-label">Delivery Date</label>
+                                    <label for="DeliveryDate" class="col-sm-4 control-label">Delivery Date</label>
                                     <div class="col-sm-8">
                                         <span ng-show="!orderDetailForm.$visible">
                                             {{object.DeliveryDate | date: 'medium'}}
@@ -919,7 +945,7 @@
                             <td>
 
                                 <div ncb-lookupscope
-                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key)&$orderby=Title,__updatedAt desc">
+                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/laptops/') or startswith(Url, '/products/pc/') or startswith(Url, '/products/parts/'))&$orderby=Title,__updatedAt desc">
 
                                     <ui-select theme="bootstrap" ng-model="newItem.Id"
                                                reset-search-input="false">
@@ -931,11 +957,11 @@
                                             <span class="text-muted">
                                                 {{item.Id}} -
                                             </span>
-                                            <span>
+                                            <span ng-class="{ 'text-danger' : item.Url.indexOf('archive/') > 0 }">
                                                 {{item.label}}
                                             </span>
                                             <span class="text-muted">
-                                                {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
+                                                {{item.Url.substring( item.Url.lastIndexOf('/'))}}
                                             </span>
                                         </ui-select-choices>
                                     </ui-select>

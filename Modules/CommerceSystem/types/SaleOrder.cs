@@ -21,6 +21,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public const string InTransit = "InTransit";
         public const string CustomsClearance = "CustomsClearance";
         public const string Inbound = "Inbound";
+        public const string InboundStock = "InboundAsStock";
         public const string WaitingForParts = "WaitingForParts";
         public const string Building = "Building";
         public const string PartialBuilding = "PartialBuilding";
@@ -101,6 +102,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Promised Due Date
         /// </summary>
         public DateTime DueDate { get; set; }
+
+        /// <summary>
+        /// Estimate Inbound Date
+        /// </summary>
+        public DateTime InboundDateEst { get; set; }
+
+        /// <summary>
+        /// The date that we set this order to be inbound
+        /// </summary>
+        public DateTime? InboundDate { get; set; }
 
         /// <summary>
         /// Date that it sale order was delivered
@@ -746,6 +757,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 };
             }
 
+            if (codeProduct.Title.Contains("Golden Voucher"))
+            {
+                goto SkipAllChecks;
+            }
+
             if (codeProduct.Attributes.min != null)
             {
                 if ((Decimal)codeProduct.Attributes.min > this.TotalAmount)
@@ -822,9 +838,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
+            // product that already has discount will always disable promotion
             foreach (var item in this.ItemsDetail)
             {
-                if (item.Attributes.disablepromo != null)
+                if (item.CurrentPrice < item.Price)
                 {
                     codeProduct.Attributes.description = item.Title;
 
@@ -838,6 +855,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
             }
 
+            SkipAllChecks:
             this.AddItem(db, currentSite, codeProduct.Id, save: save);
 
 

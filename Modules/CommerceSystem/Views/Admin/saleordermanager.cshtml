@@ -84,8 +84,8 @@
                show-filter="true">
 
             <tr ng-repeat="item in tableParams.data">
-                <td>
-                    <input type="checkbox" class="form-control" ng-click="editFn({id: item.id})" style="width: 16px" />
+                <td ng-style="{ 'background-color' : item.CustomData.isrush ? 'red' : window.colorMap[item.Status] }"
+                    style="width: 10px">
                 </td>
                 <td data-title="'Order#'"
                     sortable="'SaleOrderIdentifier'"
@@ -101,7 +101,7 @@
                     <p>
                         <a href="/support/{{item.SaleOrderIdentifier}}" target="_blank" class="btn btn-info">
                             <i class="fa fa-life-ring"></i> Support
-                        </a><br/>
+                        </a><br />
 
                         <a ng-href="/__commerce/saleorder/{{item.SaleOrderIdentifier}}/invoice"
                            class="btn btn-primary" target="_blank"
@@ -119,15 +119,21 @@
                 <td data-title="'Status'"
                     sortable="'Status'"
                     filter="{ 'Status': 'text' }">
-                    {{item.Status }}
-                </td>
-                <td data-title="'DueDate'"
-                    sortable="'DueDate'">
-                    {{item.DueDate | date:'dd MMMM yyyy'  }}
-                </td>
-                <td data-title="'PaymentReceivedDate'"
-                    sortable="'PaymentReceivedDate'">
-                    {{item.PaymentReceivedDate | date:'dd MMMM yyyy, HH:mm' }}
+                    <p style="font-weight:bold;font-size: 150%">
+                        {{item.Status }}
+                    </p>
+                    <p>
+                        <b>Paid:</b><br />
+                        {{item.PaymentReceivedDate | date:'dd/MM/yyyy' }}
+                    </p>
+                    <p ng-if="moment(item.DueDate).isAfter( moment() )">
+                        <b>Due Date:</b><br />
+                        {{item.DueDate | date:'dd/MM/yyyy' }}
+                    </p>
+                    <p>
+                        <b>Inbound:</b><br />
+                        {{item.InboundDate | date:'dd/MM/yyyy' }}
+                    </p>
                 </td>
                 <td data-title="'Customer, S&H'"
                     sortable="'Customer'"
@@ -146,30 +152,31 @@
                             <b>{{k}}</b>: {{v}}
                         </div>
 
-                        <b>Shipping Address:</b><br/>
+                        <b>Shipping Address:</b><br />
                         {{item.ShipTo.To || 'empty'}}<br />
                         {{item.ShipTo.Address || 'empty'}}<br />
                         {{item.ShipTo.SubDistrict || 'empty'}}
                         {{item.ShipTo.District || 'empty'}}<br />
                         {{item.ShipTo.State || 'empty'}},
-                        {{item.ShipTo.PostalCode || 'empty'}}<br/>
+                        {{item.ShipTo.PostalCode || 'empty'}}<br />
                     </div>
 
                 </td>
 
-                <td data-title="'Products'"                    
+                <td data-title="'Products'"
                     filter="{ 'ItemsDetail': 'text' }"
                     style="min-width: 250px">
 
                     <p style="font-weight: bold">
-                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc' }">{{i.Title}}</span>
-                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/laptops' }">{{i.Title}}</span><br />
-                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/gpu' }">{{i.Title}}</span><br />
-                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/monitor' }">{{i.Title}}</span>
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/products/pc', Attributes: { Qty: 1 } }">{{i.Title}}</span>
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/laptops', Attributes: { Qty: 1 }  }">{{i.Title}}</span><br />
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/gpu', Attributes: { Qty: 1 } }">{{i.Title}}</span><br />
+                        <span ng-repeat="i in item.ItemsDetail | filter : { Url: '/parts/monitor', Attributes: { Qty: 1 } }">{{i.Title}}</span>
                     </p>
 
-                    <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
-                        <a href="{{product.Url}}" target="_blank">
+                    <div ng-repeat="product in item.ItemsDetail | filter : { Attributes: { Qty: '!0' } }" style="text-align: left">
+                        <a href="{{product.Url}}"
+                           ng-if="product.Title.indexOf( 'Affiliate' ) == -1" target="_blank">
                             {{product.Title}}
                             x{{product.Attributes.Qty}}
                         </a>
@@ -202,20 +209,22 @@
                     <a href="/Admin/tables/saleorder/{{item.id}}" target="_blank">
                         {{item.SaleOrderIdentifier }}
                     </a>
+
                 </td>
                 <td data-title="'Status'"
                     sortable="'Status'"
                     filter="{ 'Status': 'text' }">
                     {{item.Status }}
                 </td>
+
                 <td data-title="'PaymentReceivedDate'"
                     sortable="'PaymentReceivedDate'">
                     {{item.PaymentReceivedDate | date:'dd/MM/yyyy'}}
                 </td>
                 <td data-title="'Customer'"
                     filter="{ 'Customer': 'text' }">
-                    {{item.Customer.FirstName}} {{item.Customer.LastName}}<br/>
-                    {{item.Customer.PhoneNumber}}<br/>
+                    {{item.Customer.FirstName}} {{item.Customer.LastName}}<br />
+                    {{item.Customer.PhoneNumber}}<br />
                     {{item.Customer.Email}}
                 </td>
                 <td data-title="'Address'"
@@ -259,7 +268,7 @@
                     <div ng-repeat="product in item.ItemsDetail" style="text-align: left">
                         <a href="{{product.Url}}" target="_blank"
                            ng-if="product.CurrentPrice > 0">
-                            {{product.Title}}  
+                            {{product.Title}}
                             x{{product.Attributes.Qty}}
                         </a>
                     </div>

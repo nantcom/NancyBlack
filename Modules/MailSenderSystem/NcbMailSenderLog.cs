@@ -35,6 +35,11 @@ namespace NantCom.NancyBlack.Modules.MailSenderSystem
         public string Body { get; set; }
 
         /// <summary>
+        /// Whether the email was skipped because user already received the mail today
+        /// </summary>
+        public bool IsSkipped { get; set; }
+
+        /// <summary>
         /// Settings used to send email
         /// </summary>
         public SmtpSettings Settings { get; set; }

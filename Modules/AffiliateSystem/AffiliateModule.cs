@@ -125,10 +125,15 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return;
             }
 
+            if (registration.NcbUserId == so.NcbUserId)
+            {
+                return; // cannot self convert
+            }
+
             // create a transaction
             AffiliateTransaction commission = new AffiliateTransaction();
             commission.AffiliateCode = so.AffiliateCode;
-            commission.CommissionAmount = so.TotalAmount * (registration.Commission / 100);
+            commission.CommissionAmount = Math.Floor( so.TotalAmount * registration.Commission );
             commission.SaleOrderId = so.Id;
 
             commission.BTCAddress = registration.BTCAddress;
@@ -947,7 +952,8 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             // downline will be limited and also referer can 'steal'
             // downline from other referer.
 
-            if (registration.RefererAffiliateCode == null)
+            if (registration.RefererAffiliateCode == null &&
+                registration.AffiliateCode != refererCode)
             {
                 registration.RefererAffiliateCode = refererCode;
                 db.UpsertRecord(registration);
@@ -1093,11 +1099,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 foreach (var item in downline)
                 {
+                    var user = db.GetById<NcbUser>((int)item.NcbUserId);
+                    if (user == null)
+                    {
+                        continue;
+                    }
+
                     yield return new
                     {
                         level = currentLevel,
                         name = (string)item.AffiliateName,
-                        facebookId = db.GetById<NcbUser>( (int)item.NcbUserId ).FacebookAppScopedId,
+                        facebookId = user.FacebookAppScopedId,
                         parent = current,
                     };
 

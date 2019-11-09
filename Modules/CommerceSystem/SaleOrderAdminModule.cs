@@ -41,6 +41,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             Get["/admin/commerce/api/printing/saleorder/current/month/list"] = this.HandleRequest(this.GetSaleorderForPrintingReceiptList);
 
             Post["/admin/saleorder/__updatedhlstatus"] = this.HandleRequest(this.UpdateDHLStatus);
+
         }
         
         private dynamic UpdateDHLStatus(dynamic arg)
@@ -248,6 +249,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 rewardList = AffiliateRewardsClaim.GetRewards(this.SiteDatabase, userId);
                 discountCodes = AffiliateRewardsClaim.GetDiscountCodes(this.SiteDatabase, userId);
             }
+
+            if (so.InboundDate == null)
+            {
+                try
+                {
+                    // walk back the version and see which one got set to inbound
+                    var lastInboundStatus = so.GetRowVersions(this.SiteDatabase)
+                                                    .Select(o => ((JObject)o).ToObject<SaleOrder>())
+                                                    .Where(s => s.Status == "Inbound")
+                                                    .OrderBy(s => s.__updatedAt)
+                                                    .Select(s => (DateTime?)s.__updatedAt)
+                                                    .LastOrDefault();
+
+                    so.InboundDate = lastInboundStatus;
+                    this.SiteDatabase.UpsertRecord(so);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            // process the inventory
+            InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, so, false, DateTime.Now);
 
             var data = new
             {

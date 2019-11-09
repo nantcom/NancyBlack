@@ -597,8 +597,92 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <returns></returns>
         public static dynamic FacebookApiPost(dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            RestClient client = new RestClient("https://graph.facebook.com/v3.2/");
+            RestClient client = new RestClient("https://graph.facebook.com/v3.3/");
             RestRequest req = new RestRequest(url, Method.POST);
+
+            // add parameters
+            if (queryStringPair != null)
+            {
+                if (queryStringPair.Length % 2 != 0)
+                {
+                    throw new ArgumentOutOfRangeException("parameterPairs are not pairs");
+                }
+
+                for (int i = 0; i < queryStringPair.Length; i += 2)
+                {
+                    var key = queryStringPair[i];
+                    var value = queryStringPair[i + 1];
+
+                    if (key == "access_token")
+                    {
+                        throw new ArgumentOutOfRangeException("access_token will be added automatically");
+                    }
+
+                    if (key == "appsecret_proof")
+                    {
+                        throw new ArgumentOutOfRangeException("appsecret_proof will be added automatically");
+                    }
+
+                    req.Parameters.Add(new Parameter()
+                    {
+                        Name = key,
+                        Value = value,
+                        Type = ParameterType.QueryString
+                    });
+                }
+            }
+
+            if (sendSecretProof)
+            {
+                string hash = MemoryCache.Default["FacebookMessengerModule.appsecret_proof"] as string;
+                if (hash == null)
+                {
+                    hash = FacebookWebHook.HashHmac((string)siteSettings.FacebookMessenger.PageAccessToken,
+                                                        (string)siteSettings.Application.FacebookAppSecret);
+
+                    MemoryCache.Default["FacebookMessengerModule.appsecret_proof"] = hash;
+                }
+                req.AddQueryParameter("appsecret_proof", hash);
+            }
+
+            req.AddQueryParameter("access_token", (string)siteSettings.FacebookMessenger.PageAccessToken);
+
+            if (payload is string)
+            {
+                req.AddParameter("payload", payload);
+            }
+            else
+            {
+                req.RequestFormat = DataFormat.Json;
+                req.AddJsonBody(payload);
+            }
+
+            var response = client.Execute(req);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                MailSenderModule.SendEmail("company@nant.co", "Facebook API Post Error", response.ToString());
+
+                if (throwOnError)
+                {
+                    throw new Exception("Server Returned: " + response.StatusCode);
+                }
+            }
+
+            return JObject.Parse(response.Content);
+        }
+
+        /// <summary>
+        /// Call Facebook Graph API with given set of parameters
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="sendSecretProof"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static dynamic FacebookApi( Method method, dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
+        {
+            RestClient client = new RestClient("https://graph.facebook.com/v3.2/");
+            RestRequest req = new RestRequest(url, method);
 
             // add parameters
             if (queryStringPair != null)

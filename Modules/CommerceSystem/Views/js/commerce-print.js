@@ -208,6 +208,53 @@
 
             return true;
         };
+
+        $me.getOrder = function (item) {
+
+            if (item.Url.indexOf("/laptops") >= 0) {
+                return 0;
+            }
+
+            if (item.Url.indexOf("/cpu") >= 0) {
+                return 100;
+            }
+
+            if (item.Url.indexOf("/thermal") >= 0) {
+                return 110;
+            }
+
+            if (item.Url.indexOf("/gpu") >= 0) {
+                return 200;
+            }
+
+            if (item.Url.indexOf("/monitor") >= 0) {
+                return 300;
+            }
+
+            if (item.Url.indexOf("/calibrate") >= 0) {
+                return 310;
+            }
+
+            if (item.Url.indexOf("/ram") >= 0) {
+                return 400;
+            }
+
+            if (item.Url.indexOf("/m2") >= 0) {
+                return 500;
+            }
+
+            if (item.Url.indexOf("/hdd") >= 0) {
+                return 510;
+            }
+
+            if (item.Url.indexOf("/keyboard") >= 0) {
+                return 600;
+            }
+
+
+            return 999;
+        };
+
     });
 
     mod.filter('newline', function ($sce) {

@@ -215,6 +215,23 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                         input.me,
                         existingGuid);
 
+                var chat = this.SiteDatabase.Query<FacebookMessengerSystem.Types.FacebookChatSession>()
+                                .Where(s => s.NcbUserId == user.Id)
+                                .FirstOrDefault();
+
+                user.Profile.SendContactEvent = false;
+
+                if (chat != null)
+                {
+                    if (DateTime.Now.Subtract(chat.LastPixelContactEventSent).TotalDays > 7)
+                    {
+                        chat.LastPixelContactEventSent = DateTime.Now;
+                        this.SiteDatabase.UpsertRecord(chat);
+
+                        user.Profile.SendContactEvent = true;
+                    }
+                }
+
                 return this.ProcessLogin(user);
             });
 

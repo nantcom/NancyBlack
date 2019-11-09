@@ -67,7 +67,15 @@
                 $window.currentUser = $me.currentUser;
 
                 $me.currentUser.IsFacebookUser = $me.currentUser.UserName.indexOf('fb_') == 0;
-                $me.currentUser.Picture = "//graph.facebook.com/" + $me.currentUser.UserName.substr(3) + "/picture";
+
+                if ($me.currentUser.IsFacebookUser) {
+
+                    $me.currentUser.Picture = "//graph.facebook.com/" + $me.currentUser.UserName.substr(3) + "/picture";
+
+                    if ($me.currentUser.Profile.SendContactEvent) {
+                        fbq('track', 'Contact');
+                    }
+                }
 
                 $scope.$broadcast("ncb-membership.login", {
                     sender: $scope,
@@ -83,7 +91,16 @@
 
                     callback();
                 }
+
+                if (Tawk_API != null && $me.currentUser.Profile != null) {
+
+                    Tawk_API.setAttributes({
+                        'name': $me.currentUser.Profile.first_name + " " + $me.currentUser.Profile.last_name,
+                        'email': $me.currentUser.Email
+                    }, function (error) { });
+                }
             };
+
 
             // Login user using given email, password
             $me.login = function (email, password, callback) {
@@ -151,7 +168,7 @@
 
                                     if ($scope.socialprove != null) {
 
-                                        $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify( resultMe ));
+                                        $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify(resultMe));
                                     }
 
                                 }
@@ -295,7 +312,7 @@
 
                     });
             };
-            
+
             $me.closeAlert = function (index) {
 
                 $me.alerts.splice(index, 1);
@@ -311,7 +328,8 @@
                 user: $me,
             });
 
-        }
+
+        };
 
         return {
             restrict: 'A',

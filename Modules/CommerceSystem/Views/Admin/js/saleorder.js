@@ -35,25 +35,30 @@
             else {
                 $scope.selectedSaleOrders.push(id);
             }
-        }
+        };
 
         vm.showMergeItems = function () {
             //$window.location = "/Admin/inventoryitem/byselectedsaleorder?selectedos=" + $scope.selectedSaleOrder.join();
             window.open("/Admin/inventoryitem/byselectedsaleorder?selectedos=" + $scope.selectedSaleOrders.join(), '_blank');
-        }
+        };
 
+        $window.colorMap = {
+            Inbound: "#FF8000",
+            WaitingForParts: "#CC0000",
+            Building: "#66FF66",
+            PartialBuilding: "#660000",
+            Testing: "#00CCCC",
+            ReadyToShip: "#FF3399"
+        };
         
         $scope.modes = [
             { Title: "Customer View", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')" },
-            { Title: "Follow up", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(Status eq 'Confirmed') and (PaymentStatus eq 'WaitingForPayment')" },
-            { Title: "Waiting to Order", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForOrder')" },
-            { Title: "Delay", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Delay')" },
-            { Title: "Order Processing", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'OrderProcessing')" },
-            { Title: "Incoming", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'InTransit') or (Status eq 'CustomsClearance')" },
-            { Title: "Working", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Inbound') or (Status eq 'AtLEVEL51') or (Status eq 'WaitingForParts') or (Status eq 'PartialBuilding') or (Status eq 'Building') or (Status eq 'Testing')" },
-            { Title: "Waiting for Parts", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForParts') or (Status eq 'PartialBuilding')" },
-            { Title: "Ready To Ship", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'ReadyToShip')" },
-            { Title: "Shipped", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate : 'asc' }, filter: "(Status eq 'Shipped')" }
+            { Title: "Check Payment", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier: "desc" }, filter: "(PaymentStatus neq 'PaymentReceived') and (PaymentStatus neq 'Deposit') and (Attachments neq null)" },
+            { Title: "Follow up", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier: "desc" }, filter: "(Status eq 'Confirmed') or (Status eq 'New')" },
+            { Title: "Order/Shipping", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForOrder') or (Status eq 'OrderProcessing') or (Status eq 'InTransit') or (Status eq 'CustomsClearance')" },
+            { Title: "Waiting to Build", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Inbound')" },
+            { Title: "Working", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForParts') or (Status eq 'PartialBuilding') or (Status eq 'Building') or (Status eq 'Testing') or (Status eq 'ReadyToShip')" },
+            { Title: "Shipped", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Shipped')" }
         ];
 
         $scope.modeView = "";
@@ -69,6 +74,6 @@
 
             }, 400);
         };
-        vm.changeView($scope.modes[0]);
+        vm.changeView($scope.modes[5]);
     }
 })();
