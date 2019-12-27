@@ -217,7 +217,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             var saleOrders = this.SiteDatabase.Query<SaleOrder>().Where(soQueryLogic).ToList();
 
             //remove saleorder which has been used for generate PUR
-            var generatedSOIds = this.SiteDatabase.Query<PaymentUpdateReminder>().ToList().Select(rec => rec.SaleOrderId);
+            var allPurs = this.SiteDatabase.Query<PaymentUpdateReminder>().ToList();
+            var generatedSOIds = allPurs.Select(rec => rec.SaleOrderId);
             var nonGenSaleOrders = from rec in saleOrders where !generatedSOIds.Contains(rec.Id) select rec;
 
             // generate PUR from nonGenSaleOrders and insert to database
@@ -229,7 +230,27 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 pur = this.SiteDatabase.UpsertRecord(pur);
             }
 
-            var purStatus = new List<Tuple<int,string>>();
+            foreach (var pur in allPurs.Where(rec => rec.Status != PaymentUpdateReminderStatus.AutoAccepted && rec.Status != PaymentUpdateReminderStatus.Accepted && rec.Status != PaymentUpdateReminderStatus.Rejected))
+            {
+                var so = this.SiteDatabase.GetById<SaleOrder>(pur.SaleOrderId);
+
+                if (so.PaymentStatus == PaymentStatus.PaymentReceived || so.PaymentStatus == PaymentStatus.Refunded)
+                {
+                    pur.SetStatus(so, PaymentUpdateReminderStatus.AutoAccepted);
+                    this.SiteDatabase.UpsertRecord(pur);
+                }
+                else if (!pur.HasAttachmentBeenUpdated)
+                {
+                    pur.UpdateHasAttachmentsString(so);
+
+                    if (pur.HasAttachmentBeenUpdated)
+                    {
+                        this.SiteDatabase.UpsertRecord(pur);
+                    }
+                }
+            }
+
+            var purStatus = new List<Tuple<int, string>>();
             foreach (PaymentUpdateReminderStatus p in Enum.GetValues(typeof(PaymentUpdateReminderStatus)))
             {
                 purStatus.Add(new Tuple<int, string>((int)p, p.ToString()));
@@ -247,7 +268,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var param = ((JObject)arg.body.Value);
 
-            var updatedStatus = param.Value<PaymentUpdateReminderStatus>("status");
+            var updatedStatus = (PaymentUpdateReminderStatus)param.Value<int>("status");
             var purId = param.Value<int>("purId");
 
             var pur = this.SiteDatabase.GetById<PaymentUpdateReminder>(purId);

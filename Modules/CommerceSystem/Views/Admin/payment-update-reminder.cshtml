@@ -38,31 +38,40 @@
         </button>
     </div>*@
 
-    <tabset>
+<tabset>
 
-        <tab heading="Pending Verify">
-            <ncb-ngtable tabletemplate="'template.html'"
-                         alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'Pending')"
-                         defaultSort="{ '__updatedAt' : 'desc' }">
-            </ncb-ngtable>
+    <tab heading="Pending Verify">
+        <ncb-ngtable tabletemplate="'template.html'"
+                     alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'Pending')"
+                     defaultSort="{ '__updatedAt' : 'desc' }">
+        </ncb-ngtable>
 
-        </tab>
+    </tab>
 
-        <tab heading="Follow Up">
+    <tab heading="Follow Up">
 
-            <ncb-ngtable tabletemplate="'template.html'"
-                         alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'FollowUp')"
-                         defaultSort="{ '__updatedAt' : 'desc' }">
-            </ncb-ngtable>
+        <ncb-ngtable tabletemplate="'template.html'"
+                     alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'FollowUp')"
+                     defaultSort="{ '__updatedAt' : 'desc' }">
+        </ncb-ngtable>
 
-        </tab>
+    </tab>
 
-        <tab heading="All">
-            <ncb-ngtable tabletemplate="'template.html'">
-            </ncb-ngtable>
-        </tab>
+    <tab heading="Auto Accept">
 
-    </tabset>
+        <ncb-ngtable tabletemplate="'template.html'"
+                     alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'AutoAccepted')"
+                     defaultSort="{ '__updatedAt' : 'desc' }">
+        </ncb-ngtable>
+
+    </tab>
+
+    <tab heading="All">
+        <ncb-ngtable tabletemplate="'template.html'">
+        </ncb-ngtable>
+    </tab>
+
+</tabset>
 
 
 
@@ -93,7 +102,14 @@
                     <a href="/Admin/tables/saleorder/{{item.SaleOrderId}}" target="_blank">SO: {{item.SaleOrderId}}</a>
                 </td>
                 <td data-title="'Status'">
-                    {{item.Status | PurStatusFilter}}
+                    <select ng-options="status.Item1 as status.Item2 for status in object.purStatuses"
+                            ng-model="item.Status"
+                            class="form-control"></select>
+                </td>
+                <td data-title="''">
+                    <button class="btn btn-success" ng-click="object.updateStatus(item, item.Status)">
+                        <i class="fa fa-save"></i>
+                    </button>
                 </td>
             </tr>
         </table>

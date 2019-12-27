@@ -11,9 +11,16 @@
     function PageController($location, $window, $scope, $http, $log) {
         /* jshint validthis:true */
         var vm = this;
-        vm.updateStatus = function (pur, statusId) {
 
-            $http.post('/admin/pur/statusupdate', { purId: pur.Id, status: statusId })
+        //$filter('filtername');
+
+        $scope.purStatuses = window.purStatuses;
+        $scope.object = {};
+        $scope.object.purStatuses = $scope.purStatuses;
+
+        $scope.object.updateStatus = function (pur, statusId) {
+
+            $http.post('/admin/pur/statusupdate', { purId: pur.id, status: statusId })
                 .then(function (response) {
                     pur = response.data;
                     alert("updated");
@@ -21,12 +28,6 @@
                     alert(error.data.Message);
                 });
         };
-
-        //$filter('filtername');
-
-        $scope.purStatuses = window.purStatuses;
-        $scope.object = {};
-        $scope.object.purStatuses = $scope.purStatuses;
     }
 
     function PurStatusFilter() {
