@@ -1,0 +1,103 @@
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+@{
+    Layout = "_admin.cshtml";
+}
+
+@section Head
+{
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        body {
+            overflow-x: scroll;
+        }
+    </style>
+}
+
+@section Scripts
+{
+    <script>
+        window.purStatuses = @this.Html.Raw(this.GetJson(this.Model.Data));
+    </script>
+    <script src="~/NancyBlack/Modules/CommerceSystem/Views/Admin/js/payment-update-reminder.js"></script>
+
+}
+
+<div ng-module="Page"
+     ng-controller="PageController as ctrl"
+     ncb-datacontext table="PaymentUpdateReminder">
+
+    <div class="page-header">
+        <h1>Payment Update Reminder</h1>
+    </div>
+    @*<div class="pull-right">
+        <button class="btn btn-success" ng-click="ctrl.update()">
+            <i class="fa fa-refresh"></i>
+        </button>
+    </div>*@
+
+    <tabset>
+
+        <tab heading="Pending Verify">
+            <ncb-ngtable tabletemplate="'template.html'"
+                         alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'Pending')"
+                         defaultSort="{ '__updatedAt' : 'desc' }">
+            </ncb-ngtable>
+
+        </tab>
+
+        <tab heading="Follow Up">
+
+            <ncb-ngtable tabletemplate="'template.html'"
+                         alwaysfilter="(Status eq NantCom.NancyBlack.Modules.CommerceSystem.types.PaymentUpdateReminderStatus'FollowUp')"
+                         defaultSort="{ '__updatedAt' : 'desc' }">
+            </ncb-ngtable>
+
+        </tab>
+
+        <tab heading="All">
+            <ncb-ngtable tabletemplate="'template.html'">
+            </ncb-ngtable>
+        </tab>
+
+    </tabset>
+
+
+
+    <script type="text/ng-template" id="template.html">
+
+
+
+        <table ncb-datatable
+               class="table table-striped table-hover"
+               style="width: 100%"
+               ng-table="tableParams"
+               show-filter="true">
+
+            <tr ng-repeat="item in tableParams.data">
+                <td data-title="'Order#'"
+                    sortable="'Id'"
+                    filter="{ 'Id': 'text' }">
+                    {{item.id}}
+
+                    <p class="text-muted">
+                        <i class="fa fa-clock-o"></i>
+                        {{item.__updatedAt | date:'dd MMMM yyyy, HH:mm' }}
+                    </p>
+                </td>
+                <td data-title="'SaleOrder'"
+                    sortable="'SaleOrderId'"
+                    filter="{ 'SaleOrder': 'text' }">
+                    <a href="/Admin/tables/saleorder/{{item.SaleOrderId}}" target="_blank">SO: {{item.SaleOrderId}}</a>
+                </td>
+                <td data-title="'Status'">
+                    {{item.Status | PurStatusFilter}}
+                </td>
+            </tr>
+        </table>
+
+    </script>
+
+</div>
