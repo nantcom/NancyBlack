@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using SQLite;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -46,7 +47,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 var dynamicTypes = _db.Table<DataType>().ToList();
                 var staticTypes = StaticDataType.GetStaticDataTypes();
 
-                _CachedDataType = new Dictionary<string, DataType>();
+                _CachedDataType = new ConcurrentDictionary<string, DataType>();
 
                 // remaps all table to ensure the database
                 // get updated to latest type that was created on-the-fly
@@ -72,7 +73,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
 
         }
         
-        private Dictionary<string, DataType> _CachedDataType;
+        private ConcurrentDictionary<string, DataType> _CachedDataType;
 
         /// <summary>
         /// Gets the data types, as recorded in database
@@ -80,7 +81,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <value>
         /// The data types.
         /// </value>
-        private Dictionary<string, DataType> Types
+        private ConcurrentDictionary<string, DataType> Types
         {
             get
             {
@@ -112,21 +113,25 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <param name="type">The type.</param>
         public void RemoveType(int id)
         {
-            var type = (from t in this.RegisteredTypes
-                        where t.Id == id
-                        select t).FirstOrDefault();
-
-            if (type == null)
+            lock (this)
             {
-                throw new InvalidOperationException("Specified Id does not represents a valid type");
+                var type = (from t in this.RegisteredTypes
+                            where t.Id == id
+                            select t).FirstOrDefault();
+
+                if (type == null)
+                {
+                    throw new InvalidOperationException("Specified Id does not represents a valid type");
+                }
+
+                _db.DropTable(type.GetCompiledType());
+                _db.Delete(type);
+
+                type.Id = 0;
+
+                _CachedDataType = null;
             }
 
-            _db.DropTable(type.GetCompiledType());
-            _db.Delete(type);
-
-            type.Id = 0;
-
-            _CachedDataType = null;
         }
 
         /// <summary>
@@ -141,39 +146,46 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 throw new InvalidOperationException("Cannot Update StaticType");
             }
 
-            // for anonymous type which we used for query - does not store it into database
-            // but cache it into memory
-            if (toRegister.NormalizedName.StartsWith("anonymoustype"))
+            lock (this)
             {
-                if (this.Types.ContainsKey(toRegister.NormalizedName) == false)
+                // for anonymous type which we used for query - does not store it into database
+                // but cache it into memory
+                if (toRegister.NormalizedName.StartsWith("anonymoustype"))
                 {
-                    this.Types.Add(toRegister.NormalizedName, toRegister);
-                    return toRegister;
+                    if (this.Types.ContainsKey(toRegister.NormalizedName) == false)
+                    {
+                        if ( this.Types.TryAdd(toRegister.NormalizedName, toRegister) == false )
+                        {
+                            throw new InvalidOperationException("Cannot Cache Type:" + toRegister.NormalizedName);
+                        }
+                        return toRegister;
+                    }
+
+                    return this.Types[toRegister.NormalizedName];
                 }
 
-                return this.Types[toRegister.NormalizedName];
-            }
-
-            if (toRegister.Id == 0)
-            {
-                if (this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault() != null)
+                if (toRegister.Id == 0)
                 {
-                    throw new InvalidOperationException("Duplicate Structure Name");
+                    if (this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault() != null)
+                    {
+                        throw new InvalidOperationException("Duplicate Structure Name");
+                    }
+
+                    toRegister.EnsureHasNeccessaryProperties();
+                    _db.Insert(toRegister);
+                }
+                else
+                {
+                    toRegister.EnsureHasNeccessaryProperties();
+                    _db.Update(toRegister);
                 }
 
-                toRegister.EnsureHasNeccessaryProperties();
-                _db.Insert(toRegister);
-            }
-            else
-            {
-                toRegister.EnsureHasNeccessaryProperties();
-                _db.Update(toRegister);
+                _CachedDataType = null;
+
+                var finalType = this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault();
+                return finalType;
             }
 
-            _CachedDataType = null;
-
-            var finalType = this.RegisteredTypes.Where(t => t.NormalizedName == toRegister.NormalizedName).FirstOrDefault();
-            return finalType;
         }
         
         /// <summary>
@@ -258,48 +270,52 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         private DataType FindMatchingDataTypeAndUpdate(DataType clientDataType)
         {
-            // type with same name must exists only once
-            var existingDataType = this.FromName(clientDataType.NormalizedName);
-            if (existingDataType != null)
+            lock (this)
             {
-                // if structure does not change, use it
 
-                if (existingDataType.Equals(clientDataType))
+                // type with same name must exists only once
+                var existingDataType = this.FromName(clientDataType.NormalizedName);
+                if (existingDataType != null)
                 {
-                    return existingDataType;
+                    // if structure does not change, use it
+
+                    if (existingDataType.Equals(clientDataType))
+                    {
+                        return existingDataType;
+                    }
+                    else
+                    {
+                        // otherwise - update
+                        clientDataType.Id = existingDataType.Id;
+                        clientDataType.OriginalName = existingDataType.OriginalName;
+
+                        // when client is sending data, some fields can be omitted by JSON standards
+                        // only allow fields to be added automatically but not removed
+                        clientDataType.CombineProperties(existingDataType);
+
+                        // since it will be costly operation - try to ensure that client
+                        // really have new property before attempting to update
+                        if (clientDataType.Equals(existingDataType) == false)
+                        {
+                            _db.InsertOrReplace(clientDataType); // update our mappings
+
+                            // remaps the table
+                            _db.CreateTable(clientDataType.GetCompiledType());
+
+                            // update the cached type
+                            this.Types[clientDataType.NormalizedName] = clientDataType;
+                        }
+
+                    }
                 }
                 else
                 {
-                    // otherwise - update
-                    clientDataType.Id = existingDataType.Id;
-                    clientDataType.OriginalName = existingDataType.OriginalName;
-
-                    // when client is sending data, some fields can be omitted by JSON standards
-                    // only allow fields to be added automatically but not removed
-                    clientDataType.CombineProperties(existingDataType);
-
-                    // since it will be costly operation - try to ensure that client
-                    // really have new property before attempting to update
-                    if (clientDataType.Equals(existingDataType) == false)
-                    {
-                        _db.InsertOrReplace(clientDataType); // update our mappings
-
-                        // remaps the table
-                        _db.CreateTable(clientDataType.GetCompiledType());
-
-                        // update the cached type
-                        this.Types[clientDataType.NormalizedName] = clientDataType;
-                    }
-
+                    // this is a new data type
+                    this.Register(clientDataType);
                 }
-            }
-            else
-            {
-                // this is a new data type
-                this.Register(clientDataType);
-            }
 
-            return clientDataType;
+                return clientDataType;
+            }
         }
 
         /// <summary>
@@ -338,19 +354,22 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public static DataTypeFactory GetForDatabase(SQLiteConnection db)
         {
             var key = "DataTypeFactory-" + db.DatabasePath;
-
-            var cached = MemoryCache.Default.Get(key);
-            if (cached != null)
+            lock (BaseModule.GetLockObject(key))
             {
-                return (DataTypeFactory)cached;
+                var cached = MemoryCache.Default.Get(key);
+                if (cached != null)
+                {
+                    return (DataTypeFactory)cached;
+                }
+
+                var created = new DataTypeFactory(db);
+                created.Initialize();
+
+                MemoryCache.Default.Add(key, created, DateTimeOffset.MaxValue);
+
+                return created;
             }
 
-            var created = new DataTypeFactory(db);
-            created.Initialize();
-            
-            MemoryCache.Default.Add(key, created, DateTimeOffset.MaxValue );
-
-            return created;
         }
         
         /// <summary>

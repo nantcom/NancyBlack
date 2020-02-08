@@ -143,15 +143,15 @@
 
         for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
 
-            if ($scope.so.ItemsDetail[i].Price == 0) {
+            if ($scope.so.ItemsDetail[i].CurrentPrice == 0) {
                 continue;
             }
 
-            if ($scope.so.ItemsDetail[i].Price > 0) {
+            if ($scope.so.ItemsDetail[i].CurrentPrice> 0) {
                 $scope.ItemsDetail.push($scope.so.ItemsDetail[i]);
             }
 
-            if ($scope.so.ItemsDetail[i].Price < 0) {
+            if ($scope.so.ItemsDetail[i].CurrentPrice < 0) {
                 $scope.discount.Price += $scope.so.ItemsDetail[i].Price;
             }
         }

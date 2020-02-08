@@ -63,16 +63,18 @@
 
     <link href="~/NancyBlack/Modules/ContentSystem/ncb-content.min.css" rel="stylesheet" />
 
-    @if (this.Request.Url.HostName == "localhost")
+    @if (this.Request.Url.Path.Contains("/support") &&
+        this.Request.Url.HostName == "localhost")
     {
         <script type="text/javascript" src="https://paytest.treepay.co.th/js/plugin.tp"></script>
     }
-    else
+
+    @if (this.Request.Url.Path.Contains("/support") &&
+        this.Request.Url.HostName != "localhost")
     {
         <script type="text/javascript" src="https://pay.treepay.co.th/js/plugin.tp"></script>
     }
 
-    <script src="/NancyBlack/Content/Scripts/moment-with-locales.min.js"></script>
 
 </head>
 <body ncb-membership
@@ -92,30 +94,7 @@
 
     @RenderBody()
 
-    <script data-cfasync="false">
-        // Make :hover works on ipad
-        document.addEventListener("touchstart", function(){}, true);
-
-        @if (this.CurrentUser.IsAnonymous == false)
-        {
-            // automatically set current user info into window variable
-            <text>
-        window.currentUser = @this.Html.Raw( this.GetJson( this.CurrentUser ));
-        </text>
-        }
-
-        @if (this.CurrentUser.HasClaim("Admin") || this.CurrentUser.HasClaim("Editor"))
-        {
-            <text>
-            window.model = { };
-            window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
-        </text>
-        }
-
-        window.language = "@(this.Language)";
-        window.currency = "@(this.Currency)"
-    </script>
-
+    <script src="/NancyBlack/Content/Scripts/moment-with-locales.min.js"></script>
     <script src="/NancyBlack/Content/Scripts/ncb-dependencies.js"></script>
 
 
@@ -138,74 +117,34 @@
     @RenderSection("Scripts", false)
     @RenderSection("Script", false)
 
-    <script>
+    @if (this.CurrentUser.HasClaim("Admin") || this.CurrentUser.HasClaim("Editor"))
+    {
+        <text>
+            <script>
 
-        (function() {
+            window.model = { };
+            window.model.Content = @this.Html.Raw(this.GetJson(this.Model.Content));
+            </script>
+        </text>
+    }
 
-            var module = angular.module('BaseModule', []);
-                module.controller("BaseController", function ($scope) {
+    <script defer data-cfasync="false" id="main">
 
-                    var $me = this;
-                    $me.trackandnavigate = function (url, event, value) {
+        moment.locale('@(this.Language)');
 
-                        if (value != null) {
+        // Make :hover works on ipad
+        document.addEventListener("touchstart", function(){}, true);
 
-                            value = (value + "").replace(/,/g, '');
+        @if (this.CurrentUser.IsAnonymous == false)
+        {
+            // automatically set current user info into window variable
+            <text>
+            window.currentUser = @this.Html.Raw( this.GetJson( this.CurrentUser ));
+            </text>
+        }
 
-                            fbq('track', event, {
-                                value: value,
-                                currency: 'THB'
-                            });
-
-                        } else {
-
-                            fbq('track', event );
-                        }
-                        
-                        window.open(url, "_blank");
-                        return false;
-                    };
-
-                $scope.PAGE_URL = window.location.href;
-                $scope.Math = window.Math;
-                $scope.window = window;
-                $scope.navigator = navigator;
-                
-                $scope.TicksToDate = function( input ) {
-
-                    var epochTicks = 621355968000000000,    // the number of .net ticks at the unix epoch
-                        ticksPerMillisecond = 10000,        // there are 10000 .net ticks per millisecond
-                        jsTicks = 0,                        // ticks in javascript environment
-
-                    jsTicks = (input - epochTicks) / ticksPerMillisecond;
-                    return new Date(jsTicks); // N.B. Js applies local timezone in automatic
-                }
-
-                if (typeof(window.moment) != "undefined") {
-                    $scope.moment = window.moment;
-                }
-                
-                // social proves
-                $scope.$on('ncb-socialprove.ready', function (s, e) {
-
-                    e.user.getpageview(function (s) {
-
-                        var proof = $scope.socialprove.proves['TotalVisitor'];
-                        var totalPerTime = proof.Distinct / proof.TimeInterval;
-
-                        $scope.socialprove.showproof({
-                            img: "https://png.icons8.com/color/96/000000/group.png",
-                            title: s.Distinct + " ท่าน",
-                            message: "เข้าชมหน้านี้ จากผู้เข้าชมทั้งหมด <b>" + parseInt(totalPerTime * s.TimeInterval) + "</b> ท่าน",
-                            footer: 'ใน ' + moment().add(s.TimeInterval, 'minutes').to(moment())
-                        }, true);
-                    });
-                });
-
-
-            });
-
-        })();
+        window.language = "@(this.Language)";
+        window.currency = "@(this.Currency)";
 
         window.loaded = false;
         window.initialize = function() {
@@ -214,6 +153,135 @@
 
                 return;
             }
+
+            //#region Base Page Module
+            (function() {
+
+                var module = angular.module('BaseModule', ['ngCookies']);
+                    module.controller("BaseController", function ($scope, $cookies) {
+
+                        var $me = this;
+                        $me.trackandnavigate = function (url, event, value) {
+
+                            if (value != null) {
+
+                                value = (value + "").replace(/,/g, '');
+
+                                fbq('track', event, {
+                                    value: value,
+                                    currency: 'THB'
+                                });
+
+                            } else {
+
+                                fbq('track', event );
+                            }
+
+                            window.open(url, "_blank");
+                            return false;
+                        };
+
+                        $scope.PAGE_URL = window.location.href;
+                        $scope.Math = window.Math;
+                        $scope.window = window;
+                        $scope.navigator = navigator;
+
+                        $scope.localization = {};
+                        $scope.localization.Country = '@this.Context.Items["Country"]';
+                        $scope.localization.CountryISO = '@this.Context.Items["CountryISO"]';
+                        $scope.localization.Language = '@this.Context.Items["Language"]';
+                        $scope.localization.Currency = '@this.Context.Items["Currency"]';
+                        $scope.localization.ChosenLanguage = '@(this.Context.Request.Cookies.ContainsKey("ChosenLanguage") ? this.Context.Request.Cookies["ChosenLanguage"] : "not-set" )';
+
+                        if (window.location.search.indexOf("chosen=1") > 0) {
+                            $scope.localization.ChosenLanguage = $scope.localization.Language;
+
+                            history.replaceState(null, null, window.location.href.replace(window.location.search, ""));
+                        }
+
+                        $scope.localization.NotChooseLanguage = function () {
+
+                            var domainParts = window.location.hostname.split('.');
+                            var newDomain = window.location.hostname;
+
+                            if (domainParts[0].length == 2) {
+                                domainParts.shift();
+                                newDomain = domainParts.join(".");
+                            }
+
+                            // wont nag again in this session
+                            $cookies.ChosenLanguage = $scope.localization.Language;
+                            $cookies.ChosenCurrency = $scope.localization.Currency;
+
+                            $scope.localization.ChosenLanguage = $scope.localization.Language;
+                        };
+
+                        $scope.localization.ChooseLanguage = function (language, currency) {
+
+                            var domainParts = window.location.hostname.split('.');
+                            var newDomain = window.location.hostname;
+
+                            if (domainParts[0].length == 2) {
+                                domainParts.shift();
+                                newDomain = language + "." + domainParts.join(".");
+                            }
+                            else {
+                                newDomain = language + "." + newDomain.replace("www.", "");
+                            }
+
+                            if (newDomain.indexOf(".") == 0) {
+                                newDomain = newDomain.substring(1);
+                            }
+
+                            var newUrl = window.location.toString().replace( window.location.hostname, newDomain );
+
+                            if (newUrl.indexOf('?') == -1) {
+                                newUrl += "?chosen=1&currency=" + currency;
+                            }
+                            else {
+                                newUrl += "&chosen=1&currency=" + currency;
+                            }
+
+                            window.location.replace(newUrl);
+                        };
+
+                        $scope.TicksToDate = function( input ) {
+
+                            var epochTicks = 621355968000000000,    // the number of .net ticks at the unix epoch
+                                ticksPerMillisecond = 10000,        // there are 10000 .net ticks per millisecond
+                                jsTicks = 0,                        // ticks in javascript environment
+
+                            jsTicks = (input - epochTicks) / ticksPerMillisecond;
+                            return new Date(jsTicks); // N.B. Js applies local timezone in automatic
+                        }
+
+                        if (typeof(window.moment) != "undefined") {
+                            $scope.moment = window.moment;
+                        }
+
+                        // social proves
+                        $scope.$on('ncb-socialprove.ready', function (s, e) {
+
+                            e.user.getpageview(function (s) {
+
+                                var proof = $scope.socialprove.proves['TotalVisitor'];
+                                var totalPerTime = proof.Distinct / proof.TimeInterval;
+
+                                $scope.socialprove.showproof({
+                                    img: "https://png.icons8.com/color/96/000000/group.png",
+                                    title: s.Distinct + " ท่าน",
+                                    message: "เข้าชมหน้านี้ จากผู้เข้าชมทั้งหมด <b>" + parseInt(totalPerTime * s.TimeInterval) + "</b> ท่าน",
+                                    footer: 'ใน ' + moment().add(s.TimeInterval, 'minutes').to(moment())
+                                }, true);
+                            });
+                        });
+
+
+                });
+
+            })();
+
+            //#endregion
 
             // base modules
             var modules = [
@@ -238,9 +306,94 @@
 
             angular.bootstrap($("body"), modules);
             window.loaded = true;
-        };
 
-        window.addEventListener( "load", window.initialize );
+
+            @if (this.Site.Application != null &&
+                                         this.Request.Url.Path.StartsWith("/Admin") == false &&
+                                         this.Request.Url.Path.StartsWith("/__editor") == false)
+            {
+                @if (this.Site.Application.FacebookAppId != null)
+                {
+                    <text>
+                    window.facebookAppId = '@(this.Site.Application.FacebookAppId)';
+
+                    window.fbAsyncInit = function () {
+                        FB.init({
+                            appId: '@(this.Site.Application.FacebookAppId)',
+                            xfbml: true,
+                            status: true,
+                            version: 'v3.1'
+                        });
+                    };
+
+                    (function (d, s, id) {
+                        var js, fjs = d.getElementsByTagName(s)[0];
+                        if (d.getElementById(id)) { return; }
+                        js = d.createElement(s); js.id = id;
+                        js.src = "//connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
+                        fjs.parentNode.insertBefore(js, fjs);
+                    }(document, 'script', 'facebook-jssdk'));
+                    </text>
+                }
+
+                @if (this.Site.Application.GoogleAnalyticsId != null)
+                {
+                    <text>
+                        (function (i, s, o, g, r, a, m) {
+                            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                                (i[r].q = i[r].q || []).push(arguments)
+                            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+                        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                        ga('create', '@(this.Site.Application.GoogleAnalyticsId)', 'auto');
+                        ga('send', 'pageview');
+
+                    </text>
+
+                }
+
+                @if (this.Site.Application.FacebookPixelId != null)
+                {
+                    <text>
+                        !function (f, b, e, v, n, t, s) {
+                            if (f.fbq) return; n = f.fbq = function () {
+                                n.callMethod ?
+                                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+                            }; if (!f._fbq) f._fbq = n;
+                            n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0;
+                            t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s)
+                        }(window,
+                        document, 'script', '//connect.facebook.net/en_US/fbevents.js');
+
+                        fbq('init', '@(this.Site.Application.FacebookPixelId)', { external_id: '@(this.Context.Items["userid"])' });
+                        fbq('track', "PageView");
+
+                    </text>
+                }
+
+                <text>
+                    window.twttr = (function(d, s, id) {
+                        var js, fjs = d.getElementsByTagName(s)[0],
+                          t = window.twttr || {};
+                        if (d.getElementById(id)) return t;
+                        js = d.createElement(s);
+                        js.id = id;
+                        js.src = "https://platform.twitter.com/widgets.js";
+                        fjs.parentNode.insertBefore(js, fjs);
+
+                        t._e = [];
+                        t.ready = function(f) {
+                            t._e.push(f);
+                        };
+
+                        return t;
+                    }(document, "script", "twitter-wjs"));
+                </text>
+            }
+
+
+        };
 
         $(document).ready( function() {
 
@@ -264,102 +417,18 @@
 
             //#endregion
 
+            @RenderSection("ReadyScript", false);
+
         });
     </script>
 
-    @if (this.Site.Application != null &&
-                                 this.Request.Url.Path.StartsWith("/Admin") == false &&
-                                 this.Request.Url.Path.StartsWith("/__editor") == false)
+    @if (this.Site.Application.FacebookPixelId != null)
     {
-        @if (this.Site.Application.FacebookAppId != null)
-        {
-            <script>
-
-                window.facebookAppId = '@(this.Site.Application.FacebookAppId)';
-
-                window.fbAsyncInit = function () {
-                    FB.init({
-                        appId: '@(this.Site.Application.FacebookAppId)',
-                        xfbml: true,
-                        status: true,
-                        version: 'v3.1'
-                    });
-                };
-
-                (function (d, s, id) {
-                    var js, fjs = d.getElementsByTagName(s)[0];
-                    if (d.getElementById(id)) { return; }
-                    js = d.createElement(s); js.id = id;
-                    js.src = "//connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
-                    fjs.parentNode.insertBefore(js, fjs);
-                }(document, 'script', 'facebook-jssdk'));
-            </script>
-        }
-
-        @if (this.Site.Application.GoogleAnalyticsId != null)
-        {
-            <script>
-                (function (i, s, o, g, r, a, m) {
-                    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-                        (i[r].q = i[r].q || []).push(arguments)
-                    }, i[r].l = 1 * new Date(); a = s.createElement(o),
-                    m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
-                })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-
-                ga('create', '@(this.Site.Application.GoogleAnalyticsId)', 'auto');
-                ga('send', 'pageview');
-
-            </script>
-
-        }
-
-        @if (this.Site.Application.FacebookPixelId != null)
-        {
-            <!-- Facebook Pixel Code -->
-                <script>
-                    !function (f, b, e, v, n, t, s) {
-                        if (f.fbq) return; n = f.fbq = function () {
-                            n.callMethod ?
-                            n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-                        }; if (!f._fbq) f._fbq = n;
-                        n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0;
-                        t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s)
-                    }(window,
-                    document, 'script', '//connect.facebook.net/en_US/fbevents.js');
-
-                    fbq('init', '@(this.Site.Application.FacebookPixelId)', { external_id: '@(this.Context.Items["userid"])' });
-                    fbq('track', "PageView");
-                </script>
-                <noscript>
-                    <img height="1" width="1" style="display:none"
-                         src="https://www.facebook.com/tr?id=@(this.Site.Application.FacebookPixelId)&ev=PageView&noscript=1" />
-                </noscript>
-            <!-- End Facebook Pixel Code -->
-        }
-
-
-        <script>
-            window.twttr = (function(d, s, id) {
-                var js, fjs = d.getElementsByTagName(s)[0],
-                  t = window.twttr || {};
-                if (d.getElementById(id)) return t;
-                js = d.createElement(s);
-                js.id = id;
-                js.src = "https://platform.twitter.com/widgets.js";
-                fjs.parentNode.insertBefore(js, fjs);
-
-                t._e = [];
-                t.ready = function(f) {
-                    t._e.push(f);
-                };
-
-                return t;
-            }(document, "script", "twitter-wjs"));
-        </script>
+        <noscript>
+            <img height="1" width="1" style="display:none"
+                 src="https://www.facebook.com/tr?id=@(this.Site.Application.FacebookPixelId)&ev=PageView&noscript=1" />
+        </noscript>
     }
 
 </body>
-
-
-
 </html>

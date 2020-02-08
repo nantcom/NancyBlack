@@ -54,7 +54,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             if (_Triggered == false)
             {
                 // ensure that we have thank you page
-                ContentModule.GetPage(this.SiteDatabase, "/__/commerce/thankyou", true);
+                ContentModule.GetPage(NancyBlackDatabase.GetSiteDatabase(this.RootPath), "/__/commerce/thankyou", true);
                 _Triggered = true;
             }
 

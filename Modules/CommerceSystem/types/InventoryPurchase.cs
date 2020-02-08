@@ -48,12 +48,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public DateTime ActualReceiveDate { get; set; }
 
         /// <summary>
-        /// Product Id Involved in the movement
+        /// Product Id
         /// </summary>
         public int ProductId { get; set; }
         
         /// <summary>
-        /// Notes regarding this movement
+        /// Notes
         /// </summary>
         public string Note { get; set; }
         

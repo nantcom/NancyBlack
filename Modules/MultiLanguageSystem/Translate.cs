@@ -32,7 +32,7 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
                 }
 
                 var database = Path.Combine(BootStrapper.RootPath, "Site", "data.sqlite");
-                _Database = new NancyBlackDatabase(new SQLiteConnection(database, true));
+                _Database = new NancyBlackDatabase(new SQLiteConnection(database, true), null);
                 _Translations = new Dictionary<string, string>();
 
                 foreach (var item in _Database.Query<TranslateEntry>().AsEnumerable())
@@ -42,7 +42,7 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
             }
 
         }
-        
+
         /// <summary>
         /// Translate the input to given locale
         /// </summary>
@@ -158,7 +158,7 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
                 throw new InvalidOperationException("Input is too long for machine translation");
             }
 
-            if (string.IsNullOrEmpty( input.Trim() ))
+            if (string.IsNullOrEmpty(input.Trim()))
             {
                 return string.Empty;
             }

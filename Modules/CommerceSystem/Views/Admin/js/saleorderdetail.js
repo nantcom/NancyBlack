@@ -297,6 +297,10 @@
             }
         }
 
+        me.totalPaid = function () {
+
+            return $scope.paymentLogs.reduce((a, item) => a + item.Amount, 0);
+        };
 
         me.resetPaymentDetail = function () {
             $scope.paymentDetail.paidWhen = new Date();

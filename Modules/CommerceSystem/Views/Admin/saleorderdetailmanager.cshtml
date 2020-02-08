@@ -93,7 +93,7 @@
                                     <div class="col-xs-12">
                                         <input type="date" style="display:block; width: 100%"
                                                min="{{moment().startOf('month').format('YYYY-MM-DD')}}"
-                                               max="{{moment().format('YYYY-MM-DD')}}"
+                                               max="{{moment().endOf('month').add(1, 'days').format('YYYY-MM-DD')}}"
                                                ng-model="paymentDetail.paidWhen" />
 
                                     </div>
@@ -185,6 +185,27 @@
                                                ng-href="{{'/__commerce/saleorder/' + object.SaleOrderIdentifier + '/receipt?index=' + item.receiptIndex}}">
                                                 <i class="fa fa-print"></i>
                                             </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" style="text-align: right">
+                                            <b>Amount Paid:</b>
+                                        </td>
+                                        <td style="text-align: right">
+                                            {{ctrl.totalPaid() | number: 2}}
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td colspan="4" style="text-align: right">
+                                            <b>Amount Due:</b>
+                                        </td>
+                                        <td style="text-align: right">
+                                            {{object.TotalAmount - ctrl.totalPaid() | number: 2}}
+                                        </td>
+                                        <td>
                                         </td>
                                     </tr>
                                 </table>
@@ -964,7 +985,7 @@
                             <td>
 
                                 <div ncb-lookupscope
-                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/laptops/') or startswith(Url, '/products/pc/') or startswith(Url, '/products/parts/'))&$orderby=Title,__updatedAt desc">
+                                     table="Product" labelpath="Title" filter="$filter=contains(Title, $key) and (startswith(Url, '/products/laptops/') or startswith(Url, '/products/pc/') or startswith(Url, '/products/parts/')  or startswith(Url, '/promotions/code'))&$orderby=Title,__updatedAt desc">
 
                                     <ui-select theme="bootstrap" ng-model="newItem.Id"
                                                reset-search-input="false">

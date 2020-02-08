@@ -124,23 +124,8 @@
                                 {{product.Title}}
                             </a>
                         </td>
-                        <td data-title="'Stock'" sortable="'Stock'" filter="{ Stock: 'text' }"
-                            width="10%" style="text-align:center">
-                            {{product.Stock}}
-                        </td>
-                        <td data-title="'Price'" sortable="'Price'" filter="{ Price: 'text' }"
-                            width="10%" style="text-align:right">
-                            {{multicurrency.home}}{{product.Price | number:2 }}
-
-                            <div style="font-size: 90%"
-                                 ng-repeat="(key,value) in product.PriceMultiCurrency">
-                                <b>{{key}}</b>{{value | number:2 }}
-                                <span class="label label-danger text-muted"
-                                      ng-if="multicurrency.fairRatio(product.Price, value, key) <= 1.0">
-                                    {{100 - (multicurrency.fairRatio(product.Price, value, key) * 100) | number:2 }}%
-                                </span>
-                            </div>
-
+                        <td data-title="'Price (' + localization.Currency + ')'" width="10%" style="text-align:right">
+                            {{product.PriceMultiCurrency[localization.Currency] | number:2 }}
                         </td>
                         <td data-title="'Updated'" sortable="'__updatedAt'"
                             width="20%" style="text-align:center">
@@ -244,13 +229,13 @@
                                     <div class="row">
 
                                         <input type="number" ncb-textbox required ncb-col="col-md-6"
-                                               name="Price" title="Price  (@this.Site.commerce.multicurrency.home)" ng-model="object.Price">
+                                               name="Price" title="Price  (@this.Currency)" ng-model="object.PriceMultiCurrency[localization.Currency]">
 
                                         <div class="col-md-6">
-                                            <label>Discount Price  (@this.Site.commerce.multicurrency.home)</label>
+                                            <label>Discount Price  (@this.Currency)</label>
                                             <div class="input-group">
-                                                <input type="text" class="form-control" ng-model="object.DiscountPrice" ng-change="object.PercentDiscount = (object.Price - object.DiscountPrice) / object.Price * -100">
-                                                <div class="input-group-addon">{{object.PercentDiscount | number:2}}%</div>
+                                                <input type="text" class="form-control" ng-model="object.DiscountPriceMultiCurrency[localization.Currency]" >
+                                                <div class="input-group-addon">{{(object.PriceMultiCurrency[localization.Currency] - object.DiscountPriceMultiCurrency[localization.Currency]) / object.PriceMultiCurrency[localization.Currency] * -100 | number:0}}%</div>
                                             </div>
                                         </div>
 
@@ -373,6 +358,43 @@
 
                             </tab>
 
+                            <tab heading="Price"
+                                 disable="(object.HasVariation == false || object.IsVariation == true) == false">
+                                <div>
+
+                                    {{object.PriceMultiCurrency}}
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Currency</th>
+                                                <th>Price</th>
+                                                <th>Discount Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tr ng-repeat="currency in multicurrency.available">
+                                            <td>
+                                                <p class="form-control-static">
+                                                    {{currency}}
+                                                    <br />
+                                                    <span ng-show="currency == '@(this.Currency)'">(Current)</span>
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <input type="number" ncb-textbox
+                                                       ng-disabled="currency == '@(this.Currency)'"
+                                                       ng-model="object.PriceMultiCurrency[currency]" />
+                                            </td>
+                                            <td>
+                                                <input type="number" ncb-textbox
+                                                       ng-disabled="currency == '@(this.Currency)'"
+                                                       ng-model="object.DiscountPriceMultiCurrency[currency]" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                            </tab>
+
                             <tab heading="Attachments">
 
                                 <div ng-module="angular-sortable-view">
@@ -431,49 +453,6 @@
                                             </td>
                                         </tr>
                                     </table>
-                                </div>
-
-                            </tab>
-
-                            <tab heading="Multi-Currency"
-                                 disable="(object.HasVariation == false || object.IsVariation == true) == false">
-                                <div>
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Currency</th>
-                                                <th>Current Rate</th>
-                                                <th>Converted Price</th>
-                                                <th>Set Price</th>
-                                            </tr>
-                                        </thead>
-                                        <tr ng-repeat="currency in multicurrency.available">
-                                            <td>
-                                                <p class="form-control-static">
-                                                    {{currency}}
-                                                </p>
-                                            </td>
-                                            <td>
-                                                <p class="form-control-static">
-                                                    {{ x | xchgrate:currency | number:4 }}
-                                                </p>
-                                            </td>
-                                            <td>
-                                                <p class="form-control-static">
-                                                    {{object.Price | xchg:currency | number:4 }}
-                                                </p>
-                                            </td>
-                                            <td>
-                                                <input type="number" ncb-textbox
-                                                       ng-model="object.PriceMultiCurrency[currency]" />
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <p class="text-danger">
-                                        DISCLAIMER: Exchange rates are from <b>openexchangerates.org</b>
-                                        which the rates are delayed up to 1 hour. Lastest exchange rates are downloaded at: {{ x | xchgdate | date:'dd MMMM yyyy, HH:mm' }}.
-                                        <b>Calculation does not use per-digit calculation and is subject to rounding errors.</b>
-                                    </p>
                                 </div>
 
                             </tab>

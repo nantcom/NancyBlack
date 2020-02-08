@@ -2,6 +2,200 @@
 
     var module = angular.module('InventoryAdminModule', ['ui.bootstrap', 'angular.filter']);
 
+    module.controller("InventoryDashboard2", function ($scope, $rootScope, $http, $window) {
+
+        var $me = this;
+
+        $scope.object = {};
+        $scope.WeekOutlook = [];
+        $scope.WeekOutlookView = [];
+        $scope.WeekOutlookBySO = [];
+        $scope.SaleOrderById = [];
+        $scope.ProductInfo = [];
+
+        window.data.ProductInfo.forEach(function (value, index) {
+
+            $scope.ProductInfo[value.Id] = value;
+        });
+
+        window.data.PriceList.forEach(function (price, index) {
+
+            if ($scope.ProductInfo[price.ProductId] != null) {
+                $scope.ProductInfo[price.ProductId].BuyingPrice = price.PriceExVat;
+                $scope.ProductInfo[price.ProductId].BuyingCurrency = price.Currency;
+            }
+        });
+
+        window.data.PendingSaleOrders.forEach(function (so, index) {
+
+            var date;
+
+            if (so.DueDate < so.__createdAt) {
+                date = moment(so.__createdAt).add(2, 'isoWeek');
+            }
+            else {
+                date = moment(so.DueDate);
+            }
+
+            var key = date.startOf('isoWeek').format('D MMMM YYYY');
+
+            so.RequiredItems = [];
+            so.HasRequest = false;
+
+            if ($scope.WeekOutlook[key] == null) {
+
+                $scope.WeekOutlook[key] = {
+                    SaleOrders: [],
+                    Key: key,
+                    Order: 0,
+                    MinDate: date,
+                    MaxDate: date,
+                    RequiredItems: {},
+                    RequiredItemsView: []
+                };
+
+                $scope.WeekOutlookView.push($scope.WeekOutlook[key]);
+            }
+
+            $scope.SaleOrderById[so.Id] = so;
+            $scope.WeekOutlookBySO[so.Id] = $scope.WeekOutlook[key];
+
+            $scope.WeekOutlook[key].SaleOrders.push(so);
+            $scope.WeekOutlook[key].MinDate = $scope.WeekOutlook[key].MinDate.isAfter(date) ? date : $scope.WeekOutlook[key].MinDate; 
+            $scope.WeekOutlook[key].MaxDate = $scope.WeekOutlook[key].MaxDate.isBefore(date) ? date : $scope.WeekOutlook[key].MaxDate; 
+
+            $scope.WeekOutlook[key].Order = $scope.WeekOutlook[key].MinDate.unix();
+        });
+
+        window.data.InventoryRequests.forEach(function (value, index) {
+
+            var soId = value.SaleOrderId;
+            var pId = value.ProductId;
+            if ($scope.SaleOrderById[soId] == null) {
+
+                console.log("Orphaned InventoryItem:" + value.Id);
+                return;
+            }
+
+            if ($scope.WeekOutlookBySO[soId].RequiredItems[pId + ''] == null) {
+                $scope.WeekOutlookBySO[soId].RequiredItems[pId + ''] = {
+                    ProductId: pId,
+                    SupplierId: $scope.ProductInfo[pId] == null ? -1 : $scope.ProductInfo[pId].SupplierId,
+                    UseBy: new Set(),
+                    UseByArray: [],
+                    Qty: 0,
+                    RequestList: [],
+                };
+                $scope.WeekOutlookBySO[soId].RequiredItemsView.push($scope.WeekOutlookBySO[soId].RequiredItems[pId + '']);
+            }
+
+            $scope.SaleOrderById[soId].HasRequest = true;
+
+            $scope.WeekOutlookBySO[soId].RequiredItems[pId + ''].RequestList.push(value);
+            $scope.WeekOutlookBySO[soId].RequiredItems[pId + ''].Qty++;
+            $scope.WeekOutlookBySO[soId].RequiredItems[pId + ''].UseBy.add(soId);
+            $scope.WeekOutlookBySO[soId].RequiredItems[pId + ''].UseByArray = [...$scope.WeekOutlookBySO[soId].RequiredItems[pId + ''].UseBy];
+        });
+
+        $me.getTotalGroup = function (group) {
+
+            var total = {};
+            window.multicurrency.available.forEach(function (currency) {
+
+                total[currency] = 0;
+            });
+
+            group.RequiredItemsView.forEach(function (product) {
+
+                var productInfo = $scope.ProductInfo[product.ProductId];
+                if (productInfo == null) {
+                    return;
+                }
+
+                if (productInfo.BuyingCurrency == null) {
+                    return;
+                }
+
+                var current = total[productInfo.BuyingCurrency];
+                current += product.Qty * productInfo.BuyingPrice;
+
+                total[productInfo.BuyingCurrency] = current;
+            });
+
+            return total;
+        };
+
+        $me.getTotalAllCurrency = function (totalGroup) {
+
+            var total = 0;
+
+            for (key in totalGroup) {
+
+                if (totalGroup[key] == 0) {
+                    continue;
+                }
+
+                total += $scope.multicurrency.toCurrentCurrency(totalGroup[key], key);
+
+            }
+
+            return total;
+        };
+
+        $me.hasSaleOrderWithoutInventoryRequest = function (group) {
+
+            var has = true;
+            group.SaleOrders.forEach(function (value, index) {
+
+                has &= value.HasRequest;
+            });
+
+            return !has;
+        };
+
+        $me.setPriceDialog = function ( productId ) {
+
+            $scope.object = {
+                Id: 0,
+                ProductId: productId,
+                Currency: $scope.localization.Currency
+            };
+            $("#PriceDialog").modal("show");
+        };
+
+        $me.updatePrice = function (object) {
+
+            $scope.object = {};
+            $scope.ProductInfo[object.ProductId].BuyingCurrency = object.Currency;
+            $scope.ProductInfo[object.ProductId].BuyingPrice = object.PriceExVat;
+
+            $("#PriceDialog").modal("hide");
+
+        };
+
+        $me.modifyInventoryRequest = function (request, list) {
+
+            $scope.currentList = list;
+            $scope.object = request;
+            $("#InventoryItemDialog").modal("show");
+        };
+
+        $me.deletedRequest = function (object) {
+
+            $("#InventoryItemDialog").modal("hide");
+            window.location.reload();
+
+        };
+
+        $me.updatedRequest = function (object) {
+
+            $("#InventoryItemDialog").modal("hide");
+            window.location.reload();
+
+        };
+
+    });
+
     module.controller("InventoryNotFullfilled2", function ($scope, $rootScope, $http, $window) {
 
         var $me = this;

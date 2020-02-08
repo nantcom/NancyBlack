@@ -489,7 +489,15 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                             newItemsList.Add(item.Id);
 
                             this.TotalAmount += item.CurrentPrice;
-                            totalWithoutDiscount += item.Price;
+
+                            if (item.CurrentPrice > item.Price) // this is not discount
+                            {
+                                totalWithoutDiscount += item.CurrentPrice;
+                            }
+                            else
+                            {
+                                totalWithoutDiscount += item.Price;
+                            }
                         }
                     }
                 }
@@ -557,13 +565,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 var attr = new JObject();
                 attr.Add("Qty", 1);
 
-                discountItem = new Product()
+                if (this.TotalAmount > totalWithoutDiscount)
                 {
-                    Title = "Discount",
-                    Price = this.TotalAmount - totalWithoutDiscount,
-                    Url = "/dummy/dummy",
-                    Attributes = attr
-                };
+                    // discount is more than older amount
+                    // this can happen with item that has price = 0
+                    discountItem = new Product()
+                    {
+                        Title = "Discount",
+                        Price = 0,
+                        Url = "/dummy/dummy",
+                        Attributes = attr
+                    };
+                }
+                else
+                {
+                    discountItem = new Product()
+                    {
+                        Title = "Discount",
+                        Price = this.TotalAmount - totalWithoutDiscount,
+                        Url = "/dummy/dummy",
+                        Attributes = attr
+                    };
+                }
+
 
                 this.ItemsDetail.Add(discountItem);
 
@@ -594,25 +618,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.TotalTax = this.TotalAmount - this.TotalAmountWithoutTax;
             }
 
-            if (!string.IsNullOrEmpty(this.Currency))
-            {
-                JObject rate = CommerceAdminModule.ExchangeRate;
-                decimal want = (decimal)rate.Property(this.Currency).Value;
-                decimal home = (decimal)rate.Property("THB").Value;
-                this.CurrencyConversionRate = want / home;
-
-                Func<decimal, decimal> toWant = (decimal input) => input * this.CurrencyConversionRate * 1.03m;
-                foreach (Product current in this.ItemsDetail)
-                {
-                    current.Price = toWant(current.Price);
-                    current.DiscountPrice = toWant(current.DiscountPrice);
-                }
-
-                this.ShippingFee = toWant(this.ShippingFee);
-                this.ShippingInsuranceFee = toWant(this.ShippingInsuranceFee);
-                this.PaymentFee = toWant(this.PaymentFee);
-                this.TotalAmount = toWant(this.TotalAmount);
-            }
 
             if (save == false)
             {

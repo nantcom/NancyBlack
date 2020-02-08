@@ -150,7 +150,12 @@ namespace NantCom.NancyBlack.Modules
         {
             get
             {
-                return NancyBlackDatabase.GetSiteDatabase( this.RootPath );
+                if (this.Context == null)
+                {
+                    throw new InvalidOperationException("Context is not available");
+                }
+
+                return this.Context.Items["SiteDatabase"] as NancyBlackDatabase;
             }
         }
 

@@ -1421,13 +1421,22 @@
                 return $me.convert(input, $me.home, wantCurrency);
             };
 
-            $me.fairRatio = function (homeValue, wantValue, wantCurrency)
-            {
+            $me.toCurrentCurrency = function (input, currency) {
+
+                return $me.convert(input, currency, $scope.localization.Currency);
+            };
+
+            $me.fairRatio = function (homeValue, wantValue, wantCurrency) {
                 var fairValue = $me.convert(homeValue, $me.home, wantCurrency);
-                return wantValue / fairValue
-            }
+                return wantValue / fairValue;
+            };
 
             $me.convert = function (input, inputCurrency, wantCurrency) {
+
+                if (inputCurrency == wantCurrency) {
+
+                    return input;
+                }
 
                 var want = currencyRate.rates[wantCurrency];
                 var home = currencyRate.rates[inputCurrency];
@@ -1484,10 +1493,10 @@
         return function (input, want) {
 
             var home = currencyRate.rates['THB'];
-            var want = currencyRate.rates[want];
+            var wanted = currencyRate.rates[want];
 
             var perUsd = 1 / home;
-            var result = want * perUsd;
+            var result = wanted * perUsd;
             return result;
         };
     });

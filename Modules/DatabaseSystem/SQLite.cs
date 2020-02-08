@@ -160,6 +160,15 @@ namespace SQLite
     /// </summary>
     public partial class SQLiteConnection : IDisposable
     {
+        /// <summary>
+        /// Event to process instance after it was created by SQLite read
+        /// </summary>
+        public event Action<object> InstanceCreated = delegate { };
+        internal void OnInstanceCreated( object obj )
+        {
+            this.InstanceCreated(obj);
+        }
+
         private bool _open;
         private TimeSpan _busyTimeout;
         private Dictionary<string, TableMapping> _mappings = null;
@@ -2445,6 +2454,7 @@ namespace SQLite
         protected virtual void OnInstanceCreated(object obj)
         {
             // Can be overridden.
+            this._conn.OnInstanceCreated(obj);
         }
 
         public IEnumerable<T> ExecuteDeferredQuery<T>(TableMapping map)

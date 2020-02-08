@@ -14,30 +14,37 @@
 {
     <script src="/NancyBlack/Modules/CommerceSystem/Views/Admin/commerceadmin-inventory.js"></script>
     <script>
+        window.multicurrency = @this.Html.Raw(this.GetJson(this.Site.commerce.multicurrency));
 
-        
         window.commerceSettings = @this.Html.Raw(this.Site.commerce.ToString());
 
         window.data = {};
-        window.data.ProductUrl = @this.GetJsonRaw(this.Database.Query("SELECT Id, Url, SupplierId FROM Product WHERE Instr(Url, '/archive/') = 0 AND  Instr(Url, '/promotions/') = 0", new { Id = 0, Url = "", SupplierId = 0 }));
-        window.data.AveragePrice = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, AVG(BuyingPrice) as Price FROM InventoryPurchase GROUP BY ProductId", new { ProductId = 0, Price = 0.0 }));
+        window.data.ProductInfo = @this.GetJsonRaw(this.Database.Query("SELECT Id, Url, SupplierId, Title FROM Product WHERE Instr(Url, '/promotions/') = 0", new { Id = 0, Url = "", SupplierId = 0, Title = "" }));
         window.data.Instock = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, SUM(1) as Qty FROM InventoryPurchase WHERE InventoryItemId = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0M, Qty = 0 }));
         window.data.WaitingForInbound = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(BuyingPrice) as Price, SUM(1) as Qty FROM InventoryPurchase WHERE InventoryItemId = 0 AND IsInBound = 0 GROUP BY ProductId", new { ProductId = 0, Price = 0M, Qty = 0 }));
-        window.data.InventoryRequests = @this.GetJsonRaw(this.Database.Query("SELECT ProductId, SUM(1) as Qty, AVG(SellingPrice) as SoldPrice FROM InventoryItem WHERE IsFullFilled = 0 GROUP BY ProductId", new { ProductId = 0, Qty = 0, SoldPrice = 0M }));
-        window.data.PendingSaleOrders = @this.GetJsonRaw(this.Database.Query("SELECT Id, Status FROM SaleOrder WHERE Status != 'Delivered' AND Status != 'Cancel' AND Status != 'New' AND Status != 'Confirmed'", new { Id = 0, Status = "" }));
+        window.data.InventoryRequests = @this.GetJsonRaw(this.Database.Query("SELECT Id, RequestedDate, ProductId, SaleOrderId FROM InventoryItem WHERE IsFullFilled = 0", new { ProductId = 0, SaleOrderId = 0, Id = 0, RequestedDate = DateTime.MinValue }));
+        window.data.PendingSaleOrders = @this.GetJsonRaw(this.Database.Query("SELECT Id, Status, PaymentStatus, DueDate, __createdAt FROM SaleOrder WHERE (PaymentStatus = 'PaymentReceived' OR PaymentStatus = 'Deposit') AND (Status != 'Delivered' AND Status != 'Building' AND Status != 'ReadyToShip' AND Status != 'Cancel') ORDER BY __createdAt", new { Id = 0, Status = "", DueDate = DateTime.MinValue }));
         window.data.InventoryRequestRaw = @this.GetJsonRaw(this.Database.Query("SELECT Id, SaleOrderId, ProductId FROM InventoryItem WHERE IsFullFilled = 0", new { Id = 0, SaleOrderId = 0, ProductId = 0 }));
+
+        window.data.PriceList = @this.GetJsonRaw(this.Database.Query(@"SELECT p1.ProductId, p1.SupplierId, p1.PriceExVat, P1.Currency FROM PriceList as p1 
+                                            LEFT OUTER JOIN PriceList as p2
+                                            ON p1.ProductId = p2.ProductId
+                                                AND p2.__createdAt > p1.__createdAt
+                                            WHERE p2.Id IS NULL", new NantCom.NancyBlack.Modules.CommerceSystem.types.PriceList()));
 
         window.productUrlLookup = [];
         window.productSupplierLookup = [];
-        window.data.ProductUrl.forEach(function (item) {
-                       
+        window.data.ProductInfo.forEach(function (item) {
+
             window.productUrlLookup[item.Id] = item.Url;
             window.productSupplierLookup[item.Id] = item.SupplierId;
         });
 
     </script>
 }
-<div ng-module="InventoryAdminModule">
+<div ng-module="InventoryAdminModule"
+     ncg-multicurrency
+     ng-controller="InventoryDashboard2 as ctrl">
     <h1 class="page-header"
         style="padding-top: 25px">
         Inventory
@@ -57,136 +64,284 @@
     </div>
 
     <tabset>
-        <tab heading="Inventory Dashboard">
+        <tab heading="Inventory Forecast">
 
-            <div class="row">
+            <div ncb-datacontext table="InventoryItem">
 
+                <div class="panel panel-info" ng-repeat="outlook in WeekOutlookView | orderBy:'Order'"
+                     ng-show="outlook.RequiredItemsView.length > 0">
 
-                <div class="col-md-6">
+                    <div class="panel-heading">
 
-                    <div ng-controller="InventoryNotFullfilled2 as ctrl">
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <h2 style="font-weight: bold">
+                                    {{outlook.Key}} |
+                                    <span style="color: black">
+                                        {{ctrl.getTotalAllCurrency(ctrl.getTotalGroup(outlook)) * 1.07 | number:2}}
+                                    </span>
+                                </h2>
 
-                        <h3 class="page-header text-danger">
-                            Required
-
-                            <span class="pull-right">
-                                <b>{{totalValue | number:2}}</b>
-                            </span>
-                        </h3>
-
-                        <table class="table table-striped table-hover table-responsive"
-                               ng-repeat="(key, value) in data | groupBy: 'SupplierId'">
-
-                            <tbody>
-                                <tr>
-                                    <td colspan="5"
-                                        style="text-align: right; font-weight: bold; font-size: 120%">
-                                        <span ncb-vlookup="supplier" key="{{key}}" label="Name"></span>
-                                        <span>{{groupTotal}}</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th width="30%">Item</th>
-                                    <th width="15%">Stock</th>
-                                    <th width="15%">Waiting</th>
-                                    <th width="15%">Incoming</th>
-                                    <th width="25%">Diff</th>
-                                </tr>
-                                <tr ng-repeat="item in value | orderBy:'Url' ">
-                                    <td>
-                                        <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
-                                        <br />
-                                        <a href ng-click="ctrl.overridePrice( item )">{{item.Price | number : 2}}</a>
-                                    </td>
-                                    <td ng-class="{'danger' : item.QtyStock == 0 }">
-                                        {{item.QtyStock}}
-                                    </td>
-                                    <td>
-                                        <b>{{item.SaleOrderWaiting.length}}</b>
-                                        <div ng-if="item.SaleOrderWaiting.length > 0">
-                                            <a ng-repeat="so in item.SaleOrderWaiting track by $index" target="_blank"
-                                               href="/Admin/tables/saleorder/{{so}}">
-                                                {{so}}
-                                            </a>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <b>
-                                            {{item.SaleOrderIncoming.length}}
-                                        </b>
-
-                                        <div ng-if="item.SaleOrderIncoming.length > 0">
-                                            <a ng-repeat="so in item.SaleOrderIncoming track by $index" target="_blank"
-                                               href="/Admin/tables/saleorder/{{so}}">
-                                                {{so}}
-                                            </a>
-                                        </div>
-
-                                    </td>
-                                    <td ng-class="{'danger' : item.QtyStock - item.SaleOrderIncoming.length < 0, 'warning' : item.QtyStock - item.SaleOrderWaiting.length < 0 }">
-                                        <span ng-if="item.QtyStock - item.Qty < 0">
-                                            {{(item.QtyStock - item.Qty) * -1}}
-                                        </span><br/>
-                                        <b ng-if="item.QtyStock - item.Qty < 0">
-                                            {{(item.QtyStock - item.Qty) * item.Price * -1  | number : 2}}
-                                        </b>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-
+                            </div>
+                            <div class="col-sm-4">
+                                <ul style="float:right; font-size: 120%; list-style: square">
+                                    <li ng-repeat="(key,value) in ctrl.getTotalGroup(outlook)"
+                                        ng-show="value > 0">
+                                        <b>{{key}}</b> : {{value | number: 2}}
+                                    </li>
+                                    <li>
+                                        <b>TOTAL ({{localization.Currency }}): </b> {{ctrl.getTotalAllCurrency(ctrl.getTotalGroup(outlook)) | number:2}}
+                                    </li>
+                                    <li>
+                                        <b>VAT: </b> {{ctrl.getTotalAllCurrency(ctrl.getTotalGroup(outlook)) * 0.07 | number:2}}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-
-                </div>
-                
-                <div class="col-md-6">
-
-                    <div ng-controller="InventoryInstock as ctrl">
-
-                        <h3 class="page-header text-success">
-                            Stock
-
-                            <span class="pull-right">
-                                <b>{{totalValue | number:2}}</b>
-                            </span>
-                        </h3>
-
-                        <table class="table table-striped table-hover table-responsive">
-
-                            <tbody>
+                    <div class="panel-body">
+                        <table class="table table-hover table-bordered">
+                            <thead>
                                 <tr>
-                                    <th width="80%">Item</th>
-                                    <th>Total</th>
-                                    <th>Waiting</th>
-                                    <th>Now</th>
+                                    <th width="20%">Required By SO</th>
+                                    <th width="50%">Product</th>
+                                    <th width="10%">Qty</th>
+                                    <th width="10%">Price</th>
+                                    <th width="10%">Amount</th>
                                 </tr>
-                                <tr ng-repeat="item in data | orderBy:'Url'">
-                                    <td>
-                                        <span ncb-vlookup="product" key="{{item.ProductId}}" label="Title"></span>
-                                    </td>
-                                    <td>
-                                        {{item.Qty}}
-                                    </td>
-                                    <td>
-                                        {{item.QtyWaiting}}
-                                    </td>
-                                    <td>
-                                        <b>{{item.Qty - item.QtyWaiting}}</b>
+                            </thead>
+                            <tbody ng-repeat="(key, list) in outlook.RequiredItemsView | groupBy:'SupplierId'">
+                                <tr ng-if="$index == 0"
+                                    ng-show="ctrl.hasSaleOrderWithoutInventoryRequest(outlook)">
+                                    <td colspan="5" class="bg-warning">
+                                        <h4 style="font-weight:bold">Sale Order without Requests</h4>
                                     </td>
                                 </tr>
+                                <tr ng-if="$index == 0"
+                                    ng-show="ctrl.hasSaleOrderWithoutInventoryRequest(outlook)">
+                                    <td colspan="5">
+                                        <a ng-repeat="so in outlook.SaleOrders | orderBy: 'Id'"
+                                           ng-href="{{'/Admin/tables/saleorder/' + so.Id}}"
+                                           ng-if="so.HasRequest == false">
+                                            {{so.Id}},
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" style="background-color: #ddd">
+                                        <h4 style="font-weight:bold" ncb-vlookup="supplier" key="{{key}}" label="Name"></h4>
+                                    </td>
+                                </tr>
+                                <tr ng-repeat="request in list">
+                                    <td style="padding-left: 20px">
+                                        <a ng-href="{{'/Admin/tables/saleorder/' +  so}}" target="_blank"
+                                           ng-repeat="so in request.UseByArray | orderBy: 'Id'">{{so}}, </a>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-default" ng-click="request.ShowDetail = !request.ShowDetail"
+                                                style="margin-right: 10px">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                        {{ProductInfo[request.ProductId].Title}}
+
+                                        <table class="table table-striped" ng-show="request.ShowDetail"
+                                               style="margin-top: 10px;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 30%">
+                                                        SO
+                                                    </th>
+                                                    <th style="width: 30%">
+                                                        Requested Date
+                                                    </th>
+                                                    <th style="width: 40%">
+
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tr ng-repeat="row in request.RequestList | orderBy : 'SaleOrderId'">
+                                                <td>{{row.SaleOrderId}}</td>
+                                                <td>{{row.RequestedDate | date:'dd-MM-yyyy'}}</td>
+                                                <td style="text-align: right;">
+                                                    <button class="btn btn-primary"
+                                                            ng-click="ctrl.modifyInventoryRequest(row, list)">
+                                                        <i class="fa fa-edit"></i>
+                                                        Change
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </td>
+                                    <td>{{request.Qty}}</td>
+                                    <td>
+                                        {{ProductInfo[request.ProductId].BuyingCurrency}}&nbsp;
+                                        {{ProductInfo[request.ProductId].BuyingPrice | number: 2}}
+                                        <a href ng-show="ProductInfo[request.ProductId].BuyingPrice == null"
+                                           ng-click="ctrl.setPriceDialog(request.ProductId)">
+                                            (Set Price)
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{ProductInfo[request.ProductId].BuyingCurrency}}&nbsp;
+                                        {{request.Qty * ProductInfo[request.ProductId].BuyingPrice | number: 2}}
+                                        <span ng-show="ProductInfo[request.ProductId].BuyingPrice == null">
+                                            (N/A)
+                                        </span>
+                                    </td>
+                                </tr>
+
                             </tbody>
+
+                            <tr>
+                            </tr>
                         </table>
-
                     </div>
-                    
-
                 </div>
 
             </div>
-
         </tab>
-
 
     </tabset>
 
+    <div ncb-datacontext table="PriceList">
+
+        <ncb-modal id="PriceDialog"
+                   title="{{ProductInfo[object.ProductId].Title + ' Price'}}" closebutton>
+
+            <form role="form" name="PriceForm">
+                {{object}}
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <div class="form-group"
+                             ncb-lookupscope
+                             table="Supplier" labelpath="Name" filter="$filter=startswith(Name, $key)">
+
+                            <label class="control-label" for="SupplierId">
+                                Supplier
+                                <i class="fa fa-spin fa-circle-o-notch"
+                                   ng-show="isBusy"></i>
+                            </label>
+                            <ui-select theme="bootstrap" ng-model="object.SupplierId" required
+                                       reset-search-input="false">
+                                <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                   refresh="refreshLookup($select.search)"
+                                                   refresh-delay="0">
+                                    <span>{{item.label}}</span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+
+                    </div>
+                    <div class="col-md-6">
+
+                        <div class="form-group">
+
+                            <label class="control-label" for="Price">
+                                Price (Ex Vat)
+                            </label>
+
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{object.Currency}} <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li ng-repeat="currency in window.multicurrency.available">
+                                            <a href ng-click="object.Currency = currency">
+                                                {{currency}}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <input type="text" class="form-control" required
+                                       ng-model="object.PriceExVat">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <ncb-footer>
+
+                <button type="button"
+                        class="btn btn-success btn-lg"
+                        aftersave="ctrl.updatePrice"
+                        ncb-insertbutton>
+                    Save
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+    </div>
+
+    <div ncb-datacontext table="InventoryItem">
+
+        <ncb-modal id="InventoryItemDialog"
+                   title="{{'SO ' + object.SaleOrderId}}" closebutton>
+
+            <form role="form" name="InventoryItem">
+                {{object}}
+                <div class="row">
+
+                    <div class="col-md-12">
+
+                        <div class="form-group" ncb-lookupscope
+                             table="Product" labelpath="Title" filter="$filter=contains(Title, $key)&$orderby=Title">
+
+                            <label class="control-label" for="Price">
+                                Change to Product
+                            </label>
+
+                            <ui-select theme="bootstrap" ng-model="object.ProductId"
+                                       reset-search-input="false">
+                                <ui-select-match placeholder="Select or find the item">{{$select.selected.label}}</ui-select-match>
+                                <ui-select-choices repeat="item.Id as item in lookup track by $index"
+                                                   refresh="refreshLookup($select.search)"
+                                                   refresh-delay="0">
+                                    <span class="text-muted">
+                                        {{item.Id }} -
+                                    </span>
+                                    <span>
+                                        {{item.label}}
+                                    </span>
+                                    <span class="text-muted">
+                                        {{item.Url.indexOf('archive/') > 0 ? '(Archived)' : ''}}
+                                    </span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <ncb-footer>
+
+                <button type="button"
+                        class="btn btn-danger btn-lg"
+                        aftersave="ctrl.deletedRequest"
+                        ncb-deletebutton>
+                    Delete
+                </button>
+
+                <button type="button"
+                        class="btn btn-success btn-lg"
+                        aftersave="ctrl.updatedRequest"
+                        ncb-insertbutton>
+                    Save
+                </button>
+            </ncb-footer>
+
+        </ncb-modal>
+    </div>
 </div>

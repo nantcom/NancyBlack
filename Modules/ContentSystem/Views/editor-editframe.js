@@ -221,7 +221,16 @@
             e.preventDefault();
         };
 
+        $scope.refreshEditables = function () {
+
+            $scope.siteView.areas = util.listeditable(siteView);
+            $scope.siteView.themeareas = util.listthemeeditable(siteView);
+            $scope.siteView.collections = util.listcollections(siteView);
+
+        };
+
         $scope.globals = {};
+        $scope.globals.nancywhite = $me;
 
         $scope.reloadSiteView = function (url) {
 
@@ -270,9 +279,7 @@
                 $scope.currentUrl = document.getElementById("siteview").contentWindow.location.pathname;
                 $scope.currentContent = document.getElementById("siteview").contentWindow.model.Content;
 
-                $scope.siteView.areas = util.listeditable(siteView);
-                $scope.siteView.themeareas = util.listthemeeditable(siteView);
-                $scope.siteView.collections = util.listcollections(siteView);
+                $scope.refreshEditables();
 
             });
 

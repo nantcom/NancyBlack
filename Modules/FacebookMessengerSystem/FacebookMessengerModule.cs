@@ -661,7 +661,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                MailSenderModule.SendEmail("company@nant.co", "Facebook API Post Error", response.ToString());
+                MailSenderModule.SendEmail("company@nant.co", "Facebook API Post Error", response.Content);
 
                 if (throwOnError)
                 {

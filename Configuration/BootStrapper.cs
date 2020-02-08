@@ -63,6 +63,79 @@ namespace NantCom.NancyBlack.Configuration
         void Hook(IPipelines p);
     }
 
+    /// <summary>
+    /// Initializes the request
+    /// </summary>
+    public class PrepareRequest : IRequestStartup
+    {
+        /// <summary>
+        /// Initializes Global Objects for current request, this will only run once at startup
+        /// and is thread safe (Only one thread will run)
+        /// </summary>
+        public static event Action<NancyContext> PerRequestFirstGlobalInit = delegate { };
+
+        private static bool _FirstRun = true;
+
+        public void Initialize(IPipelines piepeLinse, NancyContext ctx)
+        {
+            ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
+            ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
+            ctx.Items["RootPath"] = BootStrapper.RootPath;
+
+            NancyBlackDatabase db = null;
+
+            lock (BaseModule.GetLockObject("Request-FirstRun"))
+            {
+                if (_FirstRun == false)
+                {
+                    goto Skip;
+                }
+                _FirstRun = false;
+
+                // this will ensure DataType Factory only run once
+                db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath, ctx);
+
+                GlobalVar.Default.Load(db);
+
+                ctx.Items["SiteDatabase"] = db; // other modules expected this
+
+                PrepareRequest.PerRequestFirstGlobalInit(ctx);
+
+            Skip:
+
+                ;
+            }
+
+            if (db == null)
+            {
+                db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath, ctx);
+                ctx.Items["SiteDatabase"] = db;
+            }
+
+            // Get Subsite Name if in main site will get null
+            string folder = Path.Combine(BootStrapper.RootPath, "Site", "SubSites");
+            if (Directory.Exists(folder))
+            {
+                var subSiteNames = from subDirectories in Directory.GetDirectories(folder) select Path.GetFileName(subDirectories);
+                var matchSubSiteName = (from subSite in subSiteNames where ctx.Request.Url.HostName.Contains(subSite) select subSite).FirstOrDefault();
+
+                ctx.Items[ContextItems.SubSite] = matchSubSiteName;
+            }
+            else
+            {
+                ctx.Items[ContextItems.SubSite] = null;
+            }
+
+            if (ctx.Request.Cookies.ContainsKey("userid") == false)
+            {
+                ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
+            }
+
+            ctx.Items["userid"] = ctx.Request.Cookies["userid"];
+
+        }
+    }
+
     public class BootStrapper : DefaultNancyBootstrapper
     {
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
@@ -75,7 +148,7 @@ namespace NantCom.NancyBlack.Configuration
 
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
-        
+
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             BootStrapper.RootPath = this.RootPathProvider.GetRootPath();
@@ -293,40 +366,6 @@ namespace NantCom.NancyBlack.Configuration
                 UserMapper = container.Resolve<IUserMapper>(),
             };
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
-
-            pipelines.BeforeRequest.AddItemToStartOfPipeline((ctx) =>
-            {
-                // Get Subsite Name if in main site will get null
-                string folder = Path.Combine(BootStrapper.RootPath, "Site", "SubSites");
-                if (Directory.Exists( folder))
-                {
-                    var subSiteNames = from subDirectories in Directory.GetDirectories(folder) select Path.GetFileName(subDirectories);
-                    var matchSubSiteName = (from subSite in subSiteNames where ctx.Request.Url.HostName.Contains(subSite) select subSite).FirstOrDefault();
-
-                    ctx.Items[ContextItems.SubSite] = matchSubSiteName;
-                }
-                else
-                {
-                    ctx.Items[ContextItems.SubSite] = null;
-                }
-
-                var db = NancyBlackDatabase.GetSiteDatabase(this.RootPathProvider.GetRootPath());
-                GlobalVar.Default.Load(db);
-
-                ctx.Items["SiteDatabase"] = db;
-                ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
-                ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
-                ctx.Items["RootPath"] = BootStrapper.RootPath;
-
-                if (ctx.Request.Cookies.ContainsKey("userid") == false)
-                {
-                    ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
-                }
-
-                ctx.Items["userid"] = ctx.Request.Cookies["userid"];
-
-                return null;
-            });
 
             pipelines.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {

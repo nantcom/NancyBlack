@@ -189,14 +189,14 @@
 
             $scope.data.save(object, function () {
 
-                // clears the object after inserted
-                for (var k in object) {
-                    object[k] = null;
-                }
-
                 if (callback != null) {
 
                     callback(object);
+                }
+
+                // clears the object after inserted
+                for (var k in object) {
+                    object[k] = null;
                 }
 
                 object.inserted = true;
@@ -695,10 +695,11 @@
         };
     });
 
-    var saveinsertButton = function ($scope, element, attrs, $compile) {
+    var saveinsertDeleteButton = function ($scope, element, attrs, $compile) {
 
         var $me = this;
 
+        element.attr("mode", "save");
         element.attr("ng-disabled", "isBusy");
 
         var parentForm = element.parents("form");
@@ -709,17 +710,20 @@
             parentForm = ctx.find("form");
         }
 
-        if (parentForm.length == 0) {
-            console.log("save button: No form found, cannot bind to validation.");
-        }
+        if (element.is("[ncb-deletebutton]") == false) {
 
-        if (parentForm.length > 1) {
-            console.log("save button: Multiple form found, cannot bind to validation.");
-        }
+            if (parentForm.length == 0) {
+                console.log("save button: No form found, cannot bind to validation.");
+            }
 
-        if (parentForm.length == 1) {
+            if (parentForm.length > 1) {
+                console.log("save button: Multiple form found, cannot bind to validation.");
+            }
 
-            element.attr("ng-disabled", parentForm.attr("name") + ".$valid == false || isBusy");
+            if (parentForm.length == 1) {
+
+                element.attr("ng-disabled", parentForm.attr("name") + ".$valid == false || isBusy");
+            }
         }
 
         element.prepend('<i class="fa fa-spin fa-circle-o-notch" ng-show="isBusy == true"></i>')
@@ -729,8 +733,16 @@
             element.attr("mode", "insert");
         }
 
+        if (element.is("[ncb-deletebutton]")) {
+
+            element.attr("mode", "delete");
+        }
+
+
         element.removeAttr("ncb-savebutton"); // prevent infinite loop
         element.removeAttr("ncb-insertbutton"); // prevent infinite loop
+        element.removeAttr("ncb-deletebutton"); // prevent infinite loop
+
         var template = $compile(element);
         template($scope);
 
@@ -747,19 +759,39 @@
                 }
             }
 
+            var scope = $scope;
+            while (scope.$eval("data") == null) {
+                scope = scope.$parent;
+
+                if (scope == null) {
+                    console.log("Cannot Find Scope with datacontext");
+                    return;
+                }
+            }
+
             if (element.attr("mode") == "insert") {
 
-                $scope.$eval("data.insert(object, aftersave)");
-            } else {
+                scope.$eval("data.insert(object, " + attrs.aftersave + ")");
+                return;
+            }
 
-                $scope.$eval("data.save(object, aftersave)");
+            if (element.attr("mode") == "save") {
+
+                scope.$eval("data.save(object, " + attrs.aftersave + ")");
+                return;
+            }
+
+            if (element.attr("mode") == "delete") {
+
+                scope.$eval("data.delete(object, " + attrs.aftersave + ", true)");
+                return;
             }
         };
     };
     ncb.directive('ncbSavebutton', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
-            return new saveinsertButton($scope, element, attrs, $compile);
+            return new saveinsertDeleteButton($scope, element, attrs, $compile);
         }
 
         return {
@@ -774,12 +806,28 @@
     ncb.directive('ncbInsertbutton', ['$compile', function ($compile) {
 
         function link($scope, element, attrs) {
-            return new saveinsertButton($scope, element, attrs, $compile);
+            return new saveinsertDeleteButton($scope, element, attrs, $compile);
         }
 
         return {
             restrict: 'A',
             link: link,
+            scope: true,
+            terminal: true, // we will use $compile - so we want to stop all other directives
+            priority: 9999, // make sure we got compiled first
+        };
+    }]);
+
+    ncb.directive('ncbDeletebutton', ['$compile', function ($compile) {
+
+        function link($scope, element, attrs) {
+            return new saveinsertDeleteButton($scope, element, attrs, $compile);
+        }
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: true,
             terminal: true, // we will use $compile - so we want to stop all other directives
             priority: 9999, // make sure we got compiled first
         };

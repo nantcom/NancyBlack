@@ -92,7 +92,7 @@
                     callback();
                 }
 
-                if (Tawk_API != null && $me.currentUser.Profile != null) {
+                if ((typeof Tawk_API !== 'undefined') && $me.currentUser.Profile != null) {
 
                     Tawk_API.setAttributes({
                         'name': $me.currentUser.Profile.first_name + " " + $me.currentUser.Profile.last_name,

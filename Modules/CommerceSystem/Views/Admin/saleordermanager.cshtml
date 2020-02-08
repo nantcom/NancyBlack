@@ -50,7 +50,7 @@
 
                 <li ng-repeat="item in modes"
                     ng-class="{'active' : (currentMode == item)}">
-                    <a href="#" ng-click="ctrl.changeView(item)">{{item.Title}}</a>
+                    <a href="#" ng-click="ctrl.changeView(item, 'tableview')">{{item.Title}}</a>
                 </li>
 
             </ul>
@@ -293,9 +293,4 @@
 
     </script>
 
-    <script type="text/ng-template" id="calendar">
-
-        @this.Html.Partial("CommerceSystem/Views/Admin/part-workcalendar", this.Model)
-
-    </script>
 </div>

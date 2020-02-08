@@ -1,4 +1,6 @@
-﻿using NantCom.NancyBlack.Modules.DatabaseSystem;
+﻿using Nancy.Bootstrapper;
+using NantCom.NancyBlack.Configuration;
+using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
@@ -26,10 +28,10 @@ namespace NantCom.NancyBlack
     /// <summary>
     /// A persistent variables that will keep in database
     /// </summary>
-    public class GlobalVar
+    public class GlobalVar : IPipelineHook
     {
-        private static Dictionary<string, GlobalVarEntry> _Variables;
-        private static List<string> _DirtyList = new List<string>();
+        private static Dictionary<string, GlobalVarEntry> _Variables = new Dictionary<string, GlobalVarEntry>();
+        private static HashSet<string> _DirtyList = new HashSet<string>();
 
         /// <summary>
         /// Gets/Set variable
@@ -45,6 +47,9 @@ namespace NantCom.NancyBlack
                 {
                     return gv.Value;
                 }
+
+                gv = new GlobalVarEntry() { Key = key, Value = null };
+                _Variables[key] = gv;
 
                 return null;
             }
@@ -67,17 +72,25 @@ namespace NantCom.NancyBlack
         private GlobalVar() { }
 
         /// <summary>
-        /// Load variable from database, this will only load once per application start up
+        /// Refreshes current global variable from database
         /// </summary>
         /// <param name="db"></param>
         public void Load(NancyBlackDatabase db)
         {
-            if (_Variables != null)
+            lock ("GVLoad")
             {
-                return;
-            }
+                // persist current values first
+                this.Persist(db);
 
-            _Variables = db.Query<GlobalVarEntry>().ToDictionary(gv => gv.Key, gv => gv);
+                var list = db.Query<GlobalVarEntry>().OrderBy( gv => gv.Id ).ToList();
+                var result = new Dictionary<string, GlobalVarEntry>();
+                foreach (var item in list)
+                {
+                    result[item.Key] = item;
+                }
+
+                _Variables = result;
+            }
         }
 
         /// <summary>
@@ -96,8 +109,16 @@ namespace NantCom.NancyBlack
                     }
                 });
 
-                _DirtyList = new List<string>();
+                _DirtyList = new HashSet<string>();
             }
+        }
+
+        public void Hook(IPipelines p)
+        {
+            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            {
+                this.Persist(ctx.GetSiteDatabase());
+            });
         }
 
         private static GlobalVar _Default = new GlobalVar();

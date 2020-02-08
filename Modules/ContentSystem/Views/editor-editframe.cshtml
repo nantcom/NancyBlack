@@ -61,7 +61,7 @@
         </h1>
         <ul>
             <li ng-class="{ 'disabled' : siteView.areas.length == 0}">
-                <a ng-click="switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
+                <a ng-click="refreshEditables();switchMenu( $event, 'editframe-pagecontents.html')">Content</a>
             </li>
             <li>
                 <a ng-click="switchMenu( $event, 'editframe-attachments.html')">Attachments</a>

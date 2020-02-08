@@ -94,16 +94,8 @@
 
 
                             <div class="row"
-                                 ng-init="object.IsRecordGL = false; object.IsConsignment = false;">
+                                 ng-init="object.IsRecordGL = true; object.IsConsignment = false;">
 
-                                <div class="col-md-3">
-
-                                    <div style="margin-bottom: 5px; font-weight: bold">Record GL</div>
-                                    <span class="pull-right">
-                                        <ncb-onoff ng-model="object.IsRecordGL"></ncb-onoff>
-                                    </span>
-                                    <div>Automatically record accoutning entries.</div>
-                                </div>
                                 <div class="col-md-3">
 
                                     <div ng-if="object.IsRecordGL == true">

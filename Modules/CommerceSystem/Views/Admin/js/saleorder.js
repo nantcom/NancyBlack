@@ -53,7 +53,7 @@
         
         $scope.modes = [
             { Title: "Customer View", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier : "desc" }, filter: "(PaymentStatus eq 'PaymentReceived') or (PaymentStatus eq 'Deposit')" },
-            { Title: "Check Payment", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier: "desc" }, filter: "(PaymentStatus neq 'PaymentReceived') and (PaymentStatus neq 'Deposit') and (Attachments neq null)" },
+            { Title: "Check Payment", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier: "desc" }, filter: "((Status eq 'New') or (Status eq 'Confirmed')) and (Attachments neq null)" },
             { Title: "Follow up", table: "tablecustomertemplate.html", sort: { SaleOrderIdentifier: "desc" }, filter: "(Status eq 'Confirmed') or (Status eq 'New')" },
             { Title: "Order/Shipping", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'WaitingForOrder') or (Status eq 'OrderProcessing') or (Status eq 'InTransit') or (Status eq 'CustomsClearance')" },
             { Title: "Waiting to Build", table: "tablecustomtemplate.html", sort: { PaymentReceivedDate: 'asc' }, filter: "(Status eq 'Inbound')" },

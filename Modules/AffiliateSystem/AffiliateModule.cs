@@ -632,6 +632,12 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
         {
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
             {
+                // Dont need to process if not HTML response / API Response
+                if (ctx.Request.Headers.Accept.Any(a => a.Item1 == "text/html" || a.Item1 == "text/plain" || a.Item1 == "application/json") == false)
+                {
+                    return null;
+                }
+
                 string code = ctx.Request.Query.source;
                 if (code == null && ctx.Request.Cookies.ContainsKey("source"))
                 {

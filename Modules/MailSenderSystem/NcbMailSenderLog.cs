@@ -35,9 +35,24 @@ namespace NantCom.NancyBlack.Modules.MailSenderSystem
         public string Body { get; set; }
 
         /// <summary>
+        /// Use for checking duplicate email sending
+        /// </summary>
+        public int MessageHash { get; set; }
+
+        /// <summary>
         /// Whether the email was skipped because user already received the mail today
         /// </summary>
         public bool IsSkipped { get; set; }
+
+        /// <summary>
+        /// Whether we have attemped to send
+        /// </summary>
+        public bool IsAttempted { get; set; }
+
+        /// <summary>
+        /// Whether we have sent
+        /// </summary>
+        public bool IsSent { get; set; }
 
         /// <summary>
         /// Settings used to send email

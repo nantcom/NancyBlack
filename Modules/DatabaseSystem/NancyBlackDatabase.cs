@@ -19,12 +19,14 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text;
 using System.Diagnostics;
+using Nancy;
 
 namespace NantCom.NancyBlack.Modules.DatabaseSystem
 {
 
     public class NancyBlackDatabase : IDisposable
     {
+
         /// <summary>
         /// Fires when object is being created. (before insert) Parameters of Action are Database, Entity Name and the object that is being inserted.
         /// </summary>
@@ -54,6 +56,11 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// Fires when object was deleted. Parameters of Action are Database, Entity Name and the object that was deleted.
         /// </summary>
         public static event Action<NancyBlackDatabase, string, dynamic> ObjectDeleted = delegate { };
+
+        /// <summary>
+        /// Dictionary of Post Processors to process an object right after it was read from Database
+        /// </summary>
+        public static Dictionary<Type, Action<NancyBlackDatabase, object>> ObjectPostProcessors = new Dictionary<Type, Action<NancyBlackDatabase, object>>();
 
         /// <summary>
         /// Root path
@@ -87,10 +94,33 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
             }
         }
 
-        public NancyBlackDatabase(SQLiteConnection db)
+        /// <summary>
+        /// 
+        /// </summary>
+        public NancyContext CurrentContext { get; private set; }
+
+        /// <summary>
+        /// Create new instance of NancyBlack Database - the instance is designed to be used per request
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="ctx"></param>
+        public NancyBlackDatabase(SQLiteConnection db, NancyContext ctx)
         {
+            this.CurrentContext = ctx;
+
             _db = db;
             _dataType = DataTypeFactory.GetForDatabase(db);
+
+            _db.InstanceCreated += (object obj) => {
+
+                var type = obj.GetType();
+
+                Action<NancyBlackDatabase, dynamic> processor;
+                if (NancyBlackDatabase.ObjectPostProcessors.TryGetValue(type, out processor))
+                {
+                    processor(this, obj);
+                }
+            };
         }
 
         /// <summary>
@@ -316,11 +346,6 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// <returns></returns>
         private JObject PostProcess(DataType type, object input)
         {
-            if (this.NeedsToPostProcess(type) == false)
-            {
-                return JObject.FromObject(input);
-            }
-
             JObject jo = JObject.FromObject(input);
 
             foreach (var prop in jo.Properties().ToList()) // to-list to allow us to add property
@@ -378,7 +403,15 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
                 return null;
             }
 
-            return this.PostProcess(type, obj);
+            if (this.NeedsToPostProcess(type) == true)
+            {
+                return this.PostProcess(type, obj);
+            }
+            else
+            {
+                return JObject.FromObject( obj );
+            }
+            
         }
 
         /// <summary>
@@ -786,13 +819,13 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         /// </summary>
         /// <param name="hostName"></param>
         /// <returns></returns>
-        public static NancyBlackDatabase GetSiteDatabase(string rootPath)
+        public static NancyBlackDatabase GetSiteDatabase(string rootPath, NancyContext context = null)
         {
             var path = Path.Combine(rootPath, "Site");
             var fileName = Path.Combine(path, "data.sqlite");
             
             var db = new SQLiteConnection(fileName, true);
-            var ndb = new NancyBlackDatabase(db);
+            var ndb = new NancyBlackDatabase(db, context);
             ndb.DatabaseFileName = fileName;
             ndb.DatabaseDirectory = path;
 
@@ -807,7 +840,7 @@ namespace NantCom.NancyBlack.Modules.DatabaseSystem
         public static NancyBlackDatabase GetDatabase(string fileName)
         {
             var db = new SQLiteConnection(fileName, true);
-            return new NancyBlackDatabase(db);
+            return new NancyBlackDatabase(db, null);
         }
         
         /// <summary>

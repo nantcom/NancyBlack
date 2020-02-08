@@ -3,6 +3,7 @@ using NantCom.NancyBlack.Modules.ContentSystem.Types;
 using NantCom.NancyBlack.Modules.DatabaseSystem;
 using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using Newtonsoft.Json.Linq;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,16 +91,87 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string SupplierPartNumber { get; set; }
 
         /// <summary>
-        /// Full Price of this product in home currency (non-promotion discount)
+        /// Full Price of this product. Prices will be automatically set to Current Currency's Price by LocaleHook
         /// </summary>
         public Decimal Price { get; set; }
 
         /// <summary>
-        /// Discount price of this product in home currency
+        /// Discount price of this product.  Prices will be automatically set to Current Currency's Price by LocaleHook
         /// </summary>
         public Decimal DiscountPrice { get; set; }
 
-        public double PercentDiscount { get; set; }
+        private dynamic _PriceMultiCurrency;
+        private dynamic _DiscountPriceMultiCurrency;
+
+        /// <summary>
+        /// Price of this product in Multi Currency
+        /// </summary>
+        public dynamic PriceMultiCurrency
+        {
+            get
+            {
+                if (_PriceMultiCurrency == null)
+                {
+                    _PriceMultiCurrency = new JObject();
+                }
+
+                return _PriceMultiCurrency;
+            }
+            set
+            {
+                _PriceMultiCurrency = value;
+            }
+        }
+
+        /// <summary>
+        /// Discount Price in Multi-Currency
+        /// </summary>
+        public dynamic DiscountPriceMultiCurrency
+        {
+            get
+            {
+                if (_DiscountPriceMultiCurrency == null)
+                {
+                    _DiscountPriceMultiCurrency = new JObject();
+                }
+
+                return _DiscountPriceMultiCurrency;
+            }
+            set
+            {
+                _DiscountPriceMultiCurrency = value;
+            }
+        }
+
+        /// <summary>
+        /// this field relate to PromotionDate. when current time still in promotion period
+        /// the current price will be DiscountPrice.
+        /// </summary>
+        public Decimal CurrentPrice
+        {
+            get
+            {
+                if (this.IsPromotionPrice)
+                {
+                    return this.DiscountPrice;
+                }
+
+                return this.Price;
+            }
+        }
+
+        public double PercentDiscount
+        {
+            get 
+            {
+                if (this.Price == 0)
+                {
+                    return 0;
+                }
+
+                return Math.Floor((double)( 1 - (this.DiscountPrice / this.Price) ));
+            }
+        }
 
         public DateTime PromotionStartDate { get; set; }
 
@@ -145,24 +217,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         }
 
         /// <summary>
-        /// this field relate to PromotionDate. when current time still in promotion period
-        /// the current price will be DiscountPrice
-        /// </summary>
-        public Decimal CurrentPrice
-        {
-            get
-            {
-                if (this.IsPromotionPrice)
-                {
-                    return this.DiscountPrice;
-                }
-
-                return this.Price;
-            }
-        }
-
-
-        /// <summary>
         /// Stock of this product
         /// </summary>
         public int Stock { get; set; }
@@ -176,11 +230,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         /// Additional information about the object
         /// </summary>
         public dynamic Addendum { get; set; }
-
-        /// <summary>
-        /// Price of this product in Multi Currency
-        /// </summary>
-        public dynamic PriceMultiCurrency { get; set; }
 
         /// <summary>
         /// Gets the attached picture of this product

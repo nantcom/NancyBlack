@@ -18,7 +18,6 @@ namespace NantCom.NancyBlack.Modules
     public class MailSenderModule : IPipelineHook
     {
         private static ConcurrentQueue<MailMessage> _Outbox;
-        
 
         /// <summary>
         /// Old method signature for compatibility
@@ -88,54 +87,87 @@ namespace NantCom.NancyBlack.Modules
 
             lock (BaseModule.GetLockObject("MailSenderModule.ProcessQueue"))
             {
-                var toSend = _Outbox.ToList();
-                if (toSend.Count == 0)
+                if (_Outbox == null)
                 {
                     return;
                 }
 
+                var toSend = _Outbox.ToList();
                 _Outbox = null;
 
                 var site = ctx.Items["SiteSettings"] as JObject;
-                var db = ctx.Items["SiteDatabase"] as NancyBlackDatabase;
-                var settings = site.Property("smtp").Value.ToObject<SmtpSettings>();
 
-                SmtpClient client = new SmtpClient(settings.server);
-                client.Port = settings.port;
-                client.Credentials = new System.Net.NetworkCredential(settings.username, settings.password);
-                client.EnableSsl = settings.useSSL;
-                client.Timeout = 30000;
-
-                foreach (var mail in toSend)
+                Task.Run(() =>
                 {
-                    var log = new NcbMailSenderLog();
-                    log.Body = mail.Body;
-                    log.To = string.Join(",", from m in mail.To select m.Address);
-                    log.Subject = mail.Subject;
-                    log.Settings = settings;
-                    log.__createdAt = DateTime.Now;
-                    log.__updatedAt = DateTime.Now;
-
-                    var today = DateTime.Now.Date;
-                    if (db.Query<NcbMailSenderLog>().Where( l => l.__createdAt > today && l.Subject == mail.Subject && l.To == log.To).FirstOrDefault() != null )
+                    Func<SmtpSettings, SmtpClient> getClient = (s) =>
                     {
-                        log.IsSkipped = true;
+                        SmtpClient client = new SmtpClient(s.server);
+                        client.Port = s.port;
+                        client.Credentials = new System.Net.NetworkCredential(s.username, s.password);
+                        client.EnableSsl = s.useSSL;
+                        client.Timeout = 30000;
+
+                        return client;
+                    };
+
+                    var db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath);
+                    var settings = site.Property("smtp").Value.ToObject<SmtpSettings>();
+                    var count = 0;
+                    SmtpClient sender = getClient(settings);
+
+                    foreach (var mail in toSend)
+                    {
+                        if (count % 100 == 0)
+                        {
+                            sender.Dispose();
+                            count = 0;
+
+                            sender = getClient(settings);
+                        }
+
+                        var log = new NcbMailSenderLog();
+                        log.Body = mail.Body;
+                        log.To = string.Join(",", from m in mail.To select m.Address);
+                        log.Subject = mail.Subject;
+                        log.MessageHash = (log.Body + log.To + log.Subject).GetHashCode();
+                        log.Settings = settings;
+                        log.__createdAt = DateTime.Now;
+                        log.__updatedAt = DateTime.Now;
+
+                        var today = DateTime.Now.Date;
+                        var lastLog = db.Query<NcbMailSenderLog>().Where(l => l.MessageHash == log.MessageHash).FirstOrDefault();
+                        if ( lastLog != null)
+                        {
+                            if (DateTime.Now.Subtract( lastLog.__createdAt ).TotalHours < 12)
+                            {
+                                log.IsSkipped = true;
+                            }
+                        }
+
+                        if (log.IsSkipped == false)
+                        {
+                            try
+                            {
+                                log.IsAttempted = true;
+
+                                mail.From = new MailAddress(settings.fromEmail);
+                                sender.Send(mail);
+
+                                log.IsSent = true;
+                            }
+                            catch (Exception e)
+                            {
+                                log.Exception = e;
+                            }
+                        }
+
                         db.UpsertRecord(log);
-                        continue;
+                        count++;
                     }
 
-                    try
-                    {
-                        mail.From = new MailAddress(settings.fromEmail);
-                        client.Send(mail);
-                    }
-                    catch (Exception e)
-                    {
-                        log.Exception = e;
-                    }
+                    db.Dispose();               
+                });
 
-                    db.UpsertRecord(log);
-                }
             }
         }
 
@@ -143,10 +175,7 @@ namespace NantCom.NancyBlack.Modules
         {
             p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
-                Task.Run(() =>
-                {
-                    MailSenderModule.ProcessQueue(ctx);
-                });
+                MailSenderModule.ProcessQueue(ctx);
             });
         }
     }
