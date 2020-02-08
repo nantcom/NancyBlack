@@ -25,7 +25,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             Get["/admin/tables/product"] = this.HandleViewRequest("/Admin/productmanager", null);
             Get["/admin/tables/suplier"] = this.HandleViewRequest("/Admin/suppliermanager", null);
-            
+
             Get["/admin/commerce/settings"] = this.HandleViewRequest("/Admin/commerceadmin-settings", null);
 
             Post["/admin/commerce/api/uploadlogo"] = this.HandleRequest((arg) =>
@@ -46,13 +46,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             Post["/admin/commerce/api/pay"] = this.HandleRequest(this.HandlePayRequest);
 
+            #region Search By Serial
+
             Get["/admin/search/by/serial"] = this.HandleRequest(this.HandleSearchBySerial);
 
             Get["/admin/search/serial"] = this.HandleViewRequest("/Admin/searchserialmanager", (arg) => new StandardModel(this, null, null));
 
+            #endregion
+
+            #region Payment Update Reminder
+
+            Get["/admin/tables/pur"] = this.HandleRequest(this.HandleLoadPURPage);
+
+            Post["/admin/pur/statusupdate"] = this.HandleRequest(this.UpdatePURStatus);
+
+            #endregion
+
+            #region List Receipt for Printing
+
             Get["/admin/commerce/printreceipt"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", this.HandleReceiptRequest);
 
             Get["/admin/commerce/printreceipt/{year}-{month}"] = this.HandleViewRequest("/Admin/commerceadmin-receiptprint", this.HandleReceiptRequestWithSpecificMonth);
+
+            #endregion
 
             Get["/admin/commerce/facebookexport"] = this.HandleRequest(this.HandleFacebookCustomAudienceExport);
 
@@ -77,7 +93,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 record.SaleOrder = this.SiteDatabase.GetById<SaleOrder>(receipt.SaleOrderId);
                 record.RelatedPaymentLogs = this.SiteDatabase.Query<PaymentLog>()
                                                 .Where(pl => pl.SaleOrderId == record.SaleOrder.Id && pl.IsPaymentSuccess)
-                                                .OrderBy( pl => pl.PaymentDate ).ToList();
+                                                .OrderBy(pl => pl.PaymentDate).ToList();
                 record.PaymentLog = paymentLogs[receipt.PaymentLogId];
 
                 var index = 0;
@@ -119,7 +135,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             return result;
         }
 
-        private List<AccountantMonthlyReceipt> FindReceipt( int year, int month)
+        private List<AccountantMonthlyReceipt> FindReceipt(int year, int month)
         {
             var begin = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc); // first second of last month
 
@@ -168,6 +184,99 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         {
             var result = this.FindReceipt((int)arg.year, (int)arg.month);
             return new StandardModel(this, null, result);
+        }
+
+        #endregion
+
+        #region Payment Update Reminder
+
+        /// <summary>
+        /// Generate PUR for non-pair SaleOrder before load webpage
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic HandleLoadPURPage(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            // generate
+            // list all so first
+            // list non-gen from so status and payment status for generation
+            // should have less than 100 rec even in first generation
+            Func<SaleOrder, bool> soQueryLogic = (rec) =>
+            {
+                return rec.PaymentStatus != PaymentStatus.Refunded
+                && rec.PaymentStatus != PaymentStatus.PaymentReceived
+                && rec.Status != SaleOrderStatus.Cancel
+                && rec.Attachments != null;
+            };
+
+            var saleOrders = this.SiteDatabase.Query<SaleOrder>().Where(soQueryLogic).ToList();
+
+            //remove saleorder which has been used for generate PUR
+            var allPurs = this.SiteDatabase.Query<PaymentUpdateReminder>().ToList();
+            var generatedSOIds = allPurs.Select(rec => rec.SaleOrderId);
+            var nonGenSaleOrders = from rec in saleOrders where !generatedSOIds.Contains(rec.Id) select rec;
+
+            // generate PUR from nonGenSaleOrders and insert to database
+            foreach (var nonGenSo in nonGenSaleOrders)
+            {
+                var pur = new PaymentUpdateReminder();
+                pur.SaleOrderId = nonGenSo.Id;
+                pur.SetStatus(nonGenSo, PaymentUpdateReminderStatus.Pending);
+                pur = this.SiteDatabase.UpsertRecord(pur);
+            }
+
+            foreach (var pur in allPurs.Where(rec => rec.Status != PaymentUpdateReminderStatus.AutoAccepted && rec.Status != PaymentUpdateReminderStatus.Accepted && rec.Status != PaymentUpdateReminderStatus.Rejected))
+            {
+                var so = this.SiteDatabase.GetById<SaleOrder>(pur.SaleOrderId);
+
+                if (so.PaymentStatus == PaymentStatus.PaymentReceived || so.PaymentStatus == PaymentStatus.Refunded)
+                {
+                    pur.SetStatus(so, PaymentUpdateReminderStatus.AutoAccepted);
+                    this.SiteDatabase.UpsertRecord(pur);
+                }
+                else if (!pur.HasAttachmentBeenUpdated)
+                {
+                    pur.UpdateHasAttachmentsString(so);
+
+                    if (pur.HasAttachmentBeenUpdated)
+                    {
+                        this.SiteDatabase.UpsertRecord(pur);
+                    }
+                }
+            }
+
+            var purStatus = new List<Tuple<int, string>>();
+            foreach (PaymentUpdateReminderStatus p in Enum.GetValues(typeof(PaymentUpdateReminderStatus)))
+            {
+                purStatus.Add(new Tuple<int, string>((int)p, p.ToString()));
+            }
+
+            return View["/Admin/payment-update-reminder", new StandardModel(this, new Page(), purStatus)];
+        }
+
+        private dynamic UpdatePURStatus(dynamic arg)
+        {
+            if (!this.CurrentUser.HasClaim("admin"))
+            {
+                return 403;
+            }
+
+            var param = ((JObject)arg.body.Value);
+
+            var updatedStatus = (PaymentUpdateReminderStatus)param.Value<int>("status");
+            var purId = param.Value<int>("purId");
+
+            var pur = this.SiteDatabase.GetById<PaymentUpdateReminder>(purId);
+            var so = this.SiteDatabase.GetById<SaleOrder>(pur.SaleOrderId);
+            pur.SetStatus(so, updatedStatus);
+            pur = this.SiteDatabase.UpsertRecord(pur);
+
+            return pur;
         }
 
         #endregion
@@ -252,7 +361,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             return from item in result orderby item.RecordDate select item;
         }
-        
+
         private dynamic HandlePayRequest(dynamic arg)
         {
             if (!this.CurrentUser.HasClaim("admin"))
@@ -435,14 +544,14 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
         /// </summary>
         /// <param name="arg"></param>
         /// <returns></returns>
-        private dynamic HandleFacebookCustomAudienceExport( dynamic arg )
+        private dynamic HandleFacebookCustomAudienceExport(dynamic arg)
         {
             var response = new Response();
             response.ContentType = "text/csv";
             response.Headers["Content-Disposition"] =
                 string.Format("attachment; filename=\"FacebookExport-{0:yyyyMMdd}{1}.csv\"",
                     DateTime.Now,
-                    this.Request.Query.status == null ? "" : "-" + this.Request.Query.status.ToString().Replace("!", "Not" ));
+                    this.Request.Query.status == null ? "" : "-" + this.Request.Query.status.ToString().Replace("!", "Not"));
 
             response.Headers["Expires"] = "0";
             response.Headers["Cache-Control"] = "must-revalidate, post-check=0, pre-check=0";
@@ -470,27 +579,27 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             if (notq != null)
             {
-                Func<dynamic,string> keyGetter = (so) =>
-                {
-                    if (so.Customer == null)
-                    {
-                        return "";
-                    }
+                Func<dynamic, string> keyGetter = (so) =>
+                 {
+                     if (so.Customer == null)
+                     {
+                         return "";
+                     }
 
-                    string key = so.Customer.Email;
+                     string key = so.Customer.Email;
 
-                    if (key == null)
-                    {
-                        return "";
-                    }
+                     if (key == null)
+                     {
+                         return "";
+                     }
 
-                    return key.ToLowerInvariant()
-                            .Replace(" ", "")
-                            .Replace("-", "");
-                };
+                     return key.ToLowerInvariant()
+                             .Replace(" ", "")
+                             .Replace("-", "");
+                 };
 
 
-                var subtraction = notq.ToLookup( so => keyGetter(so) );
+                var subtraction = notq.ToLookup(so => keyGetter(so));
                 var finalResult = from so in result
                                   where
                                     so.Customer != null &&
@@ -530,7 +639,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     }
                     catch (Exception)
                     {
-                    } 
+                    }
                 }
 
                 sw.Flush();
@@ -564,7 +673,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return JObject.Parse(Encoding.UTF8.GetString(exchangeRateData)).Property("rates").Value;
             }
         }
-        
+
         private static byte[] GetExchangeRateData()
         {
             byte[] array = MemoryCache.Default["ExchangeRates"] as byte[];
