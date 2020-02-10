@@ -55,8 +55,6 @@ namespace NantCom.NancyBlack
             }
         }
         
-        private IContent _ThemeContent;
-
         /// <summary>
         /// Get the theme content, theme content is stored inside Item with Url "/" of Page Table
         /// </summary>
@@ -64,14 +62,7 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                if (_ThemeContent == null)
-                {
-                    _ThemeContent = this.Context.GetSiteDatabase().Query<Page>()
-                        .Where(p => p.Url == "/")
-                        .FirstOrDefault();
-                }
-
-                return _ThemeContent;
+                return ContentModule.GetThemeContent(this.Context);
             }
         }
 

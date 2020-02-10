@@ -179,8 +179,6 @@ namespace NantCom.NancyBlack
             }
         }
 
-        private IContent _ThemeContent;
-
         /// <summary>
         /// Get the theme content, theme content is stored inside Item with Url "/" of Page Table
         /// (currently same as Site Content - must be changed when there is a theme support)
@@ -189,19 +187,9 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                if (_ThemeContent == null)
-                {
-                    _ThemeContent = this.Context.GetSiteDatabase().Query<Page>()
-                        .Where(p => p.Url == "/")
-                        .FirstOrDefault();
-                }
-
-                return _ThemeContent;
+                return ContentModule.GetThemeContent(this.Context);
             }
         }
-
-
-        private IContent _SiteContent;
 
         /// <summary>
         /// Get the Site content, Site content is stored inside Item with Url "/" of Page Table
@@ -210,14 +198,7 @@ namespace NantCom.NancyBlack
         {
             get
             {
-                if (_SiteContent == null)
-                {
-                    _SiteContent = this.Context.GetSiteDatabase().Query<Page>()
-                        .Where(p => p.Url == "/")
-                        .FirstOrDefault();
-                }
-
-                return _SiteContent;
+                return ContentModule.GetSiteContent(this.Context);
             }
         }
 

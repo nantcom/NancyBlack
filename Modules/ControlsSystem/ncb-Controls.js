@@ -2055,119 +2055,6 @@
                 });
             }
 
-            function updateUrl_old(url) {
-
-                if (url == null) {
-                    return;
-                }
-                var lastSrc = element.attr("src");
-                var reference = element.parents(attrs.refer);
-
-                var finalUrl = "/__resize" + url + "?";
-
-                if (attrs.width != null && attrs.width != "") {
-
-                    var w = attrs.width;
-                    if (w == "100%") {
-                        w = element.width();
-
-                        if (reference.length > 0) {
-                            w = reference.width();
-                        }
-                    }
-
-                    finalUrl += String.format("w={0}&",
-                                    w
-                                );
-                }
-
-                if (attrs.height != null && attrs.height != "") {
-
-                    var h = attrs.height;
-                    if (h == "100%") {
-                        h = element.height();
-
-                        if (reference.length > 0) {
-                            h = reference.height();
-                        }
-                    }
-
-                    finalUrl += String.format("h={0}&",
-                                    h
-                                );
-                }
-
-                if ( (attrs.width == null && attrs.height == null) || 
-                     (attrs.width == "" && attrs.height == "")) {
-                    
-                    // widht and height cannot be identified
-                    // try the refer attribute to look for parents where
-                    // we will get size from
-                    if (reference.length > 0) {
-                        
-                        finalUrl += String.format("w={0}&h={1}",
-                                        reference.width(),
-                                        reference.height()
-                                    );
-
-
-                    } else {
-
-                        var found = false;
-                        var w = element.width();
-                        var h = element.height();
-
-                        // ok, try to find height using parent
-                        element.parents().each(function (i, e) {
-
-                            if (found) {
-                                return;
-                            }
-
-                            w = $(e).width();
-                            h = $(e).height();
-
-                            found = (w != 0) && (h != 0);
-                        });
-
-                        if (found == false) {
-
-                            // try again in 1 second
-                            window.setTimeout(function () {
-
-                                updateUrl(url);
-                            }, 1000);
-
-                            return;
-                        }
-
-                        finalUrl += String.format("w={0}&h={1}",
-                                        w,
-                                        h
-                                    );
-                    }
-
-                }
-
-                if (attrs.mode) {
-
-                    finalUrl += String.format("&mode={0}",
-                                    attrs.mode
-                                );
-                }
-
-                if (lastSrc == finalUrl) {
-                    return;
-                }
-
-                var heavyImage = new Image();
-                heavyImage.src = finalUrl;
-                heavyImage.onload = function () {
-                    element.attr("src", finalUrl);
-                };
-
-            }
-            
             function updateUrl(url) {
 
                 if (url == null) {
@@ -2661,5 +2548,133 @@
             scope: false,
         };
     });
-    
+
+    module.directive('ncbImgdefer', function ($http, $datacontext) {
+
+        var imgList = [];
+
+        if (window.scrollWatch == null) {
+
+            window.scrollWatch = function () {
+
+                var remaining = [];
+                var bottom = document.documentElement.scrollTop + window.innerHeight;
+
+                imgList.forEach(function (me) {
+
+                    var src = me.attr("ncb-imgdefer");                    
+                    var isReize = src.indexOf("/") == 0 && src.indexOf("/__resize") == -1;
+                    var offSet = me.offset();
+
+                    if (offSet.top < bottom ) {
+
+                        if (isReize) {
+
+                            me[0].onload = function () {
+
+                                me.parents("*[isotope]").isotope('layout');
+                                window.dispatchEvent(new Event('resize')); //required by some plugins
+                            };
+
+                            me.attr("src", "/__resizeh/" + me.attr("key"));
+                        }
+                        else {
+                            me.attr("src", src);
+                        }
+
+                    }
+                    else {
+                        remaining.push(me);
+                    }
+
+                });
+
+                imgList = remaining;
+
+            };
+
+            window.onscroll = window.scrollWatch;
+            window.setTimeout(window.scrollWatch, 2000);
+        };
+
+        function link($scope, element, attrs) {
+
+            var me = element[0];
+            var fallback = element.attr("ncb-imgdefer");
+            element.attr("key", window.utils.md5(fallback + window.innerWidth));
+
+            me.updateHeuristics = function (forced) {
+
+                if (!me.updated && !forced) {
+                    return;
+                }
+
+                $http.post("/__resize/heuristics", [{
+                    key: element.attr("key"),
+                    imageUrl: fallback,
+                    width: element.width(),
+                    height: element.height()
+                }]);
+            };
+
+            me.onerror = function () {
+
+                if (me.src != fallback && $(me).attr("fallback") != "1") {
+
+                    $(me).attr("fallback", "1");
+                    me.src = fallback;
+
+                    me.onload = function () {
+
+                        me.updated = true;
+                        me.updateHeuristics(true);
+                    };
+                }
+
+            };
+
+            // dont-run defer for admins, they might be editing the page
+            // admin will always force heuristic update
+            if ($scope.isAdmin) {
+
+                me.onload = function () {
+
+                    me.updateHeuristics(true);
+                };
+                me.src = element.attr("ncb-imgdefer");
+                return;
+            }
+
+            // element is above fold and should show image now
+            if (element.parents("*[abovefold]").length > 0) {
+
+                var src = element.attr("ncb-imgdefer");
+                var isReize = src.indexOf("/") == 0 && src.indexOf("/__resize") == -1;
+
+                me.onload = function () {
+
+                    me.updateHeuristics(true);
+                };
+
+                if (isReize) {
+                    element.attr("src", "/__resizeh/" + element.attr("key"));
+                }
+                else {
+                    element.attr("src", src);
+                }
+            }
+
+            imgList.push(element);
+
+        };
+
+
+        return {
+            restrict: 'A',
+            link: link,
+            scope: false
+        };
+    });
+
+
 })();

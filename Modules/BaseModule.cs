@@ -91,14 +91,18 @@ namespace NantCom.NancyBlack.Modules
         private static Dictionary<string, object> _Locker = new Dictionary<string, object>();
         public static object GetLockObject( string key )
         {
-            object locker;
-            if (_Locker.TryGetValue( key, out locker ))
+            lock ("GetLockObject")
             {
-                return locker;
-            }
 
-            _Locker[key] = new object();
-            return _Locker[key];
+                object locker;
+                if (_Locker.TryGetValue(key, out locker))
+                {
+                    return locker;
+                }
+
+                _Locker[key] = new object();
+                return _Locker[key];
+            }
         }
 
         /// <summary>

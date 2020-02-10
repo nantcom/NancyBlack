@@ -204,7 +204,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 return new NcbUser()
                 {
-                    Guid = Guid.Parse( context.Request.Cookies[BuiltInCookies.UserId])
+                    Guid = Guid.Parse( context.Items[BuiltInCookies.UserId] as string)
                 };
             }
 

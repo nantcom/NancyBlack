@@ -24,6 +24,23 @@ namespace NantCom.NancyBlack
 {
     public static class ContextExt
     {
+
+        /// <summary>
+        /// Get Site Settings
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static bool IsAdminUser(this NancyContext ctx)
+        {
+            if (ctx.Items["IsAdmin"] == null)
+            {
+                ctx.Items["IsAdmin"] = (ctx.CurrentUser as NcbUser).HasClaim("admin");
+            }
+
+            return (bool)ctx.Items["IsAdmin"] == true;
+        }
+
+
         /// <summary>
         /// Get Site Settings
         /// </summary>
@@ -53,14 +70,37 @@ namespace NantCom.NancyBlack
         {
             return BootStrapper.RootPath;
         }
+
+        /// <summary>
+        /// Gets root path
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        public static string GetUserId(this NancyContext ctx)
+        {
+            return (string)ctx.Items["userid"];
+        }
     }
 }
 
 namespace NantCom.NancyBlack.Configuration
 {
+    /// <summary>
+    /// When implemented, the class will have a chance to hook
+    /// into request pipeline
+    /// </summary>
     public interface IPipelineHook
     {
         void Hook(IPipelines p);
+    }
+
+    /// <summary>
+    /// When implemented, the class will be called when first request
+    /// was handled by website. Useful for per-process initialization
+    /// </summary>
+    public interface IRequireGlobalInitialize
+    {
+        void GlobalInitialize(NancyContext ctx);
     }
 
     /// <summary>
@@ -72,7 +112,12 @@ namespace NantCom.NancyBlack.Configuration
         /// Initializes Global Objects for current request, this will only run once at startup
         /// and is thread safe (Only one thread will run)
         /// </summary>
-        public static event Action<NancyContext> PerRequestFirstGlobalInit = delegate { };
+        private static List<IRequireGlobalInitialize> _GlobalInitializes = new List<IRequireGlobalInitialize>();
+
+        internal static void RegisterGlobalInitialize( IRequireGlobalInitialize obj)
+        {
+            _GlobalInitializes.Add(obj);
+        }
 
         private static bool _FirstRun = true;
 
@@ -81,30 +126,39 @@ namespace NantCom.NancyBlack.Configuration
             ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
             ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
             ctx.Items["RootPath"] = BootStrapper.RootPath;
+            ctx.Items["IsAdmin"] = null;
 
             NancyBlackDatabase db = null;
 
-            lock (BaseModule.GetLockObject("Request-FirstRun"))
+            if (_FirstRun == true)
             {
-                if (_FirstRun == false)
+                lock (BaseModule.GetLockObject("Request-FirstRun"))
                 {
-                    goto Skip;
+                    // check again, other thread might done it
+                    if (_FirstRun == false)
+                    {
+                        goto Skip;
+                    }
+                    _FirstRun = false;
+
+                    // this will ensure DataType Factory only run once
+                    db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath, ctx);
+
+                    GlobalVar.Default.Load(db);
+
+                    ctx.Items["SiteDatabase"] = db; // other modules expected this
+
+                    foreach (var item in _GlobalInitializes)
+                    {
+                        item.GlobalInitialize(ctx);
+                    }
+
+                Skip:
+
+                    ;
                 }
-                _FirstRun = false;
-
-                // this will ensure DataType Factory only run once
-                db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath, ctx);
-
-                GlobalVar.Default.Load(db);
-
-                ctx.Items["SiteDatabase"] = db; // other modules expected this
-
-                PrepareRequest.PerRequestFirstGlobalInit(ctx);
-
-            Skip:
-
-                ;
             }
+
 
             if (db == null)
             {
@@ -128,11 +182,12 @@ namespace NantCom.NancyBlack.Configuration
 
             if (ctx.Request.Cookies.ContainsKey("userid") == false)
             {
-                ctx.Request.Cookies.Add("userid", Guid.NewGuid().ToString());
+                ctx.Items["userid"] = Guid.NewGuid().ToString();
             }
-
-            ctx.Items["userid"] = ctx.Request.Cookies["userid"];
-
+            else
+            {
+                ctx.Items["userid"] = ctx.Request.Cookies["userid"];
+            }
         }
     }
 
@@ -369,16 +424,21 @@ namespace NantCom.NancyBlack.Configuration
 
             pipelines.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
-                if (ctx.Request.Cookies.ContainsKey("userid"))
+                if (ctx.Items.ContainsKey("userid"))
                 {
                     ctx.Response.Cookies.Add(
-                        new NancyCookie("userid", ctx.Request.Cookies["userid"], DateTime.Now.AddYears(10)));
+                        new NancyCookie("userid", ctx.Items["userid"].ToString(), DateTime.Now.AddYears(10)));
                 }
             });
 
             foreach (var item in container.ResolveAll<IPipelineHook>())
             {
                 item.Hook(pipelines);
+            }
+            
+            foreach (var item in container.ResolveAll<IRequireGlobalInitialize>())
+            {
+                PrepareRequest.RegisterGlobalInitialize(item);
             }
         }
 

@@ -22,160 +22,165 @@ using NantCom.NancyBlack.Modules.CommerceSystem;
 
 namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
 {
-    public class LocaleHook : IPipelineHook
+    public class LocaleHook : IPipelineHook, IRequireGlobalInitialize
     {
         private static DatabaseReader _GeoIP;
-
-        static LocaleHook()
+        
+        /// <summary>
+        /// Initializes the LocaleHook system
+        /// </summary>
+        /// <param name="ctx"></param>
+        public void GlobalInitialize(NancyContext ctx)
         {
-            PrepareRequest.PerRequestFirstGlobalInit += (ctx) =>
+            var settings = ctx.GetSiteSettings();
+
+            if (settings.commerce.multicurrency == null)
             {
-                var settings = ctx.GetSiteSettings();
+                throw new InvalidOperationException("Multi Currency configuration error");
+            }
+            if (settings.commerce.multicurrency.home == null)
+            {
+                throw new InvalidOperationException("Multi Currency configuration error, 'commerce.multicurrency.home' not specified");
+            }
+            if (settings.commerce.multicurrency.mapping == null)
+            {
+                throw new InvalidOperationException("Multi Currency configuration error, 'commerce.multicurrency.mapping' not specified");
+            }
+            if (settings.commerce.multicurrency.available == null)
+            {
+                throw new InvalidOperationException("Multi Currency configuration error, 'commerce.multicurrency.available' not specified");
+            }
 
-                if (settings.commerce.multicurrency == null)
-                {
-                    throw new InvalidOperationException("Multi Currency configuration error");
-                }
-                if (settings.commerce.multicurrency.home == null)
-                {
-                    throw new InvalidOperationException("Multi Currency configuration error, 'commerce.multicurrency.home' not specified");
-                }
-                if (settings.commerce.multicurrency.mapping == null)
-                {
-                    throw new InvalidOperationException("Multi Currency configuration error, 'commerce.multicurrency.mapping' not specified");
-                }
-                if (settings.commerce.multicurrency.available == null)
-                {
-                    throw new InvalidOperationException("Multi Currency configuration error, 'commerce.multicurrency.available' not specified");
-                }
+            if (GlobalVar.Default["MIGRATED-PRICE"] != "MG4")
+            {
+                // Migrate prices to multi-currency format
+                var available = settings.commerce.multicurrency.available as JArray;
+                var home = (string)settings.commerce.multicurrency.home;
 
-                if (GlobalVar.Default["MIGRATED-PRICE"] != "MG4")
+                var db = ctx.Items["SiteDatabase"] as NancyBlackDatabase;
+                db.Connection.RunInTransaction(() =>
                 {
-                    // Migrate prices to multi-currency format
-                    var available = settings.commerce.multicurrency.available as JArray;
-                    var home = (string)settings.commerce.multicurrency.home;
+                    var products = db.Query<Product>().ToList();
 
-                    var db = ctx.Items["SiteDatabase"] as NancyBlackDatabase;
-                    db.Connection.RunInTransaction(() =>
+                    foreach (var p in products)
                     {
-                        var products = db.Query<Product>().ToList();
-
-                        foreach (var p in products)
+                        if (p.PriceMultiCurrency == null)
                         {
-                            if (p.PriceMultiCurrency == null)
-                            {
-                                p.PriceMultiCurrency = new JObject();
-                            }
-
-                            p.PriceMultiCurrency[home] = p.Price;
-                            p.PriceMultiCurrency["BEFORE_MIGRATE"] = p.Price;
-
-                            foreach (string item in available)
-                            {
-                                if (item != home)
-                                {
-                                    JObject rate = CommerceAdminModule.ExchangeRate;
-                                    decimal want = (decimal)rate.Property(item).Value;
-                                    decimal homeRate = (decimal)rate.Property(home).Value;
-                                    var conversionRate = want / homeRate;
-
-                                    p.PriceMultiCurrency[item] = Math.Round(conversionRate * p.Price);
-                                }
-                            }
-
-                            if (p.DiscountPriceMultiCurrency == null)
-                            {
-                                p.DiscountPriceMultiCurrency = new JObject();
-                            }
-
-                            p.DiscountPriceMultiCurrency[home] = p.DiscountPrice;
-                            p.DiscountPriceMultiCurrency["BEFORE_MIGRATE_DISCOUNT"] = p.DiscountPrice;
-
-                            foreach (string item in available)
-                            {
-                                if (item != home)
-                                {
-                                    JObject rate = CommerceAdminModule.ExchangeRate;
-                                    decimal want = (decimal)rate.Property(item).Value;
-                                    decimal homeRate = (decimal)rate.Property(home).Value;
-                                    var conversionRate = want / homeRate;
-
-                                    p.DiscountPriceMultiCurrency[item] = Math.Round(conversionRate * p.DiscountPrice);
-                                }
-                            }
-
-                            db.Connection.Update(p);
+                            p.PriceMultiCurrency = new JObject();
                         }
 
-                        GlobalVar.Default["MIGRATED-PRICE"] = "MG4";
-                        GlobalVar.Default.Persist(db);
-                    });
-                }
+                        p.PriceMultiCurrency[home] = p.Price;
+                        p.PriceMultiCurrency["BEFORE_MIGRATE"] = p.Price;
 
-                var path = Path.Combine(ctx.GetRootPath(), "App_Data", "GeoLite2-Country.mmdb");
-                if (File.Exists(path))
-                {
-                    var fi = new FileInfo(path);
-                    if (DateTime.Now.Subtract(fi.LastWriteTime).TotalDays > 40)
-                    {
-                        File.Delete(path);
-                    }
-                }
-
-                if (File.Exists(path) == false && ctx.GetSiteSettings().maxmind != null)
-                {
-                    // Download Geolite 2 First
-                    var url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&suffix=tar.gz&license_key=" + ctx.GetSiteSettings().maxmind.LicenseKey;
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(url, path + ".tar.gz");
-                    }
-
-                    using (Stream inStream = File.OpenRead(path + ".tar.gz"))
-                    {
-                        using (Stream gzipStream = new GZipInputStream(inStream))
+                        foreach (string item in available)
                         {
-                            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
-                            tarArchive.ExtractContents(Path.Combine(ctx.GetRootPath(), "App_Data"));
-                            tarArchive.Close();
+                            if (item != home)
+                            {
+                                JObject rate = CommerceAdminModule.ExchangeRate;
+                                decimal want = (decimal)rate.Property(item).Value;
+                                decimal homeRate = (decimal)rate.Property(home).Value;
+                                var conversionRate = want / homeRate;
 
-                            gzipStream.Close();
+                                p.PriceMultiCurrency[item] = Math.Round(conversionRate * p.Price);
+                            }
                         }
-                        inStream.Close();
+
+                        if (p.DiscountPriceMultiCurrency == null)
+                        {
+                            p.DiscountPriceMultiCurrency = new JObject();
+                        }
+
+                        p.DiscountPriceMultiCurrency[home] = p.DiscountPrice;
+                        p.DiscountPriceMultiCurrency["BEFORE_MIGRATE_DISCOUNT"] = p.DiscountPrice;
+
+                        foreach (string item in available)
+                        {
+                            if (item != home)
+                            {
+                                JObject rate = CommerceAdminModule.ExchangeRate;
+                                decimal want = (decimal)rate.Property(item).Value;
+                                decimal homeRate = (decimal)rate.Property(home).Value;
+                                var conversionRate = want / homeRate;
+
+                                p.DiscountPriceMultiCurrency[item] = Math.Round(conversionRate * p.DiscountPrice);
+                            }
+                        }
+
+                        db.Connection.Update(p);
                     }
 
-                    // the database is stored in folder
-                    var geoliteDir = Directory.GetDirectories(Path.Combine(ctx.GetRootPath(), "App_Data")).Where(d => d.Contains("GeoLite2-Country")).FirstOrDefault();
-                    File.Copy(Path.Combine(geoliteDir, "GeoLite2-Country.mmdb"), path);
+                    GlobalVar.Default["MIGRATED-PRICE"] = "MG4";
+                    GlobalVar.Default.Persist(db);
+                });
+            }
 
-                    File.Delete(path + ".tar.gz");
-                    Directory.Delete(geoliteDir, true);
+            var path = Path.Combine(ctx.GetRootPath(), "App_Data", "GeoLite2-Country.mmdb");
+            if (File.Exists(path))
+            {
+                var fi = new FileInfo(path);
+                if (DateTime.Now.Subtract(fi.LastWriteTime).TotalDays > 40)
+                {
+                    File.Delete(path);
+                }
+            }
 
-
-                    _GeoIP = new DatabaseReader(path);
+            if (File.Exists(path) == false && ctx.GetSiteSettings().maxmind != null)
+            {
+                // Download Geolite 2 First
+                var url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&suffix=tar.gz&license_key=" + ctx.GetSiteSettings().maxmind.LicenseKey;
+                using (WebClient client = new WebClient())
+                {
+                    client.DownloadFile(url, path + ".tar.gz");
                 }
 
-                //register the post processor last so it wont interfere with data migration
-                NancyBlackDatabase.ObjectPostProcessors[typeof(Product)] = (db, obj) =>
+                using (Stream inStream = File.OpenRead(path + ".tar.gz"))
                 {
-                    var p = obj as Product;
-
-                    if (db.CurrentContext != null &&
-                        db.CurrentContext.Items.ContainsKey("Currency"))
+                    using (Stream gzipStream = new GZipInputStream(inStream))
                     {
-                        var currency = (string)db.CurrentContext.Items["Currency"];
-                        var priceLocal = p.PriceMultiCurrency[currency] ?? 0M;
-                        var discountPriceLocal = p.DiscountPriceMultiCurrency[currency] ?? 0M;
+                        TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+                        tarArchive.ExtractContents(Path.Combine(ctx.GetRootPath(), "App_Data"));
+                        tarArchive.Close();
 
-                        p.Price = priceLocal;
-                        p.DiscountPrice = discountPriceLocal;
+                        gzipStream.Close();
                     }
+                    inStream.Close();
+                }
 
-                };
+                // the database is stored in folder
+                var geoliteDir = Directory.GetDirectories(Path.Combine(ctx.GetRootPath(), "App_Data")).Where(d => d.Contains("GeoLite2-Country")).FirstOrDefault();
+                File.Copy(Path.Combine(geoliteDir, "GeoLite2-Country.mmdb"), path);
+
+                File.Delete(path + ".tar.gz");
+                Directory.Delete(geoliteDir, true);
+
+
+                _GeoIP = new DatabaseReader(path);
+            }
+
+            //register the post processor last so it wont interfere with data migration
+            NancyBlackDatabase.ObjectPostProcessors[typeof(Product)] = (db, obj) =>
+            {
+                var p = obj as Product;
+
+                if (db.CurrentContext != null &&
+                    db.CurrentContext.Items.ContainsKey("Currency"))
+                {
+                    var currency = (string)db.CurrentContext.Items["Currency"];
+                    var priceLocal = p.PriceMultiCurrency[currency] ?? 0M;
+                    var discountPriceLocal = p.DiscountPriceMultiCurrency[currency] ?? 0M;
+
+                    p.Price = priceLocal;
+                    p.DiscountPrice = discountPriceLocal;
+                }
 
             };
+
         }
-        
+
+        /// <summary>
+        /// Hook into pipeline for locale processing
+        /// </summary>
+        /// <param name="p"></param>
         public void Hook(IPipelines p)
         {
 

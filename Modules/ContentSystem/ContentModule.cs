@@ -19,10 +19,11 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Net;
+using HtmlAgilityPack;
 
 namespace NantCom.NancyBlack.Modules
 {
-    public class ContentModule : BaseModule
+    public class ContentModule : BaseModule, IRequireGlobalInitialize
     {
         /// <summary>
         /// Allow custom mapping of input url into another url
@@ -43,7 +44,6 @@ namespace NantCom.NancyBlack.Modules
         private static DateTime _LastPageViewUpdated;
         private const int PAGEVIEW_DELAYTIME = 5;
 
-
         public ContentModule()
         {
             Get["/robots.txt"] = this.HandleRequest((arg) =>
@@ -51,13 +51,13 @@ namespace NantCom.NancyBlack.Modules
                 return "User-agent: *\nDisallow: ";
             });
 
-            Get["/{path*}"] = this.HandleRequest(this.HandleContentRequest);
+            Get["/{path*}"] = this.HandleRequest(this.HandleContentRequestCached);
 
-            Get["/"] = this.HandleRequest(this.HandleContentRequest);
+            Get["/"] = this.HandleRequest(this.HandleContentRequestCached);
 
             Get["/__content/pageviewcount/{table}/{id}"] = this.HandleRequest(this.GetPageViewCount);
 
-            
+
             _RootPath = this.RootPath;
 
             SiteMapModule.SiteMapRequested += SiteMapModule_SiteMapRequested;
@@ -65,6 +65,45 @@ namespace NantCom.NancyBlack.Modules
             NancyBlackDatabase.ObjectUpdated += UpdateTag_ObjectUpdate;
 
         }
+        
+        private static IContent _SiteContent;
+
+        /// <summary>
+        /// Gets the Site Content
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        public static IContent GetSiteContent( NancyContext ctx )
+        {
+            if (ctx.IsAdminUser())
+            {
+                return ContentModule.GetPage(ctx.GetSiteDatabase(), "/", true);
+            }
+
+            return _SiteContent;
+        }
+
+        /// <summary>
+        /// Gets the Theme Content
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        public static IContent GetThemeContent(NancyContext ctx)
+        {
+            return ContentModule.GetSiteContent(ctx);
+        }
+
+        /// <summary>
+        /// Initialize things that can share between requests
+        /// </summary>
+        /// <param name="ctx"></param>
+        public void GlobalInitialize(NancyContext ctx)
+        {
+            ContentModule._SiteContent = ContentModule.GetPage(ctx.GetSiteDatabase(), "/", true);
+
+            ContentModule.ProcessContentPart(ctx, ContentModule._SiteContent);
+        }
+
 
         /// <summary>
         /// Get Page View Count
@@ -246,9 +285,36 @@ namespace NantCom.NancyBlack.Modules
             return table;
         }
 
-
-        private void SendPageView(PageView pageView)
+        private void SendPageView(IContent requestedContent)
         {
+            string source = "";
+            if (this.Request.Cookies.ContainsKey("source"))
+            {
+                source = this.Request.Cookies["source"];
+            }
+
+#if !DEBUG
+            if (this.Request.Headers.UserAgent.StartsWith("Pingdom.com") ||
+                this.Request.Headers.UserAgent.StartsWith("loader.io"))
+            {
+                return;
+            }
+
+            var pageView = new PageView()
+            {
+                __createdAt = DateTime.Now,
+                __updatedAt = DateTime.MinValue,
+                ContentId = requestedContent.Id,
+                TableName = requestedContent.TableName,
+                AffiliateCode = source,
+                QueryString = this.Request.Url.Query,
+                Path = this.Request.Url.Path,
+                UserIP = this.Request.UserHostAddress,
+                Referer = this.Request.Headers.Referrer,
+                UserAgent = this.Request.Headers.UserAgent,
+                UserUniqueId = this.Context.Items["userid"] as string
+            };
+            
             // If not set to use azure table
             if (this.CurrentSite.analytics == null)
             {
@@ -271,7 +337,7 @@ namespace NantCom.NancyBlack.Modules
                 {
                 }
             });
-
+#endif
         }
 
         #region Update Tag Table
@@ -393,7 +459,63 @@ namespace NantCom.NancyBlack.Modules
             File.Copy(sourceFile, layoutFilename);
         }
 
-        protected dynamic HandleContentRequest(dynamic arg)
+        protected dynamic HandleContentRequestCached( dynamic arg )
+        {
+            var key = "ContentModule-" + this.Request.Url.ToString();
+
+            // Admin will always clear the cache when visit the given page
+            // and will always see content without processing
+            // as admin might be editing the page
+            if (this.CurrentUser.HasClaim("admin"))
+            {
+                this.GlobalInitialize(this.Context);
+                MemoryCache.Default.Remove(key);
+
+                var result = this.HandleContentRequest(arg, false);
+
+                if (result is int)
+                {
+                    return result;
+                }
+
+                return View[(string)result.Layout, new StandardModel(this, result, result)];
+            }
+
+            IContent requestedContent = MemoryCache.Default[key] as IContent;
+
+            if (requestedContent == null)
+            {
+                lock (BaseModule.GetLockObject(key))
+                {
+                    // other thread may procssed this url already
+                    requestedContent = MemoryCache.Default[key] as IContent;
+                    if (requestedContent != null)
+                    {
+                        return requestedContent;
+                    }
+
+                    var result = this.HandleContentRequest(arg, true);
+                    if (result is int)
+                    {
+                        return result;
+                    }
+
+                    requestedContent = result as IContent;
+                    MemoryCache.Default.Add(key, requestedContent, DateTimeOffset.Now.AddHours(1));
+                }
+            }
+
+            this.SendPageView(requestedContent);
+            return View[(string)requestedContent.Layout, new StandardModel(this, requestedContent, requestedContent)];
+        }
+
+        /// <summary>
+        /// Read Content from given URL in arg
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <param name="processContentPart">Whether to process the content</param>
+        /// <returns></returns>
+        protected dynamic HandleContentRequest(dynamic arg, bool processContentPart)
         {
             var url = (string)arg.path;
             if (url == null)
@@ -521,38 +643,6 @@ namespace NantCom.NancyBlack.Modules
 
             }
 
-            // Insert the analytics to Azure Table Storage
-            if (this.CurrentSite.analytics != null)
-            {
-#if !DEBUG
-                if (this.Request.Headers.UserAgent.StartsWith("Pingdom.com") ||
-                    this.Request.Headers.UserAgent.StartsWith("loader.io"))
-                {
-                    goto skip;
-                }
-
-                var pageView = new PageView()
-                {
-                    __createdAt = DateTime.Now,
-                    __updatedAt = DateTime.MinValue,
-                    ContentId = requestedContent.Id,
-                    TableName = requestedContent.TableName,
-                    AffiliateCode = source,
-                    QueryString = this.Request.Url.Query,
-                    Path = this.Request.Url.Path,
-                    UserIP = this.Request.UserHostAddress,
-                    Referer = this.Request.Headers.Referrer,
-                    UserAgent = this.Request.Headers.UserAgent,
-                    UserUniqueId = this.Request.Cookies["userid"]
-                };
-
-                this.SendPageView(pageView);
-                skip:;
-#endif
-            }
-
-
-
             if (string.IsNullOrEmpty(requestedContent.Layout))
             {
                 requestedContent.Layout = "Content";
@@ -562,10 +652,50 @@ namespace NantCom.NancyBlack.Modules
 
             ContentModule.ProcessPage(this.Context, requestedContent);
 
-            return View[(string)requestedContent.Layout, new StandardModel(this, requestedContent, requestedContent)];
+            this.SendPageView(requestedContent);
+
+            if (processContentPart)
+            {
+                ContentModule.ProcessContentPart(this.Context, requestedContent);
+            }
+
+            return requestedContent;
         }
 
-#region All Logic Related to Content
+        private static void ProcessContentPart(NancyContext ctx, IContent content)
+        {
+            if (content.ContentParts == null)
+            {
+                return;
+            }
+
+            var contentParts = content.ContentParts as JObject;
+            foreach (var item in contentParts.Properties())
+            {
+                var processedContentPart = item.Value.ToString();
+
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(item.Value.ToString());
+                foreach (var img in doc.QuerySelectorAll("img"))
+                {
+                    var srcAttribute = img.Attributes["src"];
+                    if (srcAttribute == null ||
+                        string.IsNullOrEmpty(srcAttribute.Value) ||
+                        srcAttribute.Value.StartsWith("/") == false)
+                    {
+                        continue;
+                    }
+
+                    img.SetAttributeValue("ncb-imgdefer", srcAttribute.Value);
+                    srcAttribute.Remove();
+
+                }
+
+                item.Value = doc.DocumentNode.OuterHtml;
+            }
+        }
+
+        #region All Logic Related to Content
 
         /// <summary>
         /// Get child content of given url
@@ -729,7 +859,7 @@ namespace NantCom.NancyBlack.Modules
             return createdContent;
         }
 
-#endregion
+        #endregion
 
     }
 

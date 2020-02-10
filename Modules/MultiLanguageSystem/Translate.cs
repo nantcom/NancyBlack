@@ -109,8 +109,13 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
         /// <returns></returns>
         public string HtmlMachineTranslate(string htmlInput, string translatedLanguage, string primaryLanguage = null)
         {
-            TranslateHelper.Initialize();
+            if (htmlInput == null)
+            {
+                return null;
+            }
 
+            TranslateHelper.Initialize();
+             
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(htmlInput);
 
@@ -199,6 +204,13 @@ namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
                 }
 
                 var result = client.Execute(req);
+
+                if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    _Translations[key] = input;
+                    return input;
+                }
+
                 var element = System.Xml.Linq.XElement.Parse(result.Content);
                 translated = element.Value;
 

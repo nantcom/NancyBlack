@@ -89,14 +89,14 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     {
                         ctx.CurrentUser = new NcbUser()
                         {
-                            Guid = Guid.Parse(ctx.Request.Cookies[BuiltInCookies.UserId])
+                            Guid = Guid.Parse(ctx.Items[BuiltInCookies.UserId] as string)
                         };
                     }
                 }
                 else
                 {
                     // ensure that we use same guid as currently logged in user
-                    ctx.Request.Cookies[BuiltInCookies.UserId] = (ctx.CurrentUser as NcbUser).Guid.ToString();
+                    ctx.Items[BuiltInCookies.UserId] = (ctx.CurrentUser as NcbUser).Guid.ToString();
                 }
 
                 return null;
@@ -203,7 +203,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 }
 
                 // this is the guid that nancyblack generated to identify session
-                var existingGuid = Guid.Parse( this.Request.Cookies[BuiltInCookies.UserId] );
+                var existingGuid = Guid.Parse( this.Context.Items[BuiltInCookies.UserId] as string );
 
                 var userName = "fb_" + input.me.id;
                 NcbUser user = UserManager.Current.Register(this.SiteDatabase,
@@ -237,7 +237,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
             Post["/__membership/register"] = p =>
             {
-                var existingGuid = Guid.Parse(this.Request.Cookies[BuiltInCookies.UserId]);
+                var existingGuid = Guid.Parse(this.Context.Items[BuiltInCookies.UserId] as string);
                 var registerParams = this.Bind<LoginParams>();
                 var user = UserManager.Current.Register(this.SiteDatabase, registerParams.Email, registerParams.Email, registerParams.Password, existingGuid: existingGuid);
 

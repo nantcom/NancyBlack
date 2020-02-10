@@ -53,7 +53,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
             var owner = db.GetById<NcbUser>(reg.NcbUserId);
             var record = new AffiliateShareClick();
 
-            record.UserId = ctx.Request.Cookies["userid"];
+            record.UserId = ctx.Items["userid"] as string;
 
             // wont track own click
             if (record.UserId == owner.Guid.ToString())
