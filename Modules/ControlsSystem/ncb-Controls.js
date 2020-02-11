@@ -2553,81 +2553,139 @@
 
         var imgList = [];
 
+        var existingTimeout = null;
+        function fixIsotope() {
+
+            if (existingTimeout != null) {
+                window.clearTimeout(existingTimeout);
+                existingTimeout = null;
+            }
+
+            existingTimeout = window.setTimeout(function () {
+
+                $("[isotope]").isotope('layout');
+                window.dispatchEvent(new Event('resize')); //required by some plugins
+
+            }, 400);
+
+        };
+
+        function loadImageIfAppeared($element, referencePoint) {
+
+            var src = $element.attr("ncb-imgdefer");
+            var isReize = src.indexOf("/") == 0 && src.indexOf("/__resize") == -1;
+            var offSet = $element.offset();
+
+            if (referencePoint > offSet.top) {
+
+                if (isReize) {
+
+                    $element.imgElement.src = "/__resizeh/" + $element.attr("key");
+                }
+                else {
+                    $element.imgElement.src = src;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
         if (window.scrollWatch == null) {
 
             window.scrollWatch = function () {
 
+                if (imgList.length == 0) {
+                    return;
+                }
+
                 var remaining = [];
                 var bottom = document.documentElement.scrollTop + window.innerHeight;
 
-                imgList.forEach(function (me) {
+                imgList.forEach(function ($element) {
 
-                    var src = me.attr("ncb-imgdefer");                    
-                    var isReize = src.indexOf("/") == 0 && src.indexOf("/__resize") == -1;
-                    var offSet = me.offset();
+                    if (loadImageIfAppeared($element, bottom)) {
 
-                    if (offSet.top < bottom ) {
-
-                        if (isReize) {
-
-                            me[0].onload = function () {
-
-                                me.parents("*[isotope]").isotope('layout');
-                                window.dispatchEvent(new Event('resize')); //required by some plugins
-                            };
-
-                            me.attr("src", "/__resizeh/" + me.attr("key"));
-                        }
-                        else {
-                            me.attr("src", src);
-                        }
-
+                        remaining.push($element);
                     }
-                    else {
-                        remaining.push(me);
-                    }
-
                 });
 
                 imgList = remaining;
 
+                if (imgList.length == 0) {
+                    fixIsotope();
+                }
             };
 
             window.onscroll = window.scrollWatch;
-            window.setTimeout(window.scrollWatch, 2000);
+            window.setTimeout(window.scrollWatch, 400);
         };
 
-        function link($scope, element, attrs) {
+        function link($scope, $element, attrs) {
 
-            var me = element[0];
-            var fallback = element.attr("ncb-imgdefer");
-            element.attr("key", window.utils.md5(fallback + window.innerWidth));
+            var imgElement = $element[0];
+            if ($element.is("img") == false) {
 
-            me.updateHeuristics = function (forced) {
+                imgElement = $('<img/>')[0];
+                imgElement.$backgroundTarget = $element;
+            }
 
-                if (!me.updated && !forced) {
+            $element.imgElement = imgElement;
+
+            var fallback = $element.attr("ncb-imgdefer");
+            $element.attr("key", window.utils.md5(fallback + window.innerWidth));
+
+            imgElement.updateHeuristics = function (forced) {
+
+                if (!imgElement.updated && !forced) {
                     return;
                 }
 
                 $http.post("/__resize/heuristics", [{
-                    key: element.attr("key"),
+                    key: $element.attr("key"),
                     imageUrl: fallback,
-                    width: element.width(),
-                    height: element.height()
+                    width: $element.width(),
+                    height: $element.is("img") ? $element.height() : 0 // only save height if img
                 }]);
             };
 
-            me.onerror = function () {
+            imgElement.onload = function () {
 
-                if (me.src != fallback && $(me).attr("fallback") != "1") {
+                if (imgElement.$backgroundTarget != null) {
 
-                    $(me).attr("fallback", "1");
-                    me.src = fallback;
+                    imgElement.$backgroundTarget.css("background-image", "url('" + imgElement.src + "')");
+                    $(imgElement).remove();
 
-                    me.onload = function () {
+                    return;
+                }
 
-                        me.updated = true;
-                        me.updateHeuristics(true);
+                fixIsotope();
+            };
+
+            imgElement.onerror = function () {
+
+                fixIsotope();
+
+                if (imgElement.src != fallback && $element.attr("fallback") != "1") {
+
+                    $element.attr("fallback", "1");
+                    imgElement.src = fallback;
+
+                    imgElement.onload = function () {
+
+                        fixIsotope();
+                        imgElement.updated = true;
+                        imgElement.updateHeuristics(true);
+
+                        if (imgElement.$backgroundTarget != null) {
+
+                            imgElement.$backgroundTarget.css("background-image", "url('" + imgElement.src + "')");
+                            $(imgElement).remove();
+
+                            return;
+                        }
+
                     };
                 }
 
@@ -2637,34 +2695,25 @@
             // admin will always force heuristic update
             if ($scope.isAdmin) {
 
-                me.onload = function () {
+                imgElement.onload = function () {
 
-                    me.updateHeuristics(true);
+                    fixIsotope();
+                    imgElement.updateHeuristics(true);
                 };
-                me.src = element.attr("ncb-imgdefer");
+
+                imgElement.src = $element.attr("ncb-imgdefer");
                 return;
             }
 
             // element is above fold and should show image now
-            if (element.parents("*[abovefold]").length > 0) {
+            if ($element.parents("[abovefold]").length > 0 || $element.is("[abovefold]")) {
 
-                var src = element.attr("ncb-imgdefer");
-                var isReize = src.indexOf("/") == 0 && src.indexOf("/__resize") == -1;
+                loadImageIfAppeared($element, 99999999);
 
-                me.onload = function () {
-
-                    me.updateHeuristics(true);
-                };
-
-                if (isReize) {
-                    element.attr("src", "/__resizeh/" + element.attr("key"));
-                }
-                else {
-                    element.attr("src", src);
-                }
+                return;
             }
 
-            imgList.push(element);
+            imgList.push($element);
 
         };
 
@@ -2675,6 +2724,7 @@
             scope: false
         };
     });
+
 
 
 })();
