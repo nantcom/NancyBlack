@@ -11,6 +11,12 @@
     </p>
 </div>
 
+<div>
+    <b>Request Headers:</b>
+    @(Newtonsoft.Json.JsonConvert.SerializeObject(this.Request.Headers));
+
+</div>
+
 @if (this.RenderContext.Context.Items.ContainsKey("Exception"))
 {
     var ex = this.RenderContext.Context.Items["Exception"] as Exception;

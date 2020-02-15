@@ -463,6 +463,20 @@ namespace NantCom.NancyBlack.Modules
         {
             var key = "ContentModule-" + this.Request.Url.ToString();
 
+            if (this.Context.Items.ContainsKey("FBBot"))
+            {
+                this.GlobalInitialize(this.Context);
+
+                var result = this.HandleContentRequest(arg, false);
+
+                if (result is int)
+                {
+                    return result;
+                }
+
+                return View["_base_facebook", new StandardModel(this, result, result)];
+            }
+
             // Admin will always clear the cache when visit the given page
             // and will always see content without processing
             // as admin might be editing the page

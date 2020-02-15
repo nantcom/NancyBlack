@@ -3,6 +3,11 @@
 <html>
 <head>
 
+    <style>
+        [ng-cloak] {
+            display: none;
+        }
+    </style>
     <title>
         @(this.SEOContent.Title)
         @RenderSection("Title", false)
@@ -40,10 +45,6 @@
     <link rel="manifest" href="/__favicon/manifest.json">
 
     <meta name="msapplication-TileImage" content="/__favicon/ms-icon-144x144.png">
-
-    <link rel="preload" href="/NancyBlack/Content/Scripts/moment-with-locales.min.js" as="script" />
-    <link rel="preload" href="/NancyBlack/Content/Scripts/ncb-dependencies.js" as="script" />
-
 
     @if (this.Content != null)
     {
@@ -99,16 +100,31 @@
 
     <script>
         var delayStack = 100;
-        window.deferCSS = function (url) {
+        window.deferCSS = function (url, delay, before) {
             var link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = url;
             link.type = 'text/css';
             delayStack += 10;
 
-            window.setTimeout(function () {
-                document.getElementsByTagName("head")[0].appendChild(link);
-            }, delayStack);
+            if (before == null) {
+
+                window.setTimeout(function () {
+                    document.getElementsByTagName("head")[0].appendChild(link);
+                }, delay == null ? delayStack : delay);
+            }
+            else {
+                
+                window.setTimeout(function () {
+                    var head = document.getElementsByTagName("head")[0];
+                    var beforeNode = document.querySelector("link[href='" + before + "']");
+
+                    head.insertBefore(link, beforeNode);
+                    console.log(beforeNode);
+
+                }, delay == null ? delayStack : delay);
+            }
+
         };
         window.deferCss = window.deferCSS;
 
@@ -137,7 +153,7 @@
     }
     else
     {
-        <script src="/__bundle/js"></script>
+        <script src="/__bundle.js"></script>
     }
 
     @{
@@ -175,6 +191,8 @@
             window.currentUser = @this.Html.Raw( this.GetJson( this.CurrentUser ));
             </text>
         }
+
+        window.isAdmin = @(this.CurrentUser.HasClaim("admin").ToString().ToLowerInvariant());
 
         window.language = "@(this.Language)";
         window.currency = "@(this.Currency)";
@@ -219,7 +237,7 @@
                             return false;
                         };
 
-                        $scope.isAdmin = @(this.CurrentUser.HasClaim("admin").ToString().ToLowerInvariant());
+                        $scope.isAdmin = window.isAdmin;
 
                         $scope.PAGE_URL = window.location.href;
                         $scope.Math = window.Math;
@@ -376,6 +394,11 @@
                             status: true,
                             version: 'v3.1'
                         });
+            
+                        if (window.isAdmin == false) {
+                            fbq('track', 'PageView');
+                        }
+
                     };
 
                     (function (d, s, id) {
@@ -385,10 +408,11 @@
                         js.src = "//connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
                         fjs.parentNode.insertBefore(js, fjs);
                     }(document, 'script', 'facebook-jssdk'));
+
                     </text>
                 }
 
-                @if (this.Site.Application.GoogleAnalyticsId != null)
+                @if (this.Site.Application.GoogleAnalyticsId != null )
                 {
                     <text>
                         (function (i, s, o, g, r, a, m) {
@@ -399,7 +423,10 @@
                         })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
                         ga('create', '@(this.Site.Application.GoogleAnalyticsId)', 'auto');
-                        ga('send', 'pageview');
+
+                        if (window.isAdmin == false) {
+                            ga('send', 'pageview');
+                        }
 
                     </text>
 
@@ -419,7 +446,10 @@
                         document, 'script', '//connect.facebook.net/en_US/fbevents.js');
 
                         fbq('init', '@(this.Site.Application.FacebookPixelId)', { external_id: '@(this.Context.Items["userid"])' });
-                        fbq('track', "PageView");
+
+                        if (window.isAdmin == false) {
+                            fbq('track', "PageView");
+                        }
 
                     </text>
                 }

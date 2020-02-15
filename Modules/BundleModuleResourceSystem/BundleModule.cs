@@ -15,7 +15,9 @@ namespace NantCom.NancyBlack.Modules.BundleModuleResourceSystem
         public BundleModule()
         {
             Get["/__bundle/js"] = this.ReturnJs;
+            Get["/__bundle.js"] = this.ReturnJs;
             Get["/__bundle/css"] = this.ReturnCss;
+            Get["/__bundle.css"] = this.ReturnCss;
         }
 
         private Stream GetBundle( string[] files )

@@ -10,7 +10,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.ContentSystem.Types
 {
-    public class ImageSizeHeuristics : IStaticType, IRequireGlobalInitialize
+    public class ImageSizeHeuristics : IStaticType
     {
         public int Id { get; set; }
         public DateTime __createdAt { get; set; }
@@ -36,9 +36,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// </summary>
         public int Height { get; set; }
 
-        private static Dictionary<string, ImageSizeHeuristics> _Heuristics;
-        private static HashSet<string> _DirtyList = new HashSet<string>();
-        private static Action _Saver;
+        private static Dictionary<string, ImageSizeHeuristics> _Heuristics = new Dictionary<string, ImageSizeHeuristics>();
 
         /// <summary>
         /// Get Size of the image from Combination of parameters
@@ -79,11 +77,10 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
             if (_Heuristics.TryGetValue(key, out result))
             {
                 // Keep the bigger size if the page use image in different places
-                if (result.Width < imageWidth)
+                if (result.Width < imageWidth || result.Height < imageHeight)
                 {
                     result.Width = imageWidth;
                     result.Height = imageHeight;
-                    _DirtyList.Add(key);
                 }
             }
             else
@@ -95,7 +92,6 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
                     Key = key,
                     ImageUrl = imageUrl
                 };
-                _DirtyList.Add(key);
             }
         }
 
@@ -120,51 +116,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// <param name="db"></param>
         public static void SaveHeuristics()
         {
-            if (_Saver != null)
-            {
-                _Saver = null;
-            }
-
-            Action me = null;
-            _Saver = () =>
-            {
-                Task.Delay(5000).Wait();
-                if (me != _Saver)
-                {
-                    return;
-                }
-
-                lock (BaseModule.GetLockObject("ImageSizeHeuristics-Save"))
-                {
-                    using (var db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath))
-                    {
-                        db.Connection.RunInTransaction(() =>
-                        {
-                            foreach (var key in _DirtyList.ToList())
-                            {
-                                var size = ImageSizeHeuristics.GetSize(key);
-                                if (size == null)
-                                {
-                                    continue;
-                                }
-                                db.UpsertRecord(size);
-                            }
-                        });
-
-                        _DirtyList = new HashSet<string>();
-                    }
-
-                    _Saver = null;
-                }
-            };
-
-            me = _Saver;
-            Task.Run(_Saver);
         }
 
-        public void GlobalInitialize(NancyContext ctx)
-        {
-            ImageSizeHeuristics.LoadHeuristics(ctx.GetSiteDatabase());
-        }
     }
 }

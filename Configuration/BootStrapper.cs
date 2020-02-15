@@ -123,6 +123,16 @@ namespace NantCom.NancyBlack.Configuration
 
         public void Initialize(IPipelines piepeLinse, NancyContext ctx)
         {
+            if (ctx.Request.Headers.UserAgent.Contains("facebookexternalhit/1.1"))
+            {
+                ctx.Request.Headers.Accept = new List<Tuple<string, decimal>>()
+                {
+                    new Tuple<string, decimal>("text/html", 1)
+                };
+
+                ctx.Items["FBBot"] = true;
+            }
+
             ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
             ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
             ctx.Items["RootPath"] = BootStrapper.RootPath;
@@ -203,6 +213,8 @@ namespace NantCom.NancyBlack.Configuration
 
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
+
+
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {

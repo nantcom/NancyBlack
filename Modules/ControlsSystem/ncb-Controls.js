@@ -2552,6 +2552,15 @@
     module.directive('ncbImgdefer', function ($http, $datacontext) {
 
         var imgList = [];
+        var widthStep = [0, 320, 375, 425, 768, 1024, 1440, 1920, 2560, 3840];
+        var width = window.innerWidth;
+
+        for (var i = 0; i < widthStep.length; i++) {
+            if (widthStep[i] >= width) {
+                width = widthStep[i];
+                break;
+            }
+        }
 
         var existingTimeout = null;
         function fixIsotope() {
@@ -2580,7 +2589,14 @@
 
                 if (isReize) {
 
-                    $element.imgElement.src = "/__resizeh/" + $element.attr("key");
+                    if ($element.bgmode == true) {
+
+                        $element.imgElement.src = "/__resizeh-bg/" + $element.attr("key");
+                    }
+                    else {
+
+                        $element.imgElement.src = "/__resizeh/" + $element.attr("key");
+                    }
                 }
                 else {
                     $element.imgElement.src = src;
@@ -2629,12 +2645,13 @@
 
                 imgElement = $('<img/>')[0];
                 imgElement.$backgroundTarget = $element;
+                imgElement.bgmode = true;
             }
 
             $element.imgElement = imgElement;
 
             var fallback = $element.attr("ncb-imgdefer");
-            $element.attr("key", window.utils.md5(fallback + window.innerWidth));
+            $element.attr("key", window.utils.md5(fallback + width));
 
             imgElement.updateHeuristics = function (forced) {
 

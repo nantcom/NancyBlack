@@ -81,6 +81,26 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     mode);
             };
 
+            Get["/__resizeh-bg/{key}"] = (args) =>
+            {
+                var mode = ImageResizeMode.Fit;
+
+                var heuristics = ImageSizeHeuristics.GetSize((string)args.key);
+
+                if (heuristics == null)
+                {
+                    return 404;
+                }
+
+                var max = Math.Max(heuristics.Width, heuristics.Height);
+
+                return this.ResizeImage(
+                    (string)heuristics.ImageUrl,
+                    heuristics.Width == max ? max : 0,
+                    heuristics.Height == max ? max : 0,
+                    mode);
+            };
+
             Post["/__resize/heuristics"] = this.HandleRequest((arg) =>
             {
                 var result = arg.body.Value as JArray;
@@ -141,7 +161,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
                 if (this.Request.Headers.Accept.Any(t => t.Item1.Contains("/webp")))
                 {
-                    result = result.Format(new WebPFormat() { Quality = 30 });
+                    result = result.Format(new WebPFormat() { Quality = 60 });
                 }
 
                 response.ContentType = result.CurrentImageFormat.MimeType;
