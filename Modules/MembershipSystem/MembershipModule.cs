@@ -81,7 +81,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 if (ctx.CurrentUser == null)
                 {
-                    if (ctx.Request.Url.HostName == "localhost")
+                    if (ctx.Request.Url.HostName == "localhost" || ctx.Request.Url.HostName.Contains("local."))
                     {
                         ctx.CurrentUser = NcbUser.LocalHostAdmin;
                     }

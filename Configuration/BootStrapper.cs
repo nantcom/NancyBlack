@@ -78,7 +78,41 @@ namespace NantCom.NancyBlack
         /// <returns></returns>
         public static string GetUserId(this NancyContext ctx)
         {
-            return (string)ctx.Items["userid"];
+            return ContextExt.GetString(ctx, "userid");
+        }
+
+
+        /// <summary>
+        /// Gets specifid key from Context
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns>null if key does not exists</returns>
+        public static object Get(this NancyContext ctx, string key)
+        {
+            object result;
+            if (ctx.Items.TryGetValue(key, out result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+
+        /// <summary>
+        /// Gets specifid key from Context
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns>null if key does not exists</returns>
+        public static string GetString(this NancyContext ctx, string key)
+        {
+            object result;
+            if (ctx.Items.TryGetValue(key, out result))
+            {
+                return (string)result;
+            }
+
+            return null;
         }
     }
 }
@@ -132,6 +166,8 @@ namespace NantCom.NancyBlack.Configuration
 
                 ctx.Items["FBBot"] = true;
             }
+
+            ctx.Items["Webp"] = ctx.Request.Headers.Accept.Any(a => a.Item1 == "image/webp");
 
             ctx.Items["CurrentSite"] = AdminModule.ReadSiteSettings();
             ctx.Items["SiteSettings"] = AdminModule.ReadSiteSettings();
@@ -227,170 +263,96 @@ namespace NantCom.NancyBlack.Configuration
 
             this.Conventions.ViewLocationConventions.Clear();
 
-            #region Localized View Conventions
+            #region View Conventions
 
-            // Site's View Folder has most priority
-            // Mobile View Overrides
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            // Generic View Location, with subsite
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
-                if (context.Context.Items.ContainsKey("Language") == false)
+                var language = vc.Context.GetString(ContextItems.Language);
+                var subsite = vc.Context.GetString(ContextItems.SubSite);
+
+                if (subsite == null)
                 {
-                    return string.Empty;
+                    return "Site/Views/" + viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
                 }
 
-                string u = context.Context.Request.Headers.UserAgent.ToLowerInvariant();
-                if (u.Contains("mobile/"))
-                {
-                    return "Site/Views/Mobile/" + viewName + "_" + context.Context.Items["Language"];
-                }
-
-                return string.Empty; // not mobile browser
-
+                return "Site/SubSites/" + subsite + "/Views/" + viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
             });
 
-            // Desktop View Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            // Generic View Location, without subsite
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
-                if (context.Context.Items.ContainsKey("Language") == false)
-                {
-                    return string.Empty;
-                }
-
-                return "Site/Views/Desktop/" + viewName + "_" + context.Context.Items["Language"];
-            });
-
-            // Generic View Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                if (context.Context.Items.ContainsKey("Language") == false)
-                {
-                    return string.Empty;
-                }
-
-                return "Site/Views/" + viewName + "_" + context.Context.Items["Language"];
-            });
-
-            // Theme view location (views/_theme) can override _theme of the Theme folder
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                var theme = context.Context.GetSiteSettings().Theme;
-                if (theme == null)
-                {
-                    return string.Empty;
-                }
-
-                if (context.Context.Items.ContainsKey("Language") == false)
-                {
-                    return string.Empty;
-                }
-
-                return "Themes/" + theme + "/" + viewName + "_" + context.Context.Items["Language"];
+                var language = vc.Context.GetString(ContextItems.Language);
+                return "Site/Views/" + viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
             });
 
             // NancyBlack's View Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
-                if (context.Context.Items.ContainsKey("Language") == false)
-                {
-                    return string.Empty;
-                }
 
-                return "NancyBlack/Content/Views/" + viewName + "_" + context.Context.Items["Language"];
+                var language = vc.Context.GetString(ContextItems.Language);
+                return "NancyBlack/Content/Views/" + viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
             });
 
             // then try Views in Systems (AdminSystem, ContentSystem etc...)
             foreach (var system in ModuleResource.Systems)
             {
-                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
                 {
-                    if (context.Context.Items.ContainsKey("Language") == false)
-                    {
-                        return string.Empty;
-                    }
+                    var language = vc.Context.GetString(ContextItems.Language);
 
-                    return string.Concat("NancyBlack/Modules/",
-                                         viewName,
-                                         "_" ,
-                                         context.Context.Items["Language"]);
+                    return "NancyBlack/Modules/" + viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
                 });
 
-                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
                 {
-                    if (context.Context.Items.ContainsKey("Language") == false)
-                    {
-                        return string.Empty;
-                    }
+                    var language = vc.Context.GetString(ContextItems.Language);
 
                     return string.Concat("NancyBlack/Modules/",
                                          system,
                                          "/Views/",
                                          viewName,
-                                         "_",
-                                         context.Context.Items["Language"]);
+                                         (string.IsNullOrEmpty(language) ? null : "_" + language));
                 });
             }
 
-            #endregion
-
-            #region Sub Website View Conventions
-
-            // Generic View for SubWebsite Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
+                var subsite = vc.Context.GetString(ContextItems.SubSite);
+                var language = vc.Context.GetString(ContextItems.Language);
 
-                string subSiteName = (string)context.Context.Items[ContextItems.SubSite];
-                if (!string.IsNullOrEmpty(subSiteName))
+
+                if (subsite == null)
                 {
-                    return "Site/SubSites/" + subSiteName + "/Views/" + viewName;
+                    return viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
                 }
 
-                return string.Empty;
+                return "Site/SubSites/" + subsite + "/" + viewName + (string.IsNullOrEmpty(language) ? null : "_" + language);
+
             });
 
-            #endregion
 
-            #region View Conventions
-
-            // Site's View Folder has most priority
-            // Mobile View Overrides
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            // Generic View Location, with subsite
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
-                string u = context.Context.Request.Headers.UserAgent.ToLowerInvariant();
-                if (u.Contains("mobile/"))
+                var subsite = vc.Context.GetString(ContextItems.SubSite);
+
+                if (subsite == null)
                 {
-                    return "Site/Views/Mobile/" + viewName;
+                    return "Site/Views/" + viewName;
                 }
 
-                return string.Empty; // not mobile browser
-
+                return "SubSites/" + subsite + "/Views/" + viewName;
             });
 
-            // Desktop View Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                return "Site/Views/Desktop/" + viewName;
-            });
-
-            // Generic View Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            // Generic View Location, without subsite
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
                 return "Site/Views/" + viewName;
             });
 
-            // Theme view location (views/_theme) can override _theme of the Theme folder
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                var theme = context.Context.GetSiteSettings().Theme;
-                if (theme == null)
-                {
-                    return string.Empty;
-                }
-
-                return "Themes/" + theme + "/" + viewName;
-            });
-
             // NancyBlack's View Location
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
                 return "NancyBlack/Content/Views/" + viewName;
             });
@@ -398,12 +360,12 @@ namespace NantCom.NancyBlack.Configuration
             // then try Views in Systems (AdminSystem, ContentSystem etc...)
             foreach (var system in ModuleResource.Systems)
             {
-                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+                this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
                 {
-                    return string.Concat("NancyBlack/Modules/",
-                                         viewName);
+                    return "NancyBlack/Modules/" + viewName;
                 });
-                this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+
+                this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
                 {
                     return string.Concat("NancyBlack/Modules/",
                                          system,
@@ -412,20 +374,17 @@ namespace NantCom.NancyBlack.Configuration
                 });
             }
 
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
+            this.Conventions.ViewLocationConventions.Add((viewName, model, vc) =>
             {
-                return viewName; // fully qualify names
+                return viewName;
+
             });
-
-            this.Conventions.ViewLocationConventions.Add((viewName, model, context) =>
-            {
-                return viewName.Substring(1); // fully qualify names, remove forward slash at first
-            });
-
-
 
 
             #endregion
+
+
+
 
             var formsAuthConfiguration = new FormsAuthenticationConfiguration
             {

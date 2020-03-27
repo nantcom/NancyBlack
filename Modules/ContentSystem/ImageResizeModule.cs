@@ -161,7 +161,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
                 if (this.Request.Headers.Accept.Any(t => t.Item1.Contains("/webp")))
                 {
-                    result = result.Format(new WebPFormat() { Quality = 60 });
+                    result = result.Format(new WebPFormat() { Quality = 80 });
                 }
 
                 response.ContentType = result.CurrentImageFormat.MimeType;

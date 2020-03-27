@@ -20,7 +20,21 @@ using NantCom.NancyBlack.Modules.CommerceSystem.types;
 using Nancy.TinyIoc;
 using NantCom.NancyBlack.Modules.CommerceSystem;
 
-namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
+namespace NantCom.NancyBlack
+{
+
+    public sealed partial class ContextItems
+    {
+        public const string Language = "Language";
+        public const string Currency = "Currency";
+        public const string ChosenLanguage = "ChosenLanguage";
+        public const string ChosenCurrency = "ChosenCurrency";
+        public const string Country = "Country";
+        public const string CountryISO = "CountryISO";
+    }
+}
+
+    namespace NantCom.NancyBlack.Modules.MultiLanguageSystem
 {
     public class LocaleHook : IPipelineHook, IRequireGlobalInitialize
     {

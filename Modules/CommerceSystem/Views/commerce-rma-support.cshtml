@@ -37,7 +37,6 @@
     <script>
         window.allData = @this.Html.Raw(this.GetJson(this.Model.Data));
         window.branding = @this.Html.Raw(this.GetJson(this.Model.Site.commerce.branding));
-        window.isAdmin = '@this.CurrentUser.HasClaim("admin")';
     </script>
     <script src="/NancyBlack/Content/Scripts/sweetalert-master/dist/sweetalert.min.js"></script>
     <script src="/NancyBlack/Modules/CommerceSystem/Views/js/commerce-rma-support.js"></script>
@@ -665,7 +664,7 @@
                         </p>
                     </div>
 
-                    <div class="alert alert-info" ng-show="isAdmin">
+                    <div class="alert alert-info" ng-show="window.isAdmin">
                         <h2>Admin</h2>
                         <h3>Status:</h3>
                         <select class="form-control" ng-model="object.Status" style="margin-right: 10px; max-width: 300px; display: inline-block">

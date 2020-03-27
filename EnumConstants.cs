@@ -1,7 +1,7 @@
 ﻿namespace NantCom.NancyBlack
 {
 
-    public sealed class ContextItems
+    public sealed partial class ContextItems
     {
         public const string SubSite = "SubSite";
         public const string SiteDatabase = "SiteDatabase";

@@ -205,7 +205,7 @@
                                 "client_id=" + window.facebookAppId +
                                 "&redirect_uri=" + uri +
                                 "&state=" + state +
-                                "&response_type=token&scope=email,public_profile,user_birthday,user_friends");
+                                "&response_type=token&scope=email,public_profile,user_birthday");
 
                         } else {
 
@@ -219,7 +219,7 @@
                                     console.log('User cancelled login or did not fully authorize.');
                                 }
 
-                            }, { scope: 'email,public_profile,user_birthday,user_friends' });
+                            }, { scope: 'email,public_profile,user_birthday' });
                         }
                     }
 

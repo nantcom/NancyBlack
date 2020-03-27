@@ -597,7 +597,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <returns></returns>
         public static dynamic FacebookApiPost(dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            RestClient client = new RestClient("https://graph.facebook.com/v3.3/");
+            RestClient client = new RestClient("https://graph.facebook.com/v5.0/");
             RestRequest req = new RestRequest(url, Method.POST);
 
             // add parameters

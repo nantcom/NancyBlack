@@ -1,0 +1,15 @@
+﻿@using Newtonsoft.Json;
+@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+<script>
+
+    window.data = {};
+    window.data.WorkSchedule = @this.GetJsonRaw(this.Database.Query("SELECT * FROM SaleOrder WHERE Status='Inbound' OR Status='WaitingForParts' OR Status='Building' OR Status='Testing' ", new NantCom.NancyBlack.Modules.CommerceSystem.types.SaleOrder() ));
+
+</script>
+
+<div>
+
+    {{window.data.WorkSchedule}}
+
+</div>
