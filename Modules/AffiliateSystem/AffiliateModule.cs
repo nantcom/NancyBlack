@@ -708,19 +708,21 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
         private dynamic AffiliateDashboard(AffiliateRegistration registration, dynamic arg)
         {
+            var siteDatabase = NancyBlackDatabase.GetSiteDatabase(this.RootPath);
+
             dynamic affiliateFacts = MemoryCache.Default["affiliatefacts"];
             if (affiliateFacts == null)
             {
                 affiliateFacts = new
                 {
-                    Total = this.SiteDatabase.Query<AffiliateRegistration>().Count(),
-                    TotalActive = this.SiteDatabase.Query("SELECT Distinct AffiliateCode FROM AffiliateTransaction", new { Count = 0 }).Count(),
-                    PayoutStats = this.SiteDatabase.Query("SELECT Count(Id) as Count, Avg(CommissionAmount) as Avg, Sum(CommissionAmount) as Sum FROM AffiliateTransaction", new { Count = 0, Avg = 0.0M, Sum = 0.0M }).FirstOrDefault(),
+                    Total = siteDatabase.Query<AffiliateRegistration>().Count(),
+                    TotalActive = siteDatabase.Query("SELECT Distinct AffiliateCode FROM AffiliateTransaction", new { Count = 0 }).Count(),
+                    PayoutStats = siteDatabase.Query("SELECT Count(Id) as Count, Avg(CommissionAmount) as Avg, Sum(CommissionAmount) as Sum FROM AffiliateTransaction", new { Count = 0, Avg = 0.0M, Sum = 0.0M }).FirstOrDefault(),
                 };
                 MemoryCache.Default.Add("affiliatefacts", affiliateFacts, DateTimeOffset.Now.AddHours(1));
             }
 
-            var content = ContentModule.GetPage(SiteDatabase, "/__affiliate", true);
+            var content = ContentModule.GetPage(siteDatabase, "/__affiliate", true);
 
             var standardModel = new StandardModel(200);
             standardModel.Content = content;
@@ -740,8 +742,8 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                 if (dashboardData == null)
                 {
-                    var user = this.SiteDatabase.GetById<NcbUser>(registration.NcbUserId);
-                    var saleOrders = this.SiteDatabase.Query<SaleOrder>()
+                    var user = siteDatabase.GetById<NcbUser>(registration.NcbUserId);
+                    var saleOrders = siteDatabase.Query<SaleOrder>()
                             .Where(so => so.NcbUserId == registration.NcbUserId)
                             .ToList();
 
@@ -754,7 +756,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     if (activeSaleOrder != null)
                     {
                         // figure out delivery date
-                        activeSaleOrder.FindShipoutAndDeliveryDate(this.SiteDatabase);
+                        activeSaleOrder.FindShipoutAndDeliveryDate(siteDatabase);
                     }
 
                     Func<SaleOrder, SaleOrder> reduce = (so) =>
@@ -775,10 +777,10 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         };
                     };
 
-                    var stat = AffiliateReward.GetRewardStats(this.SiteDatabase, registration);
+                    var stat = AffiliateReward.GetRewardStats(siteDatabase, registration);
                     Func<AffiliateReward, JObject> addCanClaim = (rew) =>
                     {
-                        var canClaim = AffiliateReward.CanClaim(this.SiteDatabase, rew, registration, stat);
+                        var canClaim = AffiliateReward.CanClaim(siteDatabase, rew, registration, stat);
                         var toReturn = JObject.FromObject(rew);
 
                         toReturn.Add("canClaim", canClaim);
@@ -817,13 +819,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     };
 
                     AffiliateRegistration refererReg;
-                    refererReg = this.SiteDatabase.Query<AffiliateRegistration>()
+                    refererReg = siteDatabase.Query<AffiliateRegistration>()
                                          .Where(reg => reg.AffiliateCode == registration.RefererAffiliateCode)
                                          .FirstOrDefault();
 
                     if (refererReg != null)
                     {
-                        var refererUser = this.SiteDatabase.GetById<NcbUser>(refererReg.NcbUserId);
+                        var refererUser = siteDatabase.GetById<NcbUser>(refererReg.NcbUserId);
                         refererReg.AdditionalData = new
                         {
                             Id = refererUser.Profile.id
@@ -838,18 +840,18 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         Code = registration.AffiliateCode,
 
-                        RelatedOrders = this.SiteDatabase.Query<SaleOrder>()
+                        RelatedOrders = siteDatabase.Query<SaleOrder>()
                                             .Where(so => so.AffiliateCode == registration.AffiliateCode)
                                             .AsEnumerable()
                                             .Select(s => reduce(s)).ToList(),
 
-                        AffiliateTransaction = this.SiteDatabase.Query("SELECT * FROM AffiliateTransaction WHERE AffiliateCode=?",
+                        AffiliateTransaction = siteDatabase.Query("SELECT * FROM AffiliateTransaction WHERE AffiliateCode=?",
                         new AffiliateTransaction(),
                         new object[] { registration.AffiliateCode }).ToList(),
 
                         Profile = user.Profile,
 
-                        SaleOrders = this.SiteDatabase.Query<SaleOrder>()
+                        SaleOrders = siteDatabase.Query<SaleOrder>()
                             .Where(so => so.NcbUserId == registration.NcbUserId)
                                             .AsEnumerable()
                                             .Select(s => reduce(s)).ToList(),
@@ -858,17 +860,17 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         /* Stats */
 
-                        SubscribeAll = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateRegistration WHERE RefererAffiliateCode=?",
+                        SubscribeAll = siteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count FROM AffiliateRegistration WHERE RefererAffiliateCode=?",
                             new { Count = 0 },
                             new object[] { registration.AffiliateCode }).First().Count,
 
-                        ShareClicks = SiteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count, Url FROM AffiliateShareClick WHERE AffiliateRegistrationId=? GROUP By Url",
+                        ShareClicks = siteDatabase.QueryAsDynamic("SELECT COUNT(Id) As Count, Url FROM AffiliateShareClick WHERE AffiliateRegistrationId=? GROUP By Url",
                             new { Count = 0, Url = "" },
-                            new object[] { registration.Id }),
+                            new object[] { registration.Id }).ToList(),
 
-                        Downline = AffiliateModule.DiscoverDownLine(this.SiteDatabase, registration.AffiliateCode),
+                        Downline = AffiliateModule.DiscoverDownLine(siteDatabase, registration.AffiliateCode).ToList(),
 
-                        Rewards = this.SiteDatabase.Query<AffiliateReward>().AsEnumerable()
+                        Rewards = siteDatabase.Query<AffiliateReward>().ToList()
                                       .Where( rew => rew.IsActive == true )
                                       .AsEnumerable()
                                       .Where( rew => postProcess(rew))
@@ -876,9 +878,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                         RewardsStat = stat,
 
-                        ClaimedRewards = this.SiteDatabase.Query<AffiliateRewardsClaim>()
+                        ClaimedRewards = siteDatabase.Query<AffiliateRewardsClaim>()
                                                           .Where( c => c.NcbUserId == registration.NcbUserId)
-                                                          .AsEnumerable(),
+                                                          .ToList(),
 
                         AffiliateFacts = affiliateFacts
                     };
@@ -974,7 +976,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
         private void UpdatePageView(AffiliateRegistration reg)
         {
             // Fire and Forget - if multiple threads have spaned
-            var database = SiteDatabase;
+            var database = NancyBlackDatabase.GetSiteDatabase(this.RootPath);
             var key = reg.AffiliateCode + "-updatepageview";
 
             reg = database.GetById<AffiliateRegistration>(reg.Id);
@@ -1031,13 +1033,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
 
                     reg.LastPageViewUpdate = DateTime.Now;
                     reg.TotalUniqueUser += userSet.Count;
-                    reg.TotalSales = SiteDatabase.Query<SaleOrder>()
+                    reg.TotalSales = NancyBlackDatabase.GetSiteDatabase(this.RootPath).Query<SaleOrder>()
                                         .Where(so => so.AffiliateCode == reg.AffiliateCode &&
                                                so.PaymentStatus == PaymentStatus.PaymentReceived).Count();
 
                     reg.UpdateCommissionRate();
 
-                    SiteDatabase.UpsertRecord(reg);
+                    database.UpsertRecord(reg);
 
                     // Make the instance for checking available for 1 hour
                     MemoryCache.Default.Add(key, reg, DateTimeOffset.Now.AddHours(1));

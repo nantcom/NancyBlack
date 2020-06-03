@@ -17,6 +17,46 @@
 
     var membership = angular.module('ncb-membership', []);
 
+    window.onGoogleSignIn = function (googleUser) {
+
+        var $scope = $("*[ncb-membership]").scope();
+        if ($scope == null) {
+            window.setTimeout(function () {
+                window.onGoogleSignIn(googleUser);
+            }, 1000);
+
+            return;
+        }
+
+        /*{{
+          "bV": "117575854440328316016",
+          "Bd": "Jirawat Padungkijjanont",
+          "GW": "Jirawat",
+          "GU": "Padungkijjanont",
+          "iL": "https://lh3.googleusercontent.com/a-/AOh14GhReAYJgjplWO9p9L2BQVTVTFWblcktUKS7qcYz=s96-c",
+          "Eu": "nant@nant.co"
+            }
+        }*/
+    //{ "email": "banthorns@gmail.com", "first_name": "Banthorn", "last_name": "Sangsri", "currency": { "currency_offset": 100, "usd_exchange": 0.028841472, "usd_exchange_inverse": 34.6722941187, "user_currency": "THB" }, "id": "10154652066760665" }
+
+        var profile = googleUser.getBasicProfile();
+        var id_token = googleUser.getAuthResponse().id_token;
+
+        profile.first_name = profile.GW;
+        profile.last_name = profile.GU;
+        profile.email = profile.Eu;
+        profile.id = profile.bV;
+
+        delete profile.GW;
+        delete profile.GU;
+        delete profile.Eu;
+        delete profile.bV;
+        delete profile.Bd;
+
+        $scope.membership.logingoogle(null, profile, id_token);
+
+    };
+
     membership.directive('ncbMembership', function ($http, $compile, $window) {
 
         function link($scope, element, attrs) {
@@ -67,6 +107,7 @@
                 $window.currentUser = $me.currentUser;
 
                 $me.currentUser.IsFacebookUser = $me.currentUser.UserName.indexOf('fb_') == 0;
+                $me.currentUser.IsGoogleUser = $me.currentUser.UserName.indexOf('google_') == 0;
 
                 if ($me.currentUser.IsFacebookUser) {
 
@@ -75,6 +116,11 @@
                     if ($me.currentUser.Profile.SendContactEvent) {
                         fbq('track', 'Contact');
                     }
+                }
+
+                if ($me.currentUser.IsGoogleUser) {
+
+                    $me.currentUser.Picture = $me.currentUser.Profile.iL;
                 }
 
                 $scope.$broadcast("ncb-membership.login", {
@@ -139,12 +185,44 @@
 
             };
 
+            $me.logingoogle = function (callback, profile, token) {
+
+                $http.post('/__membership/logingoogle', { me: profile, token: token }).
+                    success(function (data, status, headers, config) {
+
+                        processLogin(data, callback);
+
+                        if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
+
+                            fbq('track', 'CompleteRegistration');
+                            ga('send', 'event', 'Register via Google');
+
+                            if ($scope.socialprove != null) {
+                                $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify(resultMe));
+                            }
+                        }
+
+                        if ($scope.socialprove != null) {
+                            $scope.socialprove.getprovewithdata('Login', JSON.stringify(resultMe));
+                        }
+
+                        ga('send', 'event', 'Login Google');
+                    }).
+                    error(function (data, status, headers, config) {
+
+                        $me.alerts.push({ type: 'danger', msg: 'Cannot Login' });
+
+                    });
+
+            };
+
+
             $me.loginfacebook = function (callback, popupless, state, isAutologin) {
 
                 if (typeof (FB) == "undefined") {
                     return false;
                 }
-
+                var accessToken = null;
                 var processFacebookLogin = function () {
 
                     if (isAutologin && Cookies.get("_ncbfbuser") != null) {
@@ -156,7 +234,9 @@
 
                     FB.api('/me?fields=email,first_name,last_name,birthday', function (resultMe) {
 
-                        $http.post('/__membership/loginfacebook', { me: resultMe }).
+                        resultMe.token = accessToken;
+
+                        $http.post('/__membership/loginfacebook', { me: resultMe, token: accessToken}).
                             success(function (data, status, headers, config) {
 
                                 processLogin(data, callback);
@@ -170,7 +250,6 @@
 
                                         $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify(resultMe));
                                     }
-
                                 }
 
                                 if ($scope.socialprove != null) {
@@ -225,6 +304,7 @@
 
                     if (response.status == "connected") {
 
+                        accessToken = response.authResponse.accessToken;
                         processFacebookLogin();
                     }
                 });
@@ -334,6 +414,7 @@
         return {
             restrict: 'A',
             link: link,
+            priority: 9999, // make sure we got compiled first
             scope: false
         };
     });
@@ -595,4 +676,4 @@
         };
     }]);
 
-})();
+})(window);

@@ -2617,7 +2617,7 @@
                 }
 
                 var remaining = [];
-                var bottom = document.documentElement.scrollTop + window.innerHeight;
+                var bottom = window.scrollY + window.innerHeight;
 
                 imgList.forEach(function ($element) {
 
@@ -2718,7 +2718,8 @@
                     imgElement.updateHeuristics(true);
                 };
 
-                imgElement.src = $element.attr("ncb-imgdefer");
+                loadImageIfAppeared($element, 99999999);
+                
                 return;
             }
 

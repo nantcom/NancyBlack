@@ -49,6 +49,7 @@
         $scope.emittedEvents = emittedEvents;
 
         $scope.data = {};
+        $scope.data.filter = null;
 
         if ($scope.object == undefined) {
             $scope.object = null;
@@ -144,7 +145,7 @@
                 source = source.take($scope.paging.size);
             }
 
-            source.read().done(function (results) {
+            source.read($scope.data.filter).done(function (results) {
 
                 $scope.$apply(function () {
 
@@ -168,12 +169,6 @@
 
             }, $me.handleError);
 
-        };
-
-        // reload is 
-        $scope.data.reload = function () {
-
-            throw "Reload is not available unless model is specified";
         };
 
         // focus on the given object
@@ -559,7 +554,7 @@
                 });
             });
 
-            req.fail(function (jqXHR, jqXHR, textStatus) {
+            req.fail(function (jqXHR, textStatus) {
 
                 if (callback != null) {
 
@@ -622,7 +617,7 @@
                 });
             });
 
-            req.fail(function (jqXHR, jqXHR, textStatus) {
+            req.fail(function (jqXHR, textStatus) {
 
                 if (callback != null) {
 
@@ -659,7 +654,7 @@
         return {
             restrict: 'A',
             link: link,
-            priority: 9999, // make sure we got compiled first
+            priority: 9998, // make sure we got compiled first
             scope: true,
         };
     }]);
@@ -1224,9 +1219,11 @@
 
                         var files = uploader.input[0].files;                        
                         $scope.data.upload(files[0], null, null, $me.attachmentType, false);
+
                     });
                 }
 
+                uploader.input.value = '';
                 uploader.input.trigger('click');
                 return false;
             });
@@ -1334,8 +1331,14 @@
                         var files = uploader.input[0].files;
                         $scope.data.upload(files[0], null, null, attrs.attachmentType, false);
                     });
+
                 }
 
+                if (attrs.accept != null) {
+                    uploader.input.attr("accept", attrs.accept)
+                }
+
+                uploader.input.attr('value',  '');
                 uploader.input.trigger('click');
                 return false;
             });

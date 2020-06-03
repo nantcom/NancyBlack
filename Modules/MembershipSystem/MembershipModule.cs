@@ -15,6 +15,9 @@ using NantCom.NancyBlack.Configuration;
 using Nancy.Bootstrapper;
 using System.Security.Cryptography;
 using System.Text;
+using RestSharp;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
+using Google.Apis.Auth;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
@@ -194,12 +197,78 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.ProcessLogin(user);
             };
 
+            Post["/__membership/logingoogle"] = this.HandleRequest(p =>
+            {
+                var input = p.body.Value;
+                if (input == null)
+                {
+                    return 400;
+                }
+
+                if (this.Context.Items[BuiltInCookies.UserId] == null)
+                {
+                    return 403;
+                }
+
+                var payload = GoogleJsonWebSignature.ValidateAsync((string)input.token).Result;
+                if (payload == null)
+                {
+                    return 400;
+                }
+
+                string inputEmail = (string)input.me.email;
+                if (string.IsNullOrEmpty(inputEmail) == false)
+                {
+                    var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.Email == inputEmail).FirstOrDefault();
+                    if (existingUser != null)
+                    {
+                        return this.ProcessLogin(existingUser);
+                    }
+                }
+
+                // this is the guid that nancyblack generated to identify session
+                var existingGuid = Guid.Parse(this.Context.Items[BuiltInCookies.UserId] as string);
+
+                var userName = "google_" + input.me.id;
+                NcbUser user = UserManager.Current.Register(this.SiteDatabase,
+                        userName,
+                        input.me.email == null ? userName : (string)input.me.email,
+                        this.GetHash(userName),
+                        false,
+                        true,
+                        input.me,
+                        existingGuid);
+
+                return this.ProcessLogin(user);
+            });
+
             Post["/__membership/loginfacebook"] = this.HandleRequest( p =>
             {
                 var input = p.body.Value;
                 if (input == null)
                 {
                     return 400;
+                }
+               
+                if (this.Context.Items[BuiltInCookies.UserId] == null)
+                {
+                    return 403;
+                }
+
+                if (this.VerifyFacebookToken((string)input.me.id, (string)input.token) == false)
+                {
+                    return 403;
+                }
+
+                // see if this email already used, if already used - login that user
+                string inputEmail = input.me.email as string;
+                if (string.IsNullOrEmpty(inputEmail) == false)
+                {
+                    var existingUser = this.SiteDatabase.Query<NcbUser>().Where(u => u.Email == inputEmail).FirstOrDefault();
+                    if (existingUser != null)
+                    {
+                        return this.ProcessLogin(existingUser);
+                    }
                 }
 
                 // this is the guid that nancyblack generated to identify session
@@ -297,6 +366,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
 
                 return this.ProcessLogin(user as NcbUser);
             });
+            
             Get["/__membership/impersonate/{guid}"] = this.HandleRequest((arg) =>
             {
                 if (this.Request.Query.failsafetoken != null)
@@ -320,7 +390,34 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return this.ProcessLogin(user as NcbUser);
             });
 
+        }
 
+        /// <summary>
+        /// Re-authenticate the user using provided user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="accessToken"></param>
+        /// <returns></returns>
+        private bool VerifyFacebookToken( string userId, string accessToken )
+        {
+            var req = new RestRequest(string.Format("/{0}?fields=id", userId), Method.GET);
+            req.AddParameter("access_token", accessToken);
+
+            var client = new RestClient("https://graph.facebook.com");
+            var result = client.Execute(req);
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                return false;
+            }
+
+            dynamic returned = JObject.Parse(result.Content);
+            if ((string)returned.id != userId)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private dynamic HandlePasswordRequest(dynamic arg)

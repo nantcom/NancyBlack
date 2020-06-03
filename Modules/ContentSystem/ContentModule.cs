@@ -48,7 +48,23 @@ namespace NantCom.NancyBlack.Modules
         {
             Get["/robots.txt"] = this.HandleRequest((arg) =>
             {
+                if (File.Exists(this.RootPath + "\\Site\\robots.txt"))
+                {
+                    return File.ReadAllText(this.RootPath + "\\Site\\robots.txt");
+                }
+
                 return "User-agent: *\nDisallow: ";
+            });
+
+            Get["/ads.txt"] = this.HandleRequest((arg) =>
+            {
+                if (File.Exists(this.RootPath + "\\Site\\ads.txt"))
+                {
+                    return File.ReadAllText(this.RootPath + "\\Site\\ads.txt");
+                }
+
+                return 404;
+
             });
 
             Get["/{path*}"] = this.HandleRequest(this.HandleContentRequestCached);
