@@ -310,7 +310,7 @@ namespace NantCom.NancyBlack
                 return null;
             });
 
-            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            BootStrapper.SetCookies += (ctx) =>
             {
                 var domainParts = ctx.Request.Url.HostName.Split('.');
                 var cookieDomain = ctx.Request.Url.HostName;
@@ -319,7 +319,6 @@ namespace NantCom.NancyBlack
                 {
                     cookieDomain = "." + string.Join(".", domainParts.Skip(1));
                 }
-
 
                 if (ctx.Items.ContainsKey("ChosenLanguage"))
                 {
@@ -330,9 +329,7 @@ namespace NantCom.NancyBlack
                 {
                     ctx.Response.WithCookie("ChosenCurrency", (string)ctx.Items["ChosenCurrency"], DateTime.Now.AddYears(1), cookieDomain, null);
                 }
-
-
-            });
+            };
         }
     }
 }

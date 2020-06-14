@@ -137,6 +137,8 @@ namespace NantCom.NancyBlack.Modules
                 return 400;
             }
 
+            this.Context.Items["NoCookie"] = true;
+
             var key = table + id;
             dynamic cached = MemoryCache.Default.Get(key);
             if (cached != null)

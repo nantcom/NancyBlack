@@ -36,23 +36,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             {
                 return FacebookWebHook.IsOptInActive(this.SiteDatabase, this.Context, (string)arg.type);
             });
-
-            //Get["/__fbmp/migratetabledata"] = (arg) =>
-            //{
-            //    var table = this.GetTracingTable();
-            //    var entities = table.ExecuteQuery(new TableQuery<FacebookWebhookRequest>());
-
-            //    var toUpdate = new List<FacebookWebhookRequest>();
-            //    foreach (var row in entities)
-            //    {
-            //        var body = JObject.Parse(row.Payload);
-
-            //    }
-
-            //    return "OK";
-            //};
-
-            
+                        
             Get["/__fbmp/linkaccounts"] = this.HandleRequest((arg) =>
             {
                 var session = this.SiteDatabase.Query<FacebookChatSession>()
@@ -446,9 +430,9 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
             IEnumerable<dynamic> result = FacebookWebHook.FacebookApiGet(this.CurrentSite, "/" + leadId);
 
             var lead = result.FirstOrDefault();
-            if (lead == null)
+            if (lead == null || lead.error != null)
             {
-                MailSenderModule.SendEmail("company@nant.co", "LeadGen Error - Cannot get Lead", "Lead Id: " + leadId);
+                MailSenderModule.SendEmail("company@nant.co", "LeadGen Error - Cannot get Lead", "Lead Id: " + leadId + " Message: " + lead.error.message);
                 return;
             }
 
@@ -509,7 +493,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         public static IEnumerable<dynamic> FacebookApiGet( dynamic siteSettings, string url, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
 
-            var client = new RestClient("https://graph.facebook.com/v2.11/");
+            var client = new RestClient("https://graph.facebook.com/");
             var req = new RestRequest(url, Method.GET );
 
             // add parameters
@@ -597,7 +581,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <returns></returns>
         public static dynamic FacebookApiPost(dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            RestClient client = new RestClient("https://graph.facebook.com/v5.0/");
+            RestClient client = new RestClient("https://graph.facebook.com/v6.0/");
             RestRequest req = new RestRequest(url, Method.POST);
 
             // add parameters
@@ -681,7 +665,7 @@ namespace NantCom.NancyBlack.Modules.FacebookMessengerSystem
         /// <returns></returns>
         public static dynamic FacebookApi( Method method, dynamic siteSettings, string url, object payload, bool sendSecretProof = false, bool throwOnError = false, params string[] queryStringPair)
         {
-            RestClient client = new RestClient("https://graph.facebook.com/v3.2/");
+            RestClient client = new RestClient("https://graph.facebook.com/");
             RestRequest req = new RestRequest(url, method);
 
             // add parameters

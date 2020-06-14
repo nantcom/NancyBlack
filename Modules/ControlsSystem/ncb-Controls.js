@@ -259,8 +259,13 @@
                 return;
             }
 
-            var urlMatch = window.location.href.indexOf(url) >= 0;
-            if (urlMatch == true) {
+            if (window.location.pathname == url) {
+
+                element.addClass("active");
+
+            }
+
+            if ( attrs.partial != null && window.location.pathname.indexOf( url ) == 0) {
 
                 element.addClass("active");
 
@@ -2493,7 +2498,7 @@
                 }
             }
 
-            $http.get(url).success(
+            $http.get(url + ".json").success(
                 function (data, status, headers, config) {
 
                     localStorage.setItem(key, JSON.stringify({
@@ -2555,6 +2560,16 @@
         var widthStep = [0, 320, 375, 425, 768, 1024, 1440, 1920, 2560, 3840];
         var width = window.innerWidth;
 
+        var webpSupported = false;
+        {
+            var elem = document.createElement('canvas');
+
+            if (!!(elem.getContext && elem.getContext('2d'))) {
+                // was able or not to get WebP representation
+                webpSupported = elem.toDataURL('image/webp').indexOf('data:image/webp') == 0;
+            }
+        };
+
         for (var i = 0; i < widthStep.length; i++) {
             if (widthStep[i] >= width) {
                 width = widthStep[i];
@@ -2582,6 +2597,12 @@
         function loadImageIfAppeared($element, referencePoint) {
 
             var src = $element.attr("ncb-imgdefer");
+            var ext = src.substr(src.lastIndexOf("."));
+
+            if (webpSupported) {
+                ext = ".webp";
+            }
+
             var isReize = src.indexOf("/") == 0 && src.indexOf("/__resize") == -1;
             var offSet = $element.offset();
 
@@ -2591,11 +2612,11 @@
 
                     if ($element.bgmode == true) {
 
-                        $element.imgElement.src = "/__resizeh-bg/" + $element.attr("key");
+                        $element.imgElement.src = "/__resizeh-bg/" + $element.attr("key") + ext;
                     }
                     else {
 
-                        $element.imgElement.src = "/__resizeh/" + $element.attr("key");
+                        $element.imgElement.src = "/__resizeh/" + $element.attr("key") + ext;
                     }
                 }
                 else {
@@ -2708,6 +2729,7 @@
 
             };
 
+
             // dont-run defer for admins, they might be editing the page
             // admin will always force heuristic update
             if ($scope.isAdmin) {
@@ -2716,10 +2738,18 @@
 
                     fixIsotope();
                     imgElement.updateHeuristics(true);
+
+                    if (imgElement.$backgroundTarget != null) {
+
+                        imgElement.$backgroundTarget.css("background-image", "url('" + imgElement.src + "')");
+                        $(imgElement).remove();
+
+                        return;
+                    }
                 };
 
                 loadImageIfAppeared($element, 99999999);
-                
+
                 return;
             }
 

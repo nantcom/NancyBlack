@@ -72,7 +72,7 @@ namespace NantCom.NancyBlack
         }
 
         /// <summary>
-        /// Gets root path
+        /// Gets User Id which we assigned to user
         /// </summary>
         /// <param name="ctx"></param>
         /// <returns></returns>
@@ -239,6 +239,11 @@ namespace NantCom.NancyBlack.Configuration
 
     public class BootStrapper : DefaultNancyBootstrapper
     {
+        /// <summary>
+        /// Final point to set any required cookies
+        /// </summary>
+        public static event Action<NancyContext> SetCookies = delegate { };
+
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
@@ -249,8 +254,6 @@ namespace NantCom.NancyBlack.Configuration
 
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
-
-
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
@@ -383,9 +386,6 @@ namespace NantCom.NancyBlack.Configuration
 
             #endregion
 
-
-
-
             var formsAuthConfiguration = new FormsAuthenticationConfiguration
             {
                 RedirectUrl = "~/__membership/login",
@@ -395,11 +395,34 @@ namespace NantCom.NancyBlack.Configuration
 
             pipelines.AfterRequest.AddItemToEndOfPipeline((ctx) =>
             {
+                if (ctx.Response.StatusCode != Nancy.HttpStatusCode.OK)
+                {
+                    return;
+                }
+
+                bool include = ctx.Response.ContentType.StartsWith("text/html") ||
+                                ctx.Response.ContentType.StartsWith("application/json");
+
+                if (ctx.Items.ContainsKey("NoCookie") ||
+                    ctx.Request.Url.Path.StartsWith("/table") )
+                {
+                    include = false;
+                }
+
+                if (!include)
+                {
+                    ctx.Response.WithHeader("Cache-Control", "public, max-age=86400");
+                    return;
+                }
+
                 if (ctx.Items.ContainsKey("userid"))
                 {
                     ctx.Response.Cookies.Add(
                         new NancyCookie("userid", ctx.Items["userid"].ToString(), DateTime.Now.AddYears(10)));
                 }
+
+                BootStrapper.SetCookies(ctx);
+
             });
 
             foreach (var item in container.ResolveAll<IPipelineHook>())

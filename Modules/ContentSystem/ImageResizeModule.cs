@@ -66,8 +66,16 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             Get["/__resizeh/{key}"] = (args) =>
             {
                 var mode = ImageResizeMode.Fill;
+                var key = (string)args.key;
+                string ext = null;
 
-                var heuristics = ImageSizeHeuristics.GetSize((string)args.key);
+                if (key.Length > 32)
+                {
+                    ext = key.Substring(33);
+                    key = key.Substring(0, 32);
+                }
+
+                var heuristics = ImageSizeHeuristics.GetSize(key);
 
                 if (heuristics == null)
                 {
@@ -78,14 +86,23 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     (string)heuristics.ImageUrl,
                     (int)heuristics.Width,
                     (int)heuristics.Height,
-                    mode);
+                    mode,
+                    ext);
             };
 
             Get["/__resizeh-bg/{key}"] = (args) =>
             {
                 var mode = ImageResizeMode.Fit;
+                var key = (string)args.key;
+                string ext = null;
 
-                var heuristics = ImageSizeHeuristics.GetSize((string)args.key);
+                if (key.Length > 32)
+                {
+                    ext = key.Substring(33);
+                    key = key.Substring(0, 32);
+                }
+
+                var heuristics = ImageSizeHeuristics.GetSize(key);
 
                 if (heuristics == null)
                 {
@@ -98,7 +115,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                     (string)heuristics.ImageUrl,
                     heuristics.Width == max ? max : 0,
                     heuristics.Height == max ? max : 0,
-                    mode);
+                    mode,
+                    ext);
             };
 
             Post["/__resize/heuristics"] = this.HandleRequest((arg) =>
@@ -121,7 +139,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        private dynamic ResizeImage(string path, int w, int h, ImageResizeMode mode)
+        private dynamic ResizeImage(string path, int w, int h, ImageResizeMode mode, string ext = null)
         {
             path = Path.Combine(this.RootPath, path.StartsWith("/") ? path.Substring(1) : path);
             if (File.Exists(path) == false)
@@ -159,7 +177,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 var result = imageFactory.Load(ms)
                                          .Resize(new ResizeLayer(size, libraryMode));
 
-                if (this.Request.Headers.Accept.Any(t => t.Item1.Contains("/webp")))
+                if (ext == "webp" ||
+                    this.Request.Headers.Accept.Any(t => t.Item1.Contains("/webp")))
                 {
                     result = result.Format(new WebPFormat() { Quality = 80 });
                 }
@@ -174,7 +193,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 resultMS.CopyTo(s);
             };
 
-            return response;
+            return response
+                    .WithHeader("Cache-Control", "public, max-age=3600");
         }
     }
 }

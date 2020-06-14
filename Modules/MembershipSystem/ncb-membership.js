@@ -17,6 +17,7 @@
 
     var membership = angular.module('ncb-membership', []);
 
+    window.googleSigninCallback = null;
     window.onGoogleSignIn = function (googleUser) {
 
         var $scope = $("*[ncb-membership]").scope();
@@ -28,32 +29,18 @@
             return;
         }
 
-        /*{{
-          "bV": "117575854440328316016",
-          "Bd": "Jirawat Padungkijjanont",
-          "GW": "Jirawat",
-          "GU": "Padungkijjanont",
-          "iL": "https://lh3.googleusercontent.com/a-/AOh14GhReAYJgjplWO9p9L2BQVTVTFWblcktUKS7qcYz=s96-c",
-          "Eu": "nant@nant.co"
-            }
-        }*/
-    //{ "email": "banthorns@gmail.com", "first_name": "Banthorn", "last_name": "Sangsri", "currency": { "currency_offset": 100, "usd_exchange": 0.028841472, "usd_exchange_inverse": 34.6722941187, "user_currency": "THB" }, "id": "10154652066760665" }
-
         var profile = googleUser.getBasicProfile();
         var id_token = googleUser.getAuthResponse().id_token;
 
-        profile.first_name = profile.GW;
-        profile.last_name = profile.GU;
-        profile.email = profile.Eu;
-        profile.id = profile.bV;
+        var me = {}
 
-        delete profile.GW;
-        delete profile.GU;
-        delete profile.Eu;
-        delete profile.bV;
-        delete profile.Bd;
+        me.first_name = profile.getGivenName();
+        me.last_name = profile.getFamilyName();
+        me.email = profile.getEmail();
+        me.id = profile.getId();
+        me.image = profile.getImageUrl();
 
-        $scope.membership.logingoogle(null, profile, id_token);
+        $scope.membership.logingoogle(window.googleSigninCallback, me, id_token);
 
     };
 
@@ -120,7 +107,7 @@
 
                 if ($me.currentUser.IsGoogleUser) {
 
-                    $me.currentUser.Picture = $me.currentUser.Profile.iL;
+                    $me.currentUser.Picture = $me.currentUser.Profile.picture;
                 }
 
                 $scope.$broadcast("ncb-membership.login", {
@@ -198,12 +185,12 @@
                             ga('send', 'event', 'Register via Google');
 
                             if ($scope.socialprove != null) {
-                                $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify(resultMe));
+                                $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify(profile));
                             }
                         }
 
                         if ($scope.socialprove != null) {
-                            $scope.socialprove.getprovewithdata('Login', JSON.stringify(resultMe));
+                            $scope.socialprove.getprovewithdata('Login', JSON.stringify(profile));
                         }
 
                         ga('send', 'event', 'Login Google');

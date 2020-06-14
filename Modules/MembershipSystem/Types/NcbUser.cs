@@ -151,12 +151,18 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         {
             this.Claims = new string[0];
             this.UserName = "Anonymous";
+            this.Profile = JObject.FromObject(new
+            {
+                email = "anonymous@nant.co",
+                first_name = "",
+                last_name = ""
+            });
         }
 
         /// <summary>
         /// Localhost Admin
         /// </summary>
-        public static readonly NcbUser LocalHostAdmin = new NcbUser() { Id = 1, UserName = "LocalHostAdmin", Claims = new string[] { "admin" }, Profile = new { first_name = "Admin", last_name = "Admin", email = "admin@localhost" } };
+        public static readonly NcbUser LocalHostAdmin = new NcbUser() { Id = 1, UserName = "LocalHostAdmin", Claims = new string[] { "admin" }, Profile = JObject.FromObject( new { first_name = "Admin", last_name = "Admin", email = "admin@localhost" } ) };
 
         /// <summary>
         /// 'Anonymous'

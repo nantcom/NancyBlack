@@ -11,7 +11,7 @@
     };
 
 
-    ncb.directive('ncbSubscribe', function ($http, $datacontext, $document) {
+    ncb.directive('ncbSubscribe', function ($http, $datacontext, $document, $window) {
 
         function link($scope, element, attrs) {
 
@@ -20,7 +20,6 @@
                 swal.close();
 
             });
-
 
             var apply = function (email) {
 
@@ -221,7 +220,7 @@
 
                     // no longer require email - we will be as frictionless as possible
                     apply();
-                    
+
 
                 }, true, "subscribe");
             };
@@ -332,12 +331,31 @@
                 }
             }
 
-            
+            $scope.$watch("membership", function () {
+
+                if ($scope.membership == null) {
+                    return;
+                }
+
+                if ($scope.membership.currentUser.Id == 0) {
+
+                    // currently anonymous user, if sign in will auto apply affiliate program
+                    window.googleSigninCallback = function () {
+
+                        apply();
+                        window.googleSigninCallback = null;
+                    };
+                }
+
+            });
+
+
         }
 
         return {
             restrict: 'A',
             link: link,
+            priority: 99997,
             scope: false
         };
     });

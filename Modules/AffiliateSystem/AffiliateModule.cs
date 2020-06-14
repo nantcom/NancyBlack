@@ -689,7 +689,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                 return null;
             });
 
-            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            BootStrapper.SetCookies += (ctx) =>
             {
                 if (ctx.Request.Cookies.ContainsKey("source"))
                 {
@@ -702,8 +702,7 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                     ctx.Response.Cookies.Add(
                         new NancyCookie("affiliatename", ctx.Request.Cookies["affiliatename"], DateTime.Now.AddDays(7)));
                 }
-
-            });
+            };
         }
 
         private dynamic AffiliateDashboard(AffiliateRegistration registration, dynamic arg)

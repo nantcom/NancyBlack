@@ -18,6 +18,7 @@ using System.Text;
 using RestSharp;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using Google.Apis.Auth;
+using NantCom.NancyBlack.Site.Module.Types;
 
 namespace NantCom.NancyBlack.Modules.MembershipSystem
 {
@@ -79,7 +80,6 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
         /// <param name="p"></param>
         public void Hook(IPipelines p)
         {
-
             p.BeforeRequest.AddItemToEndOfPipeline((ctx) =>
             {
                 if (ctx.CurrentUser == null)
@@ -105,12 +105,79 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                 return null;
             });
 
-            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            BootStrapper.SetCookies += (ctx) =>
             {
+
                 if (ctx.CurrentUser == null || ctx.CurrentUser.UserName == "Anonymous")
                 {
                     ctx.Response.WithCookie("_ncbfbuser", "0", DateTime.MinValue);
                 }
+            };
+
+            p.AfterRequest.AddItemToEndOfPipeline((ctx) =>
+            {
+                // user did not log in
+                // we try to gather profile from whatever we have in database
+                if (ctx.CurrentUser != null && ctx.CurrentUser.UserName == "Anonymous")
+                {
+                    var userId = (string)ctx.Items[BuiltInCookies.UserId];
+                    var cacheKey = "TempUserCache-" + userId;
+
+                    NcbUser user = MemoryCache.Default[cacheKey] as NcbUser;
+                    if (user != null)
+                    {
+                        ctx.CurrentUser = user;
+                    }
+                    else
+                    {
+                        var guid = Guid.Parse(userId);
+                        var db = ctx.GetSiteDatabase();
+                        user = db.Query<NcbUser>().Where(u => u.Guid == guid).FirstOrDefault();
+
+                        if (user == null)
+                        {
+                            var lead = db.Query<Level51FacebookLead>().Where(u => u.UserGuid == userId).FirstOrDefault();
+                            if (lead != null)
+                            {
+                                ctx.CurrentUser = new NcbUser()
+                                {
+                                    UserName = "Anonymous",
+                                    Guid = guid,
+                                    Email = lead.Email,
+                                    Profile = JObject.FromObject(new
+                                    {
+                                        email = lead.Email,
+                                        first_name = lead.FirstName,
+                                        last_name = lead.LastName
+                                    })
+                                };
+                            }
+                            else
+                            {
+                                ctx.CurrentUser = new NcbUser()
+                                {
+                                    UserName = "Anonymous",
+                                    Guid = guid,
+                                    Email = userId + "@level51pc.com",
+                                    Profile = JObject.FromObject(new
+                                    {
+                                        email = userId + "@level51pc.com",
+                                        first_name = userId,
+                                        last_name = ""
+                                    })
+                                };
+                            }
+                        }
+                        else
+                        {
+                            ctx.CurrentUser = user;
+                        }
+
+                        MemoryCache.Default.Add(cacheKey, ctx.CurrentUser, DateTimeOffset.Now.AddMinutes(5));
+                    }
+
+                }
+
 
             });
 
@@ -138,6 +205,12 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             if (user.UserName.StartsWith("fb_"))
             {
                 response = response.WithCookie("_ncbfbuser", "1", nextDay);
+            }
+
+            var guid = user.Guid.ToString();
+            if (this.Context.GetUserId() != guid)
+            {
+                this.Context.Items["userid"] = user.Guid.ToString();
             }
             
             return response;
