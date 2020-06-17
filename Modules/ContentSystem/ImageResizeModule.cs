@@ -32,6 +32,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
         public ImageResizeModule()
         {
+            ImageSizeHeuristics.LoadHeuristics();
+
             Get["/__resize2/{w}/{h}/{mode}/{path*}"] = (args) =>
             {
                 var path = (string)args.path;

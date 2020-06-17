@@ -19,6 +19,7 @@ using Nancy.Conventions;
 using System.Diagnostics;
 using System.Reflection;
 using Nancy.Cookies;
+using Nancy.Security;
 
 namespace NantCom.NancyBlack
 {
@@ -400,19 +401,31 @@ namespace NantCom.NancyBlack.Configuration
                     return;
                 }
 
-                bool include = ctx.Response.ContentType.StartsWith("text/html") ||
+                bool addCookies = ctx.Response.ContentType.StartsWith("text/html") ||
                                 ctx.Response.ContentType.StartsWith("application/json");
 
                 if (ctx.Items.ContainsKey("NoCookie") ||
                     ctx.Request.Url.Path.StartsWith("/table") )
                 {
-                    include = false;
+                    addCookies = false;
                 }
 
-                if (!include)
+                // for admins requesting admin page - always return fresh copy
+                if (ctx.CurrentUser.HasClaim("admin") &&
+                    (ctx.Request.Url.Path.StartsWith("/table") ||
+                     ctx.Request.Url.Path.StartsWith("/Admin")) )
                 {
-                    ctx.Response.WithHeader("Cache-Control", "public, max-age=86400");
-                    return;
+                    addCookies = true;
+                    ctx.Response.WithHeader("Cache-Control", "no-cache");
+                    ctx.Response.Cookies.Add(new NancyCookie("admin", "1", DateTime.Now.AddDays(1)));
+                }
+                else
+                {
+                    if (!addCookies)
+                    {
+                        ctx.Response.WithHeader("Cache-Control", "public, max-age=86400");
+                        return;
+                    }
                 }
 
                 if (ctx.Items.ContainsKey("userid"))

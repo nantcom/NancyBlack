@@ -228,6 +228,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public int NcbUserId { get; set; }
 
         /// <summary>
+        /// Guid of user who created this sale order
+        /// </summary>
+        public string UserGuid { get; set; }
+
+        /// <summary>
         /// Shipping Address
         /// </summary>
         public NcgAddress ShipTo { get; set; }

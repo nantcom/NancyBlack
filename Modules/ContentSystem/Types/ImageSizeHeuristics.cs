@@ -5,6 +5,8 @@ using NantCom.NancyBlack.Modules.DatabaseSystem.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -99,10 +101,17 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// Load Heuristics Data
         /// </summary>
         /// <param name="db"></param>
-        public static void LoadHeuristics(NancyBlackDatabase db)
+        public static void LoadHeuristics()
         {
-            _Heuristics = new Dictionary<string, ImageSizeHeuristics>();
+            if (_Heuristics != null && _Heuristics.Count != 0)
+            {
+                return;
+            }
+
+            var db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath);
             var list = db.Query<ImageSizeHeuristics>();
+
+            _Heuristics = new Dictionary<string, ImageSizeHeuristics>();
 
             foreach (var row in list)
             {
@@ -110,12 +119,33 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
             }
         }
 
+        private static long _SaveCounter = 0;
+
         /// <summary>
         /// Save Heuristics Data
         /// </summary>
         /// <param name="db"></param>
         public static void SaveHeuristics()
         {
+            var myId = Interlocked.Increment(ref _SaveCounter);
+
+            Task.Run(() =>
+            {
+                Task.Delay(3000).Wait();
+                if (myId < _SaveCounter)
+                {
+                    return;
+                }
+
+                var db = NancyBlackDatabase.GetSiteDatabase(BootStrapper.RootPath);
+                db.Transaction(() =>
+                {
+                    foreach (var item in _Heuristics.Values)
+                    {
+                        db.UpsertRecord<ImageSizeHeuristics>(item);
+                    }
+                });
+            });
         }
 
     }
