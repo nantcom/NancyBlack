@@ -46,7 +46,7 @@
     "dgeni": "~0.4.1",
     "dgeni-packages": "~0.10.13",
     "canonical-path": "0.0.2",
-    "lodash": "~3.7.0",
+    "lodash": "~4.17.19",
     "gulp-sequence": "~0.3.2",
     "gulp-wait": "0.0.2"
   }
