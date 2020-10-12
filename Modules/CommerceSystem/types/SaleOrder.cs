@@ -560,6 +560,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             {
                 this.ItemsDetail.Remove(discountItem);
             }
+
             // insert discount when there are some item with discount price (all in one discount)
             if (this.TotalAmount != totalWithoutDiscount)
             {
@@ -587,17 +588,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                     discountItem = new Product()
                     {
                         Title = "Discount",
-                        Price = this.TotalAmount - totalWithoutDiscount,
+                        Price = this.TotalAmount - (totalWithoutDiscount + totalNegativePrices),
                         Url = "/dummy/dummy",
                         Attributes = attr
                     };
                 }
 
-
                 this.ItemsDetail.Add(discountItem);
 
-                this.TotalDiscount = (discountItem.Price + totalNegativePrices) * -1;
-                this.TotalWithoutDiscount = totalWithoutDiscount + (totalNegativePrices * -1);
+                this.TotalDiscount = (discountItem.Price);
+                this.TotalWithoutDiscount = totalWithoutDiscount;
             }
             else
             {
