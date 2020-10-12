@@ -12,7 +12,7 @@ using System.Web;
 
 namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
 {
-    public class AffiliateReward : IStaticType
+    public class AffiliateReward : IStaticType, IHasAttachment
     {
         #region IStaticType Properties
         public int Id { get; set; }
@@ -183,7 +183,9 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem.types
                 return true;
             }
         }
-        
+
+        public dynamic[] Attachments { get; set; }
+
         /// <summary>
         /// Get Statistics that will be use to render reward dashboard
         /// </summary>

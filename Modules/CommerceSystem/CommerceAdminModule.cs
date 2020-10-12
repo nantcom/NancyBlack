@@ -40,6 +40,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 return "/" + filePath;
             });
 
+            Get["/admin/tables/affiliatereward"] = this.HandleRequest((arg) =>
+            {
+                if (!this.CurrentUser.HasClaim("admin"))
+                {
+                    return 403;
+                }
+
+                return View["/Admin/couponlist", new StandardModel(this, new Page(), null)];
+            });
+
             Get["/admin/commerce/api/exchangerate"] = this.HandleRequest(this.GetExchangeRate);
 
             Patch["/tables/product/{id:int}"] = this.HandleRequest(this.HandleProductSave);

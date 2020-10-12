@@ -1078,13 +1078,26 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
             return ancestorList;
         }
 
+        public class DownLineInformation
+        {
+            public int level { get; set; }
+
+            public string name { get; set; }
+
+            public string facebookId { get; set; }
+
+            public string parent { get; set; }
+
+            public DateTime RegistrationDate { get; set; }
+        }
+
         /// <summary>
         /// Discovers down line of current user
         /// </summary>
         /// <param name="reg"></param>
         /// <param name="maxLevel"></param>
         /// <returns></returns>
-        public static IEnumerable<dynamic> DiscoverDownLine( NancyBlackDatabase db, string topCode, int maxLevel = 2)
+        public static IEnumerable<DownLineInformation> DiscoverDownLine( NancyBlackDatabase db, string topCode, int maxLevel = 2)
         {
             var cache = MemoryCache.Default["AffiliateCache"] as ILookup<string, dynamic>;
             if (cache == null)
@@ -1112,12 +1125,13 @@ namespace NantCom.NancyBlack.Modules.AffiliateSystem
                         continue;
                     }
 
-                    yield return new
+                    yield return new DownLineInformation()
                     {
                         level = currentLevel,
                         name = (string)item.AffiliateName,
                         facebookId = user.FacebookAppScopedId,
                         parent = current,
+                        RegistrationDate = user.__createdAt
                     };
 
                     referer.Enqueue((string)item.AffiliateCode);
