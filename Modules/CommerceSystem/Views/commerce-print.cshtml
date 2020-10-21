@@ -39,128 +39,136 @@
 
     @if (type == "checklist")
     {
-    <div id="page-wrap"
-         style="font-size: 130% !important">
-        <div class="row">
-            <table width="100%" cellpadding="10">
-                <tr>
-                    <td style="font-size: 60px !important"
-                        width="30%">
-                        {{so.SaleOrderIdentifier.substr( so.SaleOrderIdentifier.length - 4 ) }}
-                    </td>
-                    <td width="30%"
-                        valign="top">
-                        <b ng-if="moment(so.DueDate).isAfter()" style="color: red">
-                            DUE DATE:<br />
-                            {{so.DueDate | date:'dd / MM / yyyy'}}
-                        </b>
-                        <b ng-if="moment(so.DueDate).isAfter() == false" style="color: red">
-                            PAID SINCE:<br />
-                            {{so.PaymentReceivedDate | date:'dd / MM / yyyy'}}
-                        </b>
-                    </td>
-                    <td 
-                        valign="top">
-                        <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b> <br />
-                        {{so.Customer.PhoneNumber}} <br />
-                        {{so.Customer.Email}}
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="row">
-
-            <table id="items" class="table" 
-                    style="font-size: 12pt !important"
-                   ncg-productresolver saleorder="so">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>
-                            Product/Description
-                        </th>
-                        <th>
-                            Quantity
-                        </th>
-                        <th>
-                            Check 1
-                        </th>
-                        <th>
-                            Check 2
-                        </th>
-                    </tr>
-                </thead>
-                <tr ng-repeat="item in ItemsDetail | orderBy:ctrl.getOrder">
-                    <td>
-                        <div class="form-control-static">
-                            {{$index + 1}}
-                        </div>
-                    </td>
-                    <td>
-                        <div class="form-control-static">
-                            {{item.Title}}
-                        </div>
-                    </td>
-                    <td>
-                        <div class="form-control-static">
-                            {{item.Attributes.Qty}}
-                        </div>
-                    </td>
-                    <td>
-                    </td>
-                    <td></td>
-                </tr>
-
-            </table>
-
-
-            <div class="row"
-                 style="margin-top: 20px"></div>
-
+        <div id="page-wrap"
+             style="font-size: 130% !important"
+             class="check-list">
             <div class="row">
-                <div class="col-md-12">
-                    <table style="width: 100%; margin-top: 0; margin-bottom: 40px; height: 120px">
-                        <tr>
-                            <td>
-                                <div class="fitted">
-
-
-                                    <div class="by-name"></div>
-                                    <div class="company-name"></div>
-                                    <div class="authorized-signature">Builder</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="fitted">
-                                    <div class="collector">Check 1</div>
-
-                                    <div class="collect-date">
-                                        <b> &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp;</b>
-                                        Date
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-
-                                <div class="fitted">
-                                    <div class="collector">Check 2</div>
-
-                                    <div class="collect-date">
-                                        <b> &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp;</b>
-                                        Date
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <table width="100%" cellpadding="10">
+                    <tr>
+                        <td style="font-size: 60px !important"
+                            width="30%">
+                            {{so.SaleOrderIdentifier.substr( so.SaleOrderIdentifier.length - 4 ) }}
+                        </td>
+                        <td width="30%"
+                            valign="top">
+                            <b ng-if="moment(so.DueDate).isAfter()" style="color: red">
+                                DUE DATE:<br />
+                                {{so.DueDate | date:'dd / MM / yyyy'}}
+                            </b>
+                            <b ng-if="moment(so.DueDate).isAfter() == false" style="color: red">
+                                PAID SINCE:<br />
+                                {{so.PaymentReceivedDate | date:'dd / MM / yyyy'}}
+                            </b>
+                        </td>
+                        <td valign="top">
+                            <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b> <br />
+                            {{so.Customer.PhoneNumber}} <br />
+                            {{so.Customer.Email}}
+                        </td>
+                    </tr>
+                </table>
             </div>
 
+            <div class="row">
+
+                <table id="items" class="table"
+                       style="font-size: 12pt !important"
+                       ncg-productresolver saleorder="so">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>
+                                Product/Description
+                            </th>
+                            <th>
+                                Quantity
+                            </th>
+                            <th>
+                                Check 1
+                            </th>
+                            <th>
+                                Check 2
+                            </th>
+                        </tr>
+                    </thead>
+                    <tr ng-repeat="item in ItemsDetail | orderBy:ctrl.getOrder">
+                        <td>
+                            <div class="form-control-static">
+                                {{$index + 1}}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-control-static">
+                                {{item.Title}}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-control-static">
+                                {{item.Attributes.Qty}}
+                            </div>
+                        </td>
+                        <td>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                </table>
+
+
+                <div class="row"
+                     style="margin-top: 20px"></div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <table style="width: 100%; margin-top: 0; height: 120px">
+                            <tr>
+                                <td>
+                                    <div class="fitted">
+
+
+                                        <div class="by-name"></div>
+                                        <div class="company-name"></div>
+                                        <div class="authorized-signature">Builder</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fitted">
+                                        <div class="collector">Check 1</div>
+
+                                        <div class="collect-date">
+                                            <b> &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp;</b>
+                                            Date
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fitted">
+
+
+                                        <div class="by-name"></div>
+                                        <div class="company-name"></div>
+                                        <div class="authorized-signature">Packer</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fitted">
+                                        <div class="collector">Check 2</div>
+
+                                        <div class="collect-date">
+                                            <b> &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp;</b>
+                                            Date
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
 
         </div>
-
-    </div>
     }
     else
     {
@@ -548,10 +556,22 @@
                             <tr>
                                 <td>
                                     <div class="fitted">
-                                        <div class="collector" style="bottom: auto; top: 35px">
+
+                                        @if (type == "receipt")
+                                        {
+
+                                            <div class="collector" style="bottom: auto; top: 35px">
+                                                ผู้รับสินค้า / Received By
+                                            </div>
+
+                                            <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
+                                                 src="/Site/images/billing/cashiersignature.png" />
+
+                                        }
+                                        <div class="collector">
                                             @if (type == "receipt")
                                             {
-                                                <text>ผู้รับสินค้า / Received By</text>
+                                                <text>ผู้รับเงิน / Collector</text>
                                             }
                                             @if (type == "invoice")
                                             {
@@ -563,14 +583,6 @@
                                                 <text>อนุมัติตามที่เสนอ / Approve</text>
                                             }
                                         </div>
-
-                                        @if (type == "receipt")
-                                        {
-                                            <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
-                                                 src="/Site/images/billing/cashiersignature.png" />
-
-                                            <div class="collector">ผู้รับเงิน / Collector</div>
-                                        }
 
                                         <div class="collect-date">
                                             <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yy'}}</b>

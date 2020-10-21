@@ -29,7 +29,7 @@
         };
 
         $scope.getBathText = function (inputNumber) {
-            
+
             var getText = function (input) {
                 var toNumber = input.toString();
                 var numbers = toNumber.split('').reverse();
@@ -83,7 +83,7 @@
         $scope.getVat = function () {
 
             var grandTotal = $scope.getProductTotal() + $scope.discount.Price;
-            var beforeVat = $scope.getPriceBeforeVat( grandTotal );
+            var beforeVat = $scope.getPriceBeforeVat(grandTotal);
 
             return grandTotal - beforeVat;
         };
@@ -92,7 +92,7 @@
 
             var total = 0;
             for (var i = 0; i < $scope.ItemsDetail.length; i++) {
-                
+
                 total += $scope.ItemsDetail[i].Price * $scope.ItemsDetail[i].Attributes.Qty;
             }
 
@@ -141,21 +141,42 @@
         $scope.ItemsDetail = [];
         $scope.type = window.formType;
 
-        for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
+        if ($scope.type == 'checklist') {
 
-            if ($scope.so.ItemsDetail[i].CurrentPrice == 0) {
-                continue;
+            for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
+
+                if ($scope.so.ItemsDetail[i].Attributes.Qty > 0) {
+                    $scope.ItemsDetail.push($scope.so.ItemsDetail[i]);
+                }
             }
 
-            if ($scope.so.ItemsDetail[i].CurrentPrice> 0) {
-                $scope.ItemsDetail.push($scope.so.ItemsDetail[i]);
-            }
+            $scope.ItemsDetail.push({ Title: 'Check Driver SystemX, SoundBlaster and ControlCenter', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Sound, Mic, Camera and WIFI', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check All Port: USB, HTMI and Jack', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Device Manager', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Screw', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Grip Whole Body', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Scrach Whole Body', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Dead Pixels', Url: '', Attributes: { Qty: 1 } });
+        }
+        else { // for reciept and non-checklist
+            for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
 
-            if ($scope.so.ItemsDetail[i].CurrentPrice < 0) {
-                $scope.discount.Price += $scope.so.ItemsDetail[i].Price;
+                if ($scope.so.ItemsDetail[i].CurrentPrice == 0) {
+                    continue;
+                }
+
+                if ($scope.so.ItemsDetail[i].CurrentPrice > 0) {
+                    $scope.ItemsDetail.push($scope.so.ItemsDetail[i]);
+                }
+
+                if ($scope.so.ItemsDetail[i].CurrentPrice < 0) {
+                    $scope.discount.Price += $scope.so.ItemsDetail[i].Price;
+                }
+
             }
         }
-        
+
         if ($scope.so.ShippingFee == 0 && $scope.so.ShippingInsuranceFee > 0) {
             $scope.ItemsDetail.push({
                 Title: "Shipping Insurance",
@@ -192,7 +213,7 @@
 
         this.checkAmount = function (amount) {
 
-            if (amount> $scope.paymentDetail.PaymentRemaining) {
+            if (amount > $scope.paymentDetail.PaymentRemaining) {
 
                 return false;
             }
