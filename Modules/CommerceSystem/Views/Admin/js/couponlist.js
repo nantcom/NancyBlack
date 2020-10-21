@@ -15,6 +15,18 @@
             $scope.object = {};
         };
 
+        vm.copyCouponLink = function (coupon) {
+            const el = document.createElement('textarea');
+            var strValue = 'http://www.level51pc.com/__r' + coupon.id;
+            el.value = strValue;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            alert( '"' + strValue + '" has been copied.');
+        };
+
         $scope.object = {};
 
         $scope.filters = {};
@@ -42,4 +54,5 @@
             }
         });
     }
+
 })();

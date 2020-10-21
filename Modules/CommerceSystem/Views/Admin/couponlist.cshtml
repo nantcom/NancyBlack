@@ -382,11 +382,16 @@
                         <div>Id {{item.RewardsProductId}}</div>
                     </div>
 
+                    <div ng-show="item.IsActive && (item.IsAdminOnly == false) && (item.IsDirectClaim)">
+                        {{'http://www.level51pc.com/__r' + item.id}}
+                    </div>
+
                     <div class="action-container">
+
                         <button class="btn btn-default"
                                 ng-show="item.IsActive && (item.IsAdminOnly == false) && (item.IsDirectClaim)"
-                                ng-click="">
-                                <i class="fa fa-copy"></i> Link
+                                ng-click="$root.$$childHead.$$childHead.ctrl.copyCouponLink(item)">
+                            <i class="fa fa-copy"></i> Link
                         </button>
 
                         <button class="btn btn-info" data-toggle="modal" data-target="#CouponModal" ng-click="data.view(item)">
@@ -397,55 +402,5 @@
             </tr>
         </table>
 
-
-        @*<tr ng-repeat="item in tableParams.data">
-                <td data-title="'Id'"
-                    sortable="'Id'"
-                    filter="{ 'Id': 'text' }">
-                    <ncb-onoff ng-model="item.IsActive"></ncb-onoff>
-                    <div>
-                        {{item.id}}
-                    </div>
-                </td>
-                <td data-title="'Title'"
-                    sortable="'Title'"
-                    filter="{ 'Title': 'text' }">
-
-                    <img ng-src="{{item.Attachments[0].Url}}" />
-                    <input type="text" ng-model="item.Title" />
-                </td>
-                <td data-title="'Requirements'">
-                    <div>
-                        Visitor:<br /><input type="text" ng-model="item.UniqueVisitorCount" />
-                    </div>
-                    <div>
-                        Page View:<br /><input type="text" ng-model="item.PageViewsCount" />
-                    </div>
-                    <div>
-                        Downline:<br /><input type="text" ng-model="item.DownlineCount" />
-                    </div>
-                    <div>
-                        Sales:<br /><input type="text" ng-model="item.Sales" />
-                    </div>
-                </td>
-                <td data-title="'Condition'">
-                    <div>
-                        <input type="checkbox" ng-model="item.IsOneTime" /> One Time Use
-                    </div>
-                    <div>
-                        <input type="checkbox" ng-model="item.IsDirectClaim" /> Allow Customer to Claim
-                    </div>
-                    <div>
-                        Minium Amount:<br /><input type="text" ng-model="item.PageViewsCount" />
-                    </div>
-                </td>
-                <td data-title="'Rewards'">
-                    <div>
-
-                    </div>
-                </td>
-            </tr>*@
-
     </script>
-
 </div>
