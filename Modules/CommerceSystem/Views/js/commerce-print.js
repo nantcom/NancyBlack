@@ -150,6 +150,7 @@
                 }
             }
 
+            $scope.ItemsDetail.push({ Title: 'Check HDD/SSD initilization', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Driver SystemX, SoundBlaster and ControlCenter', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Sound, Mic, Camera and WIFI', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check All Port: USB, HTMI and Jack', Url: '', Attributes: { Qty: 1 } });
@@ -157,6 +158,7 @@
             $scope.ItemsDetail.push({ Title: 'Check Screw', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Grip Whole Body', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Scrach Whole Body', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Keyboard\'s Grip and Swollen', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Dead Pixels', Url: '', Attributes: { Qty: 1 } });
         }
         else { // for reciept and non-checklist
