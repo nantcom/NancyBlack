@@ -449,7 +449,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 }
 
                 this.TotalAmount += product.CurrentPrice;
-                totalWithoutDiscount += product.Price;
+                if (product.Price > 0)
+                {
+                    totalWithoutDiscount += product.Price;
+                }
             };
 
             // generate itemsdetail list from items list if not exists
@@ -498,6 +501,10 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                             if (item.CurrentPrice > item.Price) // this is not discount
                             {
                                 totalWithoutDiscount += item.CurrentPrice;
+                            }
+                            else if (item.CurrentPrice < 0 && item.CurrentPrice == item.Price)
+                            {
+                                // do nothing
                             }
                             else
                             {

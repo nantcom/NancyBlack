@@ -173,9 +173,8 @@
                 }
 
                 if ($scope.so.ItemsDetail[i].CurrentPrice < 0) {
-                    $scope.discount.Price += $scope.so.ItemsDetail[i].Price;
+                    $scope.discount.Price += $scope.so.ItemsDetail[i].CurrentPrice;
                 }
-
             }
         }
 
