@@ -297,6 +297,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     continue;
                 }
 
+                if (item.Url == "/dummy/dummy" && item.CurrentPrice == 0)
+                {
+                    continue;
+                }
+
                 // For each items in sale order, create an inventory item
                 for (int i = 0; i < (int)item.Attributes.Qty; i++)
                 {

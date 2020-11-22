@@ -608,6 +608,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
             }
             else
             {
+                this.TotalDiscount = 0;
+                this.TotalWithoutDiscount = this.TotalAmount;
             }
 
 
