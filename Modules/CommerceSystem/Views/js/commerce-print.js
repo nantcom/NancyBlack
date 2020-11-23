@@ -160,6 +160,7 @@
             $scope.ItemsDetail.push({ Title: 'Check Scrach Whole Body', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Keyboard\'s Grip and Swollen', Url: '', Attributes: { Qty: 1 } });
             $scope.ItemsDetail.push({ Title: 'Check Dead Pixels', Url: '', Attributes: { Qty: 1 } });
+            $scope.ItemsDetail.push({ Title: 'Check Blacklit Leak', Url: '', Attributes: { Qty: 1 } });
         }
         else { // for reciept and non-checklist
             for (var i = 0; i < $scope.so.ItemsDetail.length; i++) {
