@@ -56,9 +56,11 @@
                                 '<div><img src="/__c' + sharedCoupon.CouponId + '.jpg" style="margin-bottom: 5px"/></div>' +
                                 '<div style="margin-bottom: 5px" >คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
 
-                            fbq('track', 'AddToWishlist', {
-                                value: 30000,
-                                currency: 'THB'
+                            nonAdminAction(function () {
+                                fbq('track', 'AddToWishlist', {
+                                    value: 30000,
+                                    currency: 'THB'
+                                });
                             });
                         }
                         else {
@@ -78,9 +80,11 @@
                             '<div><img src="/Site/images/squad51/coupons/' + sharedReward.Id + '.jpg" style="margin-bottom: 5px"/></div>' +
                             '<div style="margin-bottom: 5px">คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
 
-                        fbq('track', 'AddToWishlist', {
-                            value: 30000,
-                            currency: 'THB'
+                        nonAdminAction(function () {
+                            fbq('track', 'AddToWishlist', {
+                                value: 30000,
+                                currency: 'THB'
+                            });
                         });
 
                     }
@@ -160,16 +164,20 @@
 
                     if (data.MinimumPurchaseAmount > 0) {
 
-                        fbq('track', 'Lead', {
-                            value: data.MinimumPurchaseAmount,
-                            currency: 'THB'
+                        nonAdminAction(function () {
+                            fbq('track', 'Lead', {
+                                value: data.MinimumPurchaseAmount,
+                                currency: 'THB'
+                            });
                         });
                     }
                     else
                     {
-                        fbq('track', 'Lead', {
-                            value: 30000,
-                            currency: 'THB'
+                        nonAdminAction(function () {
+                            fbq('track', 'Lead', {
+                                value: 30000,
+                                currency: 'THB'
+                            });
                         });
                     }
 

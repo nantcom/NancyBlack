@@ -899,7 +899,9 @@
             }
 
             try {
-                fbq('track', 'InitiateCheckout');
+                nonAdminAction(function () {
+                    fbq('track', 'InitiateCheckout');
+                });
             } catch (e) {
             }
 

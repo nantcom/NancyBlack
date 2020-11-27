@@ -168,9 +168,11 @@
 
         me.notifyForCheckingPayment = function () {
 
-            fbq('track', 'Purchase', {
-                value: $scope.object.TotalAmount,
-                currency: 'THB'
+            nonAdminAction(function () {
+                fbq('track', 'Purchase', {
+                    value: $scope.object.TotalAmount,
+                    currency: 'THB'
+                });
             });
 
             $http.post("/support/notify/payment", { SaleOrderIdentifier: $scope.object.SaleOrderIdentifier })
@@ -245,9 +247,11 @@
                     return;
                 }
 
-                fbq('track', 'Purchase', {
-                    value: $scope.object.TotalAmount,
-                    currency: 'THB'
+                nonAdminAction(function () {
+                    fbq('track', 'Purchase', {
+                        value: $scope.object.TotalAmount,
+                        currency: 'THB'
+                    });
                 });
             });
 
