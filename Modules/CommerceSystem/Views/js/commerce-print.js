@@ -287,5 +287,15 @@
         }
     });
 
+    mod.filter('toThailandDateTime', function ($filter) {
+
+        return function (input, format) {
+            var thaiDateTime = new Date(input.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+
+            var angularDateFilter = $filter('date');
+            return angularDateFilter(input, format);
+        }
+    });
+
 
 })();

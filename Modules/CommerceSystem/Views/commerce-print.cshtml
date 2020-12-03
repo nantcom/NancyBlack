@@ -307,8 +307,8 @@
                                         else
                                         {
                                             <text>
-                                                <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{so.PaymentReceivedDate | date:'dd/MM/yyyy'}}</span>
-                                                <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].PaymentDate | date:'dd/MM/yyyy'}}</span>
+                                                <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{rc.__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</span>
+                                                <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</span>
                                             </text>
                                         }
                                     </div>

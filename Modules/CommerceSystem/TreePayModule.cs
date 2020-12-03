@@ -112,7 +112,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 paymentTimeString = "0" + paymentTimeString;
             }
 
-            DateTime paymentDate = DateTime.Now;
+            DateTime paymentDate = default(DateTime);
 
             if (!log.IsErrorCode)
             {
@@ -123,6 +123,12 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     paymentDate = DateTime.Now;
                 }
             }
+
+            // reponse from TreePay always be Thailand Time (SE Asia Standard Time)
+            // convert to Utc DateTime (have to do this in case server use other time zone
+            var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            paymentDate = paymentDate.AddTicks(thaiTimeZone.BaseUtcOffset.Ticks * -1);
+            paymentDate = DateTime.SpecifyKind(paymentDate, DateTimeKind.Utc);
 
             // find existing payment of same sale order
             var existing = this.SiteDatabase.Query<PaymentLog>().Where(l => l.SaleOrderIdentifier == log.SaleOrderIdentifier).ToList();
@@ -137,7 +143,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
             }
 
-            CommerceModule.HandlePayment(this.SiteDatabase, log, paymentDate);
+            CommerceModule.HandlePayment(this.SiteDatabase, log, paymentDate.ToUniversalTime());
 
             return this.Response.AsRedirect("/support/" + log.SaleOrderIdentifier + "?paymentsuccess");
         }

@@ -550,7 +550,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     // reset the one time code used
                     foreach (var item in so.ItemsDetail)
                     {
-                        if (item.Url.StartsWith("/promotions/code"))
+                        if (item.Url.StartsWith("/promotions/code/archive-onetime"))
+                        {
+                            // do nothing
+                        }
+                        else if (item.Url.StartsWith("/promotions/code"))
                         {
                             if (item.Attributes.onetime != null)
                             {
@@ -589,12 +593,19 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             db.Transaction(() =>
             {
                 // now, find all payment log of this month
+
                 var startOfMonth = new DateTime(month.Year, month.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+
+                // this is temporary fix for receipt number to be in order as they created
+                // because datetime in db are store in utc tick and we cannot use .ToLocalTime() in db.Query().Where() as it unsuported
+                // so we use startOfMonth - thaiTimeZone (7 hours) instead
+                var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                startOfMonth = startOfMonth.AddTicks(thaiTimeZone.BaseUtcOffset.Ticks * -1);
                 var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
                 var paymentsThisMonth = db.Query<PaymentLog>()
-                                          .Where(l => l.PaymentDate >= startOfMonth && l.PaymentDate <= endOfMonth)
-                                          .OrderBy( l => l.PaymentDate )
-                                          .ThenBy( l => l.Id ).ToList();
+                                          .Where(l => l.__createdAt >= startOfMonth && l.__createdAt <= endOfMonth)
+                                          .OrderBy( l => l.Id ).ToList();
 
                 int counter = 1;
                 foreach (var l in paymentsThisMonth)
@@ -606,8 +617,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     }
                     else
                     {
-                        receipt.Identifier = l.PaymentDate.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
-                        db.UpsertRecord(receipt);
+                        if (string.IsNullOrWhiteSpace(receipt.Identifier))
+                        {
+                            receipt.Identifier = l.PaymentDate.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
+                            db.UpsertRecord(receipt);
+                        }
 
                         counter++;
                     }
