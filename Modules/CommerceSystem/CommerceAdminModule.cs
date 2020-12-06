@@ -381,7 +381,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
 
             var param = ((JObject)arg.body.Value);
 
-            DateTime paidWhen = param.Value<DateTime>("paidWhen").ToLocalTime();
+            DateTime paidWhen = param.Value<DateTime>("paidWhen").ToUniversalTime();
             string soIdentifier = param.Value<string>("saleOrderIdentifier");
             string apCode = param.Value<string>("apCode");
             var form = new JObject();

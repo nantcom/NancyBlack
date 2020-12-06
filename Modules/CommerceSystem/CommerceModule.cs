@@ -602,7 +602,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 // so we use startOfMonth - thaiTimeZone (7 hours) instead
                 var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
                 startOfMonth = startOfMonth.AddTicks(thaiTimeZone.BaseUtcOffset.Ticks * -1);
-                var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+                var endOfMonth = startOfMonth.AddMonths(1).AddMilliseconds(-1);
                 var paymentsThisMonth = db.Query<PaymentLog>()
                                           .Where(l => l.__createdAt >= startOfMonth && l.__createdAt <= endOfMonth)
                                           .OrderBy( l => l.Id ).ToList();
@@ -619,7 +619,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     {
                         if (string.IsNullOrWhiteSpace(receipt.Identifier))
                         {
-                            receipt.Identifier = l.__createdAt.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
+                            // our company is in Thailand so, we only publish doc in Thailand Time
+                            var receiptPublishedDate = l.__createdAt.ToUniversalTime().Add(thaiTimeZone.BaseUtcOffset);
+                            receipt.Identifier = receiptPublishedDate.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
                             db.UpsertRecord(receipt);
                         }
 
