@@ -619,7 +619,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     {
                         if (string.IsNullOrWhiteSpace(receipt.Identifier))
                         {
-                            receipt.Identifier = l.PaymentDate.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
+                            receipt.Identifier = l.__createdAt.ToString("RCyyyyMM-", System.Globalization.CultureInfo.InvariantCulture) + string.Format("{0:0000}", counter);
                             db.UpsertRecord(receipt);
                         }
 
