@@ -143,7 +143,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 }
             }
 
-            CommerceModule.HandlePayment(this.SiteDatabase, log, paymentDate.ToUniversalTime());
+            CommerceModule.HandlePayment(this.SiteDatabase, log, paymentDate);
 
             return this.Response.AsRedirect("/support/" + log.SaleOrderIdentifier + "?paymentsuccess");
         }

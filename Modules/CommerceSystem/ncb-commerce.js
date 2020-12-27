@@ -708,60 +708,6 @@
 
     });
 
-    ncg.controller("PaysbuyController", function ($scope, $http, $timeout) {
-
-        if ($scope.shoppingcart == null) {
-
-            throw "require ncg-Cart in current scope";
-        }
-
-        $scope.so = {};
-
-        var $me = this;
-        $me.pay = function () {
-
-            $("#working").addClass("show");
-
-            var submitForm = function () {
-
-                $("#paysbuy_form").attr("action",
-                    "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
-
-                $timeout(function () {
-
-                    $("#paysbuy_form").submit();
-                }, 1000);
-
-            };
-
-            var getPaysbuySettings = function () {
-
-                $http.get("/__commerce/paysbuy/settings")
-                    .success(function (data) {
-
-                        $scope.paysbuy = data;
-                        submitForm();
-                    })
-            };
-
-            $scope.shoppingcart.checkout(function (data, arg) {
-
-                if (data.error == true) {
-
-                    $("#working").removeClass("show");
-                    alert("Cannot Process your request, please try again.");
-                    return;
-                }
-
-                $scope.so = data;
-
-                getPaysbuySettings();
-            });
-
-        };
-
-    });
-
     ncg.controller("TreePayBySaleOrderController", function ($scope, $http, $timeout, $window) {
         
         var $me = this;
@@ -953,79 +899,146 @@
 
     });
 
-    ncg.controller("PaysbuyBySaleOrderController", function ($scope, $http, $timeout) {
+    ncg.controller("Pg2c2pBySaleOrderController", function ($scope, $http, $timeout, $window) {
 
+        $me = this;
 
-        var $me = this;
+        var soPaymentLogs = {};
+        $me.saleOrder = {};
 
-        $scope.splitValue = null;
+        $me.init = function (saleOrder, paymentLogs) {
+            $me.saleOrder = saleOrder;
+            soPaymentLogs = paymentLogs;
 
-        $me.pay = function () {
+            if ($me.saleOrder.IsPayWithCreditCart == 1) {
 
-            $("#working").addClass("show");
+                $me.paymentMethods = [
+                    { code: "FULL", title: "รูดเต็ม".translate("Pay") },
+                    { code: "IPP", title: "ผ่อน 0%".translate("Pay with 0% Installments") }
+                    //,            { code: "PABK", title: "Internet Banking" }
+                ]
 
-            var submitForm = function () {
+            }
 
-                $("#paysbuy_form").attr("action",
-                    "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
+            // set remaining payment
+            $me.remainingAmount = saleOrder.TotalAmount;
+            $me.selectedAmout = $me.remainingAmount;
 
-                $timeout(function () {
+            if (paymentLogs != null && paymentLogs.length > 0) {
+                $me.remainingAmount = $me.saleOrder.TotalAmount;
+                for (var i = 0; i < paymentLogs.length; i++) {
+                    if (paymentLogs[i].IsPaymentSuccess) {
+                        $me.remainingAmount -= paymentLogs[i].Amount;
+                    }
+                }
+            }
 
-                    $("#paysbuy_form").submit();
-                }, 1000);
-
-            };
-
-            var getPaysbuySettings = function () {
-
-                $http.get("/__commerce/paysbuy/settings")
-                    .success(function (data) {
-
-                        $scope.paysbuy = data;
-                        submitForm();
-                    })
-            };
-
-            getPaysbuySettings();
-
+            // automatically pay with remaining amount using split mode to reduce confusion
+            $me.paymentType = 'Split';
+            $me.selectedAmout = $me.remainingAmount;
         };
 
-        $me.splitPay = function (amount) {
+        $me.pay = function () {
+            if ($me.saleOrder.IsPayWithCreditCart != 1) {
+                alert("ขอโทษค่ะ ไม่สามารถชำระเงินด้วย 2C2P ได้ กรุณาติดต่อเจ้าหน้าที่")
+                return;
+            }
 
-            $scope.splitValue = amount;
-            if ($scope.splitValue > $scope.paymentDetail.PaymentRemaining) {
+            if ($me.paymentType == "AllRemaining") {
+                $me.selectedAmout = $me.remainingAmount;
+            }
+            else if ($me.selectedAmout > $me.remainingAmount) {
                 alert("ขอโทษค่ะ จำนวนเงินเกินยอดที่ต้องชำระค่ะ");
                 return;
             }
 
+            if ($me.paymentMethod == "IPP") {
+                $scope.ippInterestType = "M";
+                //$scope.request3ds = "N";
+            }
+
+            try {
+                nonAdminAction(function () {
+                    fbq('track', 'InitiateCheckout');
+                });
+            } catch (e) {
+            }
+
             $("#working").addClass("show");
 
-            var submitForm = function () {
+            setInitialParameters(function () {
+                //Construct signature string
+                // detail of sequence can view at https://developer.2c2p.com/docs/ipp-installment-payment-plan 
+                // and https://developer.2c2p.com/docs/payment-requestresponse-parameters
+                // at Payment request parameters in no 43
+                // if conflic use /ipp-installment-payment-plan
+                var params = $scope.version + $scope.merchantId + $scope.paymentDescription + $scope.orderId +
+                    $scope.currency + $scope.amount + $scope.soId + $scope.soIdentifier + $scope.callBackUrlFrontEnd +
+                    $scope.callBackUrlBackEnd + $scope.request3ds + $me.paymentMethod + $scope.ippInterestType +
+                    $scope.defaultLanguage;
 
-                $("#paysbuy_split_form").attr("action",
-                    "https://www.paysbuy.com/paynow.aspx?lang=" + $scope.paysbuy.lang);
-
-                $timeout(function () {
-
-                    $("#paysbuy_split_form").submit();
-                }, 1000);
-
-            };
-
-            var getPaysbuySettings = function () {
-
-                $http.get("/__commerce/paysbuy/settings")
-                    .success(function (data) {
-
-                        $scope.paysbuy = data;
-                        submitForm();
-                    })
-            };
-
-            getPaysbuySettings();
-
+                //var hash = CryptoJS.HmacSHA256(params, $scope.shaSercretKey);
+                //var testResult = hash.toString();
+                setHashString(params, function () {
+                    //contact 2c2p
+                    $("#pg2c2p_form").attr("action", $scope.paymentUrl);
+                    $scope.$apply();
+                    $("#pg2c2p_form").submit();
+                });
+            });
         };
 
+        var setHashString = function (parametersString, callBack) {
+            $http.post("/2c2p/hashdata", { parameters: parametersString })
+                .success(function (data) {
+                    $scope.hashParams = data
+                    callBack();
+                });
+        }
+
+        var setInitialParameters = function (callBack) {
+            $http.post("/__commerce/2c2p/parameters", { SaleOrderId: $me.saleOrder.Id })
+                .success(function (data) {
+
+                    $scope.merchantId = data.merchantId;
+                    $scope.currency = data.currency;
+                    $scope.version = data.version;
+                    $scope.paymentUrl = data.redirectUrlApi;
+                    $scope.callBackUrlFrontEnd = data.postBackFrontEndUrl;
+                    $scope.callBackUrlBackEnd = data.postBackBackEndUrl;
+                    $scope.defaultLanguage = data.defaultLanguage;
+                    $scope.orderId = data.orderId;
+
+                    var amount = Math.round(($me.selectedAmout + Number.EPSILON) * 100); // for 200.12 would be 20012
+                    $scope.amount = amount.toString().padStart(12, "0"); // expect 000000020012 same as 200.12 thb
+                    $scope.paymentDescription = "order for " + $me.saleOrder.SaleOrderIdentifier;
+                    $scope.soId = $me.saleOrder.Id.toString();
+                    $scope.soIdentifier = $me.saleOrder.SaleOrderIdentifier;
+
+                    callBack();
+                });
+        }
+
+        //acount credentials
+        $scope.merchantId = null;
+
+        //transaction info
+        $scope.paymentDescription = "order for " + $me.saleOrder.SaleOrderIdentifier;
+        $scope.orderId = "";  // number as string limited at 20 digits
+        $scope.currency = null; // thai baht code for ISO_4217
+        $scope.amount = ""; // for 5,000.00 thb have to be string "000000500000", and for flexibility of API this should limit to 12 digit
+        $me.paymentMethod = ""; // this is options and default would be all options
+        $scope.ippInterestType = "";
+        $scope.request3ds = "";
+        $scope.soId = "";
+        $scope.soIdentifier = "";
+
+        //request info
+        $scope.version = null;
+        $scope.paymentUrl = null;
+        $scope.callBackUrlFrontEnd = null;
+        $scope.callBackUrlBackEnd = null;
+        $scope.defaultLanguage = null;
     });
 
     ncg.controller("NotifyMoneyTransfer", function ($scope, $timeout) {

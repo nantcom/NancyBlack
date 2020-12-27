@@ -1,0 +1,50 @@
+﻿<div ng-controller="Pg2c2pBySaleOrderController as pg2c2pCtrl"  >
+    <div ng-init="pg2c2pCtrl.init(object, paymentLogs)">
+
+        <div class="row">
+            <div class="col-sm-9">
+
+                จำนวนที่ต้องการชำระ:
+                <input ng-model="pg2c2pCtrl.selectedAmout" type="number" style="background-color: white" />
+
+                <div ng-if="pg2c2pCtrl.selectedAmout < pg2c2pCtrl.remainingAmount" style="color: darkgreen; margin: 8px 0">
+                    (ต้องชำระเพิ่ม: {{ pg2c2pCtrl.remainingAmount - pg2c2pCtrl.selectedAmout  | number: 2}})
+                </div>
+
+                <button class="button" style="width: 45%; margin-right: 10px" ng-repeat="option in pg2c2pCtrl.paymentMethods track by option.code"
+                        ng-click="pg2c2pCtrl.paymentMethod = option.code; pg2c2pCtrl.pay()">
+                    <span>{{option.title}}</span>
+                </button>
+
+            </div>
+
+            <div class="col-sm-3">
+                <a href="http://www.treepay.co.th/en/" target="_blank">
+                    <img style="width:100%" src="~/NancyBlack/Modules/CommerceSystem/images/2c2p-logo.png" />
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+    <div>
+        <form id="pg2c2p_form" method="post" action="{{paymentUrl}}" style="display: none">
+            <input type="hidden" name="version" ng-value="version" />
+            <input type="hidden" name="merchant_id" ng-value="merchantId" />
+            <input type="hidden" name="currency" ng-value="currency" />
+            <input type="hidden" name="result_url_1" ng-value="callBackUrlFrontEnd" />
+            <input type="hidden" name="result_url_2" ng-value="callBackUrlBackEnd" />
+            <input type="hidden" name="user_defined_1" ng-value="soId" />
+            <input type="hidden" name="user_defined_2" ng-value="soIdentifier" />
+            <input type="hidden" name="hash_value" ng-value="hashParams" />
+            <input type="hidden" name="payment_description" ng-value="paymentDescription" />
+            <input type="hidden" name="order_id" ng-value="orderId" />
+            <input type="hidden" name="amount" ng-value="amount" />
+            <input type="hidden" name="payment_option" ng-value="pg2c2pCtrl.paymentMethod" />
+            <input type="hidden" name="ipp_interest_type" ng-value="ippInterestType" />
+            <input type="hidden" name="request_3ds" ng-value="request3ds" />
+            <input type="hidden" name="default_lang" ng-value="defaultLanguage" />
+        </form>
+    </div>
+</div>
+<div class="clearfix"></div>

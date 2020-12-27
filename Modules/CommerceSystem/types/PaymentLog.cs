@@ -11,8 +11,8 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
 {
     public sealed class PaymentMethod
     {
-        public const string PaySbuy = "PaySbuy";
         public const string TreePay = "TreePay";
+        public const string Pg2C2P = "2C2P";
         public const string TransferringMoney = "TransferringMoney";
         public const string Cash = "Cash";
         public const string CreditCard = "CreditCard";
