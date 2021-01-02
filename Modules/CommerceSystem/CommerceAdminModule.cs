@@ -157,11 +157,16 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             }
 
             var end = begin.AddMonths(1);
-            end = end.AddSeconds(-1); // one second before start of this month
+            end = end.AddMilliseconds(-1); // one second before start of this month
+
+            var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var negativeTicksOffset = thaiTimeZone.BaseUtcOffset.Ticks * -1;
+            begin = begin.AddTicks(negativeTicksOffset);
+            end = end.AddTicks(negativeTicksOffset);
 
             var paymentsThisMonth = this.SiteDatabase.Query<PaymentLog>()
-                                      .Where(l => l.PaymentDate >= begin && l.PaymentDate <= end)
-                                      .OrderBy(l => l.PaymentDate)
+                                      .Where(l => l.__createdAt >= begin && l.__createdAt <= end)
+                                      .OrderBy(l => l.__createdAt)
                                       .ThenBy(l => l.Id).ToList();
 
             List<Receipt> receipts = new List<Receipt>();

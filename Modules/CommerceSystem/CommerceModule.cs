@@ -447,25 +447,6 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     log.SaleOrderId = so.Id;
                     log.PaymentDate = paidWhen;
 
-                    // check duplicated payment log (sometime we got double request from PaySbuy)
-                    if (log.PaymentSource == PaymentMethod.PaySbuy && !log.IsErrorCode)
-                    {
-                        var jsonStr = ((JObject)log.FormResponse).ToString();
-                        var duplicatedRequests = db.QueryAsJObject("PaymentLog", "FormResponse eq '" + jsonStr + "'").ToList();
-
-                        if (duplicatedRequests.Count > 0)
-                        {
-                            exceptions.Add(JObject.FromObject(new
-                            {
-                                type = "Duplicated Request",
-                                description = string.Format(
-                                "Duplicated with Id: {0}", duplicatedRequests.First().Value<int>("Id"))
-                            }));
-
-                            goto EndPayment;
-                        }
-                    }
-
                     // Wrong Payment Status
                     if (so.PaymentStatus == PaymentStatus.PaymentReceived)
                     {

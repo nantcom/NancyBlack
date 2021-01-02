@@ -32,7 +32,7 @@
                 <th>
                     SO
                 </th>
-                <th>Receipt (Record) Date</th>
+                <th>Receipt Date / (Payment Date)</th>
                 <th>Account</th>
                 <th>
                     <div class="text-right">
@@ -72,14 +72,19 @@
 
                     </td>
                     <td>
-                        @item.PaymentLog.PaymentDate.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
-                        @if (item.PaymentLog.PaymentDate.Date != item.PaymentLog.__createdAt.Date)
+                        @{ 
+                            var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                            var paymentDateInLog = item.PaymentLog.PaymentDate.Add(thaiTimeZone.BaseUtcOffset);
+                            var paymentLogCreatedTime = item.PaymentLog.__createdAt.Add(thaiTimeZone.BaseUtcOffset);
+                        }
+                        @paymentLogCreatedTime.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
+                        @if (paymentDateInLog.Date != paymentLogCreatedTime.Date)
                         {
                             <br />
                             <span class="text-muted" style="font-size: 80%">
                                 <text>
                                     (
-                                    @item.PaymentLog.__createdAt.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
+                                    @paymentDateInLog.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
                                     )
                                 </text>
                             </span>
