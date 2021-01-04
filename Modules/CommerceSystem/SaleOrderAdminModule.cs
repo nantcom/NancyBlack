@@ -167,7 +167,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                     InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where(ivt => ivt.SaleOrderId == existingSo.Id).ToList()
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return 400;
             }

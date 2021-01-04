@@ -84,7 +84,7 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
             {
                 if (ctx.CurrentUser == null)
                 {
-                    if (ctx.Request.Url.HostName == "localhost" || ctx.Request.Url.HostName.Contains("local."))
+                    if (ctx.Request.Url.HostName == "localhost" || ctx.Request.Url.HostName.Contains("local.") || ctx.Request.Url.Port == 10096)
                     {
                         ctx.CurrentUser = NcbUser.LocalHostAdmin;
                     }
@@ -126,7 +126,10 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                     NcbUser user = MemoryCache.Default[cacheKey] as NcbUser;
                     if (user != null)
                     {
-                        ctx.CurrentUser = user;
+                        // still anonymous because did not logged in but we assign profile
+                        var ncbUser = (NcbUser)ctx.CurrentUser;
+                        ncbUser.Profile = user.Profile;
+                        ncbUser.Email = user.Profile.email;
                     }
                     else
                     {
@@ -170,14 +173,15 @@ namespace NantCom.NancyBlack.Modules.MembershipSystem
                         }
                         else
                         {
-                            ctx.CurrentUser = user;
+                            var ncbUser = (NcbUser)ctx.CurrentUser;
+                            ncbUser.Profile = user.Profile;
+                            ncbUser.Email = user.Profile.email;
                         }
 
                         MemoryCache.Default.Add(cacheKey, ctx.CurrentUser, DateTimeOffset.Now.AddMinutes(5));
                     }
 
                 }
-
 
             });
 

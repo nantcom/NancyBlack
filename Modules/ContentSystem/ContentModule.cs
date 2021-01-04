@@ -120,35 +120,25 @@ namespace NantCom.NancyBlack.Modules
             ContentModule.ProcessContentPart(ctx, ContentModule._SiteContent);
         }
 
-
         /// <summary>
-        /// Get Page View Count
+        /// Get Page View Count for given item in table
         /// </summary>
-        /// <param name="arg"></param>
+        /// <param name="db"></param>
+        /// <param name="table"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        private dynamic GetPageViewCount(dynamic arg)
+        public static long GetPageViewCount( NancyBlackDatabase db, dynamic siteSettings, string table, int id )
         {
-            var table = (string)arg.table;
-            var id = (int)arg.id;
-
-            // invalid data type, also  prevent SQL Injection attack when we replace string
-            if (this.SiteDatabase.DataType.FromName(table) == null)
-            {
-                return 400;
-            }
-
-            this.Context.Items["NoCookie"] = true;
-
-            var key = table + id;
-            dynamic cached = MemoryCache.Default.Get(key);
+            var key = "PageViewCount-" + table + id;
+            object cached = MemoryCache.Default.Get(key);
             if (cached != null)
             {
-                return (string)cached;
+                return (long)cached;
             }
 
-            if (this.CurrentSite.analytics == null)
+            if (siteSettings.analytics == null)
             {
-                dynamic result = this.SiteDatabase.Query
+                dynamic result = db.Query
                                 (string.Format("SELECT COUNT(Id) as Hit FROM PageView WHERE ContentId = {0} AND TableName = '{1}'", id, table),
                                 new
                                 {
@@ -157,42 +147,47 @@ namespace NantCom.NancyBlack.Modules
 
                 if (result == null)
                 {
-                    return "0";
+                    result = 0;
                 }
 
-                MemoryCache.Default.Add(key, result.Hit.ToString("0,0"), DateTimeOffset.Now.AddMinutes(10));
-                return result.Hit.ToString("0,0");
+                MemoryCache.Default.Add(key, result, DateTimeOffset.Now.AddMinutes(10));
+                return result;
             }
             else
             {
-                var content = this.SiteDatabase.QueryAsDynamic(table, "Id eq " + id).FirstOrDefault();
+                var content = db.QueryAsDynamic(table, "Id eq " + id).FirstOrDefault();
                 if (content == null)
                 {
-                    MemoryCache.Default.Add(key, "0", DateTimeOffset.Now.AddMinutes(10));
-                    return "0"; // wrong content
+                    MemoryCache.Default.Add(key, 0, DateTimeOffset.Now.AddMinutes(10));
+                    return 0; // wrong content
                 }
 
                 string url = content.Url;
                 if (url == null)
                 {
-                    MemoryCache.Default.Add(key, "0", DateTimeOffset.Now.AddMinutes(10));
-                    return "0"; // cannot get Url
+                    MemoryCache.Default.Add(key, 0, DateTimeOffset.Now.AddMinutes(10));
+                    return 0; // cannot get Url
+                }
+
+                if (url.Contains("/archive/"))
+                {
+                    url = url.Replace("/archive/", "/");
                 }
 
                 url = url.Replace('/', '-');
 
                 long pageViews = 0;
-                lock (BaseModule.GetLockObject( "PageViewSummary-" + url)) // ensure only one thread is working on calculation
+                lock (BaseModule.GetLockObject("PageViewSummary-" + url)) // ensure only one thread is working on calculation
                 {
                     // if multiple threads is locked - they will arrive here when lock is released
                     // so check the cache again
                     cached = MemoryCache.Default.Get(key);
                     if (cached != null)
                     {
-                        return (string)cached;
+                        return (int)cached;
                     }
 
-                    var summaryTable = this.GetSummaryTable();
+                    CloudTable summaryTable = ContentModule.GetSummaryTable(siteSettings);
                     var queryString = TableQuery.CombineFilters(
                                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, url),
                                     TableOperators.And,
@@ -218,7 +213,7 @@ namespace NantCom.NancyBlack.Modules
                                     TableOperators.And,
                                     TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.GreaterThanOrEqual, result.Timestamp));
 
-                    var rawTable = this.GetPageViewTable();
+                    CloudTable rawTable = ContentModule.GetPageViewTable(siteSettings);
                     var pageviewQuery = new TableQuery<PageView>();
                     var count = rawTable.ExecuteQuery<PageView>(pageviewQuery.Where(pvQueryString)).Count();
 
@@ -227,24 +222,47 @@ namespace NantCom.NancyBlack.Modules
 
                     pageViews = result.PageViews;
 
-                    MemoryCache.Default.Add(key, pageViews.ToString("0,0"), DateTimeOffset.Now.AddMinutes(10));
-                    return pageViews.ToString("0,0");
+                    MemoryCache.Default.Add(key, pageViews, DateTimeOffset.Now.AddMinutes(10));
+                    return pageViews;
                 }
 
             }
         }
 
         /// <summary>
+        /// Get Page View Count
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        private dynamic GetPageViewCount(dynamic arg)
+        {
+            var table = (string)arg.table;
+            var id = (int)arg.id;
+
+            // invalid data type, also  prevent SQL Injection attack when we replace string
+            if (this.SiteDatabase.DataType.FromName(table) == null)
+            {
+                return 400;
+            }
+
+            this.Context.Items["NoCookie"] = true;
+
+            var count = ContentModule.GetPageViewCount(this.SiteDatabase, this.CurrentSite, table, id);
+            return count.ToString();
+        }
+
+
+        /// <summary>
         /// Gets the pageview table
         /// </summary>
         /// <returns></returns>
-        private CloudTable GetPageViewTable(bool cache = true)
+        private static CloudTable GetPageViewTable(dynamic siteSettings, bool cache = true)
         {
             Func<CloudTable> getTable = () =>
             {
-                var cred = new StorageCredentials((string)this.CurrentSite.analytics.raw.credentials);
-                var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.raw.server), cred);
-                return client.GetTableReference((string)this.CurrentSite.analytics.raw.table);
+                var cred = new StorageCredentials((string)siteSettings.analytics.raw.credentials);
+                var client = new CloudTableClient(new Uri((string)siteSettings.analytics.raw.server), cred);
+                return client.GetTableReference((string)siteSettings.analytics.raw.table);
             };
 
 
@@ -254,9 +272,52 @@ namespace NantCom.NancyBlack.Modules
             }
 
             var key = string.Format("azure{0}-{1}-{2}",
-                               (string)this.CurrentSite.analytics.raw.credentials,
-                               (string)this.CurrentSite.analytics.raw.server,
-                               (string)this.CurrentSite.analytics.raw.table).GetHashCode().ToString();
+                               (string)siteSettings.analytics.raw.credentials,
+                               (string)siteSettings.analytics.raw.server,
+                               (string)siteSettings.analytics.raw.table).GetHashCode().ToString();
+
+            var table = MemoryCache.Default[key] as CloudTable;
+            if (table == null)
+            {
+                table = getTable();
+
+                MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
+            }
+
+            return table;
+        }
+
+        /// <summary>
+        /// Gets the pageview table
+        /// </summary>
+        /// <returns></returns>
+        private CloudTable GetPageViewTable(bool cache = true)
+        {
+            return ContentModule.GetPageViewTable(this.CurrentSite, cache);
+        }
+
+        /// <summary>
+        /// Gets the Summary table
+        /// </summary>
+        /// <returns></returns>
+        private static CloudTable GetSummaryTable(dynamic siteSettings, bool cache = true)
+        {
+            Func<CloudTable> getTable = () =>
+            {
+                var cred = new StorageCredentials((string)siteSettings.analytics.summary.credentials);
+                var client = new CloudTableClient(new Uri((string)siteSettings.analytics.summary.server), cred);
+                return client.GetTableReference((string)siteSettings.analytics.summary.table);
+            };
+
+            if (cache == false)
+            {
+                return getTable();
+            }
+
+            var key = string.Format("azure{0}-{1}-{2}",
+                               (string)siteSettings.analytics.summary.credentials,
+                               (string)siteSettings.analytics.summary.server,
+                               (string)siteSettings.analytics.summary.table).GetHashCode().ToString();
 
             var table = MemoryCache.Default[key] as CloudTable;
             if (table == null)
@@ -275,32 +336,7 @@ namespace NantCom.NancyBlack.Modules
         /// <returns></returns>
         private CloudTable GetSummaryTable(bool cache = true)
         {
-            Func<CloudTable> getTable = () =>
-            {
-                var cred = new StorageCredentials((string)this.CurrentSite.analytics.summary.credentials);
-                var client = new CloudTableClient(new Uri((string)this.CurrentSite.analytics.summary.server), cred);
-                return client.GetTableReference((string)this.CurrentSite.analytics.summary.table);
-            };
-
-            if (cache == false)
-            {
-                return getTable();
-            }
-
-            var key = string.Format("azure{0}-{1}-{2}",
-                               (string)this.CurrentSite.analytics.summary.credentials,
-                               (string)this.CurrentSite.analytics.summary.server,
-                               (string)this.CurrentSite.analytics.summary.table).GetHashCode().ToString();
-
-            var table = MemoryCache.Default[key] as CloudTable;
-            if (table == null)
-            {
-                table = getTable();
-
-                MemoryCache.Default.Add(key, table, DateTimeOffset.Now.AddDays(1));
-            }
-
-            return table;
+            return ContentModule.GetSummaryTable(this.CurrentSite, cache);
         }
 
         private void SendPageView(IContent requestedContent)

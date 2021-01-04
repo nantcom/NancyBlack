@@ -101,7 +101,9 @@
                     $me.currentUser.Picture = "//graph.facebook.com/" + $me.currentUser.UserName.substr(3) + "/picture";
 
                     if ($me.currentUser.Profile.SendContactEvent) {
-                        fbq('track', 'Contact');
+                        nonAdminAction(function () {
+                            fbq('track', 'Contact');
+                        });
                     }
                 }
 
@@ -181,8 +183,10 @@
 
                         if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
 
-                            fbq('track', 'CompleteRegistration');
-                            ga('send', 'event', 'Register via Google');
+                            nonAdminAction(function () {
+                                fbq('track', 'CompleteRegistration');
+                                ga('send', 'event', 'Register via Google');
+                            });
 
                             if ($scope.socialprove != null) {
                                 $scope.socialprove.getprovewithdata('CompleteRegistration', JSON.stringify(profile));
@@ -193,7 +197,9 @@
                             $scope.socialprove.getprovewithdata('Login', JSON.stringify(profile));
                         }
 
-                        ga('send', 'event', 'Login Google');
+                        nonAdminAction(function () {
+                            ga('send', 'event', 'Login Google');
+                        });
                     }).
                     error(function (data, status, headers, config) {
 
@@ -230,8 +236,10 @@
 
                                 if ((new Date(data.__createdAt)).toDateString() == (new Date()).toDateString()) {
 
-                                    fbq('track', 'CompleteRegistration');
-                                    ga('send', 'event', 'Register via Facebook');
+                                    nonAdminAction(function () {
+                                        fbq('track', 'CompleteRegistration');
+                                        ga('send', 'event', 'Register via Facebook');
+                                    });
 
                                     if ($scope.socialprove != null) {
 
@@ -243,7 +251,9 @@
 
                                     $scope.socialprove.getprovewithdata('Login', JSON.stringify(resultMe));
                                 }
-                                ga('send', 'event', 'Login Facebook');
+                                nonAdminAction(function () {
+                                    ga('send', 'event', 'Login Facebook');
+                                });
 
 
                             }).

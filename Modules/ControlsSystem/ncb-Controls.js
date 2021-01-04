@@ -2587,6 +2587,12 @@
 
             existingTimeout = window.setTimeout(function () {
 
+                if ($("[isotope]").data("initialized") != "yes") {
+
+                    fixIsotope(); // try again later
+                    return;
+                }
+
                 $("[isotope]").isotope('layout');
                 window.dispatchEvent(new Event('resize')); //required by some plugins
 
@@ -2597,6 +2603,11 @@
         function loadImageIfAppeared($element, referencePoint) {
 
             var src = $element.attr("ncb-imgdefer");
+
+            if (src.indexOf("{{") == 0) {
+                src = $element.$scope.$eval( src.substr( 2, src.length - 4 ) );
+            }
+
             var ext = src.substr(src.lastIndexOf("."));
 
             if (webpSupported) {
@@ -2670,6 +2681,7 @@
             }
 
             $element.imgElement = imgElement;
+            $element.$scope = $scope;
 
             var fallback = $element.attr("ncb-imgdefer");
             $element.attr("key", window.utils.md5(fallback + width));

@@ -396,30 +396,6 @@
                 Please select how you want to pay.
                 Your purcahse will be submitted and you will receive confirmation via email.<br />
 
-                <div class="row"
-                     ng-controller="PaysbuyController as psbCtrl">
-
-                    <div class="col-sm-4">
-
-                        <a href ng-click="psbCtrl.pay()">
-                            <img src="/NancyBlack/Modules/CommerceSystem/images/ipsb_01.png" />
-                        </a>
-                        <form id="paysbuy_form" name="formpaysbuy" method="post"
-                              action=""
-                              style="display: none;">
-                            <input type="Hidden" Name="psb" ng-value="paysbuy.psb" />
-                            <input Type="Hidden" Name="biz" ng-value="paysbuy.biz" />
-                            <input Type="Hidden" Name="itm" ng-value="paysbuy.itm" />
-                            <input Type="Hidden" Name="inv" ng-value="so.SaleOrderIdentifier" />
-                            <input Type="Hidden" Name="amt" ng-value="so.TotalAmount" />
-                            <input Type="Hidden" Name="postURL" ng-value="paysbuy.postUrl" />
-                        </form>
-                    </div>
-                    <div class="col-sm-8">
-                        You will be transfered to <b>PaySbuy</b> to make a payment.
-                    </div>
-                </div>
-
                 <div class="row hidden">
                     <div class="col-sm-3">
                         <button class="btn btn-default"

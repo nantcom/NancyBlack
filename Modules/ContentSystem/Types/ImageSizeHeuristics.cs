@@ -120,6 +120,7 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         }
 
         private static long _SaveCounter = 0;
+        private static DateTime _LastSaved;
 
         /// <summary>
         /// Save Heuristics Data
@@ -127,6 +128,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem.Types
         /// <param name="db"></param>
         public static void SaveHeuristics()
         {
+            if (DateTime.Now.Subtract(_LastSaved).TotalSeconds < 5)
+            {
+                return;
+            }
+
+            _LastSaved = DateTime.Now;
             var myId = Interlocked.Increment(ref _SaveCounter);
 
             Task.Run(() =>

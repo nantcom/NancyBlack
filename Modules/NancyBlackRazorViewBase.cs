@@ -772,8 +772,10 @@ namespace NantCom.NancyBlack
                 return jarray.AsEnumerable<dynamic>();
             }
 
+            type = type.ToLowerInvariant();
+
             return from dynamic item in jarray
-                   where item.AttachmentType == type
+                   where ((string)item.AttachmentType).ToLowerInvariant() == type
                    select item;
         }
         
@@ -843,8 +845,26 @@ namespace NantCom.NancyBlack
             return this.GetAttachmentUrl(this.Content, primaryType, fullPath, secondaryTypes);
         }
 
+        /// <summary>
+        /// Get attachment url of given type for currently viewing content
+        /// </summary>
+        /// <param name="primaryType">The type of attachment to get</param>
+        /// <param name="fullPath">Whether full path is required</param>
+        /// <param name="secondaryTypes">Fall back attachment types, UserUpload which is the default type is automatically added</param>
+        /// <returns></returns>
+        public string GetAttachmentUrlWithFallback(string type, string fallbackUrl = null)
+        {
+            var matchingType = (this.GetAttachments(this.Content, type) as IEnumerable<dynamic>).FirstOrDefault();
+            if (matchingType == null)
+            {
+                return fallbackUrl;
+            }
+
+            return matchingType.Url;
+        }
+
         #endregion
-        
+
         private TranslateHelper _TranslateHelper = new TranslateHelper();
 
         /// <summary>

@@ -1,20 +1,13 @@
 ﻿using ImageProcessor;
 using ImageProcessor.Imaging;
-using ImageProcessor.Imaging.Formats;
 using ImageProcessor.Plugins.WebP.Imaging.Formats;
 using Nancy;
-using Nancy.Responses;
 using NantCom.NancyBlack.Modules.ContentSystem.Types;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Caching;
-using System.Web;
 
 namespace NantCom.NancyBlack.Modules.ContentSystem
 {
@@ -40,6 +33,22 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
                 var w = (int)args.w;
                 var h = (int)args.h;
 
+                // Local Request wont resize at all
+                if (this.Context.Request.Url.HostName.StartsWith("192.168"))
+                {
+                    if (path.StartsWith("/") == false)
+                    {
+                        path = "/" + path;
+                    }
+
+                    if (path.StartsWith("//"))
+                    {
+                        path = path.Replace("//", "/");
+                    }
+
+                    return this.Response.AsRedirect(path, Nancy.Responses.RedirectResponse.RedirectType.Temporary);
+                }
+
                 var mode = ImageResizeMode.Fit;
                 if (Enum.TryParse<ImageResizeMode>((string)args.Mode, out mode) == false)
                 {
@@ -51,6 +60,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
             Get["/__resize3"] = (arg) =>
             {
+                // Local Request wont resize at all
+                if (this.Context.Request.Url.HostName.StartsWith("192.168"))
+                {
+                    return this.Response.AsRedirect((string)this.Request.Query.path, Nancy.Responses.RedirectResponse.RedirectType.Permanent);
+                }
+
                 var mode = ImageResizeMode.Fit;
 
                 if (Enum.TryParse<ImageResizeMode>((string)this.Request.Query.Mode, out mode) == false)
@@ -67,6 +82,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
             Get["/__resizeh/{key}"] = (args) =>
             {
+                // Local Request wont use resize
+                if (this.Context.Request.Url.HostName.StartsWith("192.168"))
+                {
+                    return 404;
+                }
+
                 var mode = ImageResizeMode.Fill;
                 var key = (string)args.key;
                 string ext = null;
@@ -94,6 +115,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
 
             Get["/__resizeh-bg/{key}"] = (args) =>
             {
+                // Local requests wont use resize
+                if (this.Context.Request.Url.HostName.StartsWith("192.168"))
+                {
+                    return 404;
+                }
+
                 var mode = ImageResizeMode.Fit;
                 var key = (string)args.key;
                 string ext = null;
@@ -136,6 +163,8 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             });
         }
 
+        private static readonly string[] _Supported = new string[] { "jpg", "jpeg", "png", "gif" };
+
         /// <summary>
         /// Resize the image
         /// </summary>
@@ -148,6 +177,12 @@ namespace NantCom.NancyBlack.Modules.ContentSystem
             {
                 return 404;
             }
+
+            if ( _Supported.Any( fileExt => path.ToLowerInvariant().EndsWith( $".{fileExt}" ) ) == false )
+            {
+                return 400;
+            }
+
 
             var libraryMode = ResizeMode.Crop;
             switch (mode)

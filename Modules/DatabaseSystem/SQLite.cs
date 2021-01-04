@@ -1182,10 +1182,10 @@ namespace SQLite
                 action();
                 Release(savePoint);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Rollback();
-                throw;
+                throw ex;
             }
         }
 

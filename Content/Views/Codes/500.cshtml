@@ -13,7 +13,21 @@
 
 <div>
     <b>Request Headers:</b>
-    @(Newtonsoft.Json.JsonConvert.SerializeObject(this.Request.Headers));
+    @{
+        var headers = Newtonsoft.Json.JsonConvert.SerializeObject(this.Request.Headers);
+    }
+
+    <div id="jsoneditor1" style="width: 100%; height: 500px;"></div>
+    <script type="text/javascript">
+        // create the editor
+        var container = document.getElementById("jsoneditor1");
+        var editor = new JSONEditor(container);
+
+        // set json
+        var json = @(this.Html.Raw(headers));
+        editor.set(json);
+
+    </script>
 
 </div>
 
@@ -42,8 +56,6 @@
         var json = @(this.Html.Raw(json));
         editor.set(json);
 
-        // get json
-        var json = editor.get();
     </script>
 
 } else if (this.RenderContext.Context.Items.ContainsKey("ERROR_TRACE"))

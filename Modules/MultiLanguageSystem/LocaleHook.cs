@@ -176,15 +176,53 @@ namespace NantCom.NancyBlack
             {
                 var p = obj as Product;
 
+                // touch up the price to make it compatible with older code
+                // which still use Price/DiscountPrice
+
+                // assume home currency first
+                var currency = (string)db.CurrentContext.GetSiteSettings().commerce.multicurrency.home;
+
                 if (db.CurrentContext != null &&
                     db.CurrentContext.Items.ContainsKey("Currency"))
                 {
-                    var currency = (string)db.CurrentContext.Items["Currency"];
-                    var priceLocal = p.PriceMultiCurrency[currency] ?? 0M;
-                    var discountPriceLocal = p.DiscountPriceMultiCurrency[currency] ?? 0M;
+                    currency = (string)db.CurrentContext.Items["Currency"];
+                }
 
-                    p.Price = priceLocal;
-                    p.DiscountPrice = discountPriceLocal;
+                try
+                {
+                    var priceLocal = p.PriceMultiCurrency[currency];
+                    if (priceLocal != null)
+                    {
+                        p.Price = priceLocal;
+                    }
+                    else
+                    {
+                        p.PriceMultiCurrency[currency] = p.Price;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while processing Product:" + p.Id, ex);
+                }
+
+                try
+                {
+
+
+                    var discountPriceLocal = p.DiscountPriceMultiCurrency[currency];
+                    if (discountPriceLocal != null)
+                    {
+                        p.DiscountPrice = discountPriceLocal;
+                    }
+                    else
+                    {
+                        p.DiscountPriceMultiCurrency[currency] = p.DiscountPrice;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while processing Product:" + p.Id + " at DiscountPrice", ex);
                 }
 
             };

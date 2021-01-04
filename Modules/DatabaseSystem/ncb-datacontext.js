@@ -132,26 +132,31 @@
 
         $scope.data.refresh = function () {
 
-            var source = $scope.table;
-            source = source.orderByDescending("Id")
+            var url = "/tables/" + attrs.table + "?";
+
+            url += "$orderby=Id desc&";
 
             if ($scope.paging.page > 0) {
 
-                source = source.skip(($scope.paging.page - 1) * $scope.paging.size);
+                var skip = ($scope.paging.page - 1) * $scope.paging.size;
+                url += "$skip=" + skip + "&";
             }
 
             if ($scope.paging.size > 0) {
 
-                source = source.take($scope.paging.size);
+                url += "$top=" + $scope.paging.size + "&";
             }
 
-            source.read($scope.data.filter).done(function (results) {
+            if (typeof $scope.data.filter == "string") {
+                url += "$filter=" + $scope.data.filter + "&";
+            }
 
-                $scope.$apply(function () {
+            $http.get(url).
+                success(function (data, status, headers, config) {
 
                     $scope.isBusy = false;
 
-                    $scope.list = results;
+                    $scope.list = data;
                     $scope.list.forEach($me.processServerObject);
 
                     if (results.length < $scope.paging.size) {
@@ -165,9 +170,14 @@
 
                     $scope.$emit(emittedEvents.refreshed, { sender: $scope, args: results });
                     $scope.$broadcast(emittedEvents.refreshed, { sender: $scope, args: results });
+
+
+                }).
+                error(function (data, status, headers, config) {
+
+                    $me.handleError(data);
                 });
 
-            }, $me.handleError);
 
         };
 
