@@ -71,6 +71,33 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
         public string SKUNumber { get; set; }
 
         /// <summary>
+        /// Due to SKUNumber is also represent to a field in database
+        /// so we create this.GetSKUNumber() function for retreiving SKU logic
+        /// </summary>
+        /// <returns></returns>
+        public string GetSKUNumber(SaleOrder saleOrder)
+        {
+            if (this.Attributes != null && this.Attributes is JObject)
+            {
+                var attr = (JObject)this.Attributes;
+                var fieldName = "compositeSkus";
+                if (attr.ContainsKey(fieldName))
+                {
+                    var productVariations = JArray.Parse(attr.Value<string>(fieldName));
+                    foreach (var item in saleOrder.ItemsDetail.Where(i => i.Id != this.Id && i.Attributes.Qty == 1))
+                    {
+                        var variation = productVariations.Where(i => i.Value<int>("ProductId") == item.Id).FirstOrDefault();
+                        if (variation != null)
+                        {
+                            return variation.Value<string>("Sku");
+                        }
+                    }
+                }
+            }
+            return this.SKUNumber;
+        }
+
+        /// <summary>
         /// Barcode of this product
         /// </summary>
         public string Barcode { get; set; }

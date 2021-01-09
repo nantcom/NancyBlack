@@ -1237,8 +1237,7 @@
                                 {{item.Id}}
                             </td>
                             <td>
-                                <span ncb-vlookup="Product" key="{{item.ProductId}}">
-                                </span>
+                                {{window.allData.InventoryToTitleDict["inv-" + item.Id]}}
                             </td>
                             <td>
                                 <input class="form-control" type="text"

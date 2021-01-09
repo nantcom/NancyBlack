@@ -4,6 +4,14 @@
     Layout = "_base";
 
     var type = this.Model.Content.ContentParts.Type;
+
+    Newtonsoft.Json.Linq.JObject data = Newtonsoft.Json.Linq.JObject.FromObject(this.Model.Data);
+    var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+    DateTime docDate = data.Value<Newtonsoft.Json.Linq.JObject>("Receipt").Value<DateTime>("__createdAt");
+    docDate = docDate.Add(thaiTimeZone.BaseUtcOffset);
+    var janFirst2021Date = new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    var isNewReceiptSystem = docDate > janFirst2021Date;
 }
 
 @section Head{
@@ -16,6 +24,58 @@
             body {
                 -webkit-print-color-adjust: exact !important;
             }
+
+            .doc-header {
+                background-color: rgb(255, 218, 0);
+            }
+
+            .system-note {
+                position: absolute;
+                left: 13%;
+                opacity: 0.8;
+                color: orange;
+                border: 5px solid orange;
+                font-size: 20px;
+                padding: 20px 30px;
+                top: 30%;
+                background: white;
+                text-align: center;
+                transform: rotate(-25deg);
+                /* Safari */
+                -webkit-transform: rotate(-25deg);
+                /* Firefox */
+                -moz-transform: rotate(-25deg);
+                /* IE */
+                -ms-transform: rotate(-25deg);
+                /* Opera */
+                -o-transform: rotate(-25deg);
+            }
+        }
+
+        #page-wrap{
+            position: relative;
+        }
+
+        .system-note {
+            position: absolute;
+            left: 13%;
+            opacity: 0.8;
+            color: orange;
+            border: 5px solid orange;
+            font-size: 20px;
+            padding: 20px 30px;
+            top: 30%;
+            background: white;
+            text-align: center;
+            transform: rotate(-25deg);
+            /* Safari */
+            -webkit-transform: rotate(-25deg);
+            /* Firefox */
+            -moz-transform: rotate(-25deg);
+            /* IE */
+            -ms-transform: rotate(-25deg);
+            /* Opera */
+            -o-transform: rotate(-25deg);
         }
 
         .hide {
@@ -174,447 +234,464 @@
     {
 
 
-        <div id="page-wrap">
+<div id="page-wrap">
 
-            @if (type == "receipt")
-            {
-                <div id="header" style="height: auto; line-height: 20px; letter-spacing: normal"
-                     ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
-                    ใบเสร็จรับเงิน / ใบกำกับภาษี / ใบส่งสินค้า<br />receipt / tax invoice / shipping invoice
-                </div>
-            }
-            else
-            {
-                <div id="header"
-                     ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
-                    @type
-                </div>
-            }
-
-
-            <div class="row">
-                <div class="row">
-
-                    <div class="col-xs-8">
-                        <b>{{billing.name}}</b><br />
-                        หมายเลขประจำตัวผู้เสียภาษี/ Tax ID: {{billing.regid}}<br />
-                        <span ng-bind-html="billing.address | newline"></span>
+    <div class="row">
+        @if (type == "receipt")
+        {
+            <div id="header" style="height: auto; line-height: 20px; letter-spacing: normal"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                @if (isNewReceiptSystem) // new system using receipt and tax invoice from third party software
+                {
+                    <div>
+                        รายละเอียดการชำระเงิน <br /> payment detail
                     </div>
-
-                    <div id="logo" class="col-xs-4">
-
-                        <img ng-src="{{branding.logo}}" />
+                }
+                else // old system (receipt and tax invoice from nantcyblack)
+                {
+                    <div>
+                        ใบเสร็จรับเงิน / ใบกำกับภาษี / ใบส่งสินค้า <br /> receipt / tax invoice / shipping invoice
                     </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div id="header"
+                 ng-style="{ 'background-color' : branding.bgcolor, color : branding.fgcolor }">
+                @type
+            </div>
+        }
+    </div>
 
-                </div>
+    <div class="row">
+        <div class="row">
 
-                <div id="customer" class="row">
+            <div class="col-xs-8">
+                <b>{{billing.name}}</b><br />
+                หมายเลขประจำตัวผู้เสียภาษี/ Tax ID: {{billing.regid}}<br />
+                <span ng-bind-html="billing.address | newline"></span>
+            </div>
 
-                    <div id="customer-title" class="col-xs-6">
+            <div id="logo" class="col-xs-4">
 
-                        <div ng-if="so.UseBillingAddress">
-                            <b>ลูกค้า / Customer</b>
-                            <div>
-                                <div><b>{{so.BillTo.To}}</b></div>
-                                <div ng-if="so.BillTo.TaxId != null">
-                                    หมายเลขประจำตัวผู้เสียภาษี: {{so.BillTo.TaxId}}
-                                </div>
+                <img ng-src="{{branding.logo}}" />
+            </div>
 
-                                {{so.BillTo.Address}}<br />
-                                {{so.BillTo.SubDistrict}}
-                                {{so.BillTo.District}}<br />
-                                {{so.BillTo.State}}
-                                {{so.BillTo.Country}}
-                                {{so.BillTo.PostalCode}}
-                            </div>
-                        </div>
-                        <div ng-if="so.UseBillingAddress == false && so.ShipTo != null && so.ShipTo.To != null">
-                            <b>ลูกค้า / Customer</b>
-                            <div>
-                                <b>{{so.ShipTo.To}}</b><br />
-                                {{so.ShipTo.Address}}<br />
-                                {{so.ShipTo.SubDistrict}}
-                                {{so.ShipTo.District}}<br />
-                                {{so.ShipTo.State}}
-                                {{so.ShipTo.Country}}
-                                {{so.ShipTo.PostalCode}}
-                            </div>
+        </div>
+
+        <div id="customer" class="row">
+
+            <div id="customer-title" class="col-xs-6">
+
+                <div ng-if="so.UseBillingAddress">
+                    <b>ลูกค้า / Customer</b>
+                    <div>
+                        <div><b>{{so.BillTo.To}}</b></div>
+                        <div ng-if="so.BillTo.TaxId != null">
+                            หมายเลขประจำตัวผู้เสียภาษี: {{so.BillTo.TaxId}}
                         </div>
 
-                        <div ng-if="so.UseBillingAddress == false && (so.ShipTo == null || so.ShipTo.To == null)">
-                            <b>ลูกค้า / Customer</b>
-                            <div>
-                                <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br />
-                                {{so.Customer.PhoneNumber}}
-                            </div>
-                        </div>
+                        {{so.BillTo.Address}}<br />
+                        {{so.BillTo.SubDistrict}}
+                        {{so.BillTo.District}}<br />
+                        {{so.BillTo.State}}
+                        {{so.BillTo.Country}}
+                        {{so.BillTo.PostalCode}}
                     </div>
+                </div>
+                <div ng-if="so.UseBillingAddress == false && so.ShipTo != null && so.ShipTo.To != null">
+                    <b>ลูกค้า / Customer</b>
+                    <div>
+                        <b>{{so.ShipTo.To}}</b><br />
+                        {{so.ShipTo.Address}}<br />
+                        {{so.ShipTo.SubDistrict}}
+                        {{so.ShipTo.District}}<br />
+                        {{so.ShipTo.State}}
+                        {{so.ShipTo.Country}}
+                        {{so.ShipTo.PostalCode}}
+                    </div>
+                </div>
 
-                    <div class="col-xs-6">
+                <div ng-if="so.UseBillingAddress == false && (so.ShipTo == null || so.ShipTo.To == null)">
+                    <b>ลูกค้า / Customer</b>
+                    <div>
+                        <b>{{so.Customer.FirstName}} {{so.Customer.LastName}}</b><br />
+                        {{so.Customer.PhoneNumber}}
+                    </div>
+                </div>
+            </div>
 
-                        <table id="meta">
+            <div class="col-xs-6">
+
+                <table id="meta">
+                    <tr>
+                        <td class="meta-head">
+                            <div class="editabe" id="saleordernumber">
+                                Order No.
+                            </div>
+                        </td>
+                        <td>{{so.SaleOrderIdentifier}}</td>
+                    </tr>
+
+                    @{
+                        if (type == "receipt")
+                        {
                             <tr>
                                 <td class="meta-head">
-                                    <div class="editabe" id="saleordernumber">
-                                        Order No.
+                                    <div class="editabe" id="receiptnumber">
+                                        เลขที่/No.
                                     </div>
                                 </td>
-                                <td>{{so.SaleOrderIdentifier}}</td>
+                                <td>
+                                    {{rc.Identifier}}
+                                </td>
                             </tr>
 
-                            @{
-                                if (type == "receipt")
+                            <tr ng-if="rc.IsCanceled">
+                                <td class="meta-head">
+                                    <div>
+
+                                    </div>
+                                </td>
+                                <td style="color:red">
+                                    ยกเลิก/CANCELED
+                                </td>
+                            </tr>
+                        }
+                    }
+
+                    <tr>
+                        <td class="meta-head">
+                            <div class="editabe" id="date">
+                                วันที่/Date
+                            </div>
+                        </td>
+                        <td>
+                            <div id="date">
+
+                                @if (type == "invoice" || type == "quotation")
                                 {
-                                    <tr>
-                                        <td class="meta-head">
-                                            <div class="editabe" id="receiptnumber">
-                                                เลขที่/No.
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {{rc.Identifier}}
-                                        </td>
-                                    </tr>
-
-                                    <tr ng-if="rc.IsCanceled">
-                                        <td class="meta-head">
-                                            <div>
-
-                                            </div>
-                                        </td>
-                                        <td style="color:red">
-                                            ยกเลิก/CANCELED
-                                        </td>
-                                    </tr>
+                                    <text>
+                                        <span>{{so.__createdAt | date:'dd/MM/yyyy'}}</span>
+                                    </text>
                                 }
-                            }
+                                else
+                                {
+                                    <text>
+                                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[0].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</span>
+                                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</span>
+                                    </text>
+                                }
+                            </div>
+                        </td>
 
+                    </tr>
+
+                    @if (type == "invoice")
+                    {
+                        <text>
                             <tr>
                                 <td class="meta-head">
-                                    <div class="editabe" id="date">
-                                        วันที่/Date
+                                    <div class="editabe" id="amountpaid">
+                                        <span>ยอดชำระ/Amount Paid</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div id="date">
-
-                                        @if (type == "invoice" || type == "quotation")
-                                        {
-                                            <text>
-                                                <span>{{so.__createdAt | date:'dd/MM/yyyy'}}</span>
-                                            </text>
-                                        }
-                                        else
-                                        {
-                                            <text>
-                                                <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[0].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</span>
-                                                <span ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</span>
-                                            </text>
-                                        }
+                                    <div class="paid">
+                                        {{(so.TotalAmount - paymentDetail.PaymentRemaining) | number:2 }}
                                     </div>
                                 </td>
-
                             </tr>
-
-                            @if (type == "invoice")
-                            {
-                                <text>
-                                    <tr>
-                                        <td class="meta-head">
-                                            <div class="editabe" id="amountpaid">
-                                                <span>ยอดชำระ/Amount Paid</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="paid">
-                                                {{(so.TotalAmount - paymentDetail.PaymentRemaining) | number:2 }}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="meta-head">
-                                            <div class="editabe" id="amountpaid">
-                                                <span>ต้องชำระเพิ่ม</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="due">
-                                                {{paymentDetail.PaymentRemaining | number:2 }}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </text>
-                            }
-                            else if (type == "quotation")
-                            {
-                                <text>
-                                    <tr>
-                                        <td class="meta-head">
-                                            <div class="editabe" id="amountpaid">
-                                                <span>ราคาที่เสนอ/Amount Quoted</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="paid">
-                                                {{so.TotalAmount | number:2 }}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </text>
-                            }
-                            else
-                            {
-                                <text>
-                                    <tr>
-                                        <td class="meta-head">
-                                            <div class="editabe" id="amountpaid">
-                                                <span>ยอดชำระ/Amount Paid</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="paid">
-                                                <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
-                                                    {{so.TotalAmount | number:2 }}
-                                                </span>
-                                                <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                                                    {{getTotalFromSplitedPayment() | number:2 }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </text>
-                            }
-
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-                <table id="items" class="table"
-                       ncg-productresolver saleorder="so">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>
-                                สินค้า/รายละเอียด
-                                <br />
-                                Product/Description
-                            </th>
-                            <th>
-                                จำนวน<br />
-                                Quantity
-                            </th>
-                            <th>
-                                ราคาต่อหน่วย<br />
-                                Unit Price
-                            </th>
-                            <th>
-                                จำนวนเงินรวม<br />
-                                Amount
-                            </th>
-                        </tr>
-                    </thead>
-                    <tr ng-repeat="item in ItemsDetail | filter: ctrl.filterZero">
-                        <td>
-                            <div class="form-control-static">
-                                {{$index + 1}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{item.Title}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{item.Attributes.Qty}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{ item.CurrentPrice < item.Price ? item.Price : item.CurrentPrice | number:2 }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="form-control-static">
-                                {{ (item.CurrentPrice < item.Price ? item.Price : item.CurrentPrice) * item.Attributes.Qty | number:2 }}
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr ng-if="discount.Price < 0">
-                        <td class="blank" colspan="2"></td>
-                        <td class="total-line" colspan="2">
-                            ส่วนลด<br />DISCOUNT
-                        </td>
-                        <td class="total-value">
-                            {{discount.Price | number: 2}}
-                        </td>
-                    </tr>
-
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
-                        <td class="blank" colspan="2"></td>
-                        <td class="total-line" colspan="2">
-                            จำนวนเงินรวมทั้งสิ้น<br />GRAND TOTAL
-                        </td>
-                        <td class="total-value">
-                            {{ so.TotalAmount  | number : 2}}
-                        </td>
-                    </tr>
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex == -1">
-                        <td class="blank" colspan="2"
-                            style="vertical-align: middle; background-color: lightblue">
-
-                            ( {{getBathText( so.TotalAmount )}} )
-                        </td>
-                        <td class="total-line" colspan="2">
-                            จำนวนเงินรวมทั้งสิ้น<br />GRAND TOTAL
-                        </td>
-                        <td class="total-value">
-                            {{ so.TotalAmount  | number : 2}}
-                        </td>
-                    </tr>
-
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
-                        <td class="blank" colspan="2"
-                            style="vertical-align: middle; background-color: lightblue">
-                            ( {{getBathText( getTotalFromSplitedPayment() )}} )
-                        </td>
-                        <td class="total-line" colspan="2">
-                            จำนวนเงินที่ชำระ<br />AMOUNT PAID
-                        </td>
-                        <td class="total-value">
-                            {{ getTotalFromSplitedPayment()  | number : 2}}
-                        </td>
-                    </tr>
-
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
-                        <td class="blank" colspan="2"></td>
-                        <td class="total-line" colspan="2">
-                            ภาษีมูลค่าเพิ่ม<br />(จากจำนวนเงินที่ชำระ)<br />VALUE ADDED TAX AS PAID
-                        </td>
-                        <td class="total-value">
-
-                            <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
-                                {{ getTotalFromSplitedPayment() - (getTotalFromSplitedPayment() * 100 / 107)  | number:2 }}
-                            </span>
-                        </td>
-                    </tr>
-
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex == -1">
-                        <td class="blank" colspan="2"></td>
-                        <td class="total-line" colspan="2">
-                            ภาษีมูลค่าเพิ่ม<br />VALUE ADDED TAX
-                        </td>
-                        <td class="total-value">
-
-                            {{ so.TotalAmount - (so.TotalAmount * 100 / 107) | number: 2}}
-                        </td>
-                    </tr>
-
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
-                        <td class="blank" colspan="2">
-                            @if (type == "receipt")
-                            {
-                                <div class="fitted">
-                                    <div class="eoe" style="text-align: left">
-                                        <div ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
-                                            <b>หมายเหตุ</b> ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
-                                        </div>
-                                        ผิด ตก ยกเว้น E. & O.E.
-                                    </div>
-                                </div>
-                            }
-                        </td>
-                        <td class="total-line" colspan="2">
-                            รวมมูลค่าสินค้า<br />(จากจำนวนเงินที่ชำระ)<br />TOTAL AS PAID
-                        </td>
-                        <td class="total-value">
-                            {{ getTotalFromSplitedPayment()  * 100 / 107 | number : 2}}
-                        </td>
-                    </tr>
-
-                    <tr ng-if="paymentDetail.SplitedPaymentIndex == -1">
-                        <td class="blank" colspan="2"></td>
-                        <td class="total-line" colspan="2">
-                            รวมมูลค่าสินค้า<br />TOTAL
-                        </td>
-                        <td class="total-value">
-                            {{ so.TotalAmount * 100 / 107 | number : 2}}
-                        </td>
-                    </tr>
-                </table>
-
-                <div class="row"
-                     style="margin-top: 20px"></div>
-
-                <div class="row">
-                    <div class="col-md-12">
-                        <table style="width: 100%; margin-top: 0; margin-bottom: 40px; height: 120px">
                             <tr>
-                                <td>
-                                    <div class="fitted">
-
-                                        @if (type == "receipt")
-                                        {
-
-                                            <div class="collector" style="bottom: auto; top: 35px">
-                                                ผู้รับสินค้า / Received By
-                                            </div>
-
-                                            <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
-                                                 src="/Site/images/billing/cashiersignature.png" />
-
-                                        }
-                                        <div class="collector">
-                                            @if (type == "receipt")
-                                            {
-                                                <text>ผู้รับเงิน / Collector</text>
-                                            }
-                                            @if (type == "invoice")
-                                            {
-                                                <text>ผู้รับสินค้า / Received By</text>
-                                            }
-
-                                            @if (type == "quotation")
-                                            {
-                                                <text>อนุมัติตามที่เสนอ / Approve</text>
-                                            }
-                                        </div>
-
-                                        <div class="collect-date">
-                                            <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[0].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</b>
-                                            <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</b>
-                                            <br />วันที่/Date
-                                        </div>
+                                <td class="meta-head">
+                                    <div class="editabe" id="amountpaid">
+                                        <span>ต้องชำระเพิ่ม</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="fitted">
-                                        <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
-                                             src="/Site/images/billing/companystamp.png" />
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fitted">
-                                        <img style="position: absolute; width: 140px; top: 35px; left: 46px;"
-                                             src="/Site/images/billing/cashiersignature.png" />
-
-                                        <div class="by-name">ในนาม</div>
-                                        <div class="company-name">{{billing.name}}</div>
-                                        <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
+                                    <div class="due">
+                                        {{paymentDetail.PaymentRemaining | number:2 }}
                                     </div>
                                 </td>
                             </tr>
-                        </table>
-                    </div>
-                </div>
+                        </text>
+                    }
+                    else if (type == "quotation")
+                    {
+                        <text>
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="amountpaid">
+                                        <span>ราคาที่เสนอ/Amount Quoted</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="paid">
+                                        {{so.TotalAmount | number:2 }}
+                                    </div>
+                                </td>
+                            </tr>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <tr>
+                                <td class="meta-head">
+                                    <div class="editabe" id="amountpaid">
+                                        <span>ยอดชำระ/Amount Paid</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="paid">
+                                        <span ng-hide="paymentDetail.SplitedPaymentIndex > -1">
+                                            {{so.TotalAmount | number:2 }}
+                                        </span>
+                                        <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
+                                            {{getTotalFromSplitedPayment() | number:2 }}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </text>
+                    }
 
+
+                </table>
 
             </div>
 
         </div>
+
+        <table id="items" class="table"
+               ncg-productresolver saleorder="so">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>
+                        สินค้า/รายละเอียด
+                        <br />
+                        Product/Description
+                    </th>
+                    <th>
+                        จำนวน<br />
+                        Quantity
+                    </th>
+                    <th>
+                        ราคาต่อหน่วย<br />
+                        Unit Price
+                    </th>
+                    <th>
+                        จำนวนเงินรวม<br />
+                        Amount
+                    </th>
+                </tr>
+            </thead>
+            <tr ng-repeat="item in ItemsDetail | filter: ctrl.filterZero">
+                <td>
+                    <div class="form-control-static">
+                        {{$index + 1}}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{item.Title}}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{item.Attributes.Qty}}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{ item.CurrentPrice < item.Price ? item.Price : item.CurrentPrice | number:2 }}
+                    </div>
+                </td>
+                <td>
+                    <div class="form-control-static">
+                        {{ (item.CurrentPrice < item.Price ? item.Price : item.CurrentPrice) * item.Attributes.Qty | number:2 }}
+                    </div>
+                </td>
+            </tr>
+
+            <tr ng-if="discount.Price < 0">
+                <td class="blank" colspan="2"></td>
+                <td class="total-line" colspan="2">
+                    ส่วนลด<br />DISCOUNT
+                </td>
+                <td class="total-value">
+                    {{discount.Price | number: 2}}
+                </td>
+            </tr>
+
+            <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
+                <td class="blank" colspan="2"></td>
+                <td class="total-line" colspan="2">
+                    จำนวนเงินรวมทั้งสิ้น<br />GRAND TOTAL
+                </td>
+                <td class="total-value">
+                    {{ so.TotalAmount  | number : 2}}
+                </td>
+            </tr>
+            <tr ng-if="paymentDetail.SplitedPaymentIndex == -1">
+                <td class="blank" colspan="2"
+                    style="vertical-align: middle; background-color: lightblue">
+
+                    ( {{getBathText( so.TotalAmount )}} )
+                </td>
+                <td class="total-line" colspan="2">
+                    จำนวนเงินรวมทั้งสิ้น<br />GRAND TOTAL
+                </td>
+                <td class="total-value">
+                    {{ so.TotalAmount  | number : 2}}
+                </td>
+            </tr>
+
+            <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
+                <td class="blank" colspan="2"
+                    style="vertical-align: middle; background-color: lightblue">
+                    ( {{getBathText( getTotalFromSplitedPayment() )}} )
+                </td>
+                <td class="total-line" colspan="2">
+                    จำนวนเงินที่ชำระ<br />AMOUNT PAID
+                </td>
+                <td class="total-value">
+                    {{ getTotalFromSplitedPayment()  | number : 2}}
+                </td>
+            </tr>
+
+            <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
+                <td class="blank" colspan="2"></td>
+                <td class="total-line" colspan="2">
+                    ภาษีมูลค่าเพิ่ม<br />(จากจำนวนเงินที่ชำระ)<br />VALUE ADDED TAX AS PAID
+                </td>
+                <td class="total-value">
+
+                    <span ng-show="paymentDetail.SplitedPaymentIndex > -1">
+                        {{ getTotalFromSplitedPayment() - (getTotalFromSplitedPayment() * 100 / 107)  | number:2 }}
+                    </span>
+                </td>
+            </tr>
+
+            <tr ng-if="paymentDetail.SplitedPaymentIndex == -1">
+                <td class="blank" colspan="2"></td>
+                <td class="total-line" colspan="2">
+                    ภาษีมูลค่าเพิ่ม<br />VALUE ADDED TAX
+                </td>
+                <td class="total-value">
+
+                    {{ so.TotalAmount - (so.TotalAmount * 100 / 107) | number: 2}}
+                </td>
+            </tr>
+
+            <tr ng-if="paymentDetail.SplitedPaymentIndex > -1">
+                <td class="blank" colspan="2">
+                    @if (type == "receipt")
+                    {
+                        <div class="fitted">
+                            <div class="eoe" style="text-align: left">
+                                <div ng-show="type == 'receipt' && paymentDetail.SplitedPaymentIndex > -1">
+                                    <b>หมายเหตุ</b> ชำระ งวดที่ {{paymentDetail.SplitedPaymentIndex + 1}} ของจำนวนเงินรวม {{so.TotalAmount | number:2 }} บาท
+                                </div>
+                                ผิด ตก ยกเว้น E. & O.E.
+                            </div>
+                        </div>
+                    }
+                </td>
+                <td class="total-line" colspan="2">
+                    รวมมูลค่าสินค้า<br />(จากจำนวนเงินที่ชำระ)<br />TOTAL AS PAID
+                </td>
+                <td class="total-value">
+                    {{ getTotalFromSplitedPayment()  * 100 / 107 | number : 2}}
+                </td>
+            </tr>
+
+            <tr ng-if="paymentDetail.SplitedPaymentIndex == -1">
+                <td class="blank" colspan="2"></td>
+                <td class="total-line" colspan="2">
+                    รวมมูลค่าสินค้า<br />TOTAL
+                </td>
+                <td class="total-value">
+                    {{ so.TotalAmount * 100 / 107 | number : 2}}
+                </td>
+            </tr>
+        </table>
+
+        <div class="row"
+             style="margin-top: 20px"></div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <table style="width: 100%; margin-top: 0; margin-bottom: 40px; height: 120px">
+                    <tr>
+                        <td>
+                            <div class="fitted">
+
+                                @if (type == "receipt")
+                                {
+
+                                    <div class="collector" style="bottom: auto; top: 35px">
+                                        ผู้รับสินค้า / Received By
+                                    </div>
+
+                                    <img style="position: absolute; width: 140px; top: 35px; left: 30px;"
+                                         src="/Site/images/billing/cashiersignature.png" />
+
+                                }
+                                <div class="collector">
+                                    @if (type == "receipt")
+                                    {
+                                        <text>ผู้รับเงิน / Collector</text>
+                                    }
+                                    @if (type == "invoice")
+                                    {
+                                        <text>ผู้รับสินค้า / Received By</text>
+                                    }
+
+                                    @if (type == "quotation")
+                                    {
+                                        <text>อนุมัติตามที่เสนอ / Approve</text>
+                                    }
+                                </div>
+
+                                <div class="collect-date">
+                                    <b ng-hide="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[0].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</b>
+                                    <b ng-show="paymentDetail.SplitedPaymentIndex > -1">{{paymentDetail.TransactionLog[paymentDetail.SplitedPaymentIndex].__createdAt | toThailandDateTime:'dd/MM/yyyy'}}</b>
+                                    <br />วันที่/Date
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fitted">
+                                <img style="position: absolute; top: 32px;width: 232px; left: -5px;"
+                                     src="/Site/images/billing/companystamp.png" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fitted">
+                                <img style="position: absolute; width: 140px; top: 35px; left: 46px;"
+                                     src="/Site/images/billing/cashiersignature.png" />
+
+                                <div class="by-name">ในนาม</div>
+                                <div class="company-name">{{billing.name}}</div>
+                                <div class="authorized-signature">ผู้รับมอบอำนาจ / Authorized Signation</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+
+    @if (isNewReceiptSystem)
+    {
+        <div class="system-note">สำหรับ "ใบเสร็จ" และ "ใบกำกับภาษี" กรุณาติดต่อเจ้าหน้าที่<br />For Receipt and Tax Invoice, Please contact our staff.</div>
+    }
+
+</div>
     }
 </div>

@@ -273,13 +273,29 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
             // process the inventory
             InventoryItemModule.ProcessSaleOrderUpdate(this.SiteDatabase, so, false, DateTime.Now);
 
+            var inventoryItems = this.SiteDatabase.Query<InventoryItem>().Where(i => i.SaleOrderId == so.Id).ToList();
+            var inventoryToTitleDict = new JObject();
+            foreach (var item in inventoryItems)
+            {
+                var product = this.SiteDatabase.GetById<Product>(item.ProductId);
+                string productSku = null;
+                if (product.Url.StartsWith("/products/laptop-sku/"))
+                    productSku = product.Title; // before year 2021 sku system
+                else if (product.Url.Contains("/laptop/"))
+                    productSku = product.GetSKUNumber(so); // since year 2021 sku system
+                else
+                    productSku = product.Title;
+                inventoryToTitleDict.Add($"inv-{item.Id}", productSku);
+            }
+
             var data = new
             {
                 SaleOrder = so,
                 PaymentLogs = so.GetPaymentLogs(this.SiteDatabase),
                 RowVerions = so.GetRowVersions(this.SiteDatabase),
                 PaymentMethods = AccountingSystem.AccountingSystemModule.GetCashAccounts(this.SiteDatabase),
-                InventoryRequests = this.SiteDatabase.Query<InventoryItem>().Where( i => i.SaleOrderId == so.Id ).ToList(),
+                InventoryRequests = inventoryItems,
+                InventoryToTitleDict = inventoryToTitleDict,
                 LogisticsCompanies = this.SiteDatabase.Query<LogisticsCompany>().ToList(),
                 AffiliateRewardsClaims = rewardList,
                 AffiliateDiscountCodes = discountCodes
