@@ -1,4 +1,10 @@
-﻿<div ng-controller="TreePayBySaleOrderController as tpCtrl"  >
+﻿@inherits NantCom.NancyBlack.NancyBlackRazorViewBase
+
+@{
+    Layout = null;
+}
+
+<div ng-controller="TreePayBySaleOrderController as tpCtrl">
     <div ng-init="tpCtrl.init(object, paymentLogs)">
 
         <div class="row">
@@ -29,22 +35,7 @@
 
     </div>
     <div>
-        <form id="treepay_form" name="treepay_form"
-              style="display: none;">
-            <input Type="Hidden" Name="ret_url" ng-value="tpCtrl.settings.postUrl" />
-            <input type="Hidden" Name="user_id" ng-value="tpCtrl.user_id" />
-            <input Type="Hidden" Name="order_no" ng-value="tpCtrl.orderNo" />
-            <input Type="Hidden" Name="good_name" ng-value="'LEVEL51 -' + object.SaleOrderIdentifier" />
-            <input Type="Hidden" Name="trade_mony" ng-value="tpCtrl.confirmedSelectedAmout" />
-            <input Type="Hidden" Name="order_first_name" ng-value="tpCtrl.saleOrder.Customer.FirstName" />
-            <input Type="Hidden" Name="order_last_name" ng-value="tpCtrl.saleOrder.Customer.LastName" />
-            <input Type="Hidden" Name="order_email" ng-value="tpCtrl.saleOrder.Customer.Email" />
-            <input Type="Hidden" Name="pay_type" ng-value="tpCtrl.paymentMethod.code" />
-            <input Type="Hidden" Name="currency" ng-value="tpCtrl.settings.currency" />
-            <input Type="Hidden" Name="tp_langFlag" ng-value="tpCtrl.settings.tp_langFlag" />
-            <input Type="Hidden" Name="site_cd" ng-value="tpCtrl.settings.site_cd" />
-            <input Type="Hidden" Name="hash_data" ng-value="tpCtrl.settings.hash_data" />
-        </form>
+        @this.Html.Partial("CommerceSystem/templates/treepay-form")
     </div>
 </div>
 <div class="clearfix"></div>

@@ -759,15 +759,22 @@
             soPaymentLogs = paymentLogs;
             $me.saleOrder = saleorder;
 
-            if ($me.saleOrder.IsPayWithCreditCart == 1) {
+            if ($me.saleOrder.IsPayWithCreditCart == 1 && $me.saleOrder.PaymentFee > 0) {
 
                 $me.paymentMethods = [
                     { code: "PACA", title: "รูดเต็ม".translate("Pay") },
                     { code: "PAIN", title: "ผ่อน 0%".translate("Pay with 0% Installments") }
+                    //,{ code: "PARC", title: "จ่ายรายเดือน".translate("Subscription") } // todo: this line is for test need to remove in production
                     //,            { code: "PABK", title: "Internet Banking" }
                 ]
 
-            } else {
+            }
+            else if ($me.saleOrder.IsPayWithCreditCart == 1 && $me.saleOrder.PaymentFee == 0 && $me.saleOrder.TotalAmount < 3000) {
+                $me.paymentMethods = [
+                    { code: "", title: "ชำระเงิน".translate("Pay") }
+                ]
+            }
+            else {
 
                 // disable pay with installment if not pay with creditcard
                 $me.paymentMethods = [
@@ -844,6 +851,16 @@
                 return;
             }
 
+            if ($me.paymentMethod.code == "PARC") {
+                $me.recurringEndDate = "20211208";
+                //$me.recurringCycleDuration = "";
+                $me.recurringCycleDuration = "M"; // todo: need to change this to 'M' (month) in production
+            }
+            else {
+                $me.recurringEndDate = "";
+                $me.recurringCycleDuration = "";
+            }
+
             try {
                 nonAdminAction(function () {
                     fbq('track', 'InitiateCheckout');
@@ -863,6 +880,8 @@
                     soIdentifier: $me.saleOrder.SaleOrderIdentifier,
                     trade_mony: $me.confirmedSelectedAmout,
                     pay_type: $me.paymentMethod.code,
+                    bill_end: $me.recurringEndDate,
+                    bill_freq: $me.recurringCycleDuration,
                     user_id: $me.user_id
                 })
                 .success(function (data) {

@@ -78,7 +78,9 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                 para.Value<int>("trade_mony") +
                 settings.site_cd +
                 settings.secure_key +
-                para.Value<string>("user_id")).ToLower();
+                para.Value<string>("user_id") +
+                para.Value<string>("bill_end") +
+                para.Value<string>("bill_freq")).ToLower();
         }
 
         private dynamic HandlePaymentPostback(dynamic arg)

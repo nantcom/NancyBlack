@@ -337,7 +337,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 this.ShippingFee = 0;
             }
 
-            if (this.IsPayWithCreditCart)
+            if (this.IsPayWithCreditCart && this.TotalAmount >= 3000)
             {
                 this.PaymentFee = this.TotalAmount * (Decimal)currentSite.commerce.creditCardRate;
                 this.PaymentFee = Math.Floor(this.PaymentFee);
@@ -376,7 +376,7 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem.types
                 if (feeParts[feeParts.length - 2] < 5) {
                     feeParts[feeParts.length - 2] = 0; // if tenth position is less than 5 - make it 0
                 }
-                
+
                 if (feeParts[feeParts.length - 2] > 5) {
                     feeParts[feeParts.length - 2] = 9; // if tenth position is less than 5 - make it 9
                 }
