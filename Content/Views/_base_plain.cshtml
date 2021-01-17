@@ -115,7 +115,7 @@
                 }, delay == null ? delayStack : delay);
             }
             else {
-                
+
                 window.setTimeout(function () {
                     var head = document.getElementsByTagName("head")[0];
                     var beforeNode = document.querySelector("link[href='" + before + "']");
@@ -403,17 +403,20 @@
                             appId: '@(this.Site.Application.FacebookAppId)',
                             xfbml: true,
                             status: true,
-                            version: 'v3.1'
+                            autoLogAppEvents: true,
+                            version: 'v8.0'
                         });
-                    };
 
-                    (function (d, s, id) {
-                        var js, fjs = d.getElementsByTagName(s)[0];
-                        if (d.getElementById(id)) { return; }
-                        js = d.createElement(s); js.id = id;
-                        js.src = "//connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
-                        fjs.parentNode.insertBefore(js, fjs);
-                    }(document, 'script', 'facebook-jssdk'));
+                        console.log("FB Initialized")
+                    };
+                    {
+                        var s = document.createElement('script');
+                        s.setAttribute('src', "https://connect.facebook.net/en_US/sdk.js");
+                        s.setAttribute('crossorigin', "anonymous");
+                        document.body.appendChild(s);
+                    }
+                    
+
 
                     </text>
                 }
@@ -482,7 +485,7 @@
 
             window.setTimeout(window.initialize, 400);
         });
-</script>
+    </script>
     <script>
 
         @if (this.Site.Application.FacebookPixelId != null)
@@ -507,6 +510,7 @@
             </text>
         }
     </script>
+
 
     @if (this.Site.Application.FacebookPixelId != null)
     {

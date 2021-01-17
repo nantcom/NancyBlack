@@ -215,6 +215,7 @@
                 if (typeof (FB) == "undefined") {
                     return false;
                 }
+
                 var accessToken = null;
                 var processFacebookLogin = function () {
 
@@ -273,30 +274,17 @@
                             return;
                         }
 
-                        // will redirect and user has to do the action again
-                        if (popupless == true) {
+                        FB.login(function (loginResponse) {
 
-                            var uri = encodeURI(window.location.href);
-                            window.location = encodeURI("https://www.facebook.com/dialog/oauth?" +
-                                "client_id=" + window.facebookAppId +
-                                "&redirect_uri=" + uri +
-                                "&state=" + state +
-                                "&response_type=token&scope=email,public_profile,user_birthday");
+                            if (loginResponse.authResponse) {
 
-                        } else {
+                                processFacebookLogin();
 
-                            FB.login(function (loginResponse) {
+                            } else {
+                                console.log('User cancelled login or did not fully authorize.');
+                            }
 
-                                if (loginResponse.authResponse) {
-
-                                    processFacebookLogin();
-
-                                } else {
-                                    console.log('User cancelled login or did not fully authorize.');
-                                }
-
-                            }, { scope: 'email,public_profile,user_birthday' });
-                        }
+                        }, { scope: 'email,public_profile,user_birthday' });
                     }
 
                     if (response.status == "connected") {

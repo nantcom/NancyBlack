@@ -540,8 +540,11 @@ namespace NantCom.NancyBlack.Modules.CommerceSystem
                             if (item.Attributes.onetime != null)
                             {
                                 var product = db.GetById<Product>(item.Id);
-                                product.Url = product.Url.Replace("/promotions/code", "/promotions/code/archive-onetime");
-                                db.UpsertRecord(product);
+                                if (product != null)
+                                {
+                                    product.Url = product.Url.Replace("/promotions/code", "/promotions/code/archive-onetime");
+                                    db.UpsertRecord(product);
+                                }
                             }
                         }
                     }

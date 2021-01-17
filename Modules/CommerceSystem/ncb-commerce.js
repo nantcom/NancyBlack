@@ -759,7 +759,7 @@
             soPaymentLogs = paymentLogs;
             $me.saleOrder = saleorder;
 
-            if ($me.saleOrder.IsPayWithCreditCart == 1 && $me.saleOrder.PaymentFee > 0) {
+            if ($me.saleOrder.IsPayWithCreditCart == 1) {
 
                 $me.paymentMethods = [
                     { code: "PACA", title: "รูดเต็ม".translate("Pay") },
@@ -768,11 +768,6 @@
                     //,            { code: "PABK", title: "Internet Banking" }
                 ]
 
-            }
-            else if ($me.saleOrder.IsPayWithCreditCart == 1 && $me.saleOrder.PaymentFee == 0 && $me.saleOrder.TotalAmount < 3000) {
-                $me.paymentMethods = [
-                    { code: "", title: "ชำระเงิน".translate("Pay") }
-                ]
             }
             else {
 
@@ -852,7 +847,7 @@
             }
 
             if ($me.paymentMethod.code == "PARC") {
-                $me.recurringEndDate = "20211208";
+                $me.recurringEndDate = "20211213";
                 //$me.recurringCycleDuration = "";
                 $me.recurringCycleDuration = "M"; // todo: need to change this to 'M' (month) in production
             }

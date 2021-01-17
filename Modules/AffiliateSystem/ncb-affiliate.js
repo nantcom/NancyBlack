@@ -77,7 +77,7 @@
 
                     if (sharedReward != null && data.RewardClaimed == true) {
                         preText =
-                            '<div><img src="/Site/images/squad51/coupons/' + sharedReward.Id + '.jpg" style="margin-bottom: 5px"/></div>' +
+                            '<div><img src="/__lv51/couponsimg/' + sharedReward.Id + '.jpg" style="margin-bottom: 5px"/></div>' +
                             '<div style="margin-bottom: 5px">คูปองได้รับการบันทึกในโปรไฟล์ของคุณแล้ว</div>';
 
                         nonAdminAction(function () {
@@ -186,7 +186,7 @@
                         type: '',
                         title: 'ยินดีด้วย คุณได้รับคูปองส่วนลด',
                         text:
-                            '<img src="/site/images/squad51/coupons/' + data.Id + '.jpg" style="margin-bottom: 5px"/><br/>'
+                            '<img src="/__lv51/couponsimg/' + data.Id + '.jpg" style="margin-bottom: 5px"/><br/>'
                         ,
                         html: true,
                         closeOnConfirm: true,
